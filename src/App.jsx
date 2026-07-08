@@ -1,0 +1,32 @@
+import { Routes, Route, Navigate } from 'react-router-dom'
+import { AppShell } from './components/AppShell.jsx'
+import { Home } from './routes/Home.jsx'
+import { Comunicados } from './routes/Comunicados.jsx'
+import { Treinamentos } from './routes/Treinamentos.jsx'
+import { Procedimentos } from './routes/Procedimentos.jsx'
+import { Mais } from './routes/Mais.jsx'
+import { Jornada } from './routes/Jornada.jsx'
+import { Recompensas } from './routes/Recompensas.jsx'
+import { RhFacil } from './routes/RhFacil.jsx'
+import { AssistenteIa } from './routes/AssistenteIa.jsx'
+import { Manutencao } from './routes/Manutencao.jsx'
+
+export function App() {
+  return (
+    <Routes>
+      <Route element={<AppShell />}>
+        <Route path="/" element={<Home />} />
+        <Route path="/comunicados" element={<Comunicados />} />
+        <Route path="/treinamentos" element={<Treinamentos />} />
+        <Route path="/procedimentos" element={<Procedimentos />} />
+        <Route path="/mais" element={<Mais />} />
+        <Route path="/jornada" element={<Jornada />} />
+        <Route path="/recompensas" element={<Recompensas />} />
+        <Route path="/rh" element={<RhFacil />} />
+        <Route path="/assistente" element={<AssistenteIa />} />
+        <Route path="/manutencao" element={<Manutencao />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Route>
+    </Routes>
+  )
+}

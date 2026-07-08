@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0A0A0A" />
+    <title>Sem conexão · Tatá Plus</title>
+    <style>
+      :root { color-scheme: dark; }
+      * { box-sizing: border-box; }
+      html, body {
+        margin: 0;
+        height: 100%;
+        font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+        background: #0A0A0A;
+        color: #fff;
+      }
+      body {
+        display: grid;
+        place-items: center;
+        padding: 24px;
+      }
+      .box {
+        max-width: 360px;
+        text-align: center;
+      }
+      .badge {
+        display: inline-flex;
+        width: 56px;
+        height: 56px;
+        margin: 0 auto 16px;
+        border-radius: 999px;
+        background: rgba(0, 230, 118, 0.12);
+        color: #00E676;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+      }
+      h1 { font-size: 20px; margin: 0 0 8px; }
+      p { color: #9CA3AF; font-size: 14px; margin: 0 0 20px; line-height: 1.5; }
+      button {
+        appearance: none;
+        border: 0;
+        background: #00E676;
+        color: #000;
+        font-weight: 700;
+        padding: 12px 20px;
+        border-radius: 9999px;
+        cursor: pointer;
+        font-family: inherit;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="box">
+      <div class="badge">⚡</div>
+      <h1>Você está offline</h1>
+      <p>Sem conexão no momento. Assim que voltar, seu Tatá Plus estará prontinho.</p>
+      <button onclick="location.reload()">Tentar novamente</button>
+    </div>
+  </body>
+</html>
