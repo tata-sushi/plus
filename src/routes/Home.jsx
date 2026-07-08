@@ -26,36 +26,42 @@ export function Home() {
         }
       />
 
-      {/* Card de saudação */}
+      {/* Hero de saudação */}
       <div className="px-5 pt-2">
-        <div className="card p-4">
+        <div className="hero-card reveal p-4">
           <div className="hstack gap-3">
-            <Avatar name={currentUser.nome} size={44} />
+            <Avatar name={currentUser.nome} size={48} />
             <div className="min-w-0 flex-1">
-              <div className="text-sm text-muted">Olá, {currentUser.primeiroNome}!</div>
-              <div className="mt-0.5 truncate text-sm">
-                <span className="text-muted">Nível em evolução ·</span>{' '}
-                <span className="font-semibold text-accent">{currentUser.rank}</span>
+              <div className="font-display text-lg font-bold">Olá, {currentUser.primeiroNome}!</div>
+              <div className="mt-0.5 truncate text-xs text-muted">
+                {currentUser.cargo} · {currentUser.loja}
               </div>
             </div>
-            <Link to="/mais" className="pill bg-white/5 text-muted text-[10px]">
-              {currentUser.loja}
-            </Link>
+            <span className="pill bg-accent text-black text-[10px]">{currentUser.rank}</span>
+          </div>
+          <div className="mt-4 hstack justify-between text-[11px]">
+            <span className="text-muted">Rumo ao nível {currentUser.proximoRank}</span>
+            <span className="font-semibold text-accent">
+              {Math.round(currentUser.progressoRank * 100)}%
+            </span>
+          </div>
+          <div className="mt-1.5">
+            <ProgressBar value={currentUser.progressoRank} />
           </div>
         </div>
       </div>
 
       {/* Destaques do dia */}
-      <Section className="mt-5" title="Destaques do dia">
+      <Section className="reveal reveal-1 mt-5" title="Destaques do dia">
         <div className="grid grid-cols-3 gap-2">
           {destaquesDoDia.map((d) => (
-            <StatCard key={d.label} label={d.label} valor={d.valor} hint={d.hint} />
+            <StatCard key={d.label} label={d.label} valor={d.valor} hint={d.hint} trend={d.trend} />
           ))}
         </div>
       </Section>
 
       {/* Urgentes */}
-      <Section className="mt-5" title="Urgentes">
+      <Section className="reveal reveal-2 mt-5" title="Urgentes">
         {urgentes.map((u) => (
           <Card key={u.id} highlight className="mb-2">
             <div className="hstack justify-between gap-3">
@@ -63,7 +69,7 @@ export function Home() {
                 <div className="font-display text-base font-bold">{u.titulo}</div>
                 <div className="mt-1 text-xs text-muted">{u.quando}</div>
               </div>
-              <Link to="/comunicados" className="hstack gap-1 text-xs font-semibold text-accent">
+              <Link to="/comunicados" className="hstack shrink-0 gap-1 text-xs font-semibold text-accent">
                 Ver detalhes <ChevronRight size={14} />
               </Link>
             </div>
@@ -72,7 +78,7 @@ export function Home() {
       </Section>
 
       {/* Acessos rápidos */}
-      <Section className="mt-5" title="Acessos rápidos">
+      <Section className="reveal reveal-3 mt-5" title="Acessos rápidos">
         <div className="grid grid-cols-3 gap-2">
           {acessosRapidos.map((a) => (
             <IconTile key={a.id} icon={a.icon} label={a.label} to={a.to} />
@@ -81,7 +87,7 @@ export function Home() {
       </Section>
 
       {/* Minha progressão */}
-      <Section className="mt-5" title="Minha progressão">
+      <Section className="reveal reveal-4 mt-5" title="Minha progressão">
         <Card>
           <div className="hstack justify-between">
             <span className="text-sm text-muted">{minhaProgressao.label}</span>

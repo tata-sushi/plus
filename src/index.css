@@ -52,6 +52,42 @@
   .icon-tile .icon-wrap {
     @apply flex h-12 w-12 items-center justify-center rounded-2xl bg-accent-soft text-accent;
   }
+  .hero-card {
+    @apply rounded-card border border-accent/25;
+    background:
+      radial-gradient(120% 140% at 0% 0%, rgba(0, 230, 118, 0.18) 0%, rgba(0, 230, 118, 0.05) 45%, transparent 70%),
+      #141414;
+  }
+}
+
+@layer utilities {
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Animações */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes pageIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-page { animation: pageIn 0.22s ease both; }
+.reveal { animation: fadeInUp 0.45s ease both; }
+.reveal-1 { animation-delay: 0.06s; }
+.reveal-2 { animation-delay: 0.12s; }
+.reveal-3 { animation-delay: 0.18s; }
+.reveal-4 { animation-delay: 0.24s; }
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-page, .reveal { animation: none; }
 }
 
 /* Scrollbars discretas */

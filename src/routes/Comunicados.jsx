@@ -1,4 +1,5 @@
-import { Search, Eye } from 'lucide-react'
+import { useState } from 'react'
+import { Search, Eye, Inbox } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Tabs } from '../components/Tabs.jsx'
 import { Card } from '../components/Card.jsx'
@@ -13,6 +14,14 @@ const abas = [
 ]
 
 export function Comunicados() {
+  const [tab, setTab] = useState('todos')
+
+  const filtrados = comunicados.filter((c) => {
+    if (tab === 'todos') return true
+    if (tab === 'urgentes') return c.urgente
+    return c.escopo === tab
+  })
+
   return (
     <>
       <Header
@@ -23,11 +32,11 @@ export function Comunicados() {
           </button>
         }
       />
-      <Tabs tabs={abas} defaultValue="todos" />
+      <Tabs tabs={abas} value={tab} onChange={setTab} />
 
       <div className="mt-2 flex flex-col gap-3 px-5">
-        {comunicados.map((c) => (
-          <Card key={c.id} highlight={c.urgente}>
+        {filtrados.map((c) => (
+          <Card key={c.id} highlight={c.urgente} className="reveal">
             {c.tag && (
               <div className="mb-2">
                 <Badge variant="urgente">{c.tag}</Badge>
@@ -45,6 +54,15 @@ export function Comunicados() {
             </div>
           </Card>
         ))}
+
+        {filtrados.length === 0 && (
+          <div className="mt-8 flex flex-col items-center gap-3 text-center">
+            <div className="grid h-14 w-14 place-items-center rounded-full bg-surface text-muted">
+              <Inbox size={24} />
+            </div>
+            <p className="text-sm text-muted">Nenhum comunicado nessa categoria.</p>
+          </div>
+        )}
       </div>
     </>
   )

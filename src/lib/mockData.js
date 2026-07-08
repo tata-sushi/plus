@@ -29,6 +29,7 @@ export const acessosRapidos = [
   { id: 'comunicados', label: 'Comunicados', icon: 'Megaphone', to: '/comunicados' },
   { id: 'treinamentos', label: 'Treinamentos', icon: 'GraduationCap', to: '/treinamentos' },
   { id: 'procedimentos', label: 'Procedimentos', icon: 'ClipboardList', to: '/procedimentos' },
+  { id: 'recompensas', label: 'Recompensas', icon: 'Gift', to: '/recompensas' },
   { id: 'rh', label: 'RH Fácil', icon: 'HeartHandshake', to: '/rh' },
   { id: 'ia', label: 'Fale com a IA', icon: 'Sparkles', to: '/assistente' },
 ]
@@ -47,6 +48,7 @@ export const comunicados = [
     resumo: 'A partir de 10/09, todas as unidades abrirão 30 min mais cedo.',
     data: '10/09/2024',
     categoria: 'Marketing',
+    escopo: 'corporativo',
     views: 125,
   },
   {
@@ -55,6 +57,7 @@ export const comunicados = [
     resumo: 'Participe da nossa campanha especial e aproveite os materiais disponíveis.',
     data: '05/05/2024',
     categoria: 'Marketing',
+    escopo: 'corporativo',
     views: 87,
   },
   {
@@ -63,6 +66,7 @@ export const comunicados = [
     resumo: 'Confira os detalhes dos novos combinados de inverno.',
     data: '01/06/2024',
     categoria: 'Loja',
+    escopo: 'loja',
     views: 64,
   },
   {
@@ -71,6 +75,7 @@ export const comunicados = [
     resumo: 'Reforçamos a importância da higienização correta.',
     data: '07/05/2024',
     categoria: 'Qualidade',
+    escopo: 'loja',
     views: 52,
   },
 ]
@@ -122,8 +127,8 @@ export const jornadaResumo = {
 }
 
 export const recompensasCatalogo = [
-  { id: 'r_1', titulo: 'Vale-refeição R$ 50', custo: 500 },
-  { id: 'r_2', titulo: 'Camiseta Tatá', custo: 800 },
-  { id: 'r_3', titulo: 'Day-off', custo: 3000 },
-  { id: 'r_4', titulo: 'Kit sushi em casa', custo: 1500 },
+  { id: 'r_1', titulo: 'Vale-refeição R$ 50', custo: 500, emoji: '🍽️' },
+  { id: 'r_2', titulo: 'Camiseta Tatá', custo: 800, emoji: '👕' },
+  { id: 'r_3', titulo: 'Day-off', custo: 3000, emoji: '🌴' },
+  { id: 'r_4', titulo: 'Kit sushi em casa', custo: 1500, emoji: '🍣' },
 ]
