@@ -1,16 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="112" fill="#0A0A0A"/>
-  <circle cx="256" cy="256" r="180" fill="none" stroke="#00E676" stroke-width="18"/>
-  <path d="M256 92v40" stroke="#00E676" stroke-width="18" stroke-linecap="round"/>
-  <path d="M256 380v40" stroke="#00E676" stroke-width="18" stroke-linecap="round"/>
-  <text
-    x="256"
-    y="286"
-    text-anchor="middle"
-    font-family="DM Sans, Inter, system-ui, sans-serif"
-    font-weight="800"
-    font-size="120"
-    fill="#00E676"
-    letter-spacing="-4"
-  >T+</text>
+  <defs>
+    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#33FF8C"/>
+      <stop offset="100%" stop-color="#00C853"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" fill="#0A0A0A"/>
+  <g fill="none" stroke="url(#g)" stroke-width="22" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M256,86 L403,171 L403,341 L256,426 L109,341 L109,171 Z"/>
+    <path d="M256,256 L256,86 M256,256 L403,341 M256,256 L109,341"/>
+  </g>
 </svg>
