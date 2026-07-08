@@ -12,8 +12,12 @@ export function Header({ title, right }) {
         </Link>
         <div className="hstack gap-2">
           {right}
-          <button className="grid h-9 w-9 place-items-center rounded-full bg-surface tap" aria-label="Notificações">
+          <button
+            className="relative grid h-9 w-9 place-items-center rounded-full bg-surface tap"
+            aria-label="Notificações"
+          >
             <Bell size={18} />
+            <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-accent ring-2 ring-bg" />
           </button>
         </div>
       </div>

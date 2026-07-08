@@ -1,6 +1,7 @@
 import { NavLink } from 'react-router-dom'
 import { Home, Megaphone, GraduationCap, ClipboardList, Menu } from 'lucide-react'
 import { cn } from '../lib/cn'
+import { tapHaptic } from '../lib/haptics.js'
 
 const items = [
   { to: '/', label: 'Início', Icon: Home, end: true },
@@ -22,15 +23,19 @@ export function BottomNav() {
             <NavLink
               to={to}
               end={end}
+              onClick={tapHaptic}
               className={({ isActive }) =>
                 cn(
-                  'flex flex-col items-center justify-center gap-1 py-2.5 text-[10px] font-medium tap',
+                  'relative flex flex-col items-center justify-center gap-1 py-2.5 text-[10px] font-medium tap',
                   isActive ? 'text-accent' : 'text-muted',
                 )
               }
             >
               {({ isActive }) => (
                 <>
+                  {isActive && (
+                    <span className="absolute top-0 h-0.5 w-8 rounded-pill bg-accent shadow-glow" />
+                  )}
                   <Icon size={22} strokeWidth={isActive ? 2.5 : 2} />
                   <span>{label}</span>
                 </>

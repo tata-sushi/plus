@@ -6,15 +6,17 @@ import { Card } from '../components/Card.jsx'
 import { Avatar } from '../components/Avatar.jsx'
 import { ProgressBar } from '../components/ProgressBar.jsx'
 import { currentUser, jornadaResumo } from '../lib/mockData.js'
+import { useCountUp } from '../lib/useCountUp.js'
 
 export function Jornada() {
+  const saldoAnimado = useCountUp(currentUser.pontosCarteira)
   return (
     <>
       <Header title="Minha Jornada" />
 
       {/* Perfil + rank */}
       <div className="px-5">
-        <div className="card p-4">
+        <div className="hero-card reveal p-4">
           <div className="hstack gap-3">
             <Avatar name={currentUser.nome} size={56} />
             <div className="min-w-0 flex-1">
@@ -40,13 +42,13 @@ export function Jornada() {
       </div>
 
       {/* Carteira / recompensas */}
-      <Section className="mt-5" title="Carteira de pontos">
+      <Section className="reveal reveal-1 mt-5" title="Carteira de pontos">
         <Card>
           <div className="hstack justify-between">
             <div>
               <div className="text-xs text-muted">Saldo atual</div>
               <div className="font-display text-2xl font-bold text-accent">
-                {currentUser.pontosCarteira.toLocaleString('pt-BR')} pts
+                {saldoAnimado.toLocaleString('pt-BR')} pts
               </div>
             </div>
             <Link to="/recompensas" className="btn-primary">
@@ -57,7 +59,7 @@ export function Jornada() {
       </Section>
 
       {/* Stats */}
-      <Section className="mt-5" title="Meus indicadores">
+      <Section className="reveal reveal-2 mt-5" title="Meus indicadores">
         <div className="grid grid-cols-2 gap-2">
           {jornadaResumo.stats.map((s) => (
             <Card key={s.label} className="!p-3">
@@ -69,7 +71,7 @@ export function Jornada() {
       </Section>
 
       {/* Ações */}
-      <Section className="mt-5" title="Minhas ações">
+      <Section className="reveal reveal-3 mt-5" title="Minhas ações">
         <div className="card overflow-hidden">
           {jornadaResumo.minhasAcoes.map((a, idx) => (
             <button
