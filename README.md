@@ -21,14 +21,9 @@ npm run preview    # preview do build
 
 ## Ícones do PWA
 
-O logo mestre fica em `public/icons/logo.svg` e é usado no manifest como ícone único (SVG escala para qualquer tamanho). Para gerar PNGs otimizados (recomendado antes de lançar em produção pra estar 100% compatível com iOS home screen):
+Os ícones usados pelo app (favicon, apple-touch-icon, manifest do PWA) ficam em `public/icons/` como PNGs otimizados (`favicon-32.png`, `apple-touch-icon.png`, `icon-192.png`, `icon-512.png`), recortados do logo oficial da Tatá Sushi.
 
-```bash
-npm i -D @vite-pwa/assets-generator
-npx pwa-assets-generator --preset minimal-2023 public/icons/logo.svg
-```
-
-E incluir as PNGs geradas no `manifest.icons` do `vite.config.js`.
+Os arquivos-fonte (logo original enviado pela marca, versão mestre 1024px e o lockup completo com o wordmark) ficam fora da pasta `public/` — em `design/brand-source/` — para não serem publicados nem entrarem no precache do service worker. Se precisar regenerar os ícones (outro recorte, outra cor), edite a partir desses arquivos-fonte.
 
 ## Deploy
 
