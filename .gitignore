@@ -1,0 +1,10 @@
+node_modules
+dist
+dist-ssr
+.vite
+.DS_Store
+*.local
+.env
+.env.local
+.env.*.local
+pwa-assets.config.timestamp-*.mjs

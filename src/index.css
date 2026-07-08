@@ -1,0 +1,63 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html, body, #root {
+    height: 100%;
+  }
+  body {
+    @apply bg-bg text-text font-sans antialiased;
+    -webkit-tap-highlight-color: transparent;
+    overscroll-behavior-y: none;
+  }
+  ::selection {
+    background: rgba(0, 230, 118, 0.35);
+    color: #fff;
+  }
+  button, [role="button"] {
+    -webkit-user-select: none;
+    user-select: none;
+  }
+}
+
+@layer components {
+  .safe-top { padding-top: env(safe-area-inset-top); }
+  .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+
+  .card {
+    @apply bg-surface rounded-card border border-white/5;
+  }
+  .card-2 {
+    @apply bg-surface-2 rounded-card border border-white/5;
+  }
+  .pill {
+    @apply inline-flex items-center gap-1 rounded-pill px-3 py-1 text-xs font-semibold;
+  }
+  .hstack { @apply flex items-center; }
+  .vstack { @apply flex flex-col; }
+
+  .tap {
+    @apply active:scale-[0.98] transition-transform;
+  }
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-pill bg-accent text-black font-semibold px-4 py-2.5 tap;
+  }
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 rounded-pill bg-white/5 text-text font-semibold px-4 py-2.5 tap;
+  }
+  .icon-tile {
+    @apply flex flex-col items-center justify-center gap-2 rounded-card bg-surface-2 p-4 text-center tap border border-white/5;
+  }
+  .icon-tile .icon-wrap {
+    @apply flex h-12 w-12 items-center justify-center rounded-2xl bg-accent-soft text-accent;
+  }
+}
+
+/* Scrollbars discretas */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #2A2A2A transparent;
+}
+*::-webkit-scrollbar { width: 6px; height: 6px; }
+*::-webkit-scrollbar-thumb { background: #2A2A2A; border-radius: 999px; }
