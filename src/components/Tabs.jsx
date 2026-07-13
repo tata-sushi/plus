@@ -14,7 +14,7 @@ export function Tabs({ tabs, value, onChange, defaultValue }) {
 
   return (
     <div className="px-5">
-      <div className="hstack gap-2 overflow-x-auto pb-3 no-scrollbar">
+      <div className="flex items-center justify-center gap-2 overflow-x-auto pb-3 no-scrollbar">
         {tabs.map((t) => {
           const isActive = t.value === active
           return (
