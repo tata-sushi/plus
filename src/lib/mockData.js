@@ -198,6 +198,73 @@ export const menuDoDia = {
   ],
 }
 
+// Cardápio semanal do refeitório (Segunda a Domingo).
+export const cardapioSemanal = [
+  {
+    abrev: 'Seg',
+    nome: 'Segunda-feira',
+    itens: [
+      { label: 'Prato principal', valor: 'Yakisoba de frango', icon: 'UtensilsCrossed' },
+      { label: 'Acompanhamento', valor: 'Arroz, feijão e salada', icon: 'Salad' },
+      { label: 'Sobremesa', valor: 'Gelatina de morango', icon: 'IceCreamBowl' },
+    ],
+  },
+  {
+    abrev: 'Ter',
+    nome: 'Terça-feira',
+    itens: [
+      { label: 'Prato principal', valor: 'Frango grelhado com legumes', icon: 'UtensilsCrossed' },
+      { label: 'Acompanhamento', valor: 'Arroz integral e vinagrete', icon: 'Salad' },
+      { label: 'Sobremesa', valor: 'Salada de frutas', icon: 'IceCreamBowl' },
+    ],
+  },
+  {
+    abrev: 'Qua',
+    nome: 'Quarta-feira',
+    itens: [
+      { label: 'Prato principal', valor: 'Estrogonofe de carne', icon: 'UtensilsCrossed' },
+      { label: 'Acompanhamento', valor: 'Arroz e batata palha', icon: 'Salad' },
+      { label: 'Sobremesa', valor: 'Pudim', icon: 'IceCreamBowl' },
+    ],
+  },
+  {
+    abrev: 'Qui',
+    nome: 'Quinta-feira',
+    itens: [
+      { label: 'Prato principal', valor: 'Peixe assado', icon: 'UtensilsCrossed' },
+      { label: 'Acompanhamento', valor: 'Purê de batata e salada', icon: 'Salad' },
+      { label: 'Sobremesa', valor: 'Mousse de maracujá', icon: 'IceCreamBowl' },
+    ],
+  },
+  {
+    abrev: 'Sex',
+    nome: 'Sexta-feira',
+    itens: [
+      { label: 'Prato principal', valor: 'Feijoada', icon: 'UtensilsCrossed' },
+      { label: 'Acompanhamento', valor: 'Arroz, couve e farofa', icon: 'Salad' },
+      { label: 'Sobremesa', valor: 'Laranja', icon: 'IceCreamBowl' },
+    ],
+  },
+  {
+    abrev: 'Sáb',
+    nome: 'Sábado',
+    itens: [
+      { label: 'Prato principal', valor: 'Macarrão à bolonhesa', icon: 'UtensilsCrossed' },
+      { label: 'Acompanhamento', valor: 'Salada verde', icon: 'Salad' },
+      { label: 'Sobremesa', valor: 'Sorvete', icon: 'IceCreamBowl' },
+    ],
+  },
+  {
+    abrev: 'Dom',
+    nome: 'Domingo',
+    itens: [
+      { label: 'Prato principal', valor: 'Frango assado', icon: 'UtensilsCrossed' },
+      { label: 'Acompanhamento', valor: 'Arroz, maionese e salada', icon: 'Salad' },
+      { label: 'Sobremesa', valor: 'Torta de limão', icon: 'IceCreamBowl' },
+    ],
+  },
+]
+
 export const acessosRapidos = [
   { id: 'comunicados', label: 'Comunicados', icon: 'Megaphone', to: '/comunicados' },
   { id: 'governanca', label: 'Governança de Processos', icon: 'Landmark', to: '/governanca', variant: 'light' },
