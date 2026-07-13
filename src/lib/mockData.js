@@ -371,3 +371,56 @@ export const recompensasCatalogo = [
   { id: 'r_3', titulo: 'Day-off', custo: 3000, emoji: '🌴' },
   { id: 'r_4', titulo: 'Kit sushi em casa', custo: 1500, emoji: '🍣' },
 ]
+
+// Feed da Comunidade (posts dos colaboradores).
+export const feedComunidade = [
+  {
+    id: 'f_1',
+    autorId: 'u_ana',
+    tempo: 'há 15 min',
+    texto: 'Fechamos o mês batendo a meta de vendas! 🎉 Obrigada, equipe!',
+    midia: { tipo: 'foto', emoji: '🎉', grad: 'from-accent/30 to-emerald-900' },
+    likes: 24,
+    comentarios: 5,
+    curtiu: false,
+  },
+  {
+    id: 'f_2',
+    autorId: 'u_pedro',
+    tempo: 'há 1 h',
+    texto: 'Novo combinado especial saindo do sushi bar 🍣',
+    midia: { tipo: 'foto', emoji: '🍣', grad: 'from-orange-500/30 to-rose-900' },
+    likes: 41,
+    comentarios: 8,
+    curtiu: false,
+  },
+  {
+    id: 'f_3',
+    autorId: 'u_juliana',
+    tempo: 'há 3 h',
+    texto: 'Treinamento de segurança alimentar concluído ✅ Bora manter o padrão!',
+    likes: 12,
+    comentarios: 2,
+    curtiu: false,
+  },
+  {
+    id: 'f_4',
+    autorId: 'u_carlos',
+    tempo: 'ontem',
+    texto: 'Vídeo do nosso mise en place antes da abertura 👇',
+    midia: { tipo: 'video', emoji: '🎬', grad: 'from-sky-500/25 to-indigo-900' },
+    likes: 33,
+    comentarios: 6,
+    curtiu: false,
+  },
+  {
+    id: 'f_5',
+    autorId: 'u_marina',
+    tempo: 'ontem',
+    texto: 'Aniversário da Bianca hoje! Parabéns 🥳',
+    midia: { tipo: 'foto', emoji: '🥳', grad: 'from-fuchsia-500/25 to-purple-900' },
+    likes: 57,
+    comentarios: 14,
+    curtiu: false,
+  },
+]
