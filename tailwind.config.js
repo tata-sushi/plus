@@ -5,9 +5,9 @@ export default {
     extend: {
       colors: {
         bg: 'rgb(var(--app-bg) / <alpha-value>)',
-        surface: '#141414',
-        'surface-2': '#1E1E1E',
-        'surface-3': '#2A2A2A',
+        surface: 'rgb(var(--surface) / <alpha-value>)',
+        'surface-2': 'rgb(var(--surface-2) / <alpha-value>)',
+        'surface-3': 'rgb(var(--surface-3) / <alpha-value>)',
         border: '#2A2A2A',
         // Paleta de marca
         carbon: {
