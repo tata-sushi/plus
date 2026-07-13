@@ -1,11 +1,10 @@
 import { Link } from 'react-router-dom'
-import { ChevronRight, Flag, Trophy, UsersRound } from 'lucide-react'
+import { ChevronRight, Flag, Trophy, UsersRound, Megaphone } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Section } from '../components/Section.jsx'
 import { Card } from '../components/Card.jsx'
 import { IconTile } from '../components/IconTile.jsx'
 import { PromoCard } from '../components/PromoCard.jsx'
-import { DesafiosDecor, RecompensasDecor, ComunidadeDecor } from '../components/promoDecor.jsx'
 import { ProgressBar } from '../components/ProgressBar.jsx'
 import { Avatar } from '../components/Avatar.jsx'
 import { resolveIcon } from '../lib/icons.js'
@@ -66,14 +65,20 @@ export function Home() {
       {/* Comunicado */}
       <Section className="reveal reveal-2 mt-5" title="Comunicado">
         <Card highlight={ultimoComunicado.urgente}>
-          <div className="hstack justify-between gap-3">
-            <div className="min-w-0">
+          <div className="flex items-start gap-3">
+            <span className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-accent-soft text-accent">
+              <Megaphone size={26} />
+            </span>
+            <div className="min-w-0 flex-1">
               <div className="font-display text-base font-bold leading-snug">{ultimoComunicado.titulo}</div>
               <div className="mt-1 text-xs text-muted">{ultimoComunicado.resumo}</div>
+              <Link
+                to="/comunicados"
+                className="hstack mt-2 gap-1 text-xs font-semibold text-accent"
+              >
+                Ver detalhes <ChevronRight size={14} />
+              </Link>
             </div>
-            <Link to="/comunicados" className="hstack shrink-0 gap-1 text-xs font-semibold text-accent">
-              Ver detalhes <ChevronRight size={14} />
-            </Link>
           </div>
         </Card>
       </Section>
@@ -86,7 +91,6 @@ export function Home() {
             badgeIcon={Flag}
             title="Desafios"
             subtitle="Confira suas trilhas de aprendizados"
-            decor={DesafiosDecor}
             className="reveal reveal-1"
           />
           <PromoCard
@@ -94,7 +98,6 @@ export function Home() {
             badgeIcon={Trophy}
             title="Recompensas"
             subtitle="Conheça nossas recompensas"
-            decor={RecompensasDecor}
             className="reveal reveal-2"
           />
           <PromoCard
@@ -102,7 +105,6 @@ export function Home() {
             badgeIcon={UsersRound}
             title="Comunidade"
             subtitle="Curta, compartilhe e interaja com diferentes equipes"
-            decor={ComunidadeDecor}
             className="reveal reveal-3"
           />
 
