@@ -90,8 +90,8 @@ export function Login() {
         </form>
 
         <div className="mt-10 flex flex-col items-center gap-1 text-center text-[11px] text-muted-2">
-          <span>Uso interno · v2.0</span>
-          <span>Tatá Sushi / Tatá Book / 2016 – 2026</span>
+          <span>TATÁ PLUS · 2.0 - Uso interno</span>
+          <span>TATÁ Sushi | TATÁ Poke | 2016 – 2026</span>
         </div>
       </div>
     </div>
