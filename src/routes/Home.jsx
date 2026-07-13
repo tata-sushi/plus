@@ -5,10 +5,17 @@ import { Section } from '../components/Section.jsx'
 import { Card } from '../components/Card.jsx'
 import { IconTile } from '../components/IconTile.jsx'
 import { PromoCard } from '../components/PromoCard.jsx'
+import { SocialLinks } from '../components/SocialLinks.jsx'
 import { ProgressBar } from '../components/ProgressBar.jsx'
 import { Avatar } from '../components/Avatar.jsx'
 import { resolveIcon } from '../lib/icons.js'
-import { currentUser, menuDoDia, comunicados, acessosRapidos } from '../lib/mockData.js'
+import {
+  currentUser,
+  menuDoDia,
+  comunicados,
+  acessosRapidos,
+  redesSociais,
+} from '../lib/mockData.js'
 
 const ultimoComunicado = comunicados[0]
 
@@ -83,13 +90,13 @@ export function Home() {
         </Card>
       </Section>
 
-      {/* Acessos rápidos — cards grandes + atalhos */}
-      <Section className="mt-5" title="Acessos rápidos">
+      {/* TATÁ PLUS — cards principais */}
+      <Section className="mt-5" title="TATÁ PLUS">
         <div className="flex flex-col gap-3">
           <PromoCard
             to="/treinamentos"
             badgeIcon={Flag}
-            title="Desafios"
+            title="Treinamentos"
             subtitle="Confira suas trilhas de aprendizados"
             className="reveal reveal-1"
           />
@@ -107,13 +114,21 @@ export function Home() {
             subtitle="Curta, compartilhe e interaja com diferentes equipes"
             className="reveal reveal-3"
           />
-
-          <div className="reveal reveal-4 grid grid-cols-3 gap-2">
-            {acessosRapidos.map((a) => (
-              <IconTile key={a.id} icon={a.icon} label={a.label} to={a.to} variant={a.variant} />
-            ))}
-          </div>
         </div>
+      </Section>
+
+      {/* Acesso rápido — atalhos */}
+      <Section className="reveal reveal-1 mt-5" title="Acesso Rápido">
+        <div className="grid grid-cols-2 gap-2">
+          {acessosRapidos.map((a) => (
+            <IconTile key={a.id} icon={a.icon} label={a.label} to={a.to} variant={a.variant} />
+          ))}
+        </div>
+      </Section>
+
+      {/* Redes sociais */}
+      <Section className="reveal reveal-2 mt-5" title="Redes sociais da Tatá">
+        <SocialLinks items={redesSociais} />
       </Section>
     </>
   )
