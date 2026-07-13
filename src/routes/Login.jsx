@@ -24,8 +24,8 @@ export function Login() {
   }
 
   return (
-    <div className="safe-top safe-bottom flex min-h-screen flex-col justify-center px-6">
-      <div className="mx-auto w-full max-w-sm">
+    <div className="safe-top safe-bottom flex min-h-screen flex-col px-6">
+      <div className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center">
         {/* Marca */}
         <div className="flex flex-col items-center text-center">
           <img
@@ -89,10 +89,11 @@ export function Login() {
           </button>
         </form>
 
-        <div className="mt-10 flex flex-col items-center gap-1 text-center text-[11px] text-muted-2">
-          <span>TATÁ PLUS · 2.0 - Uso interno</span>
-          <span>TATÁ Sushi | TATÁ Poke | 2016 – 2026</span>
-        </div>
+      </div>
+
+      <div className="flex flex-col items-center gap-1 pb-2 text-center text-[11px] text-muted-2">
+        <span>TATÁ PLUS · 2.0 - Uso interno</span>
+        <span>TATÁ Sushi | TATÁ Poke | 2016 – 2026</span>
       </div>
     </div>
   )
