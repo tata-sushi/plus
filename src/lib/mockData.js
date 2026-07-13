@@ -11,6 +11,77 @@ export const currentUser = {
   pontosCarteira: 4230,
 }
 
+export const colaboradores = [
+  {
+    id: 'u_victor',
+    nome: 'Victor Hugo',
+    cargo: 'Gerente',
+    loja: 'Loja Jardins',
+    rank: 'Prata',
+    proximoRank: 'Ouro',
+    progressoRank: 0.7,
+    pontosCarteira: 4230,
+    stats: [
+      { label: 'Treinamentos concluídos', valor: '12/18' },
+      { label: 'Avaliações & feedbacks', valor: '4' },
+      { label: 'Metas individuais', valor: '82% no mês' },
+      { label: 'Certificações', valor: 'Ver detalhes' },
+    ],
+  },
+  {
+    id: 'u_ana',
+    nome: 'Ana Beatriz',
+    cargo: 'Sushiwoman',
+    loja: 'Loja Jardins',
+    rank: 'Ouro',
+    proximoRank: 'Platina',
+    progressoRank: 0.42,
+    pontosCarteira: 6870,
+    stats: [
+      { label: 'Treinamentos concluídos', valor: '18/18' },
+      { label: 'Avaliações & feedbacks', valor: '7' },
+      { label: 'Metas individuais', valor: '94% no mês' },
+      { label: 'Certificações', valor: 'Ver detalhes' },
+    ],
+  },
+  {
+    id: 'u_carlos',
+    nome: 'Carlos Eduardo',
+    cargo: 'Atendimento',
+    loja: 'Loja Pinheiros',
+    rank: 'Bronze',
+    proximoRank: 'Prata',
+    progressoRank: 0.85,
+    pontosCarteira: 1980,
+    stats: [
+      { label: 'Treinamentos concluídos', valor: '9/18' },
+      { label: 'Avaliações & feedbacks', valor: '2' },
+      { label: 'Metas individuais', valor: '76% no mês' },
+      { label: 'Certificações', valor: 'Ver detalhes' },
+    ],
+  },
+  {
+    id: 'u_juliana',
+    nome: 'Juliana Alves',
+    cargo: 'Cozinha',
+    loja: 'Loja Jardins',
+    rank: 'Prata',
+    proximoRank: 'Ouro',
+    progressoRank: 0.3,
+    pontosCarteira: 3120,
+    stats: [
+      { label: 'Treinamentos concluídos', valor: '14/18' },
+      { label: 'Avaliações & feedbacks', valor: '5' },
+      { label: 'Metas individuais', valor: '88% no mês' },
+      { label: 'Certificações', valor: 'Ver detalhes' },
+    ],
+  },
+]
+
+export function getColaborador(id) {
+  return colaboradores.find((c) => c.id === id) ?? null
+}
+
 export const destaquesDoDia = [
   { label: 'Vendas', valor: 'R$ 9.430', trend: 'up' },
   { label: 'Meta', valor: '82%', trend: 'up' },
@@ -68,6 +139,7 @@ export const comunicados = [
     categoria: 'Loja',
     escopo: 'loja',
     views: 64,
+    autorId: 'u_juliana',
   },
   {
     id: 'c_4',
@@ -77,6 +149,7 @@ export const comunicados = [
     categoria: 'Qualidade',
     escopo: 'loja',
     views: 52,
+    autorId: 'u_ana',
   },
 ]
 
@@ -112,19 +185,10 @@ export const procedimentoDoDia = {
   descricao: 'Procedimento diário — leia antes do turno.',
 }
 
-export const jornadaResumo = {
-  progressoRank: 0.7,
-  stats: [
-    { label: 'Treinamentos concluídos', valor: '12/18' },
-    { label: 'Avaliações & feedbacks', valor: '4' },
-    { label: 'Metas individuais', valor: '82% no mês' },
-    { label: 'Certificações', valor: 'Ver detalhes' },
-  ],
-  minhasAcoes: [
-    { id: 'a_1', label: 'Ponto de desenvolvimento', hint: 'Ver detalhes' },
-    { id: 'a_2', label: 'Certificados', hint: 'Ver detalhes' },
-  ],
-}
+export const minhasAcoes = [
+  { id: 'a_1', label: 'Ponto de desenvolvimento', hint: 'Ver detalhes' },
+  { id: 'a_2', label: 'Certificados', hint: 'Ver detalhes' },
+]
 
 export const recompensasCatalogo = [
   { id: 'r_1', titulo: 'Vale-refeição R$ 50', custo: 500, emoji: '🍽️' },
