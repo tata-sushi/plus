@@ -96,7 +96,7 @@ export const acessosRapidos = [
   { id: 'treinamentos', label: 'Treinamentos', icon: 'GraduationCap', to: '/treinamentos' },
   { id: 'procedimentos', label: 'Procedimentos', icon: 'ClipboardList', to: '/procedimentos' },
   { id: 'recompensas', label: 'Recompensas', icon: 'Gift', to: '/recompensas' },
-  { id: 'governanca', label: 'Governança', icon: 'Landmark', to: '/governanca', variant: 'light' },
+  { id: 'governanca', label: 'Governança de Processos', icon: 'Landmark', to: '/governanca', variant: 'light' },
   { id: 'ia', label: 'Fale com a IA', icon: 'Sparkles', to: '/assistente' },
 ]
 
