@@ -16,7 +16,6 @@ import { Cardapio } from './routes/Cardapio.jsx'
 import { Comunidade } from './routes/Comunidade.jsx'
 import { Ouvidoria } from './routes/Ouvidoria.jsx'
 import { Governanca } from './routes/Governanca.jsx'
-import { InicioCarbon } from './routes/InicioCarbon.jsx'
 
 export function App() {
   return (
@@ -38,7 +37,6 @@ export function App() {
         <Route path="/cardapio" element={<Cardapio />} />
         <Route path="/comunidade" element={<Comunidade />} />
         <Route path="/governanca" element={<Governanca />} />
-        <Route path="/inicio-carbon" element={<InicioCarbon />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
     </Routes>
