@@ -31,13 +31,12 @@ export function Login() {
           <img
             src="/icons/icon-192.png"
             alt="Tatá"
-            className="h-16 w-16 rounded-2xl shadow-glow"
+            className="h-16 w-16 rounded-2xl"
             width={64}
             height={64}
           />
           <div className="mt-4 font-display text-2xl font-bold tracking-tight">
             TATÁ<span className="text-accent"> PLUS</span>
-            <span className="ml-1 align-baseline text-xs font-semibold text-muted">2.0</span>
           </div>
           <div className="mt-1 text-sm text-muted">Portal do colaborador</div>
         </div>
@@ -77,7 +76,7 @@ export function Login() {
             </button>
           </label>
 
-          <button type="button" className="self-end text-xs font-semibold text-accent tap">
+          <button type="button" className="self-center text-xs font-semibold text-accent tap">
             Esqueci minha senha
           </button>
 
@@ -90,7 +89,10 @@ export function Login() {
           </button>
         </form>
 
-        <div className="mt-10 text-center text-[11px] text-muted-2">Tatá Sushi · Uso interno</div>
+        <div className="mt-10 flex flex-col items-center gap-1 text-center text-[11px] text-muted-2">
+          <span>Uso interno · v2.0</span>
+          <span>Tatá Sushi / Tatá Book / 2016 – 2026</span>
+        </div>
       </div>
     </div>
   )
