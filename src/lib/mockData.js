@@ -96,8 +96,28 @@ export const acessosRapidos = [
   { id: 'treinamentos', label: 'Treinamentos', icon: 'GraduationCap', to: '/treinamentos' },
   { id: 'procedimentos', label: 'Procedimentos', icon: 'ClipboardList', to: '/procedimentos' },
   { id: 'recompensas', label: 'Recompensas', icon: 'Gift', to: '/recompensas' },
-  { id: 'rh', label: 'RH Fácil', icon: 'HeartHandshake', to: '/rh' },
+  { id: 'governanca', label: 'Governança', icon: 'Landmark', to: '/governanca', variant: 'light' },
   { id: 'ia', label: 'Fale com a IA', icon: 'Sparkles', to: '/assistente' },
+]
+
+export const governancaPortal = {
+  titulo: 'Governança de Processos',
+  descricao: 'Gestão e acompanhamento dos processos internos.',
+}
+
+// Lista de exemplo — será substituída pela lista real de páginas liberadas.
+// Cada líder pode fixar até MAX_PAGINAS_FIXADAS destas no seu acesso rápido.
+export const MAX_PAGINAS_FIXADAS = 10
+
+export const governancaCatalogo = [
+  { id: 'gov_fluxo', label: 'Fluxo de aprovações', icon: 'GitBranch' },
+  { id: 'gov_indicadores', label: 'Indicadores de processo', icon: 'LineChart' },
+  { id: 'gov_documentos', label: 'Documentos normativos', icon: 'FileText' },
+  { id: 'gov_mapa', label: 'Mapa de processos', icon: 'Map' },
+  { id: 'gov_auditorias', label: 'Auditorias', icon: 'ShieldCheck' },
+  { id: 'gov_riscos', label: 'Matriz de riscos', icon: 'TriangleAlert' },
+  { id: 'gov_pops', label: 'POPs', icon: 'ClipboardList' },
+  { id: 'gov_treinamentos', label: 'Treinamentos de processo', icon: 'GraduationCap' },
 ]
 
 export const comunicados = [

@@ -108,7 +108,7 @@ export function Home() {
 
           <div className="reveal reveal-4 grid grid-cols-3 gap-2">
             {acessosRapidos.map((a) => (
-              <IconTile key={a.id} icon={a.icon} label={a.label} to={a.to} />
+              <IconTile key={a.id} icon={a.icon} label={a.label} to={a.to} variant={a.variant} />
             ))}
           </div>
         </div>
