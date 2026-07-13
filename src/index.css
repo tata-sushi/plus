@@ -3,13 +3,6 @@
 @tailwind utilities;
 
 @layer base {
-  :root {
-    /* Fundo e superfícies do app (RGB) — sobrescrevíveis por página. */
-    --app-bg: 10 10 10;
-    --surface: 20 20 20;
-    --surface-2: 30 30 30;
-    --surface-3: 42 42 42;
-  }
   html, body, #root {
     height: 100%;
   }
@@ -63,7 +56,7 @@
     @apply rounded-card border border-accent/25;
     background:
       radial-gradient(120% 140% at 0% 0%, rgba(112, 255, 65, 0.18) 0%, rgba(112, 255, 65, 0.05) 45%, transparent 70%),
-      rgb(var(--surface));
+      #141414;
   }
 }
 
