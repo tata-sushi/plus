@@ -12,7 +12,6 @@ import { RhFacil } from './routes/RhFacil.jsx'
 import { AssistenteIa } from './routes/AssistenteIa.jsx'
 import { Manutencao } from './routes/Manutencao.jsx'
 import { Ranking } from './routes/Ranking.jsx'
-import { Ouvidoria } from './routes/Ouvidoria.jsx'
 import { Cardapio } from './routes/Cardapio.jsx'
 import { Comunidade } from './routes/Comunidade.jsx'
 
@@ -32,7 +31,6 @@ export function App() {
         <Route path="/assistente" element={<AssistenteIa />} />
         <Route path="/manutencao" element={<Manutencao />} />
         <Route path="/ranking" element={<Ranking />} />
-        <Route path="/ouvidoria" element={<Ouvidoria />} />
         <Route path="/cardapio" element={<Cardapio />} />
         <Route path="/comunidade" element={<Comunidade />} />
         <Route path="*" element={<Navigate to="/" replace />} />
