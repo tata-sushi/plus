@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 
-export function Header({ title, right }) {
+export function Header({ right }) {
   return (
     <header className="safe-top sticky top-0 z-30 bg-bg/90 backdrop-blur border-b border-white/5">
       <div className="flex items-center justify-between px-5 py-3">
@@ -19,11 +19,6 @@ export function Header({ title, right }) {
         </Link>
         {right && <div className="hstack gap-2">{right}</div>}
       </div>
-      {title && (
-        <div className="px-5 pb-3">
-          <h1 className="font-display text-2xl font-bold">{title}</h1>
-        </div>
-      )}
     </header>
   )
 }
