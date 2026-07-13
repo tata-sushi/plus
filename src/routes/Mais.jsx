@@ -1,6 +1,8 @@
 import { Link } from 'react-router-dom'
 import {
   Trophy,
+  GraduationCap,
+  ClipboardList,
   Gift,
   HeartHandshake,
   Sparkles,
@@ -15,6 +17,8 @@ import { currentUser } from '../lib/mockData.js'
 
 const itens = [
   { to: '/jornada', label: 'Minha jornada', icon: Trophy },
+  { to: '/treinamentos', label: 'Treinamentos', icon: GraduationCap },
+  { to: '/procedimentos', label: 'Procedimentos', icon: ClipboardList },
   { to: '/recompensas', label: 'Recompensas', icon: Gift },
   { to: '/rh', label: 'RH Fácil', icon: HeartHandshake },
   { to: '/assistente', label: 'Assistente IA', icon: Sparkles },

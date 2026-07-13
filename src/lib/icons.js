@@ -18,6 +18,9 @@ import {
   ShieldCheck,
   HeartPulse,
   Wrench,
+  UtensilsCrossed,
+  Salad,
+  IceCreamBowl,
   Square,
 } from 'lucide-react'
 
@@ -41,6 +44,9 @@ export const iconMap = {
   ShieldCheck,
   HeartPulse,
   Wrench,
+  UtensilsCrossed,
+  Salad,
+  IceCreamBowl,
 }
 
 export function resolveIcon(name) {

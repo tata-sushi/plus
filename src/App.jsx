@@ -11,6 +11,9 @@ import { Recompensas } from './routes/Recompensas.jsx'
 import { RhFacil } from './routes/RhFacil.jsx'
 import { AssistenteIa } from './routes/AssistenteIa.jsx'
 import { Manutencao } from './routes/Manutencao.jsx'
+import { Ranking } from './routes/Ranking.jsx'
+import { Cardapio } from './routes/Cardapio.jsx'
+import { Comunidade } from './routes/Comunidade.jsx'
 
 export function App() {
   return (
@@ -27,6 +30,9 @@ export function App() {
         <Route path="/rh" element={<RhFacil />} />
         <Route path="/assistente" element={<AssistenteIa />} />
         <Route path="/manutencao" element={<Manutencao />} />
+        <Route path="/ranking" element={<Ranking />} />
+        <Route path="/cardapio" element={<Cardapio />} />
+        <Route path="/comunidade" element={<Comunidade />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
     </Routes>

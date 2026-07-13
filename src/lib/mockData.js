@@ -82,19 +82,14 @@ export function getColaborador(id) {
   return colaboradores.find((c) => c.id === id) ?? null
 }
 
-export const destaquesDoDia = [
-  { label: 'Vendas', valor: 'R$ 9.430', trend: 'up' },
-  { label: 'Meta', valor: '82%', trend: 'up' },
-  { label: 'Avaliação', valor: '4,8', hint: 'Excelente' },
-]
-
-export const urgentes = [
-  {
-    id: 'ur_1',
-    titulo: 'Reunião geral de líderes',
-    quando: 'Amanhã, 10:00 · Sala de manutenção',
-  },
-]
+export const menuDoDia = {
+  dataLabel: 'Hoje · quinta-feira',
+  itens: [
+    { label: 'Prato principal', valor: 'Yakisoba de frango', icon: 'UtensilsCrossed' },
+    { label: 'Acompanhamento', valor: 'Arroz, feijão e salada', icon: 'Salad' },
+    { label: 'Sobremesa', valor: 'Gelatina de morango', icon: 'IceCreamBowl' },
+  ],
+}
 
 export const acessosRapidos = [
   { id: 'comunicados', label: 'Comunicados', icon: 'Megaphone', to: '/comunicados' },
@@ -104,11 +99,6 @@ export const acessosRapidos = [
   { id: 'rh', label: 'RH Fácil', icon: 'HeartHandshake', to: '/rh' },
   { id: 'ia', label: 'Fale com a IA', icon: 'Sparkles', to: '/assistente' },
 ]
-
-export const minhaProgressao = {
-  label: 'Treinamentos concluídos',
-  valor: 0.7,
-}
 
 export const comunicados = [
   {
