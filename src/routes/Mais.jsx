@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import {
   Trophy,
   GraduationCap,
@@ -15,6 +15,8 @@ import { Section } from '../components/Section.jsx'
 import { Avatar } from '../components/Avatar.jsx'
 import { SocialLinks } from '../components/SocialLinks.jsx'
 import { currentUser, redesSociais } from '../lib/mockData.js'
+import { logout } from '../lib/auth.js'
+import { tapHaptic } from '../lib/haptics.js'
 
 const itens = [
   { to: '/jornada', label: 'Minha jornada', icon: Trophy },
@@ -27,6 +29,14 @@ const itens = [
 ]
 
 export function Mais() {
+  const navigate = useNavigate()
+
+  function sair() {
+    tapHaptic()
+    logout()
+    navigate('/login', { replace: true })
+  }
+
   return (
     <>
       <Header title="Mais" />
@@ -79,7 +89,10 @@ export function Mais() {
       </Section>
 
       <Section className="mt-5">
-        <button className="hstack w-full justify-center gap-2 rounded-card bg-surface p-3.5 text-sm font-semibold text-danger tap">
+        <button
+          onClick={sair}
+          className="hstack w-full justify-center gap-2 rounded-card bg-surface p-3.5 text-sm font-semibold text-danger tap"
+        >
           <LogOut size={16} /> Sair
         </button>
       </Section>

@@ -1,5 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { AppShell } from './components/AppShell.jsx'
+import { isLoggedIn } from './lib/auth.js'
+import { Login } from './routes/Login.jsx'
 import { Home } from './routes/Home.jsx'
 import { Comunicados } from './routes/Comunicados.jsx'
 import { Treinamentos } from './routes/Treinamentos.jsx'
@@ -17,10 +19,15 @@ import { Comunidade } from './routes/Comunidade.jsx'
 import { Ouvidoria } from './routes/Ouvidoria.jsx'
 import { Governanca } from './routes/Governanca.jsx'
 
+function Protegido() {
+  return isLoggedIn() ? <AppShell /> : <Navigate to="/login" replace />
+}
+
 export function App() {
   return (
     <Routes>
-      <Route element={<AppShell />}>
+      <Route path="/login" element={<Login />} />
+      <Route element={<Protegido />}>
         <Route path="/" element={<Home />} />
         <Route path="/comunicados" element={<Comunicados />} />
         <Route path="/treinamentos" element={<Treinamentos />} />
