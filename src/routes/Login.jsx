@@ -31,9 +31,9 @@ export function Login() {
           <img
             src="/icons/icon-192.png"
             alt="Tatá"
-            className="h-16 w-16 rounded-2xl"
-            width={64}
-            height={64}
+            className="h-20 w-20 rounded-2xl"
+            width={80}
+            height={80}
           />
           <div className="mt-4 font-display text-2xl font-bold tracking-tight">
             TATÁ<span className="text-accent"> PLUS</span>
@@ -90,8 +90,8 @@ export function Login() {
         </form>
 
         <div className="mt-10 flex flex-col items-center gap-1 text-center text-[11px] text-muted-2">
-          <span>Uso interno · v2.0</span>
-          <span>Tatá Sushi / Tatá Book / 2016 – 2026</span>
+          <span>TATÁ PLUS · 2.0 - Uso interno</span>
+          <span>TATÁ Sushi | TATÁ Poke | 2016 – 2026</span>
         </div>
       </div>
     </div>
