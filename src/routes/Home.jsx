@@ -5,17 +5,10 @@ import { Section } from '../components/Section.jsx'
 import { Card } from '../components/Card.jsx'
 import { IconTile } from '../components/IconTile.jsx'
 import { PromoCard } from '../components/PromoCard.jsx'
-import { SocialLinks } from '../components/SocialLinks.jsx'
 import { ProgressBar } from '../components/ProgressBar.jsx'
 import { Avatar } from '../components/Avatar.jsx'
 import { resolveIcon } from '../lib/icons.js'
-import {
-  currentUser,
-  menuDoDia,
-  comunicados,
-  acessosRapidos,
-  redesSociais,
-} from '../lib/mockData.js'
+import { currentUser, menuDoDia, comunicados, acessosRapidos } from '../lib/mockData.js'
 
 const ultimoComunicado = comunicados[0]
 
@@ -71,23 +64,18 @@ export function Home() {
 
       {/* Comunicado */}
       <Section className="reveal reveal-2 mt-5" title="Comunicado">
-        <Card highlight={ultimoComunicado.urgente}>
-          <div className="flex items-start gap-3">
-            <span className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-accent-soft text-accent">
-              <Megaphone size={26} />
-            </span>
-            <div className="min-w-0 flex-1">
-              <div className="font-display text-base font-bold leading-snug">{ultimoComunicado.titulo}</div>
-              <div className="mt-1 text-xs text-muted">{ultimoComunicado.resumo}</div>
-              <Link
-                to="/comunicados"
-                className="hstack mt-2 gap-1 text-xs font-semibold text-accent"
-              >
-                Ver detalhes <ChevronRight size={14} />
-              </Link>
-            </div>
+        <Link to="/comunicados" className="card tap flex items-center gap-3 p-4">
+          <span className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl border border-accent/40 bg-accent-soft text-accent shadow-glow">
+            <Megaphone size={26} />
+          </span>
+          <div className="min-w-0 flex-1">
+            <div className="font-display text-base font-bold leading-snug">{ultimoComunicado.titulo}</div>
+            <div className="mt-1 text-xs text-muted">{ultimoComunicado.resumo}</div>
           </div>
-        </Card>
+          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-accent/40 text-accent">
+            <ChevronRight size={18} />
+          </span>
+        </Link>
       </Section>
 
       {/* TATÁ PLUS — cards principais */}
@@ -124,11 +112,6 @@ export function Home() {
             <IconTile key={a.id} icon={a.icon} label={a.label} to={a.to} variant={a.variant} />
           ))}
         </div>
-      </Section>
-
-      {/* Redes sociais */}
-      <Section className="reveal reveal-2 mt-5" title="Redes sociais da Tatá">
-        <SocialLinks items={redesSociais} />
       </Section>
     </>
   )

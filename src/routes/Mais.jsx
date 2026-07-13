@@ -13,7 +13,8 @@ import {
 import { Header } from '../components/Header.jsx'
 import { Section } from '../components/Section.jsx'
 import { Avatar } from '../components/Avatar.jsx'
-import { currentUser } from '../lib/mockData.js'
+import { SocialLinks } from '../components/SocialLinks.jsx'
+import { currentUser, redesSociais } from '../lib/mockData.js'
 
 const itens = [
   { to: '/jornada', label: 'Minha jornada', icon: Trophy },
@@ -71,6 +72,10 @@ export function Mais() {
             )
           })}
         </div>
+      </Section>
+
+      <Section className="mt-5" title="Redes sociais da Tatá">
+        <SocialLinks items={redesSociais} />
       </Section>
 
       <Section className="mt-5">
