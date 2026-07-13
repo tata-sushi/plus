@@ -21,6 +21,12 @@ import {
   UtensilsCrossed,
   Salad,
   IceCreamBowl,
+  Landmark,
+  GitBranch,
+  LineChart,
+  FileText,
+  Map,
+  TriangleAlert,
   Square,
 } from 'lucide-react'
 
@@ -47,6 +53,12 @@ export const iconMap = {
   UtensilsCrossed,
   Salad,
   IceCreamBowl,
+  Landmark,
+  GitBranch,
+  LineChart,
+  FileText,
+  Map,
+  TriangleAlert,
 }
 
 export function resolveIcon(name) {
