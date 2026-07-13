@@ -233,13 +233,9 @@ export const governancaCatalogo = [
 export const comunicados = [
   {
     id: 'c_1',
-    tag: 'URGENTE',
-    urgente: true,
     titulo: 'Mudança no horário de funcionamento',
     resumo: 'A partir de 10/09, todas as unidades abrirão 30 min mais cedo.',
     data: '10/09/2024',
-    categoria: 'Marketing',
-    escopo: 'corporativo',
     views: 125,
   },
   {
@@ -247,8 +243,6 @@ export const comunicados = [
     titulo: 'Campanha Dia das Mães',
     resumo: 'Participe da nossa campanha especial e aproveite os materiais disponíveis.',
     data: '05/05/2024',
-    categoria: 'Marketing',
-    escopo: 'corporativo',
     views: 87,
   },
   {
@@ -256,20 +250,14 @@ export const comunicados = [
     titulo: 'Novos combinados sazonais',
     resumo: 'Confira os detalhes dos novos combinados de inverno.',
     data: '01/06/2024',
-    categoria: 'Loja',
-    escopo: 'loja',
     views: 64,
-    autorId: 'u_juliana',
   },
   {
     id: 'c_4',
     titulo: 'Treinamento: Segurança Alimentar',
     resumo: 'Reforçamos a importância da higienização correta.',
     data: '07/05/2024',
-    categoria: 'Qualidade',
-    escopo: 'loja',
     views: 52,
-    autorId: 'u_ana',
   },
 ]
 
