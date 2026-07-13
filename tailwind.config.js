@@ -4,7 +4,7 @@ export default {
   theme: {
     extend: {
       colors: {
-        bg: '#0A0A0A',
+        bg: 'rgb(var(--app-bg) / <alpha-value>)',
         surface: '#141414',
         'surface-2': '#1E1E1E',
         'surface-3': '#2A2A2A',

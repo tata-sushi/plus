@@ -3,6 +3,10 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    /* Cor de fundo do app (RGB) — sobrescrevível por página. */
+    --app-bg: 10 10 10;
+  }
   html, body, #root {
     height: 100%;
   }
