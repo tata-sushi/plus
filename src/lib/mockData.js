@@ -96,11 +96,11 @@ export const acessosRapidos = [
   { id: 'governanca', label: 'Governança de Processos', icon: 'Landmark', to: '/governanca', variant: 'light' },
 ]
 
-// Redes sociais da Tatá — trocar os href '#' pelos endereços reais.
+// Redes sociais da Tatá.
 export const redesSociais = [
-  { id: 'instagram', label: 'Instagram', href: '#' },
-  { id: 'facebook', label: 'Facebook', href: '#' },
-  { id: 'whatsapp', label: 'WhatsApp', href: '#' },
+  { id: 'instagram', label: 'Instagram', href: 'https://www.instagram.com/tatasushi/' },
+  { id: 'youtube', label: 'YouTube', href: 'https://www.youtube.com/@Tatasushiplus' },
+  { id: 'linkedin', label: 'LinkedIn', href: 'https://www.linkedin.com/company/tatasushi' },
 ]
 
 export const governancaPortal = {
