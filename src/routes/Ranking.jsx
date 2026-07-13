@@ -9,7 +9,8 @@ import { colaboradores, currentUser } from '../lib/mockData.js'
 
 const abas = [
   { value: 'geral', label: 'Geral' },
-  { value: 'loja', label: 'Minha loja' },
+  { value: 'unidade', label: 'Unidade' },
+  { value: 'departamento', label: 'Departamento' },
 ]
 
 const fmt = (n) => n.toLocaleString('pt-BR')
@@ -48,8 +49,19 @@ export function Ranking() {
   const [tab, setTab] = useState('geral')
 
   const lista = [...colaboradores]
-    .filter((c) => tab === 'geral' || c.loja === currentUser.loja)
+    .filter((c) => {
+      if (tab === 'unidade') return c.loja === currentUser.loja
+      if (tab === 'departamento') return c.departamento === currentUser.departamento
+      return true
+    })
     .sort((a, b) => b.pontosCarteira - a.pontosCarteira)
+
+  const subtitulo =
+    tab === 'unidade'
+      ? currentUser.loja
+      : tab === 'departamento'
+        ? `Departamento · ${currentUser.departamento}`
+        : 'Todas as unidades'
 
   const [p1, p2, p3] = lista
 
@@ -57,6 +69,8 @@ export function Ranking() {
     <>
       <Header title="Ranking" />
       <Tabs tabs={abas} value={tab} onChange={setTab} />
+
+      <div className="px-5 pb-3 -mt-1 text-xs font-medium text-muted">{subtitulo}</div>
 
       {/* Pódio */}
       {lista.length > 0 && (
