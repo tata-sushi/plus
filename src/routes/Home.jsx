@@ -1,10 +1,11 @@
 import { Link } from 'react-router-dom'
-import { ChevronRight, Flag, Trophy, UsersRound, Megaphone } from 'lucide-react'
+import { ChevronRight, Flag, UsersRound, Megaphone } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Section } from '../components/Section.jsx'
 import { Card } from '../components/Card.jsx'
 import { IconTile } from '../components/IconTile.jsx'
 import { PromoCard } from '../components/PromoCard.jsx'
+import { ThreeStars } from '../components/ThreeStars.jsx'
 import { ProgressBar } from '../components/ProgressBar.jsx'
 import { Avatar } from '../components/Avatar.jsx'
 import { resolveIcon } from '../lib/icons.js'
@@ -90,7 +91,7 @@ export function Home() {
           />
           <PromoCard
             to="/recompensas"
-            badgeIcon={Trophy}
+            badgeIcon={ThreeStars}
             title="Recompensas"
             subtitle="Conheça nossas recompensas"
             className="reveal reveal-2"
