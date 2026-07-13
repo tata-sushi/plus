@@ -14,6 +14,7 @@ export function Header({ title, right }) {
           />
           <span className="font-display text-lg font-bold tracking-tight">
             TATÁ<span className="text-accent"> PLUS</span>
+            <span className="ml-1 align-top text-[10px] font-semibold text-muted">2.0</span>
           </span>
         </Link>
         {right && <div className="hstack gap-2">{right}</div>}

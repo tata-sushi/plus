@@ -93,11 +93,14 @@ export const menuDoDia = {
 
 export const acessosRapidos = [
   { id: 'comunicados', label: 'Comunicados', icon: 'Megaphone', to: '/comunicados' },
-  { id: 'treinamentos', label: 'Treinamentos', icon: 'GraduationCap', to: '/treinamentos' },
-  { id: 'procedimentos', label: 'Procedimentos', icon: 'ClipboardList', to: '/procedimentos' },
-  { id: 'recompensas', label: 'Recompensas', icon: 'Gift', to: '/recompensas' },
   { id: 'governanca', label: 'Governança de Processos', icon: 'Landmark', to: '/governanca', variant: 'light' },
-  { id: 'ia', label: 'Fale com a IA', icon: 'Sparkles', to: '/assistente' },
+]
+
+// Redes sociais da Tatá — trocar os href '#' pelos endereços reais.
+export const redesSociais = [
+  { id: 'instagram', label: 'Instagram', href: '#' },
+  { id: 'facebook', label: 'Facebook', href: '#' },
+  { id: 'whatsapp', label: 'WhatsApp', href: '#' },
 ]
 
 export const governancaPortal = {
