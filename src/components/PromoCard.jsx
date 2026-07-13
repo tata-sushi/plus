@@ -11,8 +11,8 @@ export function PromoCard({ to, badgeIcon: BadgeIcon, title, subtitle, decor: De
         <div className="font-display text-lg font-bold leading-tight">{title}</div>
         <div className="mt-0.5 text-xs text-muted">{subtitle}</div>
       </div>
-      <span className="hidden h-14 w-px shrink-0 bg-white/10 min-[360px]:block" />
-      <Decor className="hidden shrink-0 text-white/80 min-[360px]:block" />
+      <span className="hidden h-14 w-px shrink-0 bg-accent/40 min-[360px]:block" />
+      <Decor className="hidden shrink-0 text-white/85 min-[360px]:block" />
     </Link>
   )
 }
