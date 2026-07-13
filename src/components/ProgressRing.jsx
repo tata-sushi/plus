@@ -20,7 +20,7 @@ export function ProgressRing({ value, size = 120, stroke = 10, label, sublabel }
           cy={size / 2}
           r={r}
           fill="none"
-          stroke="#00E676"
+          stroke="#70FF41"
           strokeWidth={stroke}
           strokeLinecap="round"
           strokeDasharray={c}
