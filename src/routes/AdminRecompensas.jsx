@@ -11,10 +11,14 @@ import {
   Infinity as InfinityIcon,
   PackageX,
   ShieldAlert,
+  Clock,
+  RotateCcw,
 } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Section } from '../components/Section.jsx'
 import { Card } from '../components/Card.jsx'
+import { Avatar } from '../components/Avatar.jsx'
+import { RecompensaFoto } from '../components/RecompensaFoto.jsx'
 import { PhotoCropper } from '../components/PhotoCropper.jsx'
 import { cn } from '../lib/cn'
 import { tapHaptic } from '../lib/haptics.js'
@@ -23,6 +27,12 @@ import { supabase } from '../lib/supabase.js'
 
 const fmt = (n) => Number(n || 0).toLocaleString('pt-BR')
 const TAM_MAX = 15 * 1024 * 1024 // 15 MB
+
+const STATUS_PEDIDO = {
+  solicitado: { label: 'Solicitado', Icon: Clock, cls: 'bg-warn/15 text-warn' },
+  entregue: { label: 'Entregue', Icon: Check, cls: 'bg-accent-soft text-accent' },
+  cancelado: { label: 'Cancelado', Icon: X, cls: 'bg-danger/15 text-danger' },
+}
 
 const vazio = {
   id: null,
@@ -59,11 +69,18 @@ export function AdminRecompensas() {
   const { usuario } = useAuth()
   const admin = usuario?.podePublicar
 
+  const [aba, setAba] = useState('catalogo') // 'catalogo' | 'pedidos'
   const [itens, setItens] = useState([])
   const [carregando, setCarregando] = useState(true)
   const [editando, setEditando] = useState(null) // objeto do formulário ou null
   const [salvando, setSalvando] = useState(false)
   const [erro, setErro] = useState('')
+
+  // pedidos (resgates a entregar)
+  const [pedidos, setPedidos] = useState([])
+  const [carregandoPedidos, setCarregandoPedidos] = useState(true)
+  const [acaoId, setAcaoId] = useState(null) // id do pedido em atualização
+  const [cancelando, setCancelando] = useState(null) // pedido aguardando confirmação
 
   // foto em edição
   const [arquivo, setArquivo] = useState(null)
@@ -77,10 +94,38 @@ export function AdminRecompensas() {
     setCarregando(false)
   }, [])
 
+  const carregarPedidos = useCallback(async () => {
+    const { data } = await supabase.rpc('admin_listar_pedidos')
+    setPedidos(data || [])
+    setCarregandoPedidos(false)
+  }, [])
+
   useEffect(() => {
-    if (admin) carregar()
-    else setCarregando(false)
-  }, [admin, carregar])
+    if (admin) {
+      carregar()
+      carregarPedidos()
+    } else {
+      setCarregando(false)
+      setCarregandoPedidos(false)
+    }
+  }, [admin, carregar, carregarPedidos])
+
+  async function atualizarStatus(pedido, status) {
+    tapHaptic()
+    setAcaoId(pedido.id)
+    const { data, error } = await supabase.rpc('admin_atualizar_resgate', {
+      p_id: pedido.id,
+      p_status: status,
+    })
+    setAcaoId(null)
+    setCancelando(null)
+    if (error || !data?.ok) return
+    setPedidos((prev) => prev.map((p) => (p.id === pedido.id ? { ...p, status } : p)))
+    // cancelar/reativar mexe no estoque — recarrega o catálogo
+    carregar()
+  }
+
+  const pendentes = pedidos.filter((p) => p.status === 'solicitado').length
 
   function limparFoto() {
     if (previewUrl) URL.revokeObjectURL(previewUrl)
@@ -233,12 +278,14 @@ export function AdminRecompensas() {
       <Header
         title="Gerenciar recompensas"
         right={
-          <button
-            onClick={() => abrir(null)}
-            className="hstack gap-1.5 rounded-full bg-accent px-3.5 py-2 text-xs font-semibold text-black tap"
-          >
-            <Plus size={15} /> Nova
-          </button>
+          aba === 'catalogo' ? (
+            <button
+              onClick={() => abrir(null)}
+              className="hstack gap-1.5 rounded-full bg-accent px-3.5 py-2 text-xs font-semibold text-black tap"
+            >
+              <Plus size={15} /> Nova
+            </button>
+          ) : null
         }
       />
 
@@ -248,7 +295,121 @@ export function AdminRecompensas() {
         </button>
       </div>
 
-      {carregando ? (
+      {/* Abas */}
+      <div className="px-5 pt-3">
+        <div className="card grid grid-cols-2 gap-1.5 p-1.5">
+          <button
+            onClick={() => setAba('catalogo')}
+            className={cn(
+              'rounded-2xl py-2.5 text-sm font-semibold tap',
+              aba === 'catalogo' ? 'bg-accent text-black' : 'text-muted',
+            )}
+          >
+            Catálogo
+          </button>
+          <button
+            onClick={() => setAba('pedidos')}
+            className={cn(
+              'hstack justify-center gap-1.5 rounded-2xl py-2.5 text-sm font-semibold tap',
+              aba === 'pedidos' ? 'bg-accent text-black' : 'text-muted',
+            )}
+          >
+            Pedidos
+            {pendentes > 0 && (
+              <span
+                className={cn(
+                  'grid h-5 min-w-5 place-items-center rounded-full px-1 text-[11px] font-bold',
+                  aba === 'pedidos' ? 'bg-black/15 text-black' : 'bg-warn/20 text-warn',
+                )}
+              >
+                {pendentes}
+              </span>
+            )}
+          </button>
+        </div>
+      </div>
+
+      {aba === 'pedidos' ? (
+        carregandoPedidos ? (
+          <div className="hstack justify-center py-16 text-muted-2">
+            <Loader2 size={22} className="animate-spin" />
+          </div>
+        ) : (
+          <Section className="mt-4" title={`Pedidos (${pedidos.length})`}>
+            {pedidos.length === 0 ? (
+              <div className="card p-8 text-center text-sm text-muted">
+                Nenhum pedido ainda. Quando alguém resgatar uma recompensa, aparece aqui pra você
+                entregar.
+              </div>
+            ) : (
+              <div className="flex flex-col gap-2.5">
+                {pedidos.map((pd) => {
+                  const st = STATUS_PEDIDO[pd.status] || STATUS_PEDIDO.solicitado
+                  const StIcon = st.Icon
+                  const ocupado = acaoId === pd.id
+                  return (
+                    <Card key={pd.id} className="!p-3">
+                      <div className="hstack gap-3">
+                        <div className="relative shrink-0">
+                          <Avatar name={pd.nome || '—'} size={40} />
+                          <span className="absolute -bottom-1 -right-1 grid h-6 w-6 place-items-center rounded-full bg-surface text-sm ring-2 ring-surface">
+                            {pd.emoji || '🎁'}
+                          </span>
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="truncate text-sm font-semibold">{pd.nome || 'Colaborador'}</div>
+                          <div className="truncate text-xs text-muted">{pd.titulo}</div>
+                          <div className="text-[11px] text-muted-2">
+                            {new Date(pd.created_at).toLocaleDateString('pt-BR')} · {fmt(pd.custo)} pts
+                          </div>
+                        </div>
+                        <span className={cn('pill shrink-0 text-[10px]', st.cls)}>
+                          <StIcon size={11} /> {st.label}
+                        </span>
+                      </div>
+
+                      <div className="mt-3 hstack justify-end gap-2 border-t border-line pt-3">
+                        {ocupado ? (
+                          <Loader2 size={16} className="animate-spin text-muted-2" />
+                        ) : pd.status === 'solicitado' ? (
+                          <>
+                            <button
+                              onClick={() => setCancelando(pd)}
+                              className="btn-ghost !py-2 text-xs text-danger"
+                            >
+                              Cancelar
+                            </button>
+                            <button
+                              onClick={() => atualizarStatus(pd, 'entregue')}
+                              className="btn-primary !py-2 text-xs"
+                            >
+                              <Check size={14} /> Marcar entregue
+                            </button>
+                          </>
+                        ) : pd.status === 'entregue' ? (
+                          <button
+                            onClick={() => setCancelando(pd)}
+                            className="btn-ghost !py-2 text-xs text-muted"
+                          >
+                            <RotateCcw size={13} /> Cancelar e estornar
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => atualizarStatus(pd, 'solicitado')}
+                            className="btn-ghost !py-2 text-xs text-muted"
+                          >
+                            <RotateCcw size={13} /> Reabrir
+                          </button>
+                        )}
+                      </div>
+                    </Card>
+                  )
+                })}
+              </div>
+            )}
+          </Section>
+        )
+      ) : carregando ? (
         <div className="hstack justify-center py-16 text-muted-2">
           <Loader2 size={22} className="animate-spin" />
         </div>
@@ -265,11 +426,11 @@ export function AdminRecompensas() {
                 <Card key={item.id} className={cn('!p-3', !item.ativo && 'opacity-60')}>
                   <div className="hstack gap-3">
                     <div className="grid h-14 w-14 shrink-0 place-items-center overflow-hidden rounded-2xl bg-accent-soft text-2xl">
-                      {item.imagem_url ? (
-                        <img src={item.imagem_url} alt="" className="h-full w-full object-cover" />
-                      ) : (
-                        <span>{item.emoji || '🎁'}</span>
-                      )}
+                      <RecompensaFoto
+                        src={item.imagem_url}
+                        emoji={item.emoji}
+                        className="h-full w-full object-cover"
+                      />
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="truncate text-sm font-semibold">{item.titulo}</div>
@@ -501,6 +662,44 @@ export function AdminRecompensas() {
                   <>
                     <Check size={16} /> Salvar
                   </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Confirmação de cancelamento (estorna pontos) */}
+      {cancelando && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-4 sm:items-center">
+          <div className="w-full max-w-sm rounded-card border border-line bg-surface p-5">
+            <div className="font-display text-base font-bold leading-tight">Cancelar resgate?</div>
+            <p className="mt-2 text-sm text-muted">
+              O resgate de <span className="font-semibold text-text">{cancelando.titulo}</span> de{' '}
+              <span className="font-semibold text-text">{cancelando.nome || 'colaborador'}</span> será
+              cancelado. Os <span className="font-semibold text-accent">{fmt(cancelando.custo)} pts</span>{' '}
+              voltam pro saldo e o estoque é reposto.
+            </p>
+            <div className="mt-4 hstack gap-2">
+              <button
+                onClick={() => setCancelando(null)}
+                disabled={acaoId === cancelando.id}
+                className="btn-ghost flex-1 !py-2.5 text-sm text-muted"
+              >
+                Voltar
+              </button>
+              <button
+                onClick={() => atualizarStatus(cancelando, 'cancelado')}
+                disabled={acaoId === cancelando.id}
+                className={cn(
+                  'flex-1 rounded-card bg-danger !py-2.5 text-sm font-semibold text-white',
+                  acaoId === cancelando.id && 'opacity-60',
+                )}
+              >
+                {acaoId === cancelando.id ? (
+                  <Loader2 size={16} className="mx-auto animate-spin" />
+                ) : (
+                  'Cancelar e estornar'
                 )}
               </button>
             </div>

@@ -211,11 +211,22 @@ NÃO recriar como invoker senão quebra ranking/feed), `comunicados_feed`, `cart
   `carteira_lancamentos`), então saldo/ranking intactos. Marcador de histórico = `recompensa_id IS NULL`
   (coluna virou nullable). Status: Rejeitada→cancelado, Entregue→entregue, resto→solicitado.
   49 não casaram (e-mail fora do cadastro). Reimportável: `delete ... where recompensa_id is null` + re-rodar.
-- **Recompensas — pendentes:** (a) **fluxo de entrega** — status Solicitado→Entregue +
-  cancelamento que estorna pontos (ao montar, separar o histórico via `recompensa_id is null`
-  pra não misturar com pedidos novos); (b) **automação Trello** — a cada resgate, disparar card
-  (webhook Supabase→API Trello, ou n8n); (c) gerador "recompensa ao alcance" nas Notícias;
-  (d) fotos reais dos itens (as do Comunitive são privadas/403); (e) reabastecer estoques (vários em 0).
+- **Elegibilidade por item:** colunas `recompensas.elegivel_admissao_de` (só quem tem
+  `profiles.data_admissao >= X`) e `limite_por_pessoa` (máx. resgates não-cancelados por pessoa,
+  contados por `lower(titulo)` → pega histórico também). `recompensas_disponiveis()` esconde o que
+  a pessoa não pode ver; `resgatar()` revalida (erros `nao_elegivel`/`ja_resgatado`).
+  Ex.: **Kit Boas-Vindas** (custo 0, ilimitado, `elegivel_admissao_de='2026-01-01'`,
+  `limite_por_pessoa=1`) → só admitidos em 2026+ que ainda não pegaram. `admin_salvar_recompensa`
+  NÃO mexe nessas colunas (preserva no edit). Editar regras pela UI = pendente.
+- **Fluxo de entrega:** ✅ aba **Pedidos** no painel `/recompensas/admin` (só `podePublicar`).
+  `admin_listar_pedidos()` lista os resgates do app (exclui histórico via `recompensa_id is null`),
+  solicitados primeiro. `admin_atualizar_resgate(p_id, p_status)`: Solicitado→Entregue (não mexe em
+  pontos, já debitados no resgate); Cancelar estorna (apaga o lançamento `resgate` + repõe estoque);
+  reabrir re-debita. Ponto sai no RESGATE, não na entrega. ✔ testado (resgate −31→estorno restaura).
+- **Recompensas — pendentes:** (a) **automação Trello** — a cada resgate, disparar card
+  (webhook Supabase→API Trello, ou n8n); (b) aviso ao colaborador quando marcar entregue;
+  (c) gerador "recompensa ao alcance" nas Notícias; (d) fotos reais dos itens (Comunitive privadas/403);
+  (e) reabastecer estoques (vários em 0).
 - **Provas/quiz** — perguntas, tentativas, cooldown 24h, desbloqueio de módulo.
 - **Tipo "envio moderado"** — colaborador envia → admin valida.
 - **Painel admin** — CRUD de treinamentos/atribuições/grupos.
