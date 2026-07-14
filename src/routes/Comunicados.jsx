@@ -27,21 +27,19 @@ export function Comunicados() {
     const { data, error } = await supabase.from('comunicados_feed').select('*')
     if (error) {
       setErro('Não foi possível carregar os comunicados.')
-    } else {
-      setComunicados(data || [])
-      setErro('')
-      // registra a leitura dos comunicados exibidos (visualização única)
-      if (matricula && data?.length) {
-        supabase
-          .from('comunicado_leituras')
-          .upsert(
-            data.map((c) => ({ comunicado_id: c.id, matricula })),
-            { onConflict: 'comunicado_id,matricula', ignoreDuplicates: true },
-          )
-      }
+      setCarregando(false)
+      return
     }
+    const lista = data || []
+    // reflete a própria visualização já na tela (os ainda não lidos contam +1)
+    setComunicados(
+      lista.map((c) => (c.lido ? c : { ...c, lido: true, visualizacoes: c.visualizacoes + 1 })),
+    )
+    setErro('')
     setCarregando(false)
-  }, [matricula])
+    // registra a leitura no banco (dedup no servidor, identidade via JWT)
+    if (lista.length) supabase.rpc('registrar_leituras')
+  }, [])
 
   useEffect(() => {
     carregar()
