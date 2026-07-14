@@ -117,8 +117,8 @@ export function Home() {
       <Header />
 
       {/* Card de identificação — compacto, com anel de progresso dos desafios */}
-      <div className="px-5 pt-2">
-        <div className="hero-card reveal hstack gap-3 p-4">
+      <div className="px-5 pt-2 hxs:pt-1">
+        <div className="hero-card reveal hstack gap-3 p-4 hsm:p-3">
           <Avatar name={nome} src={usuario?.avatarUrl} size={48} />
           <div className="min-w-0 flex-1">
             <div className="font-display text-lg font-bold">Olá, {primeiroNome}!</div>
@@ -152,7 +152,7 @@ export function Home() {
       </div>
 
       {/* Menu do dia — uma linha com scroll lateral e botão + fixo à direita */}
-      <Section className="reveal reveal-1 mt-4" title="Menu do dia">
+      <Section className="reveal reveal-1 mt-4 hsm:mt-3" title="Menu do dia">
         <Card className="relative overflow-hidden !p-0">
           <div className="flex items-center gap-3 overflow-x-auto no-scrollbar py-3 pl-4 pr-16">
             {menuDoDia.itens.map((item, idx) => {
@@ -182,7 +182,7 @@ export function Home() {
 
       {/* Comunicado — card próprio */}
       {ultimoComunicado && (
-        <Section className="reveal reveal-2 mt-4" title="Comunicado">
+        <Section className="reveal reveal-2 mt-4 hsm:mt-3" title="Comunicado">
           <Link to="/comunicados" className="card tap flex items-center gap-3 p-4">
             <span className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl border border-accent/40 bg-accent-soft text-accent shadow-glow">
               <Megaphone size={26} />
@@ -202,13 +202,13 @@ export function Home() {
 
       {/* Notícias — banner rotativo (um por visita) */}
       {destaque && (
-        <div className="reveal reveal-3 mt-4 px-5">
+        <div className="reveal reveal-3 mt-4 hsm:mt-3 px-5">
           <DestaqueBanner d={destaque} />
         </div>
       )}
 
       {/* TATÁ PLUS — carrossel horizontal (um card por vez) */}
-      <Section className="mt-4" title="TATÁ PLUS">
+      <Section className="mt-4 hsm:mt-3" title="TATÁ PLUS">
         <div className="relative">
           <div
             onScroll={(e) => {

@@ -7,6 +7,11 @@ export default {
   content: ['./index.html', './src/**/*.{js,jsx}'],
   theme: {
     extend: {
+      // Breakpoints por ALTURA da tela — compacta a home em telas mais curtas
+      screens: {
+        hsm: { raw: '(max-height: 800px)' },
+        hxs: { raw: '(max-height: 700px)' },
+      },
       colors: {
         bg: c('--bg'),
         surface: c('--surface'),
