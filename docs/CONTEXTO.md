@@ -211,11 +211,15 @@ NÃO recriar como invoker senão quebra ranking/feed), `comunicados_feed`, `cart
   `carteira_lancamentos`), então saldo/ranking intactos. Marcador de histórico = `recompensa_id IS NULL`
   (coluna virou nullable). Status: Rejeitada→cancelado, Entregue→entregue, resto→solicitado.
   49 não casaram (e-mail fora do cadastro). Reimportável: `delete ... where recompensa_id is null` + re-rodar.
-- **Recompensas — pendentes:** (a) **fluxo de entrega** — status Solicitado→Entregue +
-  cancelamento que estorna pontos (ao montar, separar o histórico via `recompensa_id is null`
-  pra não misturar com pedidos novos); (b) **automação Trello** — a cada resgate, disparar card
-  (webhook Supabase→API Trello, ou n8n); (c) gerador "recompensa ao alcance" nas Notícias;
-  (d) fotos reais dos itens (as do Comunitive são privadas/403); (e) reabastecer estoques (vários em 0).
+- **Fluxo de entrega:** ✅ aba **Pedidos** no painel `/recompensas/admin` (só `podePublicar`).
+  `admin_listar_pedidos()` lista os resgates do app (exclui histórico via `recompensa_id is null`),
+  solicitados primeiro. `admin_atualizar_resgate(p_id, p_status)`: Solicitado→Entregue (não mexe em
+  pontos, já debitados no resgate); Cancelar estorna (apaga o lançamento `resgate` + repõe estoque);
+  reabrir re-debita. Ponto sai no RESGATE, não na entrega. ✔ testado (resgate −31→estorno restaura).
+- **Recompensas — pendentes:** (a) **automação Trello** — a cada resgate, disparar card
+  (webhook Supabase→API Trello, ou n8n); (b) aviso ao colaborador quando marcar entregue;
+  (c) gerador "recompensa ao alcance" nas Notícias; (d) fotos reais dos itens (Comunitive privadas/403);
+  (e) reabastecer estoques (vários em 0).
 - **Provas/quiz** — perguntas, tentativas, cooldown 24h, desbloqueio de módulo.
 - **Tipo "envio moderado"** — colaborador envia → admin valida.
 - **Painel admin** — CRUD de treinamentos/atribuições/grupos.
