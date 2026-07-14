@@ -106,7 +106,7 @@ function PostCard({ post, matricula, meuNome, meuAvatar, onCurtir, onExcluir }) 
         <img
           src={post.midia_url}
           alt=""
-          className="mt-3 w-full rounded-2xl object-cover"
+          className="mt-3 aspect-square w-full rounded-2xl object-cover"
           loading="lazy"
         />
       )}
@@ -342,7 +342,7 @@ export function Comunidade() {
           {/* Prévia da foto escolhida */}
           {previewUrl && (
             <div className="relative mt-3">
-              <img src={previewUrl} alt="" className="w-full rounded-2xl object-cover" />
+              <img src={previewUrl} alt="" className="aspect-square w-full rounded-2xl object-cover" />
               <button
                 onClick={removerFoto}
                 className="absolute right-2 top-2 grid h-8 w-8 place-items-center rounded-full bg-black/60 text-white backdrop-blur tap"
