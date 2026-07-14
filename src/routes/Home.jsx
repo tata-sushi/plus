@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ChevronRight, Flag, Gift, UsersRound, Megaphone } from 'lucide-react'
+import { ChevronRight, Flag, Gift, Plus, Megaphone } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Section } from '../components/Section.jsx'
 import { Card } from '../components/Card.jsx'
@@ -72,7 +72,19 @@ export function Home() {
       </div>
 
       {/* Menu do dia — uma linha */}
-      <Section className="reveal reveal-1 mt-5" title="Menu do dia">
+      <Section
+        className="reveal reveal-1 mt-5"
+        title="Menu do dia"
+        action={
+          <Link
+            to="/cardapio"
+            aria-label="Ver cardápio da semana"
+            className="grid h-6 w-6 place-items-center rounded-full border border-accent/40 text-accent tap"
+          >
+            <Plus size={14} />
+          </Link>
+        }
+      >
         <Card className="!py-3">
           <div className="flex items-center gap-3 overflow-x-auto no-scrollbar">
             {menuDoDia.itens.map((item, idx) => {
@@ -127,13 +139,6 @@ export function Home() {
             title="Recompensas"
             subtitle="Conheça nossas recompensas"
             className="reveal reveal-2"
-          />
-          <PromoCard
-            to="/comunidade"
-            badgeIcon={UsersRound}
-            title="Comunidade"
-            subtitle="Curta, compartilhe e interaja com diferentes equipes"
-            className="reveal reveal-3"
           />
         </div>
       </Section>

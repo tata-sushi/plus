@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import {
   Trophy,
@@ -13,6 +13,7 @@ import {
   Camera,
   Loader2,
   Megaphone,
+  UtensilsCrossed,
 } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Section } from '../components/Section.jsx'
@@ -24,6 +25,7 @@ import { supabase } from '../lib/supabase.js'
 import { tapHaptic } from '../lib/haptics.js'
 
 const itens = [
+  { to: '/cardapio', label: 'Cardápio', icon: UtensilsCrossed },
   { to: '/comunicados', label: 'Comunicados', icon: Megaphone },
   { to: '/jornada', label: 'Minha jornada', icon: Trophy },
   { to: '/treinamentos', label: 'Treinamentos', icon: GraduationCap },
@@ -46,6 +48,17 @@ export function Mais() {
   const inputFoto = useRef(null)
   const [enviando, setEnviando] = useState(false)
   const [erro, setErro] = useState('')
+  const [saldo, setSaldo] = useState(null)
+
+  useEffect(() => {
+    let ativo = true
+    supabase.rpc('meu_saldo').then(({ data }) => {
+      if (ativo) setSaldo(Number(data) || 0)
+    })
+    return () => {
+      ativo = false
+    }
+  }, [])
 
   async function trocarFoto(e) {
     const f = e.target.files?.[0]
@@ -121,7 +134,7 @@ export function Mais() {
               <div className="mt-1 text-xs">
                 <span className="text-muted">Carteira · </span>
                 <span className="font-semibold text-accent">
-                  {currentUser.pontosCarteira.toLocaleString('pt-BR')} pts
+                  {saldo == null ? '—' : `${saldo.toLocaleString('pt-BR')} pts`}
                 </span>
               </div>
             </div>
