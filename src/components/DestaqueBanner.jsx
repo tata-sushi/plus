@@ -37,7 +37,7 @@ export function DestaqueBanner({ d }) {
       <span className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/10 to-transparent" />
 
       {/* conteúdo */}
-      <div className="relative flex min-h-[150px] flex-col justify-end gap-2.5 p-4">
+      <div className="relative flex min-h-[150px] flex-col justify-end gap-2.5 p-4 hsm:min-h-[122px] hxs:min-h-[104px]">
         <div>
           <div className="hstack gap-1.5 text-[10px] font-semibold uppercase tracking-widest text-white/70">
             <Sparkles size={12} className={tpl.tint} /> Notícias

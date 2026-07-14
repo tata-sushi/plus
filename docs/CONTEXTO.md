@@ -246,5 +246,9 @@ Ordem das seções na Início (`Home.jsx`):
 
 Card de Notícias (`DestaqueBanner`) com altura `min-h-[150px]`.
 
+**Responsivo por altura:** breakpoints `hsm` (max-height 800px) e `hxs` (700px) no
+Tailwind compactam a home em telas curtas (banner de Notícias, gaps `mt-4→mt-3`, padding do
+card). Em telas altas fica na proporção cheia.
+
 **Próximos candidatos:** afinar cores do tema claro; trocar gradientes das Notícias por
 artes reais (`imagem_url`); Fase 2 RH.
