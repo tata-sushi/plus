@@ -228,21 +228,19 @@ NÃO recriar como invoker senão quebra ranking/feed), `comunicados_feed`, `cart
 ## 12. Home — estado atual (✅ concluído)
 
 Ordem das seções na Início (`Home.jsx`):
-1. Card de identificação (compacto). Slot da direita:
-   - **líder** (`usuario.governanca.tem`) → **revezamento automático** entre o ícone de
-     Governança carbon (`bg-carbon text-white`, ~12s) e o `ProgressRing` de % (5s), com
-     **deslize lateral** (trilho de 108px com os dois montados que translada 0 ↔ -54px,
-     `transition-transform duration-500`). Estado `slotGov` + setTimeout alternando 12000/5000ms.
-   - **não-líder** → `ProgressRing` com o % dos desafios (fixo).
+1. Card de identificação (compacto) — **`ProgressRing` de % para todos** (sem ícone de
+   Governança no card; a Governança do líder fica no carrossel Sugestões e no card do Mais).
 2. **Menu do dia**
-3. **Comunicado**
-4. **Notícias** (banner rotativo, `reveal-3`)
-5. **TATÁ PLUS** (carrossel horizontal com snap + seta de deslize na borda). Para **líderes**, entra um card
-   extra **Governança de Processos** com identidade **carbon** (predominante), distinta dos
-   cards verdes: `bgClassName='bg-carbon'`, `badgeClassName='bg-white text-carbon'`,
-   `textClassName='text-white'`. O `PromoCard` aceita `bgClassName`/`badgeClassName`/`textClassName`.
+3. **Notícias** — banner quadrado (`DestaqueBanner`). **Unificado com o Comunicado**: quando
+   há comunicado, ele entra aqui com **prioridade** (mostra sempre que existir) e uma **pílula
+   "Comunicado"** (accent). Sem comunicado, rotaciona os destaques de gamificação (um por
+   visita). O comunicado voltou ao motor `destaques()` como candidato `categoria='comunicado'`,
+   prioridade 110.
+4. **Sugestões** (era "TATÁ PLUS") — carrossel horizontal com snap + seta de deslize; no fim
+   da página. Para **líderes**, entra o card **Governança de Processos** (identidade carbon:
+   `bgClassName='bg-carbon'`, `badgeClassName='bg-white text-carbon'`, `textClassName='text-white'`).
 
-(O card do **Mais** também mostra o `ProgressRing` de desafios — onde o líder vê o %.)
+(O card do **Mais** também mostra o `ProgressRing` de desafios.)
 
 Card de Notícias (`DestaqueBanner`) em **formato quadrado 1:1** (`aspect-square`), conteúdo ancorado no rodapé.
 

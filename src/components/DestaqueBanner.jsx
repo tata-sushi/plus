@@ -39,9 +39,15 @@ export function DestaqueBanner({ d }) {
       {/* conteúdo */}
       <div className="absolute inset-0 flex flex-col justify-end gap-2.5 p-5">
         <div>
-          <div className="hstack gap-1.5 text-[10px] font-semibold uppercase tracking-widest text-white/70">
-            <Sparkles size={12} className={tpl.tint} /> Notícias
-          </div>
+          {d.categoria === 'comunicado' ? (
+            <span className="pill w-fit bg-accent text-black text-[10px] uppercase tracking-wide">
+              <Megaphone size={12} /> Comunicado
+            </span>
+          ) : (
+            <div className="hstack gap-1.5 text-[10px] font-semibold uppercase tracking-widest text-white/70">
+              <Sparkles size={12} className={tpl.tint} /> Notícias
+            </div>
+          )}
           <div className="mt-1.5 font-display text-lg font-bold leading-snug text-white">
             {d.titulo}
           </div>
