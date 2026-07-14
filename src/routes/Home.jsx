@@ -71,22 +71,10 @@ export function Home() {
         </div>
       </div>
 
-      {/* Menu do dia — uma linha */}
-      <Section
-        className="reveal reveal-1 mt-5"
-        title="Menu do dia"
-        action={
-          <Link
-            to="/cardapio"
-            aria-label="Ver cardápio da semana"
-            className="grid h-6 w-6 place-items-center rounded-full border border-accent/40 text-accent tap"
-          >
-            <Plus size={14} />
-          </Link>
-        }
-      >
-        <Card className="!py-3">
-          <div className="flex items-center gap-3 overflow-x-auto no-scrollbar">
+      {/* Menu do dia — uma linha com scroll lateral e botão + fixo à direita */}
+      <Section className="reveal reveal-1 mt-5" title="Menu do dia">
+        <Card className="relative overflow-hidden !p-0">
+          <div className="flex items-center gap-3 overflow-x-auto no-scrollbar py-3 pl-4 pr-16">
             {menuDoDia.itens.map((item, idx) => {
               const Icon = resolveIcon(item.icon)
               return (
@@ -100,6 +88,15 @@ export function Home() {
               )
             })}
           </div>
+          <Link
+            to="/cardapio"
+            aria-label="Ver cardápio da semana"
+            className="absolute inset-y-0 right-0 flex items-center bg-gradient-to-l from-surface from-60% to-transparent pl-6 pr-3 tap"
+          >
+            <span className="grid h-8 w-8 place-items-center rounded-full border border-accent/40 bg-accent-soft text-accent">
+              <Plus size={16} />
+            </span>
+          </Link>
         </Card>
       </Section>
 
