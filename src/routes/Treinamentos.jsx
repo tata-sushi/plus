@@ -51,29 +51,30 @@ function Detalhe({ treino, onFechar, onConcluir, concluindo }) {
           Desafio{' '}
           <span className="text-xs font-medium text-muted">({treino.titulo})</span>
         </div>
-        {/* espaçador invisível (mesma largura do Voltar) pra centralizar o título */}
-        <span
-          aria-hidden
-          className="hstack invisible shrink-0 gap-1.5 px-3.5 py-2 text-xs font-semibold"
-        >
-          <ArrowLeft size={15} /> Voltar
-        </span>
+        {treino.pontos > 0 ? (
+          <span className="pill shrink-0 bg-accent-soft text-accent">
+            <Star size={12} /> {treino.pontos} pts
+          </span>
+        ) : (
+          // espaçador invisível (mesma largura do Voltar) pra centralizar o título
+          <span
+            aria-hidden
+            className="hstack invisible shrink-0 gap-1.5 px-3.5 py-2 text-xs font-semibold"
+          >
+            <ArrowLeft size={15} /> Voltar
+          </span>
+        )}
       </div>
 
       {/* Cabeçalho do desafio (só conteúdo/texto — PDF abre direto) */}
       {data && !ehPdf && (
         <div className="border-b border-line px-5 py-3">
           <h1 className="font-display text-lg font-bold leading-tight">{treino.titulo}</h1>
-          <div className="mt-1.5 hstack gap-2 text-xs">
-            {treino.pontos > 0 && (
-              <span className="pill bg-accent-soft text-accent">
-                <Star size={12} /> {treino.pontos} pts
-              </span>
-            )}
-            {TIPO_LABEL[treino.tipo] && (
-              <span className="pill bg-surface-2 text-muted">{TIPO_LABEL[treino.tipo]}</span>
-            )}
-          </div>
+          {TIPO_LABEL[treino.tipo] && (
+            <div className="mt-1.5">
+              <span className="pill bg-surface-2 text-xs text-muted">{TIPO_LABEL[treino.tipo]}</span>
+            </div>
+          )}
         </div>
       )}
 
