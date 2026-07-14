@@ -19,7 +19,7 @@ export function ProfileView({ colaborador, isSelf }) {
       <div className="px-5">
         <div className="hero-card reveal p-4">
           <div className="hstack gap-3">
-            <Avatar name={colaborador.nome} size={56} />
+            <Avatar name={colaborador.nome} src={colaborador.avatar} size={56} />
             <div className="min-w-0 flex-1">
               <div className="font-display text-base font-bold">{colaborador.nome}</div>
               <div className="text-xs text-muted">

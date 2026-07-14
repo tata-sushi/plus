@@ -36,7 +36,7 @@ export function AuthProvider({ children }) {
   const verificarPerfil = useCallback(async () => {
     const { data, error } = await supabase
       .from('profiles')
-      .select('matricula, nome, cargo, unidade, departamento, perfil, status')
+      .select('matricula, nome, cargo, unidade, departamento, perfil, status, avatar_url')
       .maybeSingle()
     if (error) return
     if (!data || data.status !== 'Ativo') {
@@ -105,6 +105,7 @@ export function AuthProvider({ children }) {
         departamento: profile.departamento,
         perfil: profile.perfil,
         status: profile.status,
+        avatarUrl: profile.avatar_url,
       }
     : session?.user
       ? {
@@ -127,6 +128,17 @@ export function AuthProvider({ children }) {
       supabase.auth.signInWithPassword({ email: email.trim(), password: senha }),
     signOut: () => supabase.auth.signOut(),
     updatePassword: (novaSenha) => supabase.auth.updateUser({ password: novaSenha }),
+    // Atualiza a foto de perfil (grava no profiles + estado local)
+    definirAvatar: async (url) => {
+      const mat = profile?.matricula
+      if (!mat) return { error: new Error('sem matrícula') }
+      const { error } = await supabase
+        .from('profiles')
+        .update({ avatar_url: url })
+        .eq('matricula', mat)
+      if (!error) setProfile((p) => (p ? { ...p, avatar_url: url } : p))
+      return { error }
+    },
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

@@ -1,3 +1,4 @@
+import { useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import {
   Trophy,
@@ -9,6 +10,8 @@ import {
   Wrench,
   LogOut,
   ChevronRight,
+  Camera,
+  Loader2,
 } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Section } from '../components/Section.jsx'
@@ -16,6 +19,7 @@ import { Avatar } from '../components/Avatar.jsx'
 import { SocialLinks } from '../components/SocialLinks.jsx'
 import { currentUser, redesSociais } from '../lib/mockData.js'
 import { useAuth } from '../lib/AuthContext.jsx'
+import { supabase } from '../lib/supabase.js'
 import { tapHaptic } from '../lib/haptics.js'
 
 const itens = [
@@ -28,12 +32,49 @@ const itens = [
   { to: '/manutencao', label: 'Painel de manutenção', icon: Wrench },
 ]
 
+const TAM_MAX = 8 * 1024 * 1024 // 8 MB
+
 export function Mais() {
   const navigate = useNavigate()
-  const { usuario, signOut } = useAuth()
+  const { usuario, signOut, definirAvatar } = useAuth()
   const nome = usuario?.nome || currentUser.nome
   const cargo = usuario?.cargo || currentUser.cargo
   const loja = usuario?.loja || currentUser.loja
+
+  const inputFoto = useRef(null)
+  const [enviando, setEnviando] = useState(false)
+  const [erro, setErro] = useState('')
+
+  async function trocarFoto(e) {
+    const f = e.target.files?.[0]
+    e.target.value = ''
+    if (!f || !usuario?.matricula) return
+    if (!f.type.startsWith('image/')) {
+      setErro('Selecione uma imagem.')
+      return
+    }
+    if (f.size > TAM_MAX) {
+      setErro('Imagem muito grande (máx. 8 MB).')
+      return
+    }
+    tapHaptic()
+    setErro('')
+    setEnviando(true)
+    const ext = (f.name.split('.').pop() || 'jpg').toLowerCase()
+    const caminho = `${usuario.matricula}/${crypto.randomUUID()}.${ext}`
+    const { error: upErr } = await supabase.storage
+      .from('avatares')
+      .upload(caminho, f, { cacheControl: '3600', contentType: f.type })
+    if (upErr) {
+      setEnviando(false)
+      setErro('Não foi possível enviar a foto.')
+      return
+    }
+    const url = supabase.storage.from('avatares').getPublicUrl(caminho).data.publicUrl
+    const { error } = await definirAvatar(url)
+    setEnviando(false)
+    if (error) setErro('Não foi possível salvar a foto.')
+  }
 
   async function sair() {
     tapHaptic()
@@ -48,7 +89,27 @@ export function Mais() {
       <div className="px-5">
         <div className="card p-4">
           <div className="hstack gap-3">
-            <Avatar name={nome} size={52} />
+            <button
+              onClick={() => inputFoto.current?.click()}
+              className="relative tap"
+              aria-label="Trocar foto de perfil"
+            >
+              <Avatar name={nome} src={usuario?.avatarUrl} size={52} />
+              <span className="absolute -bottom-0.5 -right-0.5 grid h-5 w-5 place-items-center rounded-full bg-accent text-black ring-2 ring-surface">
+                {enviando ? (
+                  <Loader2 size={11} className="animate-spin" />
+                ) : (
+                  <Camera size={11} />
+                )}
+              </span>
+            </button>
+            <input
+              ref={inputFoto}
+              type="file"
+              accept="image/*"
+              onChange={trocarFoto}
+              className="hidden"
+            />
             <div className="min-w-0 flex-1">
               <div className="font-display text-base font-bold">{nome}</div>
               <div className="text-xs text-muted">
@@ -63,6 +124,7 @@ export function Mais() {
               </div>
             </div>
           </div>
+          {erro && <div className="mt-2 text-[11px] font-medium text-danger">{erro}</div>}
         </div>
       </div>
 
