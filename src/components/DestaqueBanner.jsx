@@ -17,7 +17,7 @@ export function DestaqueBanner({ d }) {
   return (
     <Link
       to={d.cta_to || '/'}
-      className="relative block overflow-hidden rounded-3xl border border-line bg-surface tap"
+      className="relative block aspect-square overflow-hidden rounded-3xl border border-line bg-surface tap"
     >
       {/* fundo: arte real (futuro) ou gradiente do template */}
       {d.imagem_url ? (
@@ -28,16 +28,16 @@ export function DestaqueBanner({ d }) {
 
       {/* ícone decorativo grande, bem sutil */}
       <Icon
-        size={150}
+        size={200}
         strokeWidth={1.25}
-        className={`pointer-events-none absolute -right-5 -top-6 opacity-[0.08] ${tpl.tint}`}
+        className={`pointer-events-none absolute -right-6 -top-6 opacity-[0.08] ${tpl.tint}`}
       />
 
       {/* scrim para legibilidade do texto */}
       <span className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/10 to-transparent" />
 
       {/* conteúdo */}
-      <div className="relative flex min-h-[150px] flex-col justify-end gap-2.5 p-4 hsm:min-h-[122px] hxs:min-h-[104px]">
+      <div className="absolute inset-0 flex flex-col justify-end gap-2.5 p-5">
         <div>
           <div className="hstack gap-1.5 text-[10px] font-semibold uppercase tracking-widest text-white/70">
             <Sparkles size={12} className={tpl.tint} /> Notícias

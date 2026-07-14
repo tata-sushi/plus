@@ -244,7 +244,7 @@ Ordem das seções na Início (`Home.jsx`):
 
 (O card do **Mais** também mostra o `ProgressRing` de desafios — onde o líder vê o %.)
 
-Card de Notícias (`DestaqueBanner`) com altura `min-h-[150px]`.
+Card de Notícias (`DestaqueBanner`) em **formato quadrado 1:1** (`aspect-square`), conteúdo ancorado no rodapé.
 
 **Responsivo por altura:** breakpoints `hsm` (max-height 800px) e `hxs` (700px) no
 Tailwind compactam a home em telas curtas (banner de Notícias, gaps `mt-4→mt-3`, padding do
