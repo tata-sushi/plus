@@ -61,7 +61,6 @@ export function Home() {
     const t = setTimeout(() => setSlotGov((v) => !v), slotGov ? 12000 : 5000)
     return () => clearTimeout(t)
   }, [isLider, slotGov])
-  const mostrarGov = isLider && slotGov
 
   // Progresso real de desafios (para o anel do card de identificação)
   const [progresso, setProgresso] = useState(null)
@@ -128,19 +127,27 @@ export function Home() {
               {loja ? ` · ${loja}` : ''}
             </div>
           </div>
-          <div key={mostrarGov ? 'gov' : 'anel'} className="animate-page shrink-0">
-            {mostrarGov ? (
-              <Link
-                to="/governanca"
-                aria-label="Governança de Processos"
-                className="grid h-[54px] w-[54px] place-items-center rounded-full bg-carbon text-white tap"
+          {isLider ? (
+            <div className="h-[54px] w-[54px] shrink-0 overflow-hidden">
+              <div
+                className="flex w-[108px] transition-transform duration-500 ease-in-out"
+                style={{ transform: slotGov ? 'translateX(0px)' : 'translateX(-54px)' }}
               >
-                <Landmark size={24} />
-              </Link>
-            ) : (
-              <ProgressRing value={(progresso?.pct ?? 0) / 100} size={54} stroke={5} />
-            )}
-          </div>
+                <Link
+                  to="/governanca"
+                  aria-label="Governança de Processos"
+                  className="grid h-[54px] w-[54px] shrink-0 place-items-center rounded-full bg-carbon text-white tap"
+                >
+                  <Landmark size={24} />
+                </Link>
+                <div className="grid h-[54px] w-[54px] shrink-0 place-items-center">
+                  <ProgressRing value={(progresso?.pct ?? 0) / 100} size={54} stroke={5} />
+                </div>
+              </div>
+            </div>
+          ) : (
+            <ProgressRing value={(progresso?.pct ?? 0) / 100} size={54} stroke={5} />
+          )}
         </div>
       </div>
 
