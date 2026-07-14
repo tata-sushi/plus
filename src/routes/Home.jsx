@@ -94,13 +94,6 @@ export function Home() {
         </div>
       </div>
 
-      {/* Destaque rotativo — banner dinâmico (um por visita) */}
-      {destaque && (
-        <div className="reveal reveal-1 mt-4 px-5">
-          <DestaqueBanner d={destaque} />
-        </div>
-      )}
-
       {/* Menu do dia — uma linha com scroll lateral e botão + fixo à direita */}
       <Section className="reveal reveal-1 mt-5" title="Menu do dia">
         <Card className="relative overflow-hidden !p-0">
@@ -150,6 +143,13 @@ export function Home() {
         </Section>
       )}
 
+      {/* Notícias — banner rotativo (um por visita) */}
+      {destaque && (
+        <div className="reveal reveal-3 mt-5 px-5">
+          <DestaqueBanner d={destaque} />
+        </div>
+      )}
+
       {/* TATÁ PLUS — cards principais */}
       <Section className="mt-5" title="TATÁ PLUS">
         <div className="flex flex-col gap-3">
@@ -172,7 +172,7 @@ export function Home() {
 
       {/* Acesso rápido — atalhos */}
       {rapidos.length > 0 && (
-        <Section className="reveal reveal-1 mt-5" title="Acesso Rápido">
+        <Section className="reveal reveal-1 mt-5" title="Governança de Processos">
           <div className={`grid gap-2 ${rapidos.length === 1 ? 'grid-cols-1' : 'grid-cols-2'}`}>
             {rapidos.map((a) => (
               <IconTile key={a.id} icon={a.icon} label={a.label} to={a.to} variant={a.variant} />
