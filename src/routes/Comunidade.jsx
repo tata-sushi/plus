@@ -1,14 +1,13 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   Heart,
   MessageCircle,
   Share2,
   Image as ImageIcon,
-  Video,
-  Play,
   Send,
   Loader2,
   Trash2,
+  X,
 } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Card } from '../components/Card.jsx'
@@ -18,6 +17,8 @@ import { tapHaptic } from '../lib/haptics.js'
 import { tempoRelativo } from '../lib/tempo.js'
 import { useAuth } from '../lib/AuthContext.jsx'
 import { supabase } from '../lib/supabase.js'
+
+const TAM_MAX = 15 * 1024 * 1024 // 15 MB
 
 function PostCard({ post, matricula, meuNome, onCurtir, onExcluir }) {
   const [abrir, setAbrir] = useState(false)
@@ -99,17 +100,14 @@ function PostCard({ post, matricula, meuNome, onCurtir, onExcluir }) {
       {/* Texto */}
       {post.texto && <p className="mt-3 whitespace-pre-wrap text-sm">{post.texto}</p>}
 
-      {/* Mídia */}
-      {post.midia_url && post.midia_tipo === 'foto' && (
+      {/* Mídia (foto) */}
+      {post.midia_url && (
         <img
           src={post.midia_url}
           alt=""
           className="mt-3 w-full rounded-2xl object-cover"
           loading="lazy"
         />
-      )}
-      {post.midia_url && post.midia_tipo === 'video' && (
-        <video src={post.midia_url} controls className="mt-3 w-full rounded-2xl" />
       )}
 
       {/* Ações */}
@@ -185,7 +183,9 @@ export function Comunidade() {
   const [erro, setErro] = useState('')
   const [texto, setTexto] = useState('')
   const [publicando, setPublicando] = useState(false)
-  const [avisoMidia, setAvisoMidia] = useState(false)
+  const [arquivo, setArquivo] = useState(null)
+  const [previewUrl, setPreviewUrl] = useState('')
+  const inputFoto = useRef(null)
 
   const carregarFeed = useCallback(async () => {
     const { data, error } = await supabase.from('feed_posts').select('*')
@@ -202,14 +202,60 @@ export function Comunidade() {
     carregarFeed()
   }, [carregarFeed])
 
+  function escolherFoto(e) {
+    const f = e.target.files?.[0]
+    e.target.value = '' // permite re-selecionar o mesmo arquivo
+    if (!f) return
+    if (!f.type.startsWith('image/')) {
+      setErro('Selecione uma imagem.')
+      return
+    }
+    if (f.size > TAM_MAX) {
+      setErro('Imagem muito grande (máx. 15 MB).')
+      return
+    }
+    setErro('')
+    if (previewUrl) URL.revokeObjectURL(previewUrl)
+    setArquivo(f)
+    setPreviewUrl(URL.createObjectURL(f))
+  }
+
+  function removerFoto() {
+    if (previewUrl) URL.revokeObjectURL(previewUrl)
+    setArquivo(null)
+    setPreviewUrl('')
+  }
+
+  const podePublicar = (texto.trim() !== '' || arquivo) && !publicando && !!matricula
+
   async function publicar() {
+    if (!podePublicar) return
     const t = texto.trim()
-    if (!t || publicando || !matricula) return
     tapHaptic()
     setPublicando(true)
+    setErro('')
+
+    let midia_url = null
+    let midia_tipo = null
+
+    if (arquivo) {
+      const ext = (arquivo.name.split('.').pop() || 'jpg').toLowerCase()
+      const caminho = `${matricula}/${crypto.randomUUID()}.${ext}`
+      const { error: upErr } = await supabase.storage
+        .from('comunidade')
+        .upload(caminho, arquivo, { cacheControl: '3600', contentType: arquivo.type })
+      if (upErr) {
+        setPublicando(false)
+        setErro('Não foi possível enviar a imagem.')
+        return
+      }
+      midia_url = supabase.storage.from('comunidade').getPublicUrl(caminho).data.publicUrl
+      midia_tipo = 'foto'
+    }
+
     const { data, error } = await supabase
       .from('posts')
-      .insert({ autor_matricula: matricula, texto: t })
+      .insert({ autor_matricula: matricula, texto: t || null, midia_url, midia_tipo })
       .select('id, created_at')
       .single()
     setPublicando(false)
@@ -217,7 +263,7 @@ export function Comunidade() {
       setErro('Não foi possível publicar. Tente novamente.')
       return
     }
-    setErro('')
+
     setPosts((prev) => [
       {
         id: data.id,
@@ -225,9 +271,9 @@ export function Comunidade() {
         autor_nome: meuNome,
         autor_cargo: usuario?.cargo || '',
         autor_unidade: usuario?.loja || '',
-        texto: t,
-        midia_url: null,
-        midia_tipo: null,
+        texto: t || null,
+        midia_url,
+        midia_tipo,
         created_at: data.created_at,
         likes: 0,
         comentarios: 0,
@@ -236,7 +282,7 @@ export function Comunidade() {
       ...prev,
     ])
     setTexto('')
-    setAvisoMidia(false)
+    removerFoto()
   }
 
   async function curtir(post) {
@@ -257,7 +303,6 @@ export function Comunidade() {
           .eq('autor_matricula', matricula)
     const { error } = await req
     if (error) {
-      // reverte em caso de falha
       setPosts((prev) =>
         prev.map((p) =>
           p.id === post.id
@@ -290,22 +335,40 @@ export function Comunidade() {
               className="w-full bg-transparent text-sm outline-none placeholder:text-muted-2"
             />
           </div>
-          <div className="mt-3 hstack justify-between border-t border-white/5 pt-3">
-            <div className="hstack gap-4 text-xs font-semibold text-muted">
-              <button onClick={() => setAvisoMidia(true)} className="hstack gap-1.5 tap">
-                <ImageIcon size={16} /> Foto
-              </button>
-              <button onClick={() => setAvisoMidia(true)} className="hstack gap-1.5 tap">
-                <Video size={16} /> Vídeo
+
+          {/* Prévia da foto escolhida */}
+          {previewUrl && (
+            <div className="relative mt-3">
+              <img src={previewUrl} alt="" className="w-full rounded-2xl object-cover" />
+              <button
+                onClick={removerFoto}
+                className="absolute right-2 top-2 grid h-8 w-8 place-items-center rounded-full bg-black/60 text-white backdrop-blur tap"
+                aria-label="Remover foto"
+              >
+                <X size={16} />
               </button>
             </div>
+          )}
+
+          <input
+            ref={inputFoto}
+            type="file"
+            accept="image/*"
+            onChange={escolherFoto}
+            className="hidden"
+          />
+
+          <div className="mt-3 hstack justify-between border-t border-white/5 pt-3">
+            <button
+              onClick={() => inputFoto.current?.click()}
+              className="hstack gap-1.5 text-xs font-semibold text-muted tap"
+            >
+              <ImageIcon size={16} /> Foto
+            </button>
             <button
               onClick={publicar}
-              disabled={!texto.trim() || publicando || !matricula}
-              className={cn(
-                'btn-primary !py-2 text-xs',
-                (!texto.trim() || publicando || !matricula) && 'opacity-50',
-              )}
+              disabled={!podePublicar}
+              className={cn('btn-primary !py-2 text-xs', !podePublicar && 'opacity-50')}
             >
               {publicando ? (
                 <Loader2 size={14} className="animate-spin" />
@@ -316,10 +379,9 @@ export function Comunidade() {
               )}
             </button>
           </div>
-          {avisoMidia && (
-            <div className="mt-2 text-[11px] text-muted">
-              Envio de foto e vídeo disponível em breve.
-            </div>
+
+          {erro && !carregando && (
+            <div className="mt-2 text-[11px] font-medium text-danger">{erro}</div>
           )}
         </Card>
       </div>
@@ -332,7 +394,7 @@ export function Comunidade() {
           </div>
         )}
 
-        {!carregando && erro && (
+        {!carregando && erro && posts.length === 0 && (
           <div className="rounded-card border border-danger/30 bg-danger/10 px-4 py-3 text-center text-xs font-medium text-danger">
             {erro}
           </div>
