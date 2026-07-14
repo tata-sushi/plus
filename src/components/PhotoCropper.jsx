@@ -1,19 +1,20 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react'
 
-// Enquadrador quadrado (1:1): arrasta pra reposicionar + zoom.
+// Enquadrador quadrado (1:1): arrastar (1 dedo) + zoom por pinça (2 dedos).
 // Exporta o recorte visível via canvas (getBlob) — JPEG OUTxOUT.
 const OUT = 1080
+const ZOOM_MAX = 4
 
 export const PhotoCropper = forwardRef(function PhotoCropper({ src }, ref) {
   const viewportRef = useRef(null)
   const imgRef = useRef(null)
-  const drag = useRef(null)
+  const pointers = useRef(new Map()) // pointerId -> {x,y}
+  const gesture = useRef(null) // baseline do gesto atual
   const [S, setS] = useState(0) // lado do viewport (px)
   const [nat, setNat] = useState(null) // dimensões naturais {w,h}
   const [zoom, setZoom] = useState(1)
   const [pos, setPos] = useState({ x: 0, y: 0 }) // pan (px do viewport)
 
-  // mede o viewport (é quadrado)
   useEffect(() => {
     const el = viewportRef.current
     if (!el) return
@@ -24,7 +25,6 @@ export const PhotoCropper = forwardRef(function PhotoCropper({ src }, ref) {
     return () => ro.disconnect()
   }, [])
 
-  // reset ao trocar de imagem
   useEffect(() => {
     setNat(null)
     setZoom(1)
@@ -35,9 +35,15 @@ export const PhotoCropper = forwardRef(function PhotoCropper({ src }, ref) {
   const f = baseScale * zoom
   const dispW = nat ? nat.w * f : 0
   const dispH = nat ? nat.h * f : 0
-  const maxX = Math.max(0, (dispW - S) / 2)
-  const maxY = Math.max(0, (dispH - S) / 2)
   const clamp = (v, m) => Math.max(-m, Math.min(m, v))
+  const clampZoom = (z) => Math.max(1, Math.min(ZOOM_MAX, z))
+  // limites de pan para um zoom qualquer
+  const bounds = (z) => {
+    if (!nat) return { mx: 0, my: 0 }
+    const fz = baseScale * z
+    return { mx: Math.max(0, (nat.w * fz - S) / 2), my: Math.max(0, (nat.h * fz - S) / 2) }
+  }
+  const { mx: maxX, my: maxY } = bounds(zoom)
 
   // re-clampa o pan quando zoom/tamanho muda
   useEffect(() => {
@@ -45,24 +51,57 @@ export const PhotoCropper = forwardRef(function PhotoCropper({ src }, ref) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [zoom, S, nat])
 
-  function onLoad(e) {
-    setNat({ w: e.target.naturalWidth, h: e.target.naturalHeight })
+  const pts = () => [...pointers.current.values()]
+  const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y)
+  const mid = (a, b) => ({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 })
+
+  function baseline() {
+    const p = pts()
+    if (p.length === 1) {
+      gesture.current = { mode: 'pan', ox: p[0].x, oy: p[0].y, pos: { ...pos } }
+    } else if (p.length >= 2) {
+      gesture.current = {
+        mode: 'pinch',
+        d0: dist(p[0], p[1]),
+        m0: mid(p[0], p[1]),
+        z0: zoom,
+        pos: { ...pos },
+      }
+    } else {
+      gesture.current = null
+    }
   }
+
   function down(e) {
     if (!nat) return
     e.currentTarget.setPointerCapture(e.pointerId)
-    drag.current = { px: e.clientX, py: e.clientY, ...pos }
+    pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY })
+    baseline()
   }
   function move(e) {
-    if (!drag.current) return
-    setPos({
-      x: clamp(drag.current.x + (e.clientX - drag.current.px), maxX),
-      y: clamp(drag.current.y + (e.clientY - drag.current.py), maxY),
-    })
+    if (!pointers.current.has(e.pointerId)) return
+    pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY })
+    const g = gesture.current
+    if (!g) return
+    const p = pts()
+    if (g.mode === 'pan' && p.length === 1) {
+      const { mx, my } = bounds(zoom)
+      setPos({ x: clamp(g.pos.x + (p[0].x - g.ox), mx), y: clamp(g.pos.y + (p[0].y - g.oy), my) })
+    } else if (g.mode === 'pinch' && p.length >= 2) {
+      const nz = clampZoom(g.z0 * (dist(p[0], p[1]) / g.d0))
+      const m = mid(p[0], p[1])
+      const { mx, my } = bounds(nz)
+      setZoom(nz)
+      setPos({
+        x: clamp(g.pos.x + (m.x - g.m0.x), mx),
+        y: clamp(g.pos.y + (m.y - g.m0.y), my),
+      })
+    }
   }
   function up(e) {
-    if (drag.current) e.currentTarget.releasePointerCapture?.(e.pointerId)
-    drag.current = null
+    pointers.current.delete(e.pointerId)
+    e.currentTarget.releasePointerCapture?.(e.pointerId)
+    baseline() // re-baseia com os dedos restantes (ou limpa)
   }
 
   useImperativeHandle(ref, () => ({
@@ -97,7 +136,7 @@ export const PhotoCropper = forwardRef(function PhotoCropper({ src }, ref) {
           src={src}
           alt=""
           draggable={false}
-          onLoad={onLoad}
+          onLoad={(e) => setNat({ w: e.target.naturalWidth, h: e.target.naturalHeight })}
           style={{
             position: 'absolute',
             left: '50%',
@@ -110,18 +149,8 @@ export const PhotoCropper = forwardRef(function PhotoCropper({ src }, ref) {
         />
       </div>
       {nat && (
-        <div className="mt-2 hstack gap-2">
-          <span className="text-[11px] text-muted-2">Arraste e use o zoom pra enquadrar</span>
-          <input
-            type="range"
-            min="1"
-            max="3"
-            step="0.01"
-            value={zoom}
-            onChange={(e) => setZoom(Number(e.target.value))}
-            className="ml-auto w-32 accent-accent"
-            aria-label="Zoom da foto"
-          />
+        <div className="mt-1.5 text-center text-[11px] text-muted-2">
+          Arraste pra reposicionar · pinça pra dar zoom
         </div>
       )}
     </div>
