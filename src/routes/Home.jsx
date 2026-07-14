@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ChevronRight, Flag, Gift, UsersRound, Megaphone } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
@@ -9,9 +10,8 @@ import { ProgressBar } from '../components/ProgressBar.jsx'
 import { Avatar } from '../components/Avatar.jsx'
 import { resolveIcon } from '../lib/icons.js'
 import { useAuth } from '../lib/AuthContext.jsx'
-import { currentUser, menuDoDia, comunicados, acessosRapidos } from '../lib/mockData.js'
-
-const ultimoComunicado = comunicados[0]
+import { supabase } from '../lib/supabase.js'
+import { currentUser, menuDoDia, acessosRapidos } from '../lib/mockData.js'
 
 export function Home() {
   const { usuario } = useAuth()
@@ -19,6 +19,22 @@ export function Home() {
   const primeiroNome = usuario?.primeiroNome || currentUser.primeiroNome
   const cargo = usuario?.cargo || currentUser.cargo
   const loja = usuario?.loja || currentUser.loja
+
+  const [ultimoComunicado, setUltimoComunicado] = useState(null)
+  useEffect(() => {
+    let ativo = true
+    supabase
+      .from('comunicados_feed')
+      .select('titulo, corpo, created_at')
+      .limit(1)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (ativo) setUltimoComunicado(data ?? null)
+      })
+    return () => {
+      ativo = false
+    }
+  }, [])
 
   return (
     <>
@@ -71,20 +87,24 @@ export function Home() {
       </Section>
 
       {/* Comunicado */}
-      <Section className="reveal reveal-2 mt-5" title="Comunicado">
-        <Link to="/comunicados" className="card tap flex items-center gap-3 p-4">
-          <span className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl border border-accent/40 bg-accent-soft text-accent shadow-glow">
-            <Megaphone size={26} />
-          </span>
-          <div className="min-w-0 flex-1">
-            <div className="font-display text-base font-bold leading-snug">{ultimoComunicado.titulo}</div>
-            <div className="mt-1 text-xs text-muted">{ultimoComunicado.resumo}</div>
-          </div>
-          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-accent/40 text-accent">
-            <ChevronRight size={18} />
-          </span>
-        </Link>
-      </Section>
+      {ultimoComunicado && (
+        <Section className="reveal reveal-2 mt-5" title="Comunicado">
+          <Link to="/comunicados" className="card tap flex items-center gap-3 p-4">
+            <span className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl border border-accent/40 bg-accent-soft text-accent shadow-glow">
+              <Megaphone size={26} />
+            </span>
+            <div className="min-w-0 flex-1">
+              <div className="font-display text-base font-bold leading-snug">
+                {ultimoComunicado.titulo}
+              </div>
+              <div className="mt-1 line-clamp-2 text-xs text-muted">{ultimoComunicado.corpo}</div>
+            </div>
+            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-accent/40 text-accent">
+              <ChevronRight size={18} />
+            </span>
+          </Link>
+        </Section>
+      )}
 
       {/* TATÁ PLUS — cards principais */}
       <Section className="mt-5" title="TATÁ PLUS">
