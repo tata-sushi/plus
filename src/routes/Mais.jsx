@@ -12,6 +12,7 @@ import {
   ChevronRight,
   Camera,
   Loader2,
+  Megaphone,
 } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Section } from '../components/Section.jsx'
@@ -23,6 +24,7 @@ import { supabase } from '../lib/supabase.js'
 import { tapHaptic } from '../lib/haptics.js'
 
 const itens = [
+  { to: '/comunicados', label: 'Comunicados', icon: Megaphone },
   { to: '/jornada', label: 'Minha jornada', icon: Trophy },
   { to: '/treinamentos', label: 'Treinamentos', icon: GraduationCap },
   { to: '/procedimentos', label: 'Procedimentos', icon: ClipboardList },
