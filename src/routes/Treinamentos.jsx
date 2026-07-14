@@ -47,10 +47,17 @@ function Detalhe({ treino, onFechar, onConcluir, concluindo }) {
         >
           <ArrowLeft size={15} /> Voltar
         </button>
-        <div className="min-w-0 flex-1 truncate text-right font-display text-sm font-bold">
+        <div className="min-w-0 flex-1 truncate text-center font-display text-sm font-bold">
           Desafio{' '}
           <span className="text-xs font-medium text-muted">({treino.titulo})</span>
         </div>
+        {/* espaçador invisível (mesma largura do Voltar) pra centralizar o título */}
+        <span
+          aria-hidden
+          className="hstack invisible shrink-0 gap-1.5 px-3.5 py-2 text-xs font-semibold"
+        >
+          <ArrowLeft size={15} /> Voltar
+        </span>
       </div>
 
       {/* Cabeçalho do desafio (só conteúdo/texto — PDF abre direto) */}
