@@ -1,13 +1,13 @@
 import { NavLink } from 'react-router-dom'
-import { Home, Trophy, Ear, UtensilsCrossed, Menu } from 'lucide-react'
+import { Home, Trophy, UsersRound, Ear, Menu } from 'lucide-react'
 import { cn } from '../lib/cn'
 import { tapHaptic } from '../lib/haptics.js'
 
 const items = [
   { to: '/', label: 'Início', Icon: Home, end: true },
   { to: '/ranking', label: 'Ranking', Icon: Trophy },
+  { to: '/comunidade', label: 'Feed', Icon: UsersRound },
   { to: '/ouvidoria', label: 'Ouvidoria', Icon: Ear },
-  { to: '/cardapio', label: 'Cardápio', Icon: UtensilsCrossed },
   { to: '/mais', label: 'Mais', Icon: Menu },
 ]
 
