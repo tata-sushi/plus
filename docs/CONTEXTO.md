@@ -228,13 +228,16 @@ NÃO recriar como invoker senão quebra ranking/feed), `comunicados_feed`, `cart
 ## 12. Home — estado atual (✅ concluído)
 
 Ordem das seções na Início (`Home.jsx`):
-1. Card de identificação (compacto, com `ProgressRing` dos desafios)
-2. **Botão Governança de Processos** — atalho slim logo abaixo do card de identificação,
-   gated por `usuario.governanca.tem` (topo, acessível pro líder; não é mais seção no fim).
-3. **Menu do dia**
-4. **Comunicado**
-5. **Notícias** (banner rotativo, `reveal-3`)
-6. **TATÁ PLUS** (carrossel horizontal com snap + bolinhas)
+1. Card de identificação (compacto). No slot da direita:
+   - **líder** (`usuario.governanca.tem`) → **ícone de Governança** (Landmark) que abre
+     `/governanca`; o percentual do líder aparece só no card do **Mais**.
+   - **não-líder** → `ProgressRing` com o % dos desafios.
+2. **Menu do dia**
+3. **Comunicado**
+4. **Notícias** (banner rotativo, `reveal-3`)
+5. **TATÁ PLUS** (carrossel horizontal com snap + bolinhas)
+
+(O card do **Mais** mostra o `ProgressRing` de desafios sempre — é onde o líder vê o %.)
 
 Card de Notícias (`DestaqueBanner`) com altura `min-h-[224px]`.
 
