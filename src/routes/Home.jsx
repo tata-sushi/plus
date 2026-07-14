@@ -20,6 +20,11 @@ export function Home() {
   const cargo = usuario?.cargo || currentUser.cargo
   const loja = usuario?.loja || currentUser.loja
 
+  // Governança só aparece pra quem tem acesso
+  const rapidos = acessosRapidos.filter(
+    (a) => a.id !== 'governanca' || usuario?.governanca?.tem,
+  )
+
   const [ultimoComunicado, setUltimoComunicado] = useState(null)
   useEffect(() => {
     let ativo = true
@@ -134,15 +139,15 @@ export function Home() {
       </Section>
 
       {/* Acesso rápido — atalhos */}
-      <Section className="reveal reveal-1 mt-5" title="Acesso Rápido">
-        <div
-          className={`grid gap-2 ${acessosRapidos.length === 1 ? 'grid-cols-1' : 'grid-cols-2'}`}
-        >
-          {acessosRapidos.map((a) => (
-            <IconTile key={a.id} icon={a.icon} label={a.label} to={a.to} variant={a.variant} />
-          ))}
-        </div>
-      </Section>
+      {rapidos.length > 0 && (
+        <Section className="reveal reveal-1 mt-5" title="Acesso Rápido">
+          <div className={`grid gap-2 ${rapidos.length === 1 ? 'grid-cols-1' : 'grid-cols-2'}`}>
+            {rapidos.map((a) => (
+              <IconTile key={a.id} icon={a.icon} label={a.label} to={a.to} variant={a.variant} />
+            ))}
+          </div>
+        </Section>
+      )}
     </>
   )
 }

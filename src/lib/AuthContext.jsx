@@ -15,6 +15,7 @@ export function AuthProvider({ children }) {
   const [profile, setProfile] = useState(null)
   const [avatarUrl, setAvatarUrl] = useState(null)
   const [podePublicar, setPodePublicar] = useState(false)
+  const [govTipo, setGovTipo] = useState(null) // tipo de acesso à governança (ou null)
   const [loading, setLoading] = useState(true)
   const [motivoBloqueio, setMotivoBloqueio] = useState('') // '' | 'inativo'
   const bloqueando = useRef(false)
@@ -102,6 +103,7 @@ export function AuthProvider({ children }) {
     if (!mat) {
       setAvatarUrl(null)
       setPodePublicar(false)
+      setGovTipo(null)
       return
     }
     let ativo = true
@@ -115,6 +117,9 @@ export function AuthProvider({ children }) {
       })
     supabase.rpc('pode_publicar').then(({ data }) => {
       if (ativo) setPodePublicar(data === true)
+    })
+    supabase.rpc('acesso_governanca').then(({ data }) => {
+      if (ativo) setGovTipo(data || null)
     })
     return () => {
       ativo = false
@@ -135,6 +140,7 @@ export function AuthProvider({ children }) {
         status: profile.status,
         avatarUrl,
         podePublicar,
+        governanca: { tem: !!govTipo, tipo: govTipo },
       }
     : session?.user
       ? {
