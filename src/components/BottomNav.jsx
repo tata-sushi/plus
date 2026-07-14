@@ -1,12 +1,11 @@
 import { NavLink } from 'react-router-dom'
-import { Home, Trophy, Megaphone, Ear, UtensilsCrossed, Menu } from 'lucide-react'
+import { Home, Trophy, Ear, UtensilsCrossed, Menu } from 'lucide-react'
 import { cn } from '../lib/cn'
 import { tapHaptic } from '../lib/haptics.js'
 
 const items = [
   { to: '/', label: 'Início', Icon: Home, end: true },
   { to: '/ranking', label: 'Ranking', Icon: Trophy },
-  { to: '/comunicados', label: 'Comunicados', Icon: Megaphone },
   { to: '/ouvidoria', label: 'Ouvidoria', Icon: Ear },
   { to: '/cardapio', label: 'Cardápio', Icon: UtensilsCrossed },
   { to: '/mais', label: 'Mais', Icon: Menu },
@@ -18,7 +17,7 @@ export function BottomNav() {
       className="safe-bottom fixed inset-x-0 bottom-0 z-30 border-t border-white/5 bg-bg/95 backdrop-blur"
       aria-label="Navegação principal"
     >
-      <ul className="grid grid-cols-6">
+      <ul className="grid grid-cols-5">
         {items.map(({ to, label, Icon, end }) => (
           <li key={to} className="min-w-0">
             <NavLink
