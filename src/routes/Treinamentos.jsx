@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import {
   Lock,
   CheckCircle2,
@@ -36,7 +37,8 @@ function Detalhe({ treino, onFechar, onConcluir, concluindo }) {
   const ehPdf = !!data?.arquivo_url
   const podeConcluir = (treino.tipo === 'conteudo' || ehPdf) && !treino.concluido
 
-  return (
+  // portal no <body>: escapa de qualquer transform/stacking do <main>
+  return createPortal(
     <div className="fixed inset-0 z-50 flex flex-col bg-bg">
       <div className="safe-top hstack gap-3 border-b border-line px-4 py-2.5">
         <button
@@ -118,7 +120,8 @@ function Detalhe({ treino, onFechar, onConcluir, concluindo }) {
           </div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }
 
@@ -307,11 +310,12 @@ export function Treinamentos() {
       )}
 
       {/* Celebração de conclusão */}
-      {celebrando && (
-        <div
-          className="fixed inset-0 z-[60] grid place-items-center bg-black/70 backdrop-blur-sm"
-          onClick={() => setCelebrando(null)}
-        >
+      {celebrando &&
+        createPortal(
+          <div
+            className="fixed inset-0 z-[60] grid place-items-center bg-black/70 backdrop-blur-sm"
+            onClick={() => setCelebrando(null)}
+          >
           <div className="px-8 text-center">
             <div className="animate-pop mx-auto grid h-24 w-24 place-items-center rounded-full bg-accent text-black shadow-glow">
               <Check size={46} strokeWidth={3} />
@@ -325,8 +329,9 @@ export function Treinamentos() {
               </div>
             )}
           </div>
-        </div>
-      )}
+        </div>,
+          document.body,
+        )}
     </>
   )
 }
