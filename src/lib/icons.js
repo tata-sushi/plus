@@ -28,6 +28,14 @@ import {
   Map,
   TriangleAlert,
   Square,
+  Newspaper,
+  Brain,
+  Star,
+  Scale,
+  Users,
+  BadgeCheck,
+  MessageSquare,
+  Handshake,
 } from 'lucide-react'
 
 export const iconMap = {
@@ -59,6 +67,14 @@ export const iconMap = {
   FileText,
   Map,
   TriangleAlert,
+  Newspaper,
+  Brain,
+  Star,
+  Scale,
+  Users,
+  BadgeCheck,
+  MessageSquare,
+  Handshake,
 }
 
 export function resolveIcon(name) {
