@@ -1,3 +1,22 @@
+// Data de hoje como 'yyyy-mm-dd' no fuso local
+function hojeISO() {
+  const h = new Date()
+  return `${h.getFullYear()}-${String(h.getMonth() + 1).padStart(2, '0')}-${String(h.getDate()).padStart(2, '0')}`
+}
+
+// O timestamp é de hoje?
+export function ehHoje(iso) {
+  if (!iso) return false
+  const d = new Date(iso)
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}` === hojeISO()
+}
+
+// Data de evento ('yyyy-mm-dd') é hoje ou no futuro?
+export function eventoVigente(dataEvento) {
+  if (!dataEvento) return false
+  return String(dataEvento).slice(0, 10) >= hojeISO()
+}
+
 // Formata uma data pura 'yyyy-mm-dd' em dd/mm/aaaa (sem conversão de fuso)
 export function dataBR(iso) {
   if (!iso) return ''

@@ -13,7 +13,7 @@ import { Header } from '../components/Header.jsx'
 import { Card } from '../components/Card.jsx'
 import { cn } from '../lib/cn'
 import { tapHaptic } from '../lib/haptics.js'
-import { dataCurta, dataBR } from '../lib/tempo.js'
+import { dataCurta, dataBR, ehHoje, eventoVigente } from '../lib/tempo.js'
 import { useAuth } from '../lib/AuthContext.jsx'
 import { supabase } from '../lib/supabase.js'
 
@@ -268,8 +268,18 @@ export function Comunicados() {
           <div className="py-10 text-center text-sm text-muted">Nenhum comunicado por enquanto.</div>
         )}
 
-        {comunicados.map((c) => (
-          <Card key={c.id} className="reveal">
+        {comunicados.map((c) => {
+          const vigente = ehHoje(c.created_at) || eventoVigente(c.data_evento)
+          return (
+          <Card
+            key={c.id}
+            className={cn('reveal', vigente && 'ring-2 ring-accent/70 shadow-glow')}
+          >
+            {vigente && (
+              <div className="mb-2 hstack w-fit gap-1.5 rounded-pill bg-accent px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-black">
+                Em vigor
+              </div>
+            )}
             <div className="hstack items-start justify-between gap-2">
               <h3 className="font-display text-base font-bold leading-snug">{c.titulo}</h3>
               {admin && (
@@ -306,7 +316,8 @@ export function Comunicados() {
               </span>
             </div>
           </Card>
-        ))}
+          )
+        })}
       </div>
     </>
   )
