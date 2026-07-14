@@ -211,6 +211,13 @@ NÃO recriar como invoker senão quebra ranking/feed), `comunicados_feed`, `cart
   `carteira_lancamentos`), então saldo/ranking intactos. Marcador de histórico = `recompensa_id IS NULL`
   (coluna virou nullable). Status: Rejeitada→cancelado, Entregue→entregue, resto→solicitado.
   49 não casaram (e-mail fora do cadastro). Reimportável: `delete ... where recompensa_id is null` + re-rodar.
+- **Elegibilidade por item:** colunas `recompensas.elegivel_admissao_de` (só quem tem
+  `profiles.data_admissao >= X`) e `limite_por_pessoa` (máx. resgates não-cancelados por pessoa,
+  contados por `lower(titulo)` → pega histórico também). `recompensas_disponiveis()` esconde o que
+  a pessoa não pode ver; `resgatar()` revalida (erros `nao_elegivel`/`ja_resgatado`).
+  Ex.: **Kit Boas-Vindas** (custo 0, ilimitado, `elegivel_admissao_de='2026-01-01'`,
+  `limite_por_pessoa=1`) → só admitidos em 2026+ que ainda não pegaram. `admin_salvar_recompensa`
+  NÃO mexe nessas colunas (preserva no edit). Editar regras pela UI = pendente.
 - **Fluxo de entrega:** ✅ aba **Pedidos** no painel `/recompensas/admin` (só `podePublicar`).
   `admin_listar_pedidos()` lista os resgates do app (exclui histórico via `recompensa_id is null`),
   solicitados primeiro. `admin_atualizar_resgate(p_id, p_status)`: Solicitado→Entregue (não mexe em

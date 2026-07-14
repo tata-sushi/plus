@@ -17,6 +17,8 @@ const ERROS = {
   esgotado: 'Essa recompensa esgotou.',
   indisponivel: 'Recompensa indisponível.',
   sem_acesso: 'Sessão expirada. Entre novamente.',
+  nao_elegivel: 'Essa recompensa não está disponível pro seu perfil.',
+  ja_resgatado: 'Você já resgatou essa recompensa.',
 }
 
 const STATUS = {
