@@ -1,26 +1,38 @@
 import { useState } from 'react'
-import { Navigate, useNavigate } from 'react-router-dom'
-import { Mail, Lock, Eye, EyeOff, ArrowRight } from 'lucide-react'
+import { Navigate } from 'react-router-dom'
+import { Mail, Lock, Eye, EyeOff, ArrowRight, Loader2 } from 'lucide-react'
 import { cn } from '../lib/cn'
 import { tapHaptic } from '../lib/haptics.js'
-import { isLoggedIn, login } from '../lib/auth.js'
+import { useAuth } from '../lib/AuthContext.jsx'
 
 export function Login() {
-  const navigate = useNavigate()
+  const { session, signIn } = useAuth()
   const [email, setEmail] = useState('')
   const [senha, setSenha] = useState('')
   const [showPwd, setShowPwd] = useState(false)
+  const [erro, setErro] = useState('')
+  const [enviando, setEnviando] = useState(false)
 
-  if (isLoggedIn()) return <Navigate to="/" replace />
+  if (session) return <Navigate to="/" replace />
 
-  const podeEntrar = email.trim() !== '' && senha.trim() !== ''
+  const podeEntrar = email.trim() !== '' && senha.trim() !== '' && !enviando
 
-  function entrar(e) {
+  async function entrar(e) {
     e.preventDefault()
     if (!podeEntrar) return
     tapHaptic()
-    login()
-    navigate('/', { replace: true })
+    setErro('')
+    setEnviando(true)
+    const { error } = await signIn(email, senha)
+    setEnviando(false)
+    if (error) {
+      setErro(
+        error.message === 'Invalid login credentials'
+          ? 'E-mail ou senha incorretos.'
+          : 'Não foi possível entrar. Tente novamente.',
+      )
+    }
+    // sucesso: a sessão atualiza e o app redireciona automaticamente
   }
 
   return (
@@ -80,12 +92,24 @@ export function Login() {
             Esqueci minha senha
           </button>
 
+          {erro && (
+            <div className="rounded-card border border-danger/30 bg-danger/10 px-4 py-2.5 text-center text-xs font-medium text-danger">
+              {erro}
+            </div>
+          )}
+
           <button
             type="submit"
             disabled={!podeEntrar}
             className={cn('btn-primary mt-2 w-full !py-3.5', !podeEntrar && 'opacity-50')}
           >
-            Entrar <ArrowRight size={18} />
+            {enviando ? (
+              <Loader2 size={18} className="animate-spin" />
+            ) : (
+              <>
+                Entrar <ArrowRight size={18} />
+              </>
+            )}
           </button>
         </form>
 

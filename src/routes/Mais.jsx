@@ -15,7 +15,7 @@ import { Section } from '../components/Section.jsx'
 import { Avatar } from '../components/Avatar.jsx'
 import { SocialLinks } from '../components/SocialLinks.jsx'
 import { currentUser, redesSociais } from '../lib/mockData.js'
-import { logout } from '../lib/auth.js'
+import { useAuth } from '../lib/AuthContext.jsx'
 import { tapHaptic } from '../lib/haptics.js'
 
 const itens = [
@@ -30,10 +30,14 @@ const itens = [
 
 export function Mais() {
   const navigate = useNavigate()
+  const { usuario, signOut } = useAuth()
+  const nome = usuario?.nome || currentUser.nome
+  const cargo = usuario?.cargo || currentUser.cargo
+  const loja = usuario?.loja || currentUser.loja
 
-  function sair() {
+  async function sair() {
     tapHaptic()
-    logout()
+    await signOut()
     navigate('/login', { replace: true })
   }
 
@@ -44,11 +48,12 @@ export function Mais() {
       <div className="px-5">
         <div className="card p-4">
           <div className="hstack gap-3">
-            <Avatar name={currentUser.nome} size={52} />
+            <Avatar name={nome} size={52} />
             <div className="min-w-0 flex-1">
-              <div className="font-display text-base font-bold">{currentUser.nome}</div>
+              <div className="font-display text-base font-bold">{nome}</div>
               <div className="text-xs text-muted">
-                {currentUser.cargo} · {currentUser.loja}
+                {cargo}
+                {loja ? ` · ${loja}` : ''}
               </div>
               <div className="mt-1 text-xs">
                 <span className="text-muted">Carteira · </span>

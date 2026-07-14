@@ -8,11 +8,18 @@ import { PromoCard } from '../components/PromoCard.jsx'
 import { ProgressBar } from '../components/ProgressBar.jsx'
 import { Avatar } from '../components/Avatar.jsx'
 import { resolveIcon } from '../lib/icons.js'
+import { useAuth } from '../lib/AuthContext.jsx'
 import { currentUser, menuDoDia, comunicados, acessosRapidos } from '../lib/mockData.js'
 
 const ultimoComunicado = comunicados[0]
 
 export function Home() {
+  const { usuario } = useAuth()
+  const nome = usuario?.nome || currentUser.nome
+  const primeiroNome = usuario?.primeiroNome || currentUser.primeiroNome
+  const cargo = usuario?.cargo || currentUser.cargo
+  const loja = usuario?.loja || currentUser.loja
+
   return (
     <>
       <Header />
@@ -21,11 +28,12 @@ export function Home() {
       <div className="px-5 pt-2">
         <div className="hero-card reveal p-4">
           <div className="hstack gap-3">
-            <Avatar name={currentUser.nome} size={48} />
+            <Avatar name={nome} size={48} />
             <div className="min-w-0 flex-1">
-              <div className="font-display text-lg font-bold">Olá, {currentUser.primeiroNome}!</div>
+              <div className="font-display text-lg font-bold">Olá, {primeiroNome}!</div>
               <div className="mt-0.5 truncate text-xs text-muted">
-                {currentUser.cargo} · {currentUser.loja}
+                {cargo}
+                {loja ? ` · ${loja}` : ''}
               </div>
             </div>
             <span className="pill bg-accent text-black text-[10px]">{currentUser.rank}</span>
