@@ -1,10 +1,9 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Flag, Gift, Plus, Megaphone, ChevronRight } from 'lucide-react'
+import { Flag, Gift, Plus, Megaphone, ChevronRight, Landmark } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Section } from '../components/Section.jsx'
 import { Card } from '../components/Card.jsx'
-import { IconTile } from '../components/IconTile.jsx'
 import { PromoCard } from '../components/PromoCard.jsx'
 import { ProgressRing } from '../components/ProgressRing.jsx'
 import { Avatar } from '../components/Avatar.jsx'
@@ -12,7 +11,7 @@ import { DestaqueBanner } from '../components/DestaqueBanner.jsx'
 import { resolveIcon } from '../lib/icons.js'
 import { useAuth } from '../lib/AuthContext.jsx'
 import { supabase } from '../lib/supabase.js'
-import { currentUser, menuDoDia, acessosRapidos } from '../lib/mockData.js'
+import { currentUser, menuDoDia } from '../lib/mockData.js'
 
 const tataPlusCards = [
   {
@@ -35,11 +34,6 @@ export function Home() {
   const primeiroNome = usuario?.primeiroNome || currentUser.primeiroNome
   const cargo = usuario?.cargo || currentUser.cargo
   const loja = usuario?.loja || currentUser.loja
-
-  // Governança só aparece pra quem tem acesso
-  const rapidos = acessosRapidos.filter(
-    (a) => a.id !== 'governanca' || usuario?.governanca?.tem,
-  )
 
   const [tataIdx, setTataIdx] = useState(0)
 
@@ -111,6 +105,25 @@ export function Home() {
           <ProgressRing value={(progresso?.pct ?? 0) / 100} size={54} stroke={5} />
         </div>
       </div>
+
+      {/* Governança — atalho do líder, no topo e acessível (só pra quem tem acesso) */}
+      {usuario?.governanca?.tem && (
+        <div className="reveal reveal-1 mt-3 px-5">
+          <Link
+            to="/governanca"
+            className="card tap flex items-center gap-3 p-3.5 ring-1 ring-accent/20"
+          >
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-accent-soft text-accent">
+              <Landmark size={20} />
+            </span>
+            <div className="min-w-0 flex-1">
+              <div className="text-sm font-semibold">Governança de Processos</div>
+              <div className="text-[11px] text-muted">Painel dos líderes</div>
+            </div>
+            <ChevronRight size={18} className="text-muted" />
+          </Link>
+        </div>
+      )}
 
       {/* Menu do dia — uma linha com scroll lateral e botão + fixo à direita */}
       <Section className="reveal reveal-1 mt-5" title="Menu do dia">
@@ -203,16 +216,6 @@ export function Home() {
         )}
       </Section>
 
-      {/* Acesso rápido — atalhos */}
-      {rapidos.length > 0 && (
-        <Section className="reveal reveal-1 mt-5" title="Governança de Processos">
-          <div className={`grid gap-2 ${rapidos.length === 1 ? 'grid-cols-1' : 'grid-cols-2'}`}>
-            {rapidos.map((a) => (
-              <IconTile key={a.id} icon={a.icon} label={a.label} to={a.to} variant={a.variant} />
-            ))}
-          </div>
-        </Section>
-      )}
     </>
   )
 }
