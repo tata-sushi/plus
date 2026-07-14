@@ -37,6 +37,20 @@ export function Home() {
 
   const [tataIdx, setTataIdx] = useState(0)
 
+  // Governança entra no carrossel só para quem tem acesso (badge preto/branco)
+  const cards = usuario?.governanca?.tem
+    ? [
+        ...tataPlusCards,
+        {
+          to: '/governanca',
+          badgeIcon: Landmark,
+          title: 'Governança de Processos',
+          subtitle: 'Painel dos líderes',
+          badgeClassName: 'bg-text text-bg',
+        },
+      ]
+    : tataPlusCards
+
   // Progresso real de desafios (para o anel do card de identificação)
   const [progresso, setProgresso] = useState(null)
   useEffect(() => {
@@ -102,17 +116,7 @@ export function Home() {
               {loja ? ` · ${loja}` : ''}
             </div>
           </div>
-          {usuario?.governanca?.tem ? (
-            <Link
-              to="/governanca"
-              aria-label="Governança de Processos"
-              className="grid h-[54px] w-[54px] shrink-0 place-items-center rounded-full bg-accent-soft text-accent ring-1 ring-accent/30 tap"
-            >
-              <Landmark size={24} />
-            </Link>
-          ) : (
-            <ProgressRing value={(progresso?.pct ?? 0) / 100} size={54} stroke={5} />
-          )}
+          <ProgressRing value={(progresso?.pct ?? 0) / 100} size={54} stroke={5} />
         </div>
       </div>
 
@@ -182,20 +186,21 @@ export function Home() {
           }}
           className="-mx-5 flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-px-5 px-5 no-scrollbar"
         >
-          {tataPlusCards.map((c, i) => (
+          {cards.map((c, i) => (
             <PromoCard
               key={c.to}
               to={c.to}
               badgeIcon={c.badgeIcon}
               title={c.title}
               subtitle={c.subtitle}
+              badgeClassName={c.badgeClassName}
               className={`w-full shrink-0 snap-start reveal-${i + 1}`}
             />
           ))}
         </div>
-        {tataPlusCards.length > 1 && (
+        {cards.length > 1 && (
           <div className="mt-3 flex justify-center gap-1.5">
-            {tataPlusCards.map((_, i) => (
+            {cards.map((_, i) => (
               <span
                 key={i}
                 className={`h-1.5 rounded-full transition-all ${
