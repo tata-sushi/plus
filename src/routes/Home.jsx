@@ -135,7 +135,9 @@ export function Home() {
 
       {/* Acesso rápido — atalhos */}
       <Section className="reveal reveal-1 mt-5" title="Acesso Rápido">
-        <div className="grid grid-cols-2 gap-2">
+        <div
+          className={`grid gap-2 ${acessosRapidos.length === 1 ? 'grid-cols-1' : 'grid-cols-2'}`}
+        >
           {acessosRapidos.map((a) => (
             <IconTile key={a.id} icon={a.icon} label={a.label} to={a.to} variant={a.variant} />
           ))}
