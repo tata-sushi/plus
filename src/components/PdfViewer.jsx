@@ -3,12 +3,15 @@ import { Loader2, ExternalLink } from 'lucide-react'
 
 // Renderiza o PDF como páginas (canvas) direto na tela — abre automático,
 // rola e lê dentro do app, sem clique/download. pdfjs carregado sob demanda.
-export function PdfViewer({ src }) {
+// onLido() é chamado quando o usuário rola até o fim (ou se o PDF couber sem rolar).
+export function PdfViewer({ src, onLido }) {
   const paginasRef = useRef(null)
+  const prontoRef = useRef(false) // só libera o "fim da rolagem" depois de renderizar tudo
   const [estado, setEstado] = useState('carregando') // 'carregando' | 'ok' | 'erro'
 
   useEffect(() => {
     let cancelado = false
+    prontoRef.current = false
     const alvo = paginasRef.current
     if (!alvo || !src) return
     alvo.innerHTML = ''
@@ -39,15 +42,29 @@ export function PdfViewer({ src }) {
           await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise
           if (n === 1 && !cancelado) setEstado('ok') // mostra assim que a 1ª página sai
         }
+        if (cancelado) return
+        prontoRef.current = true
+        // se o PDF couber sem rolar, já conta como lido
+        if (alvo.scrollHeight <= alvo.clientHeight + 4) onLido?.()
       } catch {
-        if (!cancelado) setEstado('erro')
+        if (!cancelado) {
+          setEstado('erro')
+          onLido?.() // falhou o embed: libera concluir (lê pelo "Abrir o PDF")
+        }
       }
     }
     renderizar()
     return () => {
       cancelado = true
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [src])
+
+  function aoRolar(e) {
+    if (!prontoRef.current) return
+    const el = e.currentTarget
+    if (el.scrollTop + el.clientHeight >= el.scrollHeight - 48) onLido?.()
+  }
 
   if (estado === 'erro') {
     return (
@@ -69,7 +86,11 @@ export function PdfViewer({ src }) {
 
   return (
     <div className="relative flex flex-1 flex-col overflow-hidden">
-      <div ref={paginasRef} className="flex-1 overflow-y-auto bg-surface-2 px-3 py-3" />
+      <div
+        ref={paginasRef}
+        onScroll={aoRolar}
+        className="flex-1 overflow-y-auto bg-surface-2 px-3 py-3"
+      />
       {estado === 'carregando' && (
         <div className="absolute inset-0 grid place-items-center bg-surface-2/70 backdrop-blur-sm">
           <div className="hstack gap-2 text-xs text-muted-2">
