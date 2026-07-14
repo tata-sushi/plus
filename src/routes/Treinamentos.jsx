@@ -9,6 +9,8 @@ import {
   Star,
   Trophy,
   Clock,
+  FileText,
+  ExternalLink,
 } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Card } from '../components/Card.jsx'
@@ -32,7 +34,8 @@ function Detalhe({ treino, onFechar, onConcluir, concluindo }) {
     }
   }, [treino.id])
 
-  const podeConcluir = treino.tipo === 'conteudo' && !treino.concluido
+  const ehPdf = !!data?.arquivo_url
+  const podeConcluir = (treino.tipo === 'conteudo' || ehPdf) && !treino.concluido
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col bg-bg">
@@ -43,35 +46,61 @@ function Detalhe({ treino, onFechar, onConcluir, concluindo }) {
         </button>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-5 py-4">
-        <h1 className="font-display text-xl font-bold leading-tight">{treino.titulo}</h1>
-        <div className="mt-2 hstack gap-2 text-xs">
+      {/* Cabeçalho fixo do desafio */}
+      <div className="border-b border-line px-5 py-3">
+        <h1 className="font-display text-lg font-bold leading-tight">{treino.titulo}</h1>
+        <div className="mt-1.5 hstack gap-2 text-xs">
           {treino.pontos > 0 && (
             <span className="pill bg-accent-soft text-accent">
               <Star size={12} /> {treino.pontos} pts
             </span>
           )}
-          {TIPO_LABEL[treino.tipo] && (
-            <span className="pill bg-surface-2 text-muted">{TIPO_LABEL[treino.tipo]}</span>
+          {ehPdf ? (
+            <span className="pill bg-surface-2 text-muted">
+              <FileText size={12} /> PDF
+            </span>
+          ) : (
+            TIPO_LABEL[treino.tipo] && (
+              <span className="pill bg-surface-2 text-muted">{TIPO_LABEL[treino.tipo]}</span>
+            )
           )}
         </div>
+      </div>
 
-        {!data ? (
-          <div className="hstack justify-center py-16 text-muted-2">
-            <Loader2 size={22} className="animate-spin" />
-          </div>
-        ) : data.conteudo_html ? (
+      {/* Corpo: PDF embutido, HTML ou fallback */}
+      {!data ? (
+        <div className="hstack flex-1 justify-center py-16 text-muted-2">
+          <Loader2 size={22} className="animate-spin" />
+        </div>
+      ) : ehPdf ? (
+        <div className="flex flex-1 flex-col">
+          <iframe
+            src={`${data.arquivo_url}#view=FitH`}
+            title={`PDF — ${treino.titulo}`}
+            className="w-full flex-1 border-0 bg-surface-2"
+          />
+          <a
+            href={data.arquivo_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hstack justify-center gap-1.5 border-t border-line py-2 text-xs font-medium text-muted tap"
+          >
+            <ExternalLink size={13} /> Não abriu? Abrir o PDF em nova aba
+          </a>
+        </div>
+      ) : data.conteudo_html ? (
+        <div className="flex-1 overflow-y-auto px-5 py-4">
           <div
-            className="conteudo mt-5 text-sm leading-relaxed"
+            className="conteudo text-sm leading-relaxed"
             dangerouslySetInnerHTML={{ __html: data.conteudo_html }}
           />
-        ) : (
-          <div className="mt-5 text-sm text-muted">
-            {treino.descricao && <p className="mb-3">{treino.descricao}</p>}
-            <p className="text-muted-2">Conteúdo completo em breve.</p>
-          </div>
-        )}
-      </div>
+        </div>
+      ) : (
+        <div className="flex-1 overflow-y-auto px-5 py-4 text-sm text-muted">
+          {treino.descricao && <p className="mb-3">{treino.descricao}</p>}
+          <p className="text-muted-2">Conteúdo completo em breve.</p>
+        </div>
+      )}
 
       <div className="safe-bottom border-t border-line px-5 py-3">
         {treino.concluido ? (
@@ -84,7 +113,13 @@ function Detalhe({ treino, onFechar, onConcluir, concluindo }) {
             disabled={concluindo}
             className={cn('btn-primary w-full !py-3.5 text-sm', concluindo && 'opacity-60')}
           >
-            {concluindo ? <Loader2 size={18} className="animate-spin" /> : 'Concluir desafio'}
+            {concluindo ? (
+              <Loader2 size={18} className="animate-spin" />
+            ) : ehPdf ? (
+              'Li e concluir'
+            ) : (
+              'Concluir desafio'
+            )}
           </button>
         ) : (
           <div className="hstack justify-center gap-2 rounded-card bg-surface py-3 text-sm font-semibold text-muted">

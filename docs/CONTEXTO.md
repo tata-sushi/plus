@@ -230,7 +230,13 @@ NÃO recriar como invoker senão quebra ranking/feed), `comunicados_feed`, `cart
 - **Provas/quiz** — perguntas, tentativas, cooldown 24h, desbloqueio de módulo.
 - **Tipo "envio moderado"** — colaborador envia → admin valida.
 - **Painel admin** — CRUD de treinamentos/atribuições/grupos.
-- **Conteúdo HTML dos desafios** — importar + rehospedar imagens da Comunitive.
+- **Conteúdo dos desafios (por categoria):** replicar categoria a categoria.
+  - ✅ **TATÁ NEWS (30)** — tipo "ler PDF no app". Coluna `treinamentos.arquivo_url`; os 30
+    apontam pra `desafios/tata-news-01.pdf`…`30` (por `ordem`). `abrir_treinamento()` devolve
+    `arquivo_url`; a tela mostra o PDF embutido (iframe) + botão "Li e concluir" (usa
+    `concluir_treinamento`, tipo segue 'conteudo'). Bucket **`desafios`** (público, upload admin).
+    Falta: usuário subir os 30 PDFs no bucket.
+  - Pendentes: demais categorias (texto HTML + rehospedar as 135 imagens Comunitive/403 no bucket `desafios`).
 - **Artes das Notícias** — trocar gradientes placeholder por imagens base (só preencher
   `imagem_url` por categoria).
 - **8 ativos sem e-mail** no `profiles` (o usuário vai preencher; religam sozinhos):
