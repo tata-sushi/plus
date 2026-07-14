@@ -14,6 +14,21 @@ import { useAuth } from '../lib/AuthContext.jsx'
 import { supabase } from '../lib/supabase.js'
 import { currentUser, menuDoDia, acessosRapidos } from '../lib/mockData.js'
 
+const tataPlusCards = [
+  {
+    to: '/treinamentos',
+    badgeIcon: Flag,
+    title: 'Treinamentos',
+    subtitle: 'Confira suas trilhas de aprendizados',
+  },
+  {
+    to: '/recompensas',
+    badgeIcon: Gift,
+    title: 'Recompensas',
+    subtitle: 'Conheça nossas recompensas',
+  },
+]
+
 export function Home() {
   const { usuario } = useAuth()
   const nome = usuario?.nome || currentUser.nome
@@ -25,6 +40,8 @@ export function Home() {
   const rapidos = acessosRapidos.filter(
     (a) => a.id !== 'governanca' || usuario?.governanca?.tem,
   )
+
+  const [tataIdx, setTataIdx] = useState(0)
 
   // Progresso real de desafios (para o anel do card de identificação)
   const [progresso, setProgresso] = useState(null)
@@ -151,24 +168,39 @@ export function Home() {
         </div>
       )}
 
-      {/* TATÁ PLUS — cards principais */}
+      {/* TATÁ PLUS — carrossel horizontal (um card por vez) */}
       <Section className="mt-5" title="TATÁ PLUS">
-        <div className="flex flex-col gap-3">
-          <PromoCard
-            to="/treinamentos"
-            badgeIcon={Flag}
-            title="Treinamentos"
-            subtitle="Confira suas trilhas de aprendizados"
-            className="reveal reveal-1"
-          />
-          <PromoCard
-            to="/recompensas"
-            badgeIcon={Gift}
-            title="Recompensas"
-            subtitle="Conheça nossas recompensas"
-            className="reveal reveal-2"
-          />
+        <div
+          onScroll={(e) => {
+            const el = e.currentTarget
+            const passo = (el.firstElementChild?.clientWidth || el.clientWidth) + 12
+            setTataIdx(Math.round(el.scrollLeft / passo))
+          }}
+          className="-mx-5 flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-px-5 px-5 no-scrollbar"
+        >
+          {tataPlusCards.map((c, i) => (
+            <PromoCard
+              key={c.to}
+              to={c.to}
+              badgeIcon={c.badgeIcon}
+              title={c.title}
+              subtitle={c.subtitle}
+              className={`w-full shrink-0 snap-start reveal-${i + 1}`}
+            />
+          ))}
         </div>
+        {tataPlusCards.length > 1 && (
+          <div className="mt-3 flex justify-center gap-1.5">
+            {tataPlusCards.map((_, i) => (
+              <span
+                key={i}
+                className={`h-1.5 rounded-full transition-all ${
+                  i === tataIdx ? 'w-4 bg-accent' : 'w-1.5 bg-muted-2'
+                }`}
+              />
+            ))}
+          </div>
+        )}
       </Section>
 
       {/* Acesso rápido — atalhos */}
