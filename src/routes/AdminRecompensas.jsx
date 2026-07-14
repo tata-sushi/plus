@@ -28,6 +28,7 @@ const vazio = {
   id: null,
   titulo: '',
   descricao: '',
+  detalhes: '',
   custo: '',
   estoque: '',
   imagem_url: '',
@@ -97,6 +98,7 @@ export function AdminRecompensas() {
             id: item.id,
             titulo: item.titulo || '',
             descricao: item.descricao || '',
+            detalhes: item.detalhes || '',
             custo: String(item.custo ?? ''),
             estoque: item.estoque == null ? '' : String(item.estoque),
             imagem_url: item.imagem_url || '',
@@ -175,6 +177,7 @@ export function AdminRecompensas() {
       p_imagem_url: imagem_url,
       p_ativo: editando.ativo,
       p_ordem: ordem,
+      p_detalhes: editando.detalhes.trim() || null,
     })
     setSalvando(false)
     if (error) {
@@ -198,6 +201,7 @@ export function AdminRecompensas() {
       p_imagem_url: item.imagem_url,
       p_ativo: !item.ativo,
       p_ordem: item.ordem,
+      p_detalhes: item.detalhes,
     })
     if (error) {
       setItens((prev) => prev.map((i) => (i.id === item.id ? { ...i, ativo: item.ativo } : i)))
@@ -393,10 +397,25 @@ export function AdminRecompensas() {
               <textarea
                 value={editando.descricao}
                 onChange={(e) => setEditando((s) => ({ ...s, descricao: e.target.value }))}
-                placeholder="Detalhes da recompensa…"
+                placeholder="Resumo curto (aparece no card)…"
                 rows={2}
                 className="mt-1.5 w-full resize-none rounded-card border border-line bg-surface px-4 py-3 text-sm outline-none placeholder:text-muted-2"
               />
+
+              {/* Como usar / regras */}
+              <label className="mt-4 block text-[11px] font-semibold uppercase tracking-widest text-muted">
+                Como usar / regras <span className="normal-case text-muted-2">(opcional)</span>
+              </label>
+              <textarea
+                value={editando.detalhes}
+                onChange={(e) => setEditando((s) => ({ ...s, detalhes: e.target.value }))}
+                placeholder={'Regras de uso, retirada, validade…\nUma linha por regra.'}
+                rows={5}
+                className="mt-1.5 w-full resize-none rounded-card border border-line bg-surface px-4 py-3 text-sm outline-none placeholder:text-muted-2"
+              />
+              <div className="mt-1.5 text-[11px] text-muted-2">
+                Aparece na janelinha de detalhes quando o colaborador toca no item.
+              </div>
 
               <div className="mt-4 grid grid-cols-2 gap-3">
                 {/* Custo */}
