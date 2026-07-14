@@ -1,10 +1,22 @@
 import { Link } from 'react-router-dom'
 import { cn } from '../lib/cn'
 
-export function PromoCard({ to, badgeIcon: BadgeIcon, title, subtitle, className }) {
+export function PromoCard({
+  to,
+  badgeIcon: BadgeIcon,
+  title,
+  subtitle,
+  className,
+  badgeClassName = 'bg-accent text-black shadow-glow',
+}) {
   return (
     <Link to={to} className={cn('hero-card reveal tap flex items-center gap-4 p-4', className)}>
-      <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-accent text-black shadow-glow">
+      <span
+        className={cn(
+          'flex h-16 w-16 shrink-0 items-center justify-center rounded-full',
+          badgeClassName,
+        )}
+      >
         <BadgeIcon size={28} strokeWidth={2} />
       </span>
       <div className="min-w-0 flex-1">
