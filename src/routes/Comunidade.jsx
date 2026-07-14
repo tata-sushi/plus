@@ -12,6 +12,7 @@ import {
 import { Header } from '../components/Header.jsx'
 import { Card } from '../components/Card.jsx'
 import { Avatar } from '../components/Avatar.jsx'
+import { PhotoCropper } from '../components/PhotoCropper.jsx'
 import { cn } from '../lib/cn'
 import { tapHaptic } from '../lib/haptics.js'
 import { tempoRelativo } from '../lib/tempo.js'
@@ -188,6 +189,7 @@ export function Comunidade() {
   const [arquivo, setArquivo] = useState(null)
   const [previewUrl, setPreviewUrl] = useState('')
   const inputFoto = useRef(null)
+  const cropperRef = useRef(null)
 
   const carregarFeed = useCallback(async () => {
     const { data, error } = await supabase.from('feed_posts').select('*')
@@ -241,11 +243,12 @@ export function Comunidade() {
     let midia_tipo = null
 
     if (arquivo) {
-      const ext = (arquivo.name.split('.').pop() || 'jpg').toLowerCase()
-      const caminho = `${matricula}/${crypto.randomUUID()}.${ext}`
+      // usa o recorte 1:1 enquadrado pelo usuário (fallback: arquivo original)
+      const blob = (await cropperRef.current?.getBlob()) || arquivo
+      const caminho = `${matricula}/${crypto.randomUUID()}.jpg`
       const { error: upErr } = await supabase.storage
         .from('comunidade')
-        .upload(caminho, arquivo, { cacheControl: '3600', contentType: arquivo.type })
+        .upload(caminho, blob, { cacheControl: '3600', contentType: 'image/jpeg' })
       if (upErr) {
         setPublicando(false)
         setErro('Não foi possível enviar a imagem.')
@@ -342,10 +345,10 @@ export function Comunidade() {
           {/* Prévia da foto escolhida */}
           {previewUrl && (
             <div className="relative mt-3">
-              <img src={previewUrl} alt="" className="aspect-square w-full rounded-2xl object-cover" />
+              <PhotoCropper ref={cropperRef} src={previewUrl} />
               <button
                 onClick={removerFoto}
-                className="absolute right-2 top-2 grid h-8 w-8 place-items-center rounded-full bg-black/60 text-white backdrop-blur tap"
+                className="absolute right-2 top-2 z-10 grid h-8 w-8 place-items-center rounded-full bg-black/60 text-white backdrop-blur tap"
                 aria-label="Remover foto"
               >
                 <X size={16} />
