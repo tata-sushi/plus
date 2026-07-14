@@ -18,6 +18,7 @@ import { Header } from '../components/Header.jsx'
 import { Section } from '../components/Section.jsx'
 import { Card } from '../components/Card.jsx'
 import { Avatar } from '../components/Avatar.jsx'
+import { RecompensaFoto } from '../components/RecompensaFoto.jsx'
 import { PhotoCropper } from '../components/PhotoCropper.jsx'
 import { cn } from '../lib/cn'
 import { tapHaptic } from '../lib/haptics.js'
@@ -425,11 +426,11 @@ export function AdminRecompensas() {
                 <Card key={item.id} className={cn('!p-3', !item.ativo && 'opacity-60')}>
                   <div className="hstack gap-3">
                     <div className="grid h-14 w-14 shrink-0 place-items-center overflow-hidden rounded-2xl bg-accent-soft text-2xl">
-                      {item.imagem_url ? (
-                        <img src={item.imagem_url} alt="" className="h-full w-full object-cover" />
-                      ) : (
-                        <span>{item.emoji || '🎁'}</span>
-                      )}
+                      <RecompensaFoto
+                        src={item.imagem_url}
+                        emoji={item.emoji}
+                        className="h-full w-full object-cover"
+                      />
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="truncate text-sm font-semibold">{item.titulo}</div>

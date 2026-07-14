@@ -4,6 +4,7 @@ import { Gift, Loader2, Check, Clock, X, Settings2 } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Section } from '../components/Section.jsx'
 import { Card } from '../components/Card.jsx'
+import { RecompensaFoto } from '../components/RecompensaFoto.jsx'
 import { cn } from '../lib/cn'
 import { tapHaptic } from '../lib/haptics.js'
 import { useAuth } from '../lib/AuthContext.jsx'
@@ -154,11 +155,11 @@ export function Recompensas() {
                       className="flex cursor-pointer flex-col !p-3 tap"
                     >
                       <div className="relative grid aspect-square place-items-center overflow-hidden rounded-2xl bg-accent-soft text-5xl">
-                        {r.imagem_url ? (
-                          <img src={r.imagem_url} alt="" className="h-full w-full object-cover" />
-                        ) : (
-                          <span>{r.emoji || '🎁'}</span>
-                        )}
+                        <RecompensaFoto
+                          src={r.imagem_url}
+                          emoji={r.emoji}
+                          className="h-full w-full object-cover"
+                        />
                         {r.esgotado && (
                           <span className="absolute right-1.5 top-1.5 rounded-full bg-black/60 px-2 py-0.5 text-[10px] font-semibold text-white backdrop-blur">
                             Esgotado
@@ -244,11 +245,11 @@ export function Recompensas() {
 
             <div className="flex-1 overflow-y-auto px-5 py-4">
               <div className="grid aspect-square w-full place-items-center overflow-hidden rounded-2xl bg-accent-soft text-7xl">
-                {aberto.imagem_url ? (
-                  <img src={aberto.imagem_url} alt="" className="h-full w-full object-cover" />
-                ) : (
-                  <span>{aberto.emoji || '🎁'}</span>
-                )}
+                <RecompensaFoto
+                  src={aberto.imagem_url}
+                  emoji={aberto.emoji}
+                  className="h-full w-full object-cover"
+                />
               </div>
 
               <div className="mt-3 hstack justify-between">
