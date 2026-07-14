@@ -1,3 +1,10 @@
+// Formata uma data pura 'yyyy-mm-dd' em dd/mm/aaaa (sem conversão de fuso)
+export function dataBR(iso) {
+  if (!iso) return ''
+  const [y, m, d] = String(iso).slice(0, 10).split('-')
+  return d && m && y ? `${d}/${m}/${y}` : ''
+}
+
 // Data curta pt-BR (ex.: "10/09/2024")
 export function dataCurta(iso) {
   if (!iso) return ''
