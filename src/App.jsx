@@ -10,6 +10,7 @@ import { Mais } from './routes/Mais.jsx'
 import { Jornada } from './routes/Jornada.jsx'
 import { Perfil } from './routes/Perfil.jsx'
 import { Recompensas } from './routes/Recompensas.jsx'
+import { AdminRecompensas } from './routes/AdminRecompensas.jsx'
 import { RhFacil } from './routes/RhFacil.jsx'
 import { AssistenteIa } from './routes/AssistenteIa.jsx'
 import { Manutencao } from './routes/Manutencao.jsx'
@@ -46,6 +47,7 @@ export function App() {
         <Route path="/jornada" element={<Jornada />} />
         <Route path="/perfil/:id" element={<Perfil />} />
         <Route path="/recompensas" element={<Recompensas />} />
+        <Route path="/recompensas/admin" element={<AdminRecompensas />} />
         <Route path="/rh" element={<RhFacil />} />
         <Route path="/assistente" element={<AssistenteIa />} />
         <Route path="/manutencao" element={<Manutencao />} />

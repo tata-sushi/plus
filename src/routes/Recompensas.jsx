@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Gift, Loader2, Check, Clock, X } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { Gift, Loader2, Check, Clock, X, Settings2 } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Section } from '../components/Section.jsx'
 import { Card } from '../components/Card.jsx'
 import { cn } from '../lib/cn'
 import { tapHaptic } from '../lib/haptics.js'
+import { useAuth } from '../lib/AuthContext.jsx'
 import { supabase } from '../lib/supabase.js'
 import { useCountUp } from '../lib/useCountUp.js'
 
@@ -24,6 +26,7 @@ const STATUS = {
 }
 
 export function Recompensas() {
+  const { usuario } = useAuth()
   const [saldo, setSaldo] = useState(null)
   const [itens, setItens] = useState([])
   const [resgates, setResgates] = useState([])
@@ -69,7 +72,19 @@ export function Recompensas() {
 
   return (
     <>
-      <Header title="Recompensas" />
+      <Header
+        title="Recompensas"
+        right={
+          usuario?.podePublicar ? (
+            <Link
+              to="/recompensas/admin"
+              className="hstack gap-1.5 rounded-full bg-surface-2 px-3 py-2 text-xs font-semibold text-muted tap"
+            >
+              <Settings2 size={15} /> Gerenciar
+            </Link>
+          ) : null
+        }
+      />
 
       {/* Saldo */}
       <div className="px-5">
@@ -135,7 +150,14 @@ export function Recompensas() {
                           {r.descricao}
                         </div>
                       )}
-                      <div className="mt-1 text-xs font-semibold text-accent">{fmt(r.custo)} pts</div>
+                      <div className="mt-1 hstack justify-between gap-1">
+                        <span className="text-xs font-semibold text-accent">{fmt(r.custo)} pts</span>
+                        {r.estoque != null && r.estoque > 0 && (
+                          <span className="text-[10px] text-muted-2">
+                            {fmt(r.estoque)} restante{r.estoque === 1 ? '' : 's'}
+                          </span>
+                        )}
+                      </div>
                       <button
                         disabled={!r.pode}
                         onClick={() => {
