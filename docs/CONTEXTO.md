@@ -228,13 +228,13 @@ NÃO recriar como invoker senão quebra ranking/feed), `comunicados_feed`, `cart
 ## 12. Home — estado atual (✅ concluído)
 
 Ordem das seções na Início (`Home.jsx`):
-1. Hero de saudação
-2. **Menu do dia**
-3. **Comunicado**
-4. **Notícias** (banner rotativo, `reveal-3`)
-5. **TATÁ PLUS**
-6. **Governança de Processos** (seção antes chamada "Acesso Rápido"; só o tile de
-   Governança, gated por `usuario.governanca.tem`).
+1. Card de identificação (compacto, com `ProgressRing` dos desafios)
+2. **Botão Governança de Processos** — atalho slim logo abaixo do card de identificação,
+   gated por `usuario.governanca.tem` (topo, acessível pro líder; não é mais seção no fim).
+3. **Menu do dia**
+4. **Comunicado**
+5. **Notícias** (banner rotativo, `reveal-3`)
+6. **TATÁ PLUS** (carrossel horizontal com snap + bolinhas)
 
 Card de Notícias (`DestaqueBanner`) com altura `min-h-[224px]`.
 
