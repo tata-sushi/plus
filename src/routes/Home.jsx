@@ -102,28 +102,19 @@ export function Home() {
               {loja ? ` · ${loja}` : ''}
             </div>
           </div>
-          <ProgressRing value={(progresso?.pct ?? 0) / 100} size={54} stroke={5} />
+          {usuario?.governanca?.tem ? (
+            <Link
+              to="/governanca"
+              aria-label="Governança de Processos"
+              className="grid h-[54px] w-[54px] shrink-0 place-items-center rounded-full bg-accent-soft text-accent ring-1 ring-accent/30 tap"
+            >
+              <Landmark size={24} />
+            </Link>
+          ) : (
+            <ProgressRing value={(progresso?.pct ?? 0) / 100} size={54} stroke={5} />
+          )}
         </div>
       </div>
-
-      {/* Governança — atalho do líder, no topo e acessível (só pra quem tem acesso) */}
-      {usuario?.governanca?.tem && (
-        <div className="reveal reveal-1 mt-3 px-5">
-          <Link
-            to="/governanca"
-            className="card tap flex items-center gap-3 p-3.5 ring-1 ring-accent/20"
-          >
-            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-accent-soft text-accent">
-              <Landmark size={20} />
-            </span>
-            <div className="min-w-0 flex-1">
-              <div className="text-sm font-semibold">Governança de Processos</div>
-              <div className="text-[11px] text-muted">Painel dos líderes</div>
-            </div>
-            <ChevronRight size={18} className="text-muted" />
-          </Link>
-        </div>
-      )}
 
       {/* Menu do dia — uma linha com scroll lateral e botão + fixo à direita */}
       <Section className="reveal reveal-1 mt-5" title="Menu do dia">
