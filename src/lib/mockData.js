@@ -364,13 +364,6 @@ export const minhasAcoes = [
   { id: 'a_2', label: 'Certificados', hint: 'Ver detalhes' },
 ]
 
-export const recompensasCatalogo = [
-  { id: 'r_1', titulo: 'Vale-refeição R$ 50', custo: 500, emoji: '🍽️' },
-  { id: 'r_2', titulo: 'Camiseta Tatá', custo: 800, emoji: '👕' },
-  { id: 'r_3', titulo: 'Day-off', custo: 3000, emoji: '🌴' },
-  { id: 'r_4', titulo: 'Kit sushi em casa', custo: 1500, emoji: '🍣' },
-]
-
 // Feed da Comunidade (posts dos colaboradores).
 export const feedComunidade = [
   {

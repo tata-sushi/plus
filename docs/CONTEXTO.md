@@ -168,7 +168,7 @@ descricao, created_at, unique(matricula,origem,referencia_id))`.
 `tem_acesso_treinamento(mat,treino)`, `treinamentos_do_usuario()`, `abrir_treinamento(p_treino)`,
 `concluir_treinamento(p_treino)` [limite 3/dia por `(concluido_em at tz 'America/Sao_Paulo')::date`],
 `ranking()`, `meu_saldo()`, `meu_progresso_desafios()` [feitos/total/pct dos desafios visíveis,
-usado no anel do card de identificação], `definir_meu_avatar(url)`, `registrar_leituras()`/`ler_comunicados()`,
+usado no anel do card de identificação], `definir_meu_avatar(url)`, `recompensas_disponiveis()`, `resgatar(p_recompensa)`, `meus_resgates()`, `registrar_leituras()`/`ler_comunicados()`,
 `sincronizar_auth_users()`, `sincronizar_tudo()`, `sincronizar_pontos_historicos()`,
 `sincronizar_conclusoes_historicas()`, `resolver_gamificacao()`, `destaques()`,
 helpers `_norm(text)` / `_toks(text)`.
@@ -195,7 +195,7 @@ NÃO recriar como invoker senão quebra ranking/feed), `comunicados_feed`, `cart
 | Carteira real no Mais (`meu_saldo`) | ✅ |
 | Governança (tabela de acesso + gate do botão) | ✅ Fase 1 (portal externo é Google Sheets) |
 | Cardápio | 🟡 mock (cardapioSemanal); app real de trás fica pra depois |
-| Recompensas | 🟡 catálogo mock; falta tabela real + fluxo de resgate |
+| Recompensas | ✅ real (tabela `recompensas`+`resgates`, `resgatar()` debita saldo via origem `resgate`) |
 | Ouvidoria | 🟡 iframe externo |
 | RH Fácil / Assistente IA / Jornada / Procedimentos | 🟡 placeholders |
 
