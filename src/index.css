@@ -128,8 +128,14 @@
 .reveal-3 { animation-delay: 0.18s; }
 .reveal-4 { animation-delay: 0.24s; }
 
+@keyframes nudgeX {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(3px); }
+}
+.animate-nudge { animation: nudgeX 1.3s ease-in-out infinite; }
+
 @media (prefers-reduced-motion: reduce) {
-  .animate-page, .reveal { animation: none; }
+  .animate-page, .reveal, .animate-nudge { animation: none; }
 }
 
 /* Scrollbars discretas */

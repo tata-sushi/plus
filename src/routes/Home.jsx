@@ -152,7 +152,7 @@ export function Home() {
       </div>
 
       {/* Menu do dia — uma linha com scroll lateral e botão + fixo à direita */}
-      <Section className="reveal reveal-1 mt-5" title="Menu do dia">
+      <Section className="reveal reveal-1 mt-4" title="Menu do dia">
         <Card className="relative overflow-hidden !p-0">
           <div className="flex items-center gap-3 overflow-x-auto no-scrollbar py-3 pl-4 pr-16">
             {menuDoDia.itens.map((item, idx) => {
@@ -182,7 +182,7 @@ export function Home() {
 
       {/* Comunicado — card próprio */}
       {ultimoComunicado && (
-        <Section className="reveal reveal-2 mt-5" title="Comunicado">
+        <Section className="reveal reveal-2 mt-4" title="Comunicado">
           <Link to="/comunicados" className="card tap flex items-center gap-3 p-4">
             <span className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl border border-accent/40 bg-accent-soft text-accent shadow-glow">
               <Megaphone size={26} />
@@ -202,47 +202,44 @@ export function Home() {
 
       {/* Notícias — banner rotativo (um por visita) */}
       {destaque && (
-        <div className="reveal reveal-3 mt-5 px-5">
+        <div className="reveal reveal-3 mt-4 px-5">
           <DestaqueBanner d={destaque} />
         </div>
       )}
 
       {/* TATÁ PLUS — carrossel horizontal (um card por vez) */}
-      <Section className="mt-5" title="TATÁ PLUS">
-        <div
-          onScroll={(e) => {
-            const el = e.currentTarget
-            const passo = (el.firstElementChild?.clientWidth || el.clientWidth) + 12
-            setTataIdx(Math.round(el.scrollLeft / passo))
-          }}
-          className="-mx-5 flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-px-5 px-5 no-scrollbar"
-        >
-          {cards.map((c, i) => (
-            <PromoCard
-              key={c.to}
-              to={c.to}
-              badgeIcon={c.badgeIcon}
-              title={c.title}
-              subtitle={c.subtitle}
-              bgClassName={c.bgClassName}
-              badgeClassName={c.badgeClassName}
-              textClassName={c.textClassName}
-              className={`w-full shrink-0 snap-start reveal-${i + 1}`}
-            />
-          ))}
-        </div>
-        {cards.length > 1 && (
-          <div className="mt-3 flex justify-center gap-1.5">
-            {cards.map((_, i) => (
-              <span
-                key={i}
-                className={`h-1.5 rounded-full transition-all ${
-                  i === tataIdx ? 'w-4 bg-accent' : 'w-1.5 bg-muted-2'
-                }`}
+      <Section className="mt-4" title="TATÁ PLUS">
+        <div className="relative">
+          <div
+            onScroll={(e) => {
+              const el = e.currentTarget
+              const passo = (el.firstElementChild?.clientWidth || el.clientWidth) + 12
+              setTataIdx(Math.round(el.scrollLeft / passo))
+            }}
+            className="-mx-5 flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-px-5 px-5 no-scrollbar"
+          >
+            {cards.map((c, i) => (
+              <PromoCard
+                key={c.to}
+                to={c.to}
+                badgeIcon={c.badgeIcon}
+                title={c.title}
+                subtitle={c.subtitle}
+                bgClassName={c.bgClassName}
+                badgeClassName={c.badgeClassName}
+                textClassName={c.textClassName}
+                className={`w-full shrink-0 snap-start reveal-${i + 1}`}
               />
             ))}
           </div>
-        )}
+          {tataIdx < cards.length - 1 && (
+            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center">
+              <span className="grid h-7 w-7 place-items-center rounded-full border border-line bg-bg/70 text-muted backdrop-blur-sm animate-nudge">
+                <ChevronRight size={16} />
+              </span>
+            </div>
+          )}
+        </div>
       </Section>
 
     </>

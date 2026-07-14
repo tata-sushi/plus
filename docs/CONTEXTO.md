@@ -237,14 +237,14 @@ Ordem das seções na Início (`Home.jsx`):
 2. **Menu do dia**
 3. **Comunicado**
 4. **Notícias** (banner rotativo, `reveal-3`)
-5. **TATÁ PLUS** (carrossel horizontal com snap + bolinhas). Para **líderes**, entra um card
+5. **TATÁ PLUS** (carrossel horizontal com snap + seta de deslize na borda). Para **líderes**, entra um card
    extra **Governança de Processos** com identidade **carbon** (predominante), distinta dos
    cards verdes: `bgClassName='bg-carbon'`, `badgeClassName='bg-white text-carbon'`,
    `textClassName='text-white'`. O `PromoCard` aceita `bgClassName`/`badgeClassName`/`textClassName`.
 
 (O card do **Mais** também mostra o `ProgressRing` de desafios — onde o líder vê o %.)
 
-Card de Notícias (`DestaqueBanner`) com altura `min-h-[224px]`.
+Card de Notícias (`DestaqueBanner`) com altura `min-h-[150px]`.
 
 **Próximos candidatos:** afinar cores do tema claro; trocar gradientes das Notícias por
 artes reais (`imagem_url`); Fase 2 RH.
