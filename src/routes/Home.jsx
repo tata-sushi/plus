@@ -142,13 +142,13 @@ export function Home() {
 
       {/* Notícias — banner (comunicado prioriza; senão rotaciona) */}
       {destaque && (
-        <div className="reveal reveal-3 mt-4 hsm:mt-3 px-5">
+        <Section className="reveal reveal-3 mt-4 hsm:mt-3" title="Notícias">
           <DestaqueBanner d={destaque} />
-        </div>
+        </Section>
       )}
 
-      {/* Sugestões — carrossel horizontal (um card por vez) */}
-      <Section className="mt-4 hsm:mt-3" title="Sugestões">
+      {/* TATÁ PLUS — carrossel horizontal (um card por vez) */}
+      <Section className="mt-4 hsm:mt-3" title="TATÁ PLUS">
         <div className="relative">
           <div
             onScroll={(e) => {
@@ -173,11 +173,10 @@ export function Home() {
             ))}
           </div>
           {tataIdx < cards.length - 1 && (
-            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center">
-              <span className="grid h-7 w-7 place-items-center rounded-full border border-line bg-bg/70 text-muted backdrop-blur-sm animate-nudge">
-                <ChevronRight size={16} />
-              </span>
-            </div>
+            <ChevronRight
+              size={20}
+              className="pointer-events-none absolute right-1 top-1/2 -translate-y-1/2 animate-nudge text-muted/70"
+            />
           )}
         </div>
       </Section>

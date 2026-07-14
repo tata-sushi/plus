@@ -231,12 +231,12 @@ Ordem das seções na Início (`Home.jsx`):
 1. Card de identificação (compacto) — **`ProgressRing` de % para todos** (sem ícone de
    Governança no card; a Governança do líder fica no carrossel Sugestões e no card do Mais).
 2. **Menu do dia**
-3. **Notícias** — banner quadrado (`DestaqueBanner`). **Unificado com o Comunicado**: quando
+3. **Notícias** (seção com título "Notícias") — banner quadrado (`DestaqueBanner`). **Unificado com o Comunicado**: quando
    há comunicado, ele entra aqui com **prioridade** (mostra sempre que existir) e uma **pílula
    "Comunicado"** (accent). Sem comunicado, rotaciona os destaques de gamificação (um por
    visita). O comunicado voltou ao motor `destaques()` como candidato `categoria='comunicado'`,
    prioridade 110.
-4. **Sugestões** (era "TATÁ PLUS") — carrossel horizontal com snap + seta de deslize; no fim
+4. **TATÁ PLUS** — carrossel horizontal com snap + **seta de deslize suave** (só o chevron, sem fundo); no fim
    da página. Para **líderes**, entra o card **Governança de Processos** (identidade carbon:
    `bgClassName='bg-carbon'`, `badgeClassName='bg-white text-carbon'`, `textClassName='text-white'`).
 
