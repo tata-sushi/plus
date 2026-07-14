@@ -12,6 +12,7 @@ import {
 } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Card } from '../components/Card.jsx'
+import { ProgressBar } from '../components/ProgressBar.jsx'
 import { cn } from '../lib/cn'
 import { tapHaptic } from '../lib/haptics.js'
 import { resolveIcon } from '../lib/icons.js'
@@ -194,8 +195,14 @@ export function Treinamentos() {
                 </span>
                 <div className="min-w-0 flex-1">
                   <div className="font-semibold">{tr.nome}</div>
-                  <div className="text-xs text-muted">
-                    {feitos}/{total} concluídos
+                  <div className="mt-0.5 hstack justify-between gap-2 text-xs text-muted">
+                    <span>{feitos}/{total} concluídos</span>
+                    <span className="font-semibold text-accent">
+                      {total ? Math.round((feitos / total) * 100) : 0}%
+                    </span>
+                  </div>
+                  <div className="mt-1.5">
+                    <ProgressBar value={total ? feitos / total : 0} />
                   </div>
                 </div>
                 <ChevronDown
