@@ -173,10 +173,9 @@ export function Home() {
             ))}
           </div>
           {tataIdx < cards.length - 1 && (
-            <ChevronRight
-              size={20}
-              className="pointer-events-none absolute right-1 top-1/2 -translate-y-1/2 animate-nudge text-muted/70"
-            />
+            <span className="pointer-events-none absolute right-1 top-1/2 -translate-y-1/2 opacity-80">
+              <ChevronRight size={20} className="animate-nudge text-muted" />
+            </span>
           )}
         </div>
       </Section>
