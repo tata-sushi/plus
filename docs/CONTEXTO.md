@@ -206,12 +206,16 @@ NÃO recriar como invoker senão quebra ranking/feed), `comunicados_feed`, `cart
 **Fila:**
 - **Fase 2 RH** — plugar absenteísmo/sanções/banco de horas/gorjeta como geradores de
   Notícias + espaço "Meus avisos" + definir tom. (bloqueado até a base RH subir no Supabase).
+- **Resgates históricos:** ✅ importados 298 registros (Comunitive) vinculados por e-mail
+  (`profiles.email`), como **histórico read-only** — inseridos SÓ em `resgates` (nenhum
+  `carteira_lancamentos`), então saldo/ranking intactos. Marcador de histórico = `recompensa_id IS NULL`
+  (coluna virou nullable). Status: Rejeitada→cancelado, Entregue→entregue, resto→solicitado.
+  49 não casaram (e-mail fora do cadastro). Reimportável: `delete ... where recompensa_id is null` + re-rodar.
 - **Recompensas — pendentes:** (a) **fluxo de entrega** — status Solicitado→Entregue +
-  cancelamento que estorna pontos; (b) **automação Trello** — a cada resgate, disparar card
-  (webhook Supabase→API Trello, ou n8n); (c) **resgates históricos** (planilha Comunitive, 380
-  registros) — importar como histórico read-only (vincular por e-mail, SEM mexer no saldo, que
-  já está líquido) — decisão do usuário pendente; (d) gerador "recompensa ao alcance" nas Notícias;
-  (e) fotos reais dos itens (as do Comunitive são privadas/403).
+  cancelamento que estorna pontos (ao montar, separar o histórico via `recompensa_id is null`
+  pra não misturar com pedidos novos); (b) **automação Trello** — a cada resgate, disparar card
+  (webhook Supabase→API Trello, ou n8n); (c) gerador "recompensa ao alcance" nas Notícias;
+  (d) fotos reais dos itens (as do Comunitive são privadas/403); (e) reabastecer estoques (vários em 0).
 - **Provas/quiz** — perguntas, tentativas, cooldown 24h, desbloqueio de módulo.
 - **Tipo "envio moderado"** — colaborador envia → admin valida.
 - **Painel admin** — CRUD de treinamentos/atribuições/grupos.
