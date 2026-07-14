@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ChevronRight, Flag, Gift, Plus, Megaphone } from 'lucide-react'
+import { Flag, Gift, Plus } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Section } from '../components/Section.jsx'
 import { Card } from '../components/Card.jsx'
@@ -8,6 +8,7 @@ import { IconTile } from '../components/IconTile.jsx'
 import { PromoCard } from '../components/PromoCard.jsx'
 import { ProgressBar } from '../components/ProgressBar.jsx'
 import { Avatar } from '../components/Avatar.jsx'
+import { DestaqueBanner } from '../components/DestaqueBanner.jsx'
 import { resolveIcon } from '../lib/icons.js'
 import { useAuth } from '../lib/AuthContext.jsx'
 import { supabase } from '../lib/supabase.js'
@@ -25,17 +26,22 @@ export function Home() {
     (a) => a.id !== 'governanca' || usuario?.governanca?.tem,
   )
 
-  const [ultimoComunicado, setUltimoComunicado] = useState(null)
+  // Destaque rotativo: um por visita (cicla a cada vez que abre a home)
+  const [destaque, setDestaque] = useState(null)
   useEffect(() => {
     let ativo = true
-    supabase
-      .from('comunicados_feed')
-      .select('titulo, corpo, created_at')
-      .limit(1)
-      .maybeSingle()
-      .then(({ data }) => {
-        if (ativo) setUltimoComunicado(data ?? null)
-      })
+    supabase.rpc('destaques').then(({ data }) => {
+      if (!ativo) return
+      const lista = data || []
+      if (!lista.length) {
+        setDestaque(null)
+        return
+      }
+      const k = 'tp_destaque_rot'
+      const i = Number(localStorage.getItem(k) || '0') % lista.length
+      localStorage.setItem(k, String((i + 1) % 100000))
+      setDestaque(lista[i])
+    })
     return () => {
       ativo = false
     }
@@ -71,6 +77,13 @@ export function Home() {
         </div>
       </div>
 
+      {/* Destaque rotativo — banner dinâmico (um por visita) */}
+      {destaque && (
+        <div className="reveal reveal-1 mt-4 px-5">
+          <DestaqueBanner d={destaque} />
+        </div>
+      )}
+
       {/* Menu do dia — uma linha com scroll lateral e botão + fixo à direita */}
       <Section className="reveal reveal-1 mt-5" title="Menu do dia">
         <Card className="relative overflow-hidden !p-0">
@@ -99,26 +112,6 @@ export function Home() {
           </Link>
         </Card>
       </Section>
-
-      {/* Comunicado */}
-      {ultimoComunicado && (
-        <Section className="reveal reveal-2 mt-5" title="Comunicado">
-          <Link to="/comunicados" className="card tap flex items-center gap-3 p-4">
-            <span className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl border border-accent/40 bg-accent-soft text-accent shadow-glow">
-              <Megaphone size={26} />
-            </span>
-            <div className="min-w-0 flex-1">
-              <div className="font-display text-base font-bold leading-snug">
-                {ultimoComunicado.titulo}
-              </div>
-              <div className="mt-1 line-clamp-2 text-xs text-muted">{ultimoComunicado.corpo}</div>
-            </div>
-            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-accent/40 text-accent">
-              <ChevronRight size={18} />
-            </span>
-          </Link>
-        </Section>
-      )}
 
       {/* TATÁ PLUS — cards principais */}
       <Section className="mt-5" title="TATÁ PLUS">
