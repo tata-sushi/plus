@@ -25,11 +25,11 @@ function PodiumItem({ pos, c }) {
           name={c.nome}
           src={c.avatar_url}
           size={isFirst ? 72 : 56}
-          className={isFirst ? 'ring-2 ring-accent shadow-glow' : 'ring-1 ring-white/15'}
+          className={isFirst ? 'ring-2 ring-accent shadow-glow' : 'ring-1 ring-line'}
         />
         <span
           className={`absolute -bottom-2 left-1/2 grid h-6 w-6 -translate-x-1/2 place-items-center rounded-full text-[11px] font-bold ${
-            isFirst ? 'bg-accent text-black' : 'border border-white/10 bg-surface-2 text-text'
+            isFirst ? 'bg-accent text-black' : 'border border-line bg-surface-2 text-text'
           }`}
         >
           {pos}
@@ -110,7 +110,7 @@ export function Ranking() {
                 return (
                   <div
                     key={c.matricula}
-                    className={`hstack gap-3 px-4 py-3 ${i > 0 ? 'border-t border-white/5' : ''} ${
+                    className={`hstack gap-3 px-4 py-3 ${i > 0 ? 'border-t border-line' : ''} ${
                       isSelf ? 'bg-accent-soft' : ''
                     }`}
                   >

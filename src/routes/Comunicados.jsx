@@ -171,24 +171,24 @@ export function Comunicados() {
                 value={titulo}
                 onChange={(e) => setTitulo(e.target.value)}
                 placeholder="Título"
-                className="mt-3 w-full rounded-card border border-white/10 bg-surface px-4 py-3 text-sm font-semibold outline-none placeholder:text-muted-2"
+                className="mt-3 w-full rounded-card border border-line bg-surface px-4 py-3 text-sm font-semibold outline-none placeholder:text-muted-2"
               />
               <textarea
                 value={corpo}
                 onChange={(e) => setCorpo(e.target.value)}
                 placeholder="Escreva o comunicado…"
                 rows={4}
-                className="mt-2 w-full resize-none rounded-card border border-white/10 bg-surface px-4 py-3 text-sm outline-none placeholder:text-muted-2"
+                className="mt-2 w-full resize-none rounded-card border border-line bg-surface px-4 py-3 text-sm outline-none placeholder:text-muted-2"
               />
 
-              <label className="mt-2 hstack gap-3 rounded-card border border-white/10 bg-surface px-4 py-3">
+              <label className="mt-2 hstack gap-3 rounded-card border border-line bg-surface px-4 py-3">
                 <Calendar size={16} className="shrink-0 text-muted" />
                 <span className="text-sm text-muted">Data do evento</span>
                 <input
                   type="date"
                   value={dataEvento}
                   onChange={(e) => setDataEvento(e.target.value)}
-                  className="ml-auto bg-transparent text-sm text-white outline-none [color-scheme:dark]"
+                  className="ml-auto bg-transparent text-sm text-text outline-none"
                 />
                 {dataEvento && (
                   <button
@@ -217,7 +217,7 @@ export function Comunicados() {
               ) : (
                 <button
                   onClick={() => imgInput.current?.click()}
-                  className="mt-2 hstack w-full justify-center gap-2 rounded-card border border-dashed border-white/15 bg-surface px-4 py-3 text-sm font-semibold text-muted tap"
+                  className="mt-2 hstack w-full justify-center gap-2 rounded-card border border-dashed border-line bg-surface px-4 py-3 text-sm font-semibold text-muted tap"
                 >
                   <ImageIcon size={16} /> Adicionar imagem
                 </button>

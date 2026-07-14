@@ -1,29 +1,36 @@
 /** @type {import('tailwindcss').Config} */
+// Cores semânticas via CSS custom properties (canais RGB) → suportam tema claro/escuro
+// e o modificador de opacidade do Tailwind (ex.: bg-accent/25).
+const c = (v) => `rgb(var(${v}) / <alpha-value>)`
+
 export default {
   content: ['./index.html', './src/**/*.{js,jsx}'],
   theme: {
     extend: {
       colors: {
-        bg: '#0A0A0A',
-        surface: '#141414',
-        'surface-2': '#1E1E1E',
-        'surface-3': '#2A2A2A',
-        border: '#2A2A2A',
+        bg: c('--bg'),
+        surface: c('--surface'),
+        'surface-2': c('--surface-2'),
+        'surface-3': c('--surface-3'),
+        border: c('--border'),
+        // separadores e preenchimentos sutis (já com alpha embutido)
+        line: 'var(--line)',
+        fill: 'var(--fill)',
         // Paleta de marca
         carbon: {
-          DEFAULT: '#53585F',
-          soft: 'rgba(83, 88, 95, 0.35)',
+          DEFAULT: c('--carbon'),
+          soft: 'var(--carbon-soft)',
         },
         accent: {
-          DEFAULT: '#70FF41', // Citric
-          dim: '#4FD628',
-          soft: 'rgba(112, 255, 65, 0.12)',
+          DEFAULT: c('--accent'),
+          dim: c('--accent-dim'),
+          soft: 'var(--accent-soft)',
         },
-        danger: '#EF4444',
-        warn: '#F59E0B',
-        text: '#FFFFFF',
-        muted: '#9CA3AF',
-        'muted-2': '#53585F',
+        danger: c('--danger'),
+        warn: c('--warn'),
+        text: c('--text'),
+        muted: c('--muted'),
+        'muted-2': c('--muted-2'),
       },
       borderRadius: {
         card: '20px',
@@ -34,7 +41,7 @@ export default {
         display: ['"DM Sans"', 'Inter', 'system-ui', 'sans-serif'],
       },
       boxShadow: {
-        glow: '0 0 24px rgba(112, 255, 65, 0.35)',
+        glow: '0 0 24px rgb(var(--accent) / 0.35)',
       },
     },
   },

@@ -57,7 +57,7 @@ export function Login() {
 
         {/* Formulário */}
         <form onSubmit={entrar} className="mt-8 flex flex-col gap-3">
-          <label className="hstack gap-3 rounded-card border border-white/10 bg-surface px-4 py-3.5">
+          <label className="hstack gap-3 rounded-card border border-line bg-surface px-4 py-3.5">
             <Mail size={18} className="shrink-0 text-muted" />
             <input
               type="email"
@@ -70,7 +70,7 @@ export function Login() {
             />
           </label>
 
-          <label className="hstack gap-3 rounded-card border border-white/10 bg-surface px-4 py-3.5">
+          <label className="hstack gap-3 rounded-card border border-line bg-surface px-4 py-3.5">
             <Lock size={18} className="shrink-0 text-muted" />
             <input
               type={showPwd ? 'text' : 'password'}

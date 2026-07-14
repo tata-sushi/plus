@@ -17,7 +17,7 @@ export function DestaqueBanner({ d }) {
   return (
     <Link
       to={d.cta_to || '/'}
-      className="relative block overflow-hidden rounded-3xl border border-white/5 bg-surface tap"
+      className="relative block overflow-hidden rounded-3xl border border-line bg-surface tap"
     >
       {/* fundo: arte real (futuro) ou gradiente do template */}
       {d.imagem_url ? (
@@ -40,7 +40,7 @@ export function DestaqueBanner({ d }) {
       <div className="relative flex min-h-[168px] flex-col justify-end gap-3 p-5">
         <div>
           <div className="hstack gap-1.5 text-[10px] font-semibold uppercase tracking-widest text-white/70">
-            <Sparkles size={12} className={tpl.tint} /> Destaque
+            <Sparkles size={12} className={tpl.tint} /> Notícias
           </div>
           <div className="mt-1.5 font-display text-lg font-bold leading-snug text-white">
             {d.titulo}

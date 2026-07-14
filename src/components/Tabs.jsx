@@ -23,7 +23,7 @@ export function Tabs({ tabs, value, onChange, defaultValue }) {
               onClick={() => select(t.value)}
               className={cn(
                 'pill tap whitespace-nowrap',
-                isActive ? 'bg-accent text-black' : 'bg-white/5 text-muted',
+                isActive ? 'bg-accent text-black' : 'bg-fill text-muted',
               )}
             >
               {t.label}

@@ -14,6 +14,8 @@ import {
   Loader2,
   Megaphone,
   UtensilsCrossed,
+  Sun,
+  Moon,
 } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Section } from '../components/Section.jsx'
@@ -23,6 +25,13 @@ import { currentUser, redesSociais } from '../lib/mockData.js'
 import { useAuth } from '../lib/AuthContext.jsx'
 import { supabase } from '../lib/supabase.js'
 import { tapHaptic } from '../lib/haptics.js'
+import { getTheme, applyTheme } from '../lib/theme.js'
+import { cn } from '../lib/cn'
+
+const TEMAS = [
+  { v: 'light', label: 'Claro', Icon: Sun },
+  { v: 'dark', label: 'Escuro', Icon: Moon },
+]
 
 const itens = [
   { to: '/cardapio', label: 'Cardápio', icon: UtensilsCrossed },
@@ -49,6 +58,7 @@ export function Mais() {
   const [enviando, setEnviando] = useState(false)
   const [erro, setErro] = useState('')
   const [saldo, setSaldo] = useState(null)
+  const [tema, setTema] = useState(getTheme)
 
   useEffect(() => {
     let ativo = true
@@ -59,6 +69,11 @@ export function Mais() {
       ativo = false
     }
   }, [])
+
+  function trocarTema(t) {
+    tapHaptic()
+    setTema(applyTheme(t))
+  }
 
   async function trocarFoto(e) {
     const f = e.target.files?.[0]
@@ -152,7 +167,7 @@ export function Mais() {
                 key={i.to}
                 to={i.to}
                 className={`hstack gap-3 px-4 py-3.5 tap ${
-                  idx > 0 ? 'border-t border-white/5' : ''
+                  idx > 0 ? 'border-t border-line' : ''
                 }`}
               >
                 <div className="grid h-9 w-9 place-items-center rounded-full bg-accent-soft text-accent">
@@ -163,6 +178,23 @@ export function Mais() {
               </Link>
             )
           })}
+        </div>
+      </Section>
+
+      <Section className="mt-5" title="Aparência">
+        <div className="card grid grid-cols-2 gap-1.5 p-1.5">
+          {TEMAS.map(({ v, label, Icon }) => (
+            <button
+              key={v}
+              onClick={() => trocarTema(v)}
+              className={cn(
+                'hstack justify-center gap-2 rounded-2xl py-2.5 text-sm font-semibold tap',
+                tema === v ? 'bg-accent text-black' : 'text-muted',
+              )}
+            >
+              <Icon size={16} /> {label}
+            </button>
+          ))}
         </div>
       </Section>
 

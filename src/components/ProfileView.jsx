@@ -81,7 +81,7 @@ export function ProfileView({ colaborador, isSelf }) {
               <button
                 key={a.id}
                 className={`hstack w-full justify-between px-4 py-3.5 tap ${
-                  idx > 0 ? 'border-t border-white/5' : ''
+                  idx > 0 ? 'border-t border-line' : ''
                 }`}
               >
                 <span className="text-sm font-semibold">{a.label}</span>

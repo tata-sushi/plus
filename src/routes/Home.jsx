@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Flag, Gift, Plus } from 'lucide-react'
+import { Flag, Gift, Plus, Megaphone, ChevronRight } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Section } from '../components/Section.jsx'
 import { Card } from '../components/Card.jsx'
@@ -42,6 +42,23 @@ export function Home() {
       localStorage.setItem(k, String((i + 1) % 100000))
       setDestaque(lista[i])
     })
+    return () => {
+      ativo = false
+    }
+  }, [])
+
+  // Último comunicado (card próprio, separado das Notícias)
+  const [ultimoComunicado, setUltimoComunicado] = useState(null)
+  useEffect(() => {
+    let ativo = true
+    supabase
+      .from('comunicados_feed')
+      .select('titulo, corpo, created_at')
+      .limit(1)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (ativo) setUltimoComunicado(data ?? null)
+      })
     return () => {
       ativo = false
     }
@@ -112,6 +129,26 @@ export function Home() {
           </Link>
         </Card>
       </Section>
+
+      {/* Comunicado — card próprio */}
+      {ultimoComunicado && (
+        <Section className="reveal reveal-2 mt-5" title="Comunicado">
+          <Link to="/comunicados" className="card tap flex items-center gap-3 p-4">
+            <span className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl border border-accent/40 bg-accent-soft text-accent shadow-glow">
+              <Megaphone size={26} />
+            </span>
+            <div className="min-w-0 flex-1">
+              <div className="font-display text-base font-bold leading-snug">
+                {ultimoComunicado.titulo}
+              </div>
+              <div className="mt-1 line-clamp-2 text-xs text-muted">{ultimoComunicado.corpo}</div>
+            </div>
+            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-accent/40 text-accent">
+              <ChevronRight size={18} />
+            </span>
+          </Link>
+        </Section>
+      )}
 
       {/* TATÁ PLUS — cards principais */}
       <Section className="mt-5" title="TATÁ PLUS">
