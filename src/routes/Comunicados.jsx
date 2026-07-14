@@ -275,11 +275,6 @@ export function Comunicados() {
             key={c.id}
             className={cn('reveal', vigente && 'ring-2 ring-accent/70 shadow-glow')}
           >
-            {vigente && (
-              <div className="mb-2 hstack w-fit gap-1.5 rounded-pill bg-accent px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-black">
-                Em vigor
-              </div>
-            )}
             <div className="hstack items-start justify-between gap-2">
               <h3 className="font-display text-base font-bold leading-snug">{c.titulo}</h3>
               {admin && (
