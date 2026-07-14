@@ -113,13 +113,13 @@
 }
 
 /* Animações */
+/* Sem frame "to": ao terminar, o transform volta a none — um transform que
+   persiste no <main> viraria containing block e prenderia os overlays fixed. */
 @keyframes fadeInUp {
   from { opacity: 0; transform: translateY(14px); }
-  to { opacity: 1; transform: translateY(0); }
 }
 @keyframes pageIn {
   from { opacity: 0; transform: translateY(6px); }
-  to { opacity: 1; transform: translateY(0); }
 }
 .animate-page { animation: pageIn 0.22s ease both; }
 .reveal { animation: fadeInUp 0.45s ease both; }
