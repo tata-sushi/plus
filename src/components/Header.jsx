@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 
 export function Header({ right }) {
   return (
-    <header className="safe-top sticky top-0 z-30 bg-bg/90 backdrop-blur border-b border-white/5">
+    <header className="safe-top sticky top-0 z-30 bg-bg/90 backdrop-blur border-b border-line">
       <div className="flex items-center justify-between px-5 py-3">
         <Link to="/" className="hstack gap-2">
           <img

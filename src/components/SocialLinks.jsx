@@ -16,7 +16,7 @@ export function SocialLinks({ items }) {
             rel="noopener noreferrer"
             onClick={tapHaptic}
             aria-label={s.label}
-            className="grid h-12 w-12 place-items-center rounded-full border border-white/5 bg-surface-2 text-accent tap"
+            className="grid h-12 w-12 place-items-center rounded-full border border-line bg-surface-2 text-accent tap"
           >
             <Icon size={20} />
           </a>

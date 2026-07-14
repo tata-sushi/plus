@@ -3,7 +3,7 @@ import { cn } from '../lib/cn'
 const styles = {
   urgente: 'bg-danger/15 text-danger',
   accent: 'bg-accent-soft text-accent',
-  neutral: 'bg-white/10 text-text',
+  neutral: 'bg-fill text-text',
 }
 
 export function Badge({ children, variant = 'neutral', className }) {

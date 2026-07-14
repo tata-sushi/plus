@@ -120,7 +120,7 @@ function PostCard({ post, matricula, meuNome, meuAvatar, onCurtir, onExcluir }) 
         >
           <Heart size={16} fill={post.curtiu ? 'currentColor' : 'none'} /> {post.likes}
         </button>
-        <button onClick={alternar} className={cn('hstack gap-1.5 tap', abrir && 'text-white')}>
+        <button onClick={alternar} className={cn('hstack gap-1.5 tap', abrir && 'text-text')}>
           <MessageCircle size={16} /> {total}
         </button>
         <Share2 size={16} className="ml-auto" />
@@ -128,7 +128,7 @@ function PostCard({ post, matricula, meuNome, meuAvatar, onCurtir, onExcluir }) 
 
       {/* Comentários */}
       {abrir && (
-        <div className="mt-3 border-t border-white/5 pt-3">
+        <div className="mt-3 border-t border-line pt-3">
           {carregando && (
             <div className="hstack justify-center py-2 text-muted-2">
               <Loader2 size={16} className="animate-spin" />
@@ -154,7 +154,7 @@ function PostCard({ post, matricula, meuNome, meuAvatar, onCurtir, onExcluir }) 
               value={novo}
               onChange={(e) => setNovo(e.target.value)}
               placeholder="Escreva um comentário…"
-              className="w-full rounded-full border border-white/10 bg-surface px-4 py-2 text-sm outline-none placeholder:text-muted-2"
+              className="w-full rounded-full border border-line bg-surface px-4 py-2 text-sm outline-none placeholder:text-muted-2"
             />
             <button
               type="submit"
@@ -361,7 +361,7 @@ export function Comunidade() {
             className="hidden"
           />
 
-          <div className="mt-3 hstack justify-between border-t border-white/5 pt-3">
+          <div className="mt-3 hstack justify-between border-t border-line pt-3">
             <button
               onClick={() => inputFoto.current?.click()}
               className="hstack gap-1.5 text-xs font-semibold text-muted tap"

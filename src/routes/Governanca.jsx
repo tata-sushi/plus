@@ -94,7 +94,7 @@ export function Governanca() {
             ))}
           </div>
         ) : (
-          <div className="flex flex-col items-center gap-2 rounded-card border border-dashed border-white/10 bg-surface/60 p-6 text-center">
+          <div className="flex flex-col items-center gap-2 rounded-card border border-dashed border-line bg-surface/60 p-6 text-center">
             <div className="grid h-11 w-11 place-items-center rounded-full bg-accent-soft text-accent">
               <Pin size={20} />
             </div>
@@ -131,7 +131,7 @@ export function Governanca() {
                   onClick={() => !bloqueado && toggle(item.id)}
                   disabled={bloqueado}
                   className={`hstack w-full gap-3 px-4 py-3 text-left tap ${
-                    idx > 0 ? 'border-t border-white/5' : ''
+                    idx > 0 ? 'border-t border-line' : ''
                   } ${bloqueado ? 'opacity-40' : ''}`}
                 >
                   <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-accent-soft text-accent">
@@ -142,7 +142,7 @@ export function Governanca() {
                     className={`grid h-6 w-6 shrink-0 place-items-center rounded-full border ${
                       ativo
                         ? 'border-accent bg-accent text-black'
-                        : 'border-white/20 text-transparent'
+                        : 'border-line text-transparent'
                     }`}
                   >
                     {ativo ? <Check size={14} /> : <Plus size={14} className="text-muted" />}

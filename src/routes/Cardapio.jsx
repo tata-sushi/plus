@@ -38,7 +38,7 @@ function DiaConteudo({ dia, data, isHoje }) {
           return (
             <div
               key={item.label}
-              className={cn('hstack gap-3', idx > 0 && 'border-t border-white/5 pt-3')}
+              className={cn('hstack gap-3', idx > 0 && 'border-t border-line pt-3')}
             >
               <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-accent-soft text-accent">
                 <Icon size={16} />

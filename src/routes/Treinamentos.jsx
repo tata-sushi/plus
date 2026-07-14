@@ -36,7 +36,7 @@ function Detalhe({ treino, onFechar, onConcluir, concluindo }) {
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col bg-bg">
-      <div className="safe-top hstack justify-between border-b border-white/5 px-5 py-3">
+      <div className="safe-top hstack justify-between border-b border-line px-5 py-3">
         <span className="font-display text-sm font-bold">Desafio</span>
         <button onClick={onFechar} className="text-muted tap" aria-label="Fechar">
           <X size={22} />
@@ -73,7 +73,7 @@ function Detalhe({ treino, onFechar, onConcluir, concluindo }) {
         )}
       </div>
 
-      <div className="safe-bottom border-t border-white/5 px-5 py-3">
+      <div className="safe-bottom border-t border-line px-5 py-3">
         {treino.concluido ? (
           <div className="hstack justify-center gap-2 rounded-card bg-accent-soft py-3 text-sm font-semibold text-accent">
             <CheckCircle2 size={18} /> Concluído
@@ -212,7 +212,7 @@ export function Treinamentos() {
               </button>
 
               {expandida && (
-                <div className="border-t border-white/5">
+                <div className="border-t border-line">
                   {tr.itens.map((item) => {
                     const bloqueado = !item.liberado && !item.concluido
                     return (
@@ -221,7 +221,7 @@ export function Treinamentos() {
                         onClick={() => abrir(item)}
                         disabled={bloqueado}
                         className={cn(
-                          'hstack w-full gap-3 border-t border-white/5 px-4 py-3 text-left first:border-t-0 tap',
+                          'hstack w-full gap-3 border-t border-line px-4 py-3 text-left first:border-t-0 tap',
                           bloqueado && 'opacity-45',
                         )}
                       >
