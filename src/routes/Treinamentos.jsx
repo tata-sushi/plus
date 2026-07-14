@@ -10,11 +10,11 @@ import {
   Trophy,
   Clock,
   FileText,
-  ExternalLink,
 } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Card } from '../components/Card.jsx'
 import { ProgressBar } from '../components/ProgressBar.jsx'
+import { PdfViewer } from '../components/PdfViewer.jsx'
 import { cn } from '../lib/cn'
 import { tapHaptic } from '../lib/haptics.js'
 import { resolveIcon } from '../lib/icons.js'
@@ -73,21 +73,7 @@ function Detalhe({ treino, onFechar, onConcluir, concluindo }) {
           <Loader2 size={22} className="animate-spin" />
         </div>
       ) : ehPdf ? (
-        <div className="flex flex-1 flex-col">
-          <iframe
-            src={`${data.arquivo_url}#view=FitH`}
-            title={`PDF — ${treino.titulo}`}
-            className="w-full flex-1 border-0 bg-surface-2"
-          />
-          <a
-            href={data.arquivo_url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="hstack justify-center gap-1.5 border-t border-line py-2 text-xs font-medium text-muted tap"
-          >
-            <ExternalLink size={13} /> Não abriu? Abrir o PDF em nova aba
-          </a>
-        </div>
+        <PdfViewer src={data.arquivo_url} />
       ) : data.conteudo_html ? (
         <div className="flex-1 overflow-y-auto px-5 py-4">
           <div

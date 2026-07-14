@@ -233,8 +233,9 @@ NÃO recriar como invoker senão quebra ranking/feed), `comunicados_feed`, `cart
 - **Conteúdo dos desafios (por categoria):** replicar categoria a categoria.
   - ✅ **TATÁ NEWS (30)** — tipo "ler PDF no app". Coluna `treinamentos.arquivo_url`; os 30
     apontam pra `desafios/tata-news-01.pdf`…`30` (por `ordem`). `abrir_treinamento()` devolve
-    `arquivo_url`; a tela mostra o PDF embutido (iframe) + botão "Li e concluir" (usa
-    `concluir_treinamento`, tipo segue 'conteudo'). Bucket **`desafios`** (público, upload admin).
+    `arquivo_url`; a tela renderiza o PDF como páginas via **pdf.js** (`components/PdfViewer.jsx`,
+    `pdfjs-dist` carregado sob demanda — iframe não renderizava inline no celular) + botão
+    "Li e concluir" (usa `concluir_treinamento`, tipo segue 'conteudo'). Bucket **`desafios`** (público, upload admin).
     Falta: usuário subir os 30 PDFs no bucket.
   - Pendentes: demais categorias (texto HTML + rehospedar as 135 imagens Comunitive/403 no bucket `desafios`).
 - **Artes das Notícias** — trocar gradientes placeholder por imagens base (só preencher
