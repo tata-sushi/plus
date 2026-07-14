@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Eye, Plus, Send, X, Loader2, Trash2 } from 'lucide-react'
+import { Eye, Plus, Send, X, Loader2, Trash2, Calendar } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Card } from '../components/Card.jsx'
 import { cn } from '../lib/cn'
 import { tapHaptic } from '../lib/haptics.js'
-import { dataCurta } from '../lib/tempo.js'
+import { dataCurta, dataBR } from '../lib/tempo.js'
 import { useAuth } from '../lib/AuthContext.jsx'
 import { supabase } from '../lib/supabase.js'
 
@@ -20,6 +20,7 @@ export function Comunicados() {
   const [form, setForm] = useState(false)
   const [titulo, setTitulo] = useState('')
   const [corpo, setCorpo] = useState('')
+  const [dataEvento, setDataEvento] = useState('')
   const [publicando, setPublicando] = useState(false)
 
   const carregar = useCallback(async () => {
@@ -54,7 +55,7 @@ export function Comunicados() {
     setPublicando(true)
     const { data, error } = await supabase
       .from('comunicados')
-      .insert({ titulo: t, corpo: c, autor_matricula: matricula })
+      .insert({ titulo: t, corpo: c, autor_matricula: matricula, data_evento: dataEvento || null })
       .select('id, created_at')
       .single()
     setPublicando(false)
@@ -70,6 +71,7 @@ export function Comunicados() {
         autor_matricula: matricula,
         autor_nome: usuario?.nome,
         created_at: data.created_at,
+        data_evento: dataEvento || null,
         visualizacoes: 0,
         lido: true,
       },
@@ -77,6 +79,7 @@ export function Comunicados() {
     ])
     setTitulo('')
     setCorpo('')
+    setDataEvento('')
     setForm(false)
   }
 
@@ -121,6 +124,26 @@ export function Comunicados() {
                 rows={4}
                 className="mt-2 w-full resize-none rounded-card border border-white/10 bg-surface px-4 py-3 text-sm outline-none placeholder:text-muted-2"
               />
+              <label className="mt-2 hstack gap-3 rounded-card border border-white/10 bg-surface px-4 py-3">
+                <Calendar size={16} className="shrink-0 text-muted" />
+                <span className="text-sm text-muted">Data do evento</span>
+                <input
+                  type="date"
+                  value={dataEvento}
+                  onChange={(e) => setDataEvento(e.target.value)}
+                  className="ml-auto bg-transparent text-sm text-white outline-none [color-scheme:dark]"
+                />
+                {dataEvento && (
+                  <button
+                    type="button"
+                    onClick={() => setDataEvento('')}
+                    className="text-muted-2 tap"
+                    aria-label="Limpar data"
+                  >
+                    <X size={15} />
+                  </button>
+                )}
+              </label>
               <button
                 onClick={publicar}
                 disabled={!titulo.trim() || !corpo.trim() || publicando}
@@ -174,6 +197,11 @@ export function Comunicados() {
               )}
             </div>
             <p className="mt-1 whitespace-pre-wrap text-sm text-muted">{c.corpo}</p>
+            {c.data_evento && (
+              <div className="mt-2 hstack w-fit gap-1.5 rounded-pill bg-accent-soft px-2.5 py-1 text-[11px] font-semibold text-accent">
+                <Calendar size={12} /> Evento · {dataBR(c.data_evento)}
+              </div>
+            )}
             <div className="mt-3 hstack justify-between text-[11px] text-muted">
               <span>{dataCurta(c.created_at)}</span>
               <span className="hstack gap-1">
