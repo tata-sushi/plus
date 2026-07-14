@@ -28,7 +28,7 @@ export function Home() {
       <div className="px-5 pt-2">
         <div className="hero-card reveal p-4">
           <div className="hstack gap-3">
-            <Avatar name={nome} size={48} />
+            <Avatar name={nome} src={usuario?.avatarUrl} size={48} />
             <div className="min-w-0 flex-1">
               <div className="font-display text-lg font-bold">Olá, {primeiroNome}!</div>
               <div className="mt-0.5 truncate text-xs text-muted">

@@ -11,6 +11,7 @@ export function Jornada() {
     nome: usuario?.nome || base.nome,
     cargo: usuario?.cargo || base.cargo,
     loja: usuario?.loja || base.loja,
+    avatar: usuario?.avatarUrl || base.avatar,
   }
   return <ProfileView colaborador={colaborador} isSelf />
 }

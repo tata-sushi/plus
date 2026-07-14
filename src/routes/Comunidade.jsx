@@ -20,7 +20,7 @@ import { supabase } from '../lib/supabase.js'
 
 const TAM_MAX = 15 * 1024 * 1024 // 15 MB
 
-function PostCard({ post, matricula, meuNome, onCurtir, onExcluir }) {
+function PostCard({ post, matricula, meuNome, meuAvatar, onCurtir, onExcluir }) {
   const [abrir, setAbrir] = useState(false)
   const [comentarios, setComentarios] = useState([])
   const [carregando, setCarregando] = useState(false)
@@ -65,6 +65,7 @@ function PostCard({ post, matricula, meuNome, onCurtir, onExcluir }) {
         post_id: post.id,
         autor_matricula: matricula,
         autor_nome: meuNome,
+        autor_avatar: meuAvatar,
         texto: t,
         created_at: data.created_at,
       },
@@ -77,7 +78,7 @@ function PostCard({ post, matricula, meuNome, onCurtir, onExcluir }) {
     <Card className="reveal">
       {/* Autor */}
       <div className="hstack gap-3">
-        <Avatar name={post.autor_nome || '—'} size={40} />
+        <Avatar name={post.autor_nome || '—'} src={post.autor_avatar} size={40} />
         <div className="min-w-0 flex-1">
           <div className="text-sm font-semibold">{post.autor_nome || 'Colaborador'}</div>
           <div className="text-[11px] text-muted">
@@ -136,7 +137,7 @@ function PostCard({ post, matricula, meuNome, onCurtir, onExcluir }) {
           <div className="flex flex-col gap-3">
             {comentarios.map((c) => (
               <div key={c.id} className="hstack items-start gap-2">
-                <Avatar name={c.autor_nome || '—'} size={28} />
+                <Avatar name={c.autor_nome || '—'} src={c.autor_avatar} size={28} />
                 <div className="min-w-0 flex-1 rounded-2xl bg-surface px-3 py-2">
                   <div className="hstack gap-2">
                     <span className="text-xs font-semibold">{c.autor_nome || 'Colaborador'}</span>
@@ -177,6 +178,7 @@ export function Comunidade() {
   const { usuario } = useAuth()
   const matricula = usuario?.matricula
   const meuNome = usuario?.nome || 'Você'
+  const meuAvatar = usuario?.avatarUrl
 
   const [posts, setPosts] = useState([])
   const [carregando, setCarregando] = useState(true)
@@ -269,6 +271,7 @@ export function Comunidade() {
         id: data.id,
         autor_matricula: matricula,
         autor_nome: meuNome,
+        autor_avatar: meuAvatar,
         autor_cargo: usuario?.cargo || '',
         autor_unidade: usuario?.loja || '',
         texto: t || null,
@@ -327,7 +330,7 @@ export function Comunidade() {
       <div className="px-5 pt-2">
         <Card>
           <div className="hstack gap-3">
-            <Avatar name={meuNome} size={40} />
+            <Avatar name={meuNome} src={meuAvatar} size={40} />
             <input
               value={texto}
               onChange={(e) => setTexto(e.target.value)}
@@ -412,6 +415,7 @@ export function Comunidade() {
             post={post}
             matricula={matricula}
             meuNome={meuNome}
+            meuAvatar={meuAvatar}
             onCurtir={curtir}
             onExcluir={excluir}
           />
