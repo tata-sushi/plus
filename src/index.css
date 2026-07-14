@@ -134,8 +134,21 @@
 }
 .animate-nudge { animation: nudgeX 1.3s ease-in-out infinite; }
 
+/* Celebração de desafio concluído */
+@keyframes popIn {
+  0% { transform: scale(0.4); opacity: 0; }
+  60% { transform: scale(1.1); }
+  100% { transform: scale(1); opacity: 1; }
+}
+.animate-pop { animation: popIn 0.45s cubic-bezier(0.2, 1.2, 0.4, 1) both; }
+@keyframes riseIn {
+  from { transform: translateY(12px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+.animate-rise { animation: riseIn 0.4s 0.18s ease-out both; }
+
 @media (prefers-reduced-motion: reduce) {
-  .animate-page, .reveal, .animate-nudge { animation: none; }
+  .animate-page, .reveal, .animate-nudge, .animate-pop, .animate-rise { animation: none; }
 }
 
 /* Scrollbars discretas */

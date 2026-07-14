@@ -5,11 +5,10 @@ import {
   ChevronDown,
   Play,
   Loader2,
-  X,
   Star,
-  Trophy,
   Clock,
-  FileText,
+  ArrowLeft,
+  Check,
 } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Card } from '../components/Card.jsx'
@@ -39,33 +38,35 @@ function Detalhe({ treino, onFechar, onConcluir, concluindo }) {
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col bg-bg">
-      <div className="safe-top hstack justify-between border-b border-line px-5 py-3">
-        <span className="font-display text-sm font-bold">Desafio</span>
-        <button onClick={onFechar} className="text-muted tap" aria-label="Fechar">
-          <X size={22} />
+      <div className="safe-top hstack gap-3 border-b border-line px-4 py-2.5">
+        <button
+          onClick={onFechar}
+          className="hstack shrink-0 gap-1.5 rounded-full bg-surface px-3.5 py-2 text-xs font-semibold tap"
+        >
+          <ArrowLeft size={15} /> Voltar
         </button>
-      </div>
-
-      {/* Cabeçalho fixo do desafio */}
-      <div className="border-b border-line px-5 py-3">
-        <h1 className="font-display text-lg font-bold leading-tight">{treino.titulo}</h1>
-        <div className="mt-1.5 hstack gap-2 text-xs">
-          {treino.pontos > 0 && (
-            <span className="pill bg-accent-soft text-accent">
-              <Star size={12} /> {treino.pontos} pts
-            </span>
-          )}
-          {ehPdf ? (
-            <span className="pill bg-surface-2 text-muted">
-              <FileText size={12} /> PDF
-            </span>
-          ) : (
-            TIPO_LABEL[treino.tipo] && (
-              <span className="pill bg-surface-2 text-muted">{TIPO_LABEL[treino.tipo]}</span>
-            )
-          )}
+        <div className="min-w-0 flex-1 truncate text-right font-display text-sm font-bold">
+          Desafio{' '}
+          <span className="text-xs font-medium text-muted">({treino.titulo})</span>
         </div>
       </div>
+
+      {/* Cabeçalho do desafio (só conteúdo/texto — PDF abre direto) */}
+      {data && !ehPdf && (
+        <div className="border-b border-line px-5 py-3">
+          <h1 className="font-display text-lg font-bold leading-tight">{treino.titulo}</h1>
+          <div className="mt-1.5 hstack gap-2 text-xs">
+            {treino.pontos > 0 && (
+              <span className="pill bg-accent-soft text-accent">
+                <Star size={12} /> {treino.pontos} pts
+              </span>
+            )}
+            {TIPO_LABEL[treino.tipo] && (
+              <span className="pill bg-surface-2 text-muted">{TIPO_LABEL[treino.tipo]}</span>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Corpo: PDF embutido, HTML ou fallback */}
       {!data ? (
@@ -102,7 +103,11 @@ function Detalhe({ treino, onFechar, onConcluir, concluindo }) {
             {concluindo ? (
               <Loader2 size={18} className="animate-spin" />
             ) : ehPdf ? (
-              'Li e concluir'
+              treino.pontos > 0 ? (
+                `Li e concluir · +${treino.pontos} pts`
+              ) : (
+                'Li e concluir'
+              )
             ) : (
               'Concluir desafio'
             )}
@@ -124,6 +129,13 @@ export function Treinamentos() {
   const [detalhe, setDetalhe] = useState(null) // treino aberto
   const [concluindo, setConcluindo] = useState(false)
   const [aviso, setAviso] = useState('')
+  const [celebrando, setCelebrando] = useState(null) // {pontos} — overlay de conclusão
+
+  useEffect(() => {
+    if (!celebrando) return
+    const t = setTimeout(() => setCelebrando(null), 2600)
+    return () => clearTimeout(t)
+  }, [celebrando])
 
   const carregar = useCallback(async () => {
     const { data, error } = await supabase.rpc('treinamentos_do_usuario')
@@ -167,7 +179,7 @@ export function Treinamentos() {
     setConcluindo(false)
     if (data?.ok) {
       setDetalhe(null)
-      setAviso(data.pontos > 0 ? `Desafio concluído! +${data.pontos} pts 🎉` : 'Desafio concluído! 🎉')
+      setCelebrando({ pontos: Number(data.pontos) || 0 })
       carregar()
     } else if (data?.erro === 'limite_diario') {
       setDetalhe(null)
@@ -292,6 +304,28 @@ export function Treinamentos() {
           onConcluir={concluir}
           concluindo={concluindo}
         />
+      )}
+
+      {/* Celebração de conclusão */}
+      {celebrando && (
+        <div
+          className="fixed inset-0 z-[60] grid place-items-center bg-black/70 backdrop-blur-sm"
+          onClick={() => setCelebrando(null)}
+        >
+          <div className="px-8 text-center">
+            <div className="animate-pop mx-auto grid h-24 w-24 place-items-center rounded-full bg-accent text-black shadow-glow">
+              <Check size={46} strokeWidth={3} />
+            </div>
+            <div className="animate-rise mt-5 font-display text-2xl font-bold text-white">
+              Desafio concluído! 🎉
+            </div>
+            {celebrando.pontos > 0 && (
+              <div className="animate-rise mt-2 text-sm font-semibold text-accent">
+                +{celebrando.pontos} pts na sua carteira
+              </div>
+            )}
+          </div>
+        </div>
       )}
     </>
   )
