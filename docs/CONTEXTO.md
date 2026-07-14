@@ -167,7 +167,8 @@ descricao, created_at, unique(matricula,origem,referencia_id))`.
 `minha_matricula()`, `pode_publicar()` [perfil='admin'], `acesso_governanca()`,
 `tem_acesso_treinamento(mat,treino)`, `treinamentos_do_usuario()`, `abrir_treinamento(p_treino)`,
 `concluir_treinamento(p_treino)` [limite 3/dia por `(concluido_em at tz 'America/Sao_Paulo')::date`],
-`ranking()`, `meu_saldo()`, `definir_meu_avatar(url)`, `registrar_leituras()`/`ler_comunicados()`,
+`ranking()`, `meu_saldo()`, `meu_progresso_desafios()` [feitos/total/pct dos desafios visíveis,
+usado no anel do card de identificação], `definir_meu_avatar(url)`, `registrar_leituras()`/`ler_comunicados()`,
 `sincronizar_auth_users()`, `sincronizar_tudo()`, `sincronizar_pontos_historicos()`,
 `sincronizar_conclusoes_historicas()`, `resolver_gamificacao()`, `destaques()`,
 helpers `_norm(text)` / `_toks(text)`.

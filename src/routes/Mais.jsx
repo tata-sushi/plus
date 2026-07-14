@@ -20,6 +20,7 @@ import {
 import { Header } from '../components/Header.jsx'
 import { Section } from '../components/Section.jsx'
 import { Avatar } from '../components/Avatar.jsx'
+import { ProgressRing } from '../components/ProgressRing.jsx'
 import { SocialLinks } from '../components/SocialLinks.jsx'
 import { currentUser, redesSociais } from '../lib/mockData.js'
 import { useAuth } from '../lib/AuthContext.jsx'
@@ -58,12 +59,16 @@ export function Mais() {
   const [enviando, setEnviando] = useState(false)
   const [erro, setErro] = useState('')
   const [saldo, setSaldo] = useState(null)
+  const [progresso, setProgresso] = useState(null)
   const [tema, setTema] = useState(getTheme)
 
   useEffect(() => {
     let ativo = true
     supabase.rpc('meu_saldo').then(({ data }) => {
       if (ativo) setSaldo(Number(data) || 0)
+    })
+    supabase.rpc('meu_progresso_desafios').then(({ data }) => {
+      if (ativo) setProgresso(data?.[0] ?? null)
     })
     return () => {
       ativo = false
@@ -153,6 +158,7 @@ export function Mais() {
                 </span>
               </div>
             </div>
+            <ProgressRing value={(progresso?.pct ?? 0) / 100} size={54} stroke={5} />
           </div>
           {erro && <div className="mt-2 text-[11px] font-medium text-danger">{erro}</div>}
         </div>

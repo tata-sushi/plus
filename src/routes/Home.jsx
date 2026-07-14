@@ -6,7 +6,7 @@ import { Section } from '../components/Section.jsx'
 import { Card } from '../components/Card.jsx'
 import { IconTile } from '../components/IconTile.jsx'
 import { PromoCard } from '../components/PromoCard.jsx'
-import { ProgressBar } from '../components/ProgressBar.jsx'
+import { ProgressRing } from '../components/ProgressRing.jsx'
 import { Avatar } from '../components/Avatar.jsx'
 import { DestaqueBanner } from '../components/DestaqueBanner.jsx'
 import { resolveIcon } from '../lib/icons.js'
@@ -25,6 +25,18 @@ export function Home() {
   const rapidos = acessosRapidos.filter(
     (a) => a.id !== 'governanca' || usuario?.governanca?.tem,
   )
+
+  // Progresso real de desafios (para o anel do card de identificação)
+  const [progresso, setProgresso] = useState(null)
+  useEffect(() => {
+    let ativo = true
+    supabase.rpc('meu_progresso_desafios').then(({ data }) => {
+      if (ativo) setProgresso(data?.[0] ?? null)
+    })
+    return () => {
+      ativo = false
+    }
+  }, [])
 
   // Destaque rotativo: um por visita (cicla a cada vez que abre a home)
   const [destaque, setDestaque] = useState(null)
@@ -68,29 +80,18 @@ export function Home() {
     <>
       <Header />
 
-      {/* Hero de saudação */}
+      {/* Card de identificação — compacto, com anel de progresso dos desafios */}
       <div className="px-5 pt-2">
-        <div className="hero-card reveal p-4">
-          <div className="hstack gap-3">
-            <Avatar name={nome} src={usuario?.avatarUrl} size={48} />
-            <div className="min-w-0 flex-1">
-              <div className="font-display text-lg font-bold">Olá, {primeiroNome}!</div>
-              <div className="mt-0.5 truncate text-xs text-muted">
-                {cargo}
-                {loja ? ` · ${loja}` : ''}
-              </div>
+        <div className="hero-card reveal hstack gap-3 p-4">
+          <Avatar name={nome} src={usuario?.avatarUrl} size={48} />
+          <div className="min-w-0 flex-1">
+            <div className="font-display text-lg font-bold">Olá, {primeiroNome}!</div>
+            <div className="mt-0.5 truncate text-xs text-muted">
+              {cargo}
+              {loja ? ` · ${loja}` : ''}
             </div>
-            <span className="pill bg-accent text-black text-[10px]">{currentUser.rank}</span>
           </div>
-          <div className="mt-4 hstack justify-between text-[11px]">
-            <span className="text-muted">Rumo ao nível {currentUser.proximoRank}</span>
-            <span className="font-semibold text-accent">
-              {Math.round(currentUser.progressoRank * 100)}%
-            </span>
-          </div>
-          <div className="mt-1.5">
-            <ProgressBar value={currentUser.progressoRank} />
-          </div>
+          <ProgressRing value={(progresso?.pct ?? 0) / 100} size={54} stroke={5} />
         </div>
       </div>
 
