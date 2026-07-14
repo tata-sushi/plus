@@ -266,7 +266,6 @@ export const cardapioSemanal = [
 ]
 
 export const acessosRapidos = [
-  { id: 'comunicados', label: 'Comunicados', icon: 'Megaphone', to: '/comunicados' },
   { id: 'governanca', label: 'Governança de Processos', icon: 'Landmark', to: '/governanca', variant: 'light' },
 ]
 
