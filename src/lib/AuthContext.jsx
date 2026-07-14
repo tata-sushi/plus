@@ -13,6 +13,7 @@ function primeiroNome(nome) {
 export function AuthProvider({ children }) {
   const [session, setSession] = useState(null)
   const [profile, setProfile] = useState(null)
+  const [avatarUrl, setAvatarUrl] = useState(null)
   const [loading, setLoading] = useState(true)
   const [motivoBloqueio, setMotivoBloqueio] = useState('') // '' | 'inativo'
   const bloqueando = useRef(false)
@@ -36,7 +37,7 @@ export function AuthProvider({ children }) {
   const verificarPerfil = useCallback(async () => {
     const { data, error } = await supabase
       .from('profiles')
-      .select('matricula, nome, cargo, unidade, departamento, perfil, status, avatar_url')
+      .select('matricula, nome, cargo, unidade, departamento, perfil, status')
       .maybeSingle()
     if (error) return
     if (!data || data.status !== 'Ativo') {
@@ -93,6 +94,28 @@ export function AuthProvider({ children }) {
     if (session?.user) verificarPerfil()
   }, [location.pathname, session, verificarPerfil])
 
+  // Busca a própria foto de perfil (avatar mora em auth_users, exposto via
+  // colaboradores_publicos). Roda quando a matrícula muda.
+  useEffect(() => {
+    const mat = profile?.matricula
+    if (!mat) {
+      setAvatarUrl(null)
+      return
+    }
+    let ativo = true
+    supabase
+      .from('colaboradores_publicos')
+      .select('avatar_url')
+      .eq('matricula', mat)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (ativo) setAvatarUrl(data?.avatar_url ?? null)
+      })
+    return () => {
+      ativo = false
+    }
+  }, [profile?.matricula])
+
   const usuario = profile
     ? {
         id: profile.matricula,
@@ -105,7 +128,7 @@ export function AuthProvider({ children }) {
         departamento: profile.departamento,
         perfil: profile.perfil,
         status: profile.status,
-        avatarUrl: profile.avatar_url,
+        avatarUrl,
       }
     : session?.user
       ? {
@@ -128,15 +151,10 @@ export function AuthProvider({ children }) {
       supabase.auth.signInWithPassword({ email: email.trim(), password: senha }),
     signOut: () => supabase.auth.signOut(),
     updatePassword: (novaSenha) => supabase.auth.updateUser({ password: novaSenha }),
-    // Atualiza a foto de perfil (grava no profiles + estado local)
+    // Atualiza a foto de perfil (grava em auth_users via função SECURITY DEFINER)
     definirAvatar: async (url) => {
-      const mat = profile?.matricula
-      if (!mat) return { error: new Error('sem matrícula') }
-      const { error } = await supabase
-        .from('profiles')
-        .update({ avatar_url: url })
-        .eq('matricula', mat)
-      if (!error) setProfile((p) => (p ? { ...p, avatar_url: url } : p))
+      const { error } = await supabase.rpc('definir_meu_avatar', { url })
+      if (!error) setAvatarUrl(url)
       return { error }
     },
   }
