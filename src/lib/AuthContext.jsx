@@ -1,7 +1,10 @@
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react'
+import { useLocation } from 'react-router-dom'
 import { supabase } from './supabase.js'
 
 const AuthContext = createContext(null)
+
+const INTERVALO_RECHECK = 3 * 60 * 1000 // 3 min
 
 function primeiroNome(nome) {
   return (nome || '').trim().split(/\s+/)[0] || ''
@@ -11,6 +14,37 @@ export function AuthProvider({ children }) {
   const [session, setSession] = useState(null)
   const [profile, setProfile] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [motivoBloqueio, setMotivoBloqueio] = useState('') // '' | 'inativo'
+  const bloqueando = useRef(false)
+  const location = useLocation()
+
+  const limparBloqueio = useCallback(() => setMotivoBloqueio(''), [])
+
+  // Derruba o acesso de quem não está Ativo
+  const derrubarInativo = useCallback(async () => {
+    if (bloqueando.current) return
+    bloqueando.current = true
+    setProfile(null)
+    setMotivoBloqueio('inativo')
+    await supabase.auth.signOut()
+    bloqueando.current = false
+  }, [])
+
+  // Busca o perfil e valida o status ao vivo.
+  // - erro de rede: não derruba (fail-open)
+  // - sem linha (RLS bloqueou) ou status != Ativo: derruba
+  const verificarPerfil = useCallback(async () => {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('matricula, nome, cargo, unidade, departamento, perfil, status')
+      .maybeSingle()
+    if (error) return
+    if (!data || data.status !== 'Ativo') {
+      await derrubarInativo()
+      return
+    }
+    setProfile(data)
+  }, [derrubarInativo])
 
   // Sessão do Supabase
   useEffect(() => {
@@ -20,8 +54,9 @@ export function AuthProvider({ children }) {
       setSession(data.session)
       setLoading(false)
     })
-    const { data: sub } = supabase.auth.onAuthStateChange((_evento, s) => {
+    const { data: sub } = supabase.auth.onAuthStateChange((evento, s) => {
       setSession(s)
+      if (evento === 'SIGNED_IN') setMotivoBloqueio('')
     })
     return () => {
       ativo = false
@@ -29,25 +64,34 @@ export function AuthProvider({ children }) {
     }
   }, [])
 
-  // Perfil (identidade) do usuário logado — RLS retorna só a própria linha
+  // Ao (re)abrir a sessão: valida o perfil/status
   useEffect(() => {
-    const email = session?.user?.email
-    if (!email) {
+    if (!session?.user) {
       setProfile(null)
       return
     }
-    let ativo = true
-    supabase
-      .from('profiles')
-      .select('matricula, nome, cargo, unidade, departamento, perfil')
-      .maybeSingle()
-      .then(({ data }) => {
-        if (ativo) setProfile(data ?? null)
-      })
-    return () => {
-      ativo = false
+    verificarPerfil()
+  }, [session, verificarPerfil])
+
+  // Re-checa quando o app volta ao foco e periodicamente,
+  // para derrubar quem virou Inativo com a sessão já aberta.
+  useEffect(() => {
+    if (!session?.user) return
+    function aoVoltar() {
+      if (document.visibilityState === 'visible') verificarPerfil()
     }
-  }, [session])
+    document.addEventListener('visibilitychange', aoVoltar)
+    const timer = setInterval(verificarPerfil, INTERVALO_RECHECK)
+    return () => {
+      document.removeEventListener('visibilitychange', aoVoltar)
+      clearInterval(timer)
+    }
+  }, [session, verificarPerfil])
+
+  // Re-checa a cada navegação (qualquer troca de tela revalida o status)
+  useEffect(() => {
+    if (session?.user) verificarPerfil()
+  }, [location.pathname, session, verificarPerfil])
 
   const usuario = profile
     ? {
@@ -60,6 +104,7 @@ export function AuthProvider({ children }) {
         unidade: profile.unidade,
         departamento: profile.departamento,
         perfil: profile.perfil,
+        status: profile.status,
       }
     : session?.user
       ? {
@@ -76,6 +121,8 @@ export function AuthProvider({ children }) {
     session,
     usuario,
     loading,
+    motivoBloqueio,
+    limparBloqueio,
     signIn: (email, senha) =>
       supabase.auth.signInWithPassword({ email: email.trim(), password: senha }),
     signOut: () => supabase.auth.signOut(),

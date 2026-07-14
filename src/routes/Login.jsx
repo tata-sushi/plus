@@ -6,7 +6,7 @@ import { tapHaptic } from '../lib/haptics.js'
 import { useAuth } from '../lib/AuthContext.jsx'
 
 export function Login() {
-  const { session, signIn } = useAuth()
+  const { session, signIn, motivoBloqueio, limparBloqueio } = useAuth()
   const [email, setEmail] = useState('')
   const [senha, setSenha] = useState('')
   const [showPwd, setShowPwd] = useState(false)
@@ -16,11 +16,13 @@ export function Login() {
   if (session) return <Navigate to="/" replace />
 
   const podeEntrar = email.trim() !== '' && senha.trim() !== '' && !enviando
+  const avisoInativo = motivoBloqueio === 'inativo' && !erro
 
   async function entrar(e) {
     e.preventDefault()
     if (!podeEntrar) return
     tapHaptic()
+    limparBloqueio()
     setErro('')
     setEnviando(true)
     const { error } = await signIn(email, senha)
@@ -95,6 +97,12 @@ export function Login() {
           {erro && (
             <div className="rounded-card border border-danger/30 bg-danger/10 px-4 py-2.5 text-center text-xs font-medium text-danger">
               {erro}
+            </div>
+          )}
+
+          {avisoInativo && (
+            <div className="rounded-card border border-danger/30 bg-danger/10 px-4 py-2.5 text-center text-xs font-medium text-danger">
+              Acesso disponível apenas para colaboradores ativos.
             </div>
           )}
 
