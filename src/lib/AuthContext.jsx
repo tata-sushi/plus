@@ -14,6 +14,7 @@ export function AuthProvider({ children }) {
   const [session, setSession] = useState(null)
   const [profile, setProfile] = useState(null)
   const [avatarUrl, setAvatarUrl] = useState(null)
+  const [podePublicar, setPodePublicar] = useState(false)
   const [loading, setLoading] = useState(true)
   const [motivoBloqueio, setMotivoBloqueio] = useState('') // '' | 'inativo'
   const bloqueando = useRef(false)
@@ -100,6 +101,7 @@ export function AuthProvider({ children }) {
     const mat = profile?.matricula
     if (!mat) {
       setAvatarUrl(null)
+      setPodePublicar(false)
       return
     }
     let ativo = true
@@ -111,6 +113,9 @@ export function AuthProvider({ children }) {
       .then(({ data }) => {
         if (ativo) setAvatarUrl(data?.avatar_url ?? null)
       })
+    supabase.rpc('pode_publicar').then(({ data }) => {
+      if (ativo) setPodePublicar(data === true)
+    })
     return () => {
       ativo = false
     }
@@ -129,6 +134,7 @@ export function AuthProvider({ children }) {
         perfil: profile.perfil,
         status: profile.status,
         avatarUrl,
+        podePublicar,
       }
     : session?.user
       ? {

@@ -1,3 +1,13 @@
+// Data curta pt-BR (ex.: "10/09/2024")
+export function dataCurta(iso) {
+  if (!iso) return ''
+  return new Date(iso).toLocaleDateString('pt-BR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  })
+}
+
 // Tempo relativo curto em pt-BR (ex.: "agora", "há 15 min", "há 2 h", "ontem")
 export function tempoRelativo(iso) {
   if (!iso) return ''
