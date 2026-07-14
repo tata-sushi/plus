@@ -202,9 +202,6 @@ NÃO recriar como invoker senão quebra ranking/feed), `comunicados_feed`, `cart
 
 ## 11. Pendências / Roadmap
 
-**Em andamento (próximo passo imediato — ver seção 12):** reordenar a Home e aumentar a
-altura do card de Notícias.
-
 **Fila:**
 - **Fase 2 RH** — plugar absenteísmo/sanções/banco de horas/gorjeta como geradores de
   Notícias + espaço "Meus avisos" + definir tom. (bloqueado até a base RH subir no Supabase).
@@ -227,19 +224,18 @@ altura do card de Notícias.
 
 ---
 
-## 12. Próximo passo imediato (pedido do usuário)
+## 12. Home — estado atual (✅ concluído)
 
-Ajustes na tela **Início (Home.jsx)**:
+Ordem das seções na Início (`Home.jsx`):
+1. Hero de saudação
+2. **Menu do dia**
+3. **Comunicado**
+4. **Notícias** (banner rotativo, `reveal-3`)
+5. **TATÁ PLUS**
+6. **Governança de Processos** (seção antes chamada "Acesso Rápido"; só o tile de
+   Governança, gated por `usuario.governanca.tem`).
 
-1. **Reordenar as seções** para:
-   1. Hero de saudação
-   2. **Menu do dia**
-   3. **Comunicado**
-   4. **Notícias** (banner rotativo)
-   5. **TATÁ PLUS**
-   6. **Governança de Processos** — renomear o título da seção que hoje é "Acesso Rápido"
-      (ela só contém o tile de Governança, gated por `usuario.governanca.tem`).
-2. **Aumentar a altura do card de Notícias** (`DestaqueBanner`) — hoje `min-h-[168px]`;
-   deixar mais alto (ex.: ~220–240px) já que é um por vez.
+Card de Notícias (`DestaqueBanner`) com altura `min-h-[224px]`.
 
-(O tema claro ficou bom; cores serão afinadas depois.)
+**Próximos candidatos:** afinar cores do tema claro; trocar gradientes das Notícias por
+artes reais (`imagem_url`); Fase 2 RH.
