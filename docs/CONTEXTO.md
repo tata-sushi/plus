@@ -230,8 +230,9 @@ NÃO recriar como invoker senão quebra ranking/feed), `comunicados_feed`, `cart
 Ordem das seções na Início (`Home.jsx`):
 1. Card de identificação (compacto). Slot da direita:
    - **líder** (`usuario.governanca.tem`) → **revezamento automático** entre o ícone de
-     Governança carbon (`bg-carbon text-white`, ~12s) e o `ProgressRing` de % (5s), com fade
-     (`animate-page` + `key`). Estado `slotGov` + setTimeout que alterna 12000/5000ms.
+     Governança carbon (`bg-carbon text-white`, ~12s) e o `ProgressRing` de % (5s), com
+     **deslize lateral** (trilho de 108px com os dois montados que translada 0 ↔ -54px,
+     `transition-transform duration-500`). Estado `slotGov` + setTimeout alternando 12000/5000ms.
    - **não-líder** → `ProgressRing` com o % dos desafios (fixo).
 2. **Menu do dia**
 3. **Comunicado**
