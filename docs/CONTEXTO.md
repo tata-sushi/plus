@@ -195,7 +195,7 @@ NÃO recriar como invoker senão quebra ranking/feed), `comunicados_feed`, `cart
 | Carteira real no Mais (`meu_saldo`) | ✅ |
 | Governança (tabela de acesso + gate do botão) | ✅ Fase 1 (portal externo é Google Sheets) |
 | Cardápio | 🟡 mock (cardapioSemanal); app real de trás fica pra depois |
-| Recompensas | ✅ real (tabela `recompensas`+`resgates`, `resgatar()` debita saldo via origem `resgate`) |
+| Recompensas | ✅ real: catálogo importado do Comunitive (16 prêmios, pontos = mesma moeda, `detalhes`/"como usar" por item, emoji placeholder — fotos do Comunitive são privadas/403, subir pelo painel). Painel admin (`/recompensas/admin`, gate `podePublicar`) cadastra/edita/ativa via `admin_salvar_recompensa`/`admin_listar_recompensas`; `resgatar()` debita saldo (origem `resgate`) e abate `estoque`. Catálogo abre janelinha (bottom-sheet) com foto/regras/resgate. |
 | Ouvidoria | 🟡 iframe externo |
 | RH Fácil / Assistente IA / Jornada / Procedimentos | 🟡 placeholders |
 
@@ -206,8 +206,12 @@ NÃO recriar como invoker senão quebra ranking/feed), `comunicados_feed`, `cart
 **Fila:**
 - **Fase 2 RH** — plugar absenteísmo/sanções/banco de horas/gorjeta como geradores de
   Notícias + espaço "Meus avisos" + definir tom. (bloqueado até a base RH subir no Supabase).
-- **Recompensas** — tabela real + custo + fluxo de resgate (usa `meu_saldo`); depois o
-  gerador "recompensa ao alcance" nas Notícias.
+- **Recompensas — pendentes:** (a) **fluxo de entrega** — status Solicitado→Entregue +
+  cancelamento que estorna pontos; (b) **automação Trello** — a cada resgate, disparar card
+  (webhook Supabase→API Trello, ou n8n); (c) **resgates históricos** (planilha Comunitive, 380
+  registros) — importar como histórico read-only (vincular por e-mail, SEM mexer no saldo, que
+  já está líquido) — decisão do usuário pendente; (d) gerador "recompensa ao alcance" nas Notícias;
+  (e) fotos reais dos itens (as do Comunitive são privadas/403).
 - **Provas/quiz** — perguntas, tentativas, cooldown 24h, desbloqueio de módulo.
 - **Tipo "envio moderado"** — colaborador envia → admin valida.
 - **Painel admin** — CRUD de treinamentos/atribuições/grupos.
