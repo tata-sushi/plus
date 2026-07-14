@@ -53,6 +53,16 @@ export function Home() {
       ]
     : tataPlusCards
 
+  // Revezamento no slot do card de identificação (só líder): ícone (~12s) ↔ anel (5s)
+  const isLider = !!usuario?.governanca?.tem
+  const [slotGov, setSlotGov] = useState(true)
+  useEffect(() => {
+    if (!isLider) return
+    const t = setTimeout(() => setSlotGov((v) => !v), slotGov ? 12000 : 5000)
+    return () => clearTimeout(t)
+  }, [isLider, slotGov])
+  const mostrarGov = isLider && slotGov
+
   // Progresso real de desafios (para o anel do card de identificação)
   const [progresso, setProgresso] = useState(null)
   useEffect(() => {
@@ -118,17 +128,19 @@ export function Home() {
               {loja ? ` · ${loja}` : ''}
             </div>
           </div>
-          {usuario?.governanca?.tem ? (
-            <Link
-              to="/governanca"
-              aria-label="Governança de Processos"
-              className="grid h-[54px] w-[54px] shrink-0 place-items-center rounded-full bg-carbon text-white tap"
-            >
-              <Landmark size={24} />
-            </Link>
-          ) : (
-            <ProgressRing value={(progresso?.pct ?? 0) / 100} size={54} stroke={5} />
-          )}
+          <div key={mostrarGov ? 'gov' : 'anel'} className="animate-page shrink-0">
+            {mostrarGov ? (
+              <Link
+                to="/governanca"
+                aria-label="Governança de Processos"
+                className="grid h-[54px] w-[54px] place-items-center rounded-full bg-carbon text-white tap"
+              >
+                <Landmark size={24} />
+              </Link>
+            ) : (
+              <ProgressRing value={(progresso?.pct ?? 0) / 100} size={54} stroke={5} />
+            )}
+          </div>
         </div>
       </div>
 
