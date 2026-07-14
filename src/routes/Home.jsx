@@ -46,7 +46,9 @@ export function Home() {
           badgeIcon: Landmark,
           title: 'Governança de Processos',
           subtitle: 'Painel dos líderes',
-          badgeClassName: 'bg-text text-bg',
+          bgClassName: 'bg-carbon',
+          badgeClassName: 'bg-white text-carbon',
+          textClassName: 'text-white',
         },
       ]
     : tataPlusCards
@@ -116,7 +118,17 @@ export function Home() {
               {loja ? ` · ${loja}` : ''}
             </div>
           </div>
-          <ProgressRing value={(progresso?.pct ?? 0) / 100} size={54} stroke={5} />
+          {usuario?.governanca?.tem ? (
+            <Link
+              to="/governanca"
+              aria-label="Governança de Processos"
+              className="grid h-[54px] w-[54px] shrink-0 place-items-center rounded-full bg-carbon text-white tap"
+            >
+              <Landmark size={24} />
+            </Link>
+          ) : (
+            <ProgressRing value={(progresso?.pct ?? 0) / 100} size={54} stroke={5} />
+          )}
         </div>
       </div>
 
@@ -193,7 +205,9 @@ export function Home() {
               badgeIcon={c.badgeIcon}
               title={c.title}
               subtitle={c.subtitle}
+              bgClassName={c.bgClassName}
               badgeClassName={c.badgeClassName}
+              textClassName={c.textClassName}
               className={`w-full shrink-0 snap-start reveal-${i + 1}`}
             />
           ))}
