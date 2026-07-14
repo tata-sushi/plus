@@ -1,6 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { AppShell } from './components/AppShell.jsx'
-import { isLoggedIn } from './lib/auth.js'
+import { useAuth } from './lib/AuthContext.jsx'
 import { Login } from './routes/Login.jsx'
 import { Home } from './routes/Home.jsx'
 import { Comunicados } from './routes/Comunicados.jsx'
@@ -19,8 +19,18 @@ import { Comunidade } from './routes/Comunidade.jsx'
 import { Ouvidoria } from './routes/Ouvidoria.jsx'
 import { Governanca } from './routes/Governanca.jsx'
 
+function Splash() {
+  return (
+    <div className="grid min-h-screen place-items-center bg-bg">
+      <img src="/icons/icon-192.png" alt="Tatá" className="h-16 w-16 animate-pulse rounded-2xl" />
+    </div>
+  )
+}
+
 function Protegido() {
-  return isLoggedIn() ? <AppShell /> : <Navigate to="/login" replace />
+  const { session, loading } = useAuth()
+  if (loading) return <Splash />
+  return session ? <AppShell /> : <Navigate to="/login" replace />
 }
 
 export function App() {
