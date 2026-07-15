@@ -20,6 +20,7 @@ import { VideoPlayer } from '../components/VideoPlayer.jsx'
 import { VideosYouTube, VideosLista } from '../components/VideosYouTube.jsx'
 import { IntroDesafio } from '../components/IntroDesafio.jsx'
 import { ProvaDesafio } from '../components/ProvaDesafio.jsx'
+import { CodigoEtica } from '../components/CodigoEtica.jsx'
 import { cn } from '../lib/cn'
 import { tapHaptic } from '../lib/haptics.js'
 import { resolveIcon } from '../lib/icons.js'
@@ -28,7 +29,7 @@ import { useAuth } from '../lib/AuthContext.jsx'
 
 const TIPO_LABEL = { prova: 'Prova', envio: 'Envio' }
 
-function Detalhe({ treino, onFechar, onConcluir, onEnviarProva, concluindo }) {
+function Detalhe({ treino, onFechar, onConcluir, onEnviarProva, onAssinarCodigo, concluindo }) {
   const { usuario } = useAuth()
   const [data, setData] = useState(null)
   const [rolou, setRolou] = useState(false) // rolou o conteúdo até o fim?
@@ -38,9 +39,12 @@ function Detalhe({ treino, onFechar, onConcluir, onEnviarProva, concluindo }) {
   const [enviandoProva, setEnviandoProva] = useState(false)
   const conteudoRef = useRef(null)
 
-  const primeiroNome = usuario?.primeiroNome || (usuario?.nome || '').trim().split(/\s+/)[0] || ''
+  const nomeCompleto = (usuario?.nome || '').trim()
+  const primeiroNome = usuario?.primeiroNome || nomeCompleto.split(/\s+/)[0] || ''
   const personalizar = (html) =>
-    (html || '').replace(/\{\{\s*(?:user\.first_name|primeiro_nome|nome)\s*\}\}/gi, primeiroNome)
+    (html || '')
+      .replace(/\{\{\s*user\.name\s*\}\}/gi, nomeCompleto)
+      .replace(/\{\{\s*(?:user\.first_name|primeiro_nome|nome)\s*\}\}/gi, primeiroNome)
 
   useEffect(() => {
     setData(null)
@@ -57,6 +61,8 @@ function Detalhe({ treino, onFechar, onConcluir, onEnviarProva, concluindo }) {
     }
   }, [treino.id])
 
+  const blocos = Array.isArray(data?.blocos) ? data.blocos : []
+  const ehCodigo = blocos.length > 0 // Código de Ética: leitura guiada em blocos
   const midias = Array.isArray(data?.midias) ? data.midias : []
   const ehVideos = midias.length > 0
   const temHtml = !!data?.conteudo_html
@@ -138,11 +144,19 @@ function Detalhe({ treino, onFechar, onConcluir, onEnviarProva, concluindo }) {
         )}
       </div>
 
-      {/* Corpo: vídeos, vídeo/PDF embutido, conteúdo rico (texto + vídeo + prova) ou fallback */}
+      {/* Corpo: código de ética (blocos), vídeos, vídeo/PDF, conteúdo rico ou fallback */}
       {!data ? (
         <div className="hstack flex-1 justify-center py-16 text-muted-2">
           <Loader2 size={22} className="animate-spin" />
         </div>
+      ) : ehCodigo ? (
+        <CodigoEtica
+          treinoId={treino.id}
+          blocos={blocos}
+          concluido={data.concluido}
+          personalizar={personalizar}
+          onAssinar={() => onAssinarCodigo(treino)}
+        />
       ) : ehSoVideos ? (
         <VideosYouTube
           chave={treino.id}
@@ -206,6 +220,7 @@ function Detalhe({ treino, onFechar, onConcluir, onEnviarProva, concluindo }) {
         </div>
       )}
 
+      {!ehCodigo && (
       <div className="safe-bottom border-t border-line px-5 py-3">
         {treino.concluido ? (
           <div className="hstack justify-center gap-2 rounded-card bg-accent-soft py-3 text-sm font-semibold text-accent">
@@ -263,6 +278,7 @@ function Detalhe({ treino, onFechar, onConcluir, onEnviarProva, concluindo }) {
           </div>
         )}
       </div>
+      )}
     </div>,
     document.body,
   )
@@ -362,6 +378,23 @@ export function Treinamentos() {
       }
     }
     return { aprovado: false, erro: true }
+  }
+
+  // Assinatura do Código de Ética: conclui o módulo e credita os pontos.
+  async function assinarCodigo(item) {
+    const { data, error } = await supabase.rpc('assinar_codigo_etica', { p_treino: item.id })
+    if (!error && data?.ok) {
+      setDetalhe(null)
+      setCelebrando({ pontos: Number(data.pontos) || 0 })
+      carregar()
+      return { ok: true }
+    }
+    if (data?.erro === 'limite_diario') {
+      setDetalhe(null)
+      setAviso('Você já concluiu 3 desafios hoje. Volte amanhã! 👋')
+      return { ok: true }
+    }
+    return { ok: false }
   }
 
   return (
@@ -525,6 +558,7 @@ export function Treinamentos() {
           onFechar={() => setDetalhe(null)}
           onConcluir={concluir}
           onEnviarProva={enviarProva}
+          onAssinarCodigo={assinarCodigo}
           concluindo={concluindo}
         />
       )}
