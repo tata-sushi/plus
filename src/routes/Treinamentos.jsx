@@ -193,6 +193,8 @@ function Detalhe({ treino, onFechar, onConcluir, onEnviarProva, concluindo }) {
                 respostas={respostas}
                 onResponder={escolher}
                 resultado={provaResultado}
+                concluido={data.concluido}
+                gabarito={data.prova?.gabarito}
               />
             </div>
           )}

@@ -6,12 +6,15 @@ import { cn } from '../lib/cn'
 // (responder_prova). Depois de um envio errado, o servidor devolve qual era a
 // certa só das questões erradas — então a opção marcada errada fica vermelha e
 // a correta fica verde. Ao trocar a resposta, o destaque some.
-export function ProvaDesafio({ prova, respostas, onResponder, resultado }) {
+// Quando o desafio já está concluído, o servidor manda o gabarito e a resposta
+// certa fica marcada em verde (só leitura), pra pessoa lembrar o que acertou.
+export function ProvaDesafio({ prova, respostas, onResponder, resultado, concluido, gabarito }) {
   const questoes = prova?.questoes || []
   const multiplas = questoes.length > 1
-  const reprovado = resultado && !resultado.aprovado
+  const reprovado = !concluido && resultado && !resultado.aprovado
   const erradas = new Set(reprovado && Array.isArray(resultado.erradas) ? resultado.erradas : [])
   const corretas = reprovado && resultado.corretas ? resultado.corretas : {}
+  const gab = concluido && gabarito ? gabarito : null
 
   return (
     <div className="flex flex-col gap-7">
@@ -33,16 +36,23 @@ export function ProvaDesafio({ prova, respostas, onResponder, resultado }) {
             <div className="flex flex-col gap-2">
               {(q.opcoes || []).map((o) => {
                 const escolhida = respostas[q.id] === o.id
-                // depois de um envio errado: a marcada fica vermelha, a certa verde
+                // concluído: só a resposta certa (gabarito) fica verde, em leitura.
+                // envio errado: a marcada fica vermelha, a certa verde.
                 const vermelha = errou && escolhida
-                const verde = errou ? corretas[q.id] === o.id : escolhida
+                const verde = gab
+                  ? gab[q.id] === o.id
+                  : errou
+                    ? corretas[q.id] === o.id
+                    : escolhida
                 return (
                   <button
                     key={o.id}
                     type="button"
-                    onClick={() => onResponder(q.id, o.id)}
+                    disabled={concluido}
+                    onClick={() => !concluido && onResponder(q.id, o.id)}
                     className={cn(
-                      'hstack w-full items-start gap-3 rounded-card border px-4 py-3 text-left text-sm tap transition-colors',
+                      'hstack w-full items-start gap-3 rounded-card border px-4 py-3 text-left text-sm transition-colors',
+                      !concluido && 'tap',
                       vermelha
                         ? 'border-danger bg-danger/10'
                         : verde
