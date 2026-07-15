@@ -622,10 +622,10 @@ export function Treinamentos() {
                           className={cn(
                             'relative grid h-11 w-11 place-items-center rounded-2xl',
                             item.concluido
-                              ? 'bg-accent-soft text-accent'
+                              ? 'bg-accent-soft text-accent' // feito → chip verde escuro + citric
                               : bloqueado
-                                ? 'text-muted-2 opacity-40'
-                                : 'text-accent',
+                                ? 'text-muted-2 opacity-40' // futuro → cinza
+                                : 'bg-accent text-black', // aberto → círculo citric + ícone preto
                           )}
                         >
                           <Icon size={26} strokeWidth={1.8} />
