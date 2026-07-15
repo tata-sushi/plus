@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Check, ArrowRight, ArrowLeft, Loader2, ShieldCheck, PenLine } from 'lucide-react'
 import { ProgressBar } from './ProgressBar.jsx'
 import { ProvaDesafio } from './ProvaDesafio.jsx'
+import { AssinaturaPad } from './AssinaturaPad.jsx'
 import { cn } from '../lib/cn'
 import { supabase } from '../lib/supabase.js'
 
@@ -20,6 +21,7 @@ export function CodigoEtica({ treinoId, blocos, concluido, personalizar, onAssin
   const [enviando, setEnviando] = useState(false)
   const [assinando, setAssinando] = useState(false)
   const [erroAssinar, setErroAssinar] = useState(false)
+  const [assinou, setAssinou] = useState(false)
 
   const b = blocos[passo]
   const ehUltimo = passo === total - 1
@@ -116,6 +118,13 @@ export function CodigoEtica({ treinoId, blocos, concluido, personalizar, onAssin
             </div>
           </div>
         )}
+
+        {b.acao === 'assinatura' && !concluido && (
+          <div className="mt-5">
+            <p className="mb-2 text-xs font-semibold text-muted">Sua assinatura</p>
+            <AssinaturaPad onChange={setAssinou} />
+          </div>
+        )}
       </div>
 
       {/* Rodapé de ação */}
@@ -174,8 +183,11 @@ export function CodigoEtica({ treinoId, blocos, concluido, personalizar, onAssin
             )}
             <button
               onClick={assinar}
-              disabled={assinando}
-              className={cn('btn-primary w-full !py-3.5 text-sm', assinando && 'opacity-60')}
+              disabled={assinando || !assinou}
+              className={cn(
+                'btn-primary w-full !py-3.5 text-sm',
+                (assinando || !assinou) && 'opacity-60',
+              )}
             >
               {assinando ? (
                 <Loader2 size={18} className="animate-spin" />
@@ -185,6 +197,9 @@ export function CodigoEtica({ treinoId, blocos, concluido, personalizar, onAssin
                 </>
               )}
             </button>
+            {!assinou && (
+              <p className="text-center text-[11px] text-muted-2">Assine no quadro para concluir.</p>
+            )}
           </div>
         )}
       </div>
