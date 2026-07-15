@@ -225,13 +225,9 @@ function Detalhe({ treino, onFechar, onConcluir, onEnviarProva, concluindo }) {
             </div>
           ) : ehProva ? (
             <div className="space-y-2">
-              {provaResultado && !provaResultado.aprovado && (
+              {provaResultado?.erro && (
                 <p className="text-center text-xs font-medium text-danger">
-                  {provaResultado.erro
-                    ? 'Não foi possível enviar agora. Tente de novo.'
-                    : provaResultado.total > 1
-                      ? `Você acertou ${provaResultado.acertos} de ${provaResultado.total}. Revise e tente de novo.`
-                      : 'Ainda não é essa. Revise o conteúdo e tente de novo.'}
+                  Não foi possível enviar agora. Tente de novo.
                 </p>
               )}
               <button
