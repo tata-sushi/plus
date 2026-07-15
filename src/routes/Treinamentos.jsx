@@ -23,6 +23,7 @@ import { VideosYouTube, VideosLista } from '../components/VideosYouTube.jsx'
 import { IntroDesafio } from '../components/IntroDesafio.jsx'
 import { ProvaDesafio } from '../components/ProvaDesafio.jsx'
 import { EnvioDesafio } from '../components/EnvioDesafio.jsx'
+import { SubEnvios } from '../components/SubEnvios.jsx'
 import { CodigoEtica } from '../components/CodigoEtica.jsx'
 import { cn } from '../lib/cn'
 import { tapHaptic } from '../lib/haptics.js'
@@ -479,6 +480,12 @@ export function Treinamentos() {
           const expandida = aberta === tr.id
           // TATÁ NEWS abre como prateleira de jornalzinhos (#1, #2, …)
           const prateleira = tr.nome === 'TATÁ NEWS'
+          // itens soltos (direto na trilha) x agrupados por subcategoria (ex.: séries mensais)
+          const soltos = tr.itens.filter((i) => !i.subcategoria)
+          const subcats = tr.itens.reduce((acc, i) => {
+            if (i.subcategoria) (acc[i.subcategoria] ||= []).push(i)
+            return acc
+          }, {})
           return (
             <Card key={tr.id} className="!p-0 overflow-hidden">
               <button
@@ -552,7 +559,7 @@ export function Treinamentos() {
 
               {expandida && !prateleira && (
                 <div className="border-t border-line">
-                  {tr.itens.map((item) => {
+                  {soltos.map((item) => {
                     const bloqueado = !item.liberado && !item.concluido
                     // desafio com blocos (Código de Ética) → cabeçalho + trilhinha de casinhas
                     if (item.blocos_total > 0) {
@@ -700,6 +707,9 @@ export function Treinamentos() {
                       </button>
                     )
                   })}
+                  {Object.entries(subcats).map(([nome, itens]) => (
+                    <SubEnvios key={nome} nome={nome} itens={itens} onAbrir={abrir} />
+                  ))}
                 </div>
               )}
             </Card>
