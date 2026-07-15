@@ -207,6 +207,12 @@ function Detalhe({ treino, onFechar, onConcluir, onEnviarProva, onAssinarCodigo,
               {data.descricao || treino.descricao}
             </p>
           </div>
+          {data.conteudo_html && (
+            <div
+              className="conteudo mt-6 text-sm leading-relaxed"
+              dangerouslySetInnerHTML={{ __html: personalizar(data.conteudo_html) }}
+            />
+          )}
           <div className="mt-7">
             {(() => {
               const est = treino.estado_reconhecimento
