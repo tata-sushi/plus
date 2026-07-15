@@ -22,6 +22,7 @@ import { VideoPlayer } from '../components/VideoPlayer.jsx'
 import { VideosYouTube, VideosLista } from '../components/VideosYouTube.jsx'
 import { IntroDesafio } from '../components/IntroDesafio.jsx'
 import { ProvaDesafio } from '../components/ProvaDesafio.jsx'
+import { EnvioDesafio } from '../components/EnvioDesafio.jsx'
 import { CodigoEtica } from '../components/CodigoEtica.jsx'
 import { cn } from '../lib/cn'
 import { tapHaptic } from '../lib/haptics.js'
@@ -63,8 +64,14 @@ function Detalhe({ treino, onFechar, onConcluir, onEnviarProva, onAssinarCodigo,
     }
   }, [treino.id])
 
+  // recarrega só os dados (ex.: depois de enviar o anexo, pra atualizar o status)
+  const recarregar = useCallback(() => {
+    supabase.rpc('abrir_treinamento', { p_treino: treino.id }).then(({ data }) => setData(data))
+  }, [treino.id])
+
   const blocos = Array.isArray(data?.blocos) ? data.blocos : []
   const ehCodigo = blocos.length > 0 // Código de Ética: leitura guiada em blocos
+  const ehEnvio = data?.tipo === 'envio' // anexo + moderação
   const midias = Array.isArray(data?.midias) ? data.midias : []
   const ehVideos = midias.length > 0
   const temHtml = !!data?.conteudo_html
@@ -159,6 +166,32 @@ function Detalhe({ treino, onFechar, onConcluir, onEnviarProva, onAssinarCodigo,
           personalizar={personalizar}
           onAssinar={() => onAssinarCodigo(treino)}
         />
+      ) : ehEnvio ? (
+        <div className="flex-1 overflow-y-auto px-5 py-4">
+          {frase && (
+            <div className="mb-5">
+              <IntroDesafio titulo={treino.titulo} frase={frase} variante={1} />
+            </div>
+          )}
+          {temHtml && (
+            <div
+              className="conteudo text-sm leading-relaxed"
+              dangerouslySetInnerHTML={{ __html: personalizar(data.conteudo_html) }}
+            />
+          )}
+          <div className="mt-7 border-t border-line pt-6">
+            <EnvioDesafio
+              treinoId={treino.id}
+              matricula={usuario?.matricula}
+              envio={data.envio}
+              concluido={data.concluido}
+              liberado={data.liberado}
+              dataFim={data.data_fim}
+              pontos={data.pontos}
+              onEnviado={recarregar}
+            />
+          </div>
+        </div>
       ) : ehSoVideos ? (
         <VideosYouTube
           chave={treino.id}
@@ -238,7 +271,7 @@ function Detalhe({ treino, onFechar, onConcluir, onEnviarProva, onAssinarCodigo,
         </div>
       )}
 
-      {!ehCodigo && (
+      {!ehCodigo && !ehEnvio && (
       <div className="safe-bottom border-t border-line px-5 py-3">
         {treino.concluido ? (
           <div className="hstack justify-center gap-2 rounded-card bg-accent-soft py-3 text-sm font-semibold text-accent">
