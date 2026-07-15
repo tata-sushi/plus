@@ -134,17 +134,11 @@ function Detalhe({ treino, onFechar, onConcluir, concluindo }) {
               disabled={concluindo}
               className={cn('btn-primary w-full !py-3.5 text-sm', concluindo && 'opacity-60')}
             >
-              {concluindo ? (
-                <Loader2 size={18} className="animate-spin" />
-              ) : treino.pontos > 0 ? (
-                `Li e concluir · +${treino.pontos} pts`
-              ) : (
-                'Li e concluir'
-              )}
+              {concluindo ? <Loader2 size={18} className="animate-spin" /> : 'Concluir desafio'}
             </button>
           ) : (
             <div className="hstack justify-center gap-2 rounded-card bg-surface py-3 text-sm font-semibold text-muted-2">
-              <ArrowDown size={16} className="animate-bounce" /> Role até o fim para concluir
+              <ArrowDown size={16} className="animate-bounce" /> Role para realizar o desafio
             </div>
           )
         ) : (
