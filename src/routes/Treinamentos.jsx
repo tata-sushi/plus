@@ -603,8 +603,8 @@ export function Treinamentos() {
 
               {expandida && prateleira && (
                 <div className="grid grid-cols-4 gap-3 border-t border-line p-4">
-                  {/* mais recente primeiro: #30 … #1 */}
-                  {[...tr.itens].reverse().map((item) => {
+                  {/* ordem crescente: #1 … #30 */}
+                  {tr.itens.map((item) => {
                     const bloqueado = !item.liberado && !item.concluido
                     const rotulo = (item.titulo.match(/#\d+/) || [item.titulo])[0]
                     return (
