@@ -99,7 +99,7 @@ function VideoYT({ id, onFim, travado = true }) {
 // foram assistidos) fica salvo por desafio — quem já viu não precisa rever.
 // Por não ter container próprio, pode ser embutida junto de outro conteúdo
 // (ex.: texto + vídeo no mesmo desafio).
-export function VideosLista({ chave, videos, jaConcluido, onAssistidos, rotulo }) {
+export function VideosLista({ chave, videos, jaConcluido, onAssistidos, rotulo, semRecolher }) {
   const storageKey = `tp_videos_${chave}`
   const [reaberto, setReaberto] = useState(null) // vídeo já visto reaberto pra rever
   const [vistos, setVistos] = useState(() => {
@@ -137,12 +137,14 @@ export function VideosLista({ chave, videos, jaConcluido, onAssistidos, rotulo }
         {videos.map((v, i) => {
           const concluido = vistos.has(i)
           const ativo = i === atual
-          const mostrando = ativo || reaberto === i
+          // semRecolher: o vídeo fica sempre visível (sem a setinha de recolher)
+          const mostrando = semRecolher || ativo || reaberto === i
+          const podeRecolher = concluido && !semRecolher
           return (
             <div key={v.yt}>
               <button
-                onClick={() => concluido && setReaberto(reaberto === i ? null : i)}
-                disabled={!concluido}
+                onClick={() => podeRecolher && setReaberto(reaberto === i ? null : i)}
+                disabled={!podeRecolher}
                 className="mb-1.5 hstack w-full gap-2 text-left tap"
               >
                 {concluido && <CheckCircle2 size={16} className="shrink-0 text-accent" />}
@@ -150,7 +152,7 @@ export function VideosLista({ chave, videos, jaConcluido, onAssistidos, rotulo }
                 <span className={cn('text-sm font-semibold', !concluido && !ativo && 'text-muted-2')}>
                   {v.nome}
                 </span>
-                {concluido &&
+                {podeRecolher &&
                   (reaberto === i ? (
                     <ChevronUp size={18} className="ml-auto shrink-0 text-muted" />
                   ) : (
