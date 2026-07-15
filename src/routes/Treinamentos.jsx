@@ -557,53 +557,54 @@ export function Treinamentos() {
                             )}
                           </button>
 
-                          {/* trilhinha: linhas cheias ponta a ponta, última reduzida à esquerda.
+                          {/* trilhinha: todas as fileiras com os mesmos 5 slots (os vazios
+                              ficam invisíveis à direita), pras casinhas alinharem em coluna.
                               Só a casinha 1 (ou o cabeçalho) abre; as outras não fazem nada. */}
                           <div className="mt-4 flex flex-col gap-3">
-                            {Array.from({ length: Math.ceil(total / perRow) }).map((_, ri) => {
-                              const inicio = ri * perRow
-                              const casas = Array.from({ length: total })
-                                .slice(inicio, inicio + perRow)
-                                .map((_, k) => inicio + k)
-                              const cheia = casas.length === perRow
-                              return (
-                                <div key={ri} className={cn('hstack', cheia && 'w-full')}>
-                                  {casas.map((idx, ci) => {
-                                    const aberta = item.concluido || (!bloqueado && idx === 0)
-                                    const conteudo = item.concluido ? (
-                                      <Check size={13} strokeWidth={3} />
-                                    ) : (
-                                      idx + 1
-                                    )
-                                    return (
-                                      <Fragment key={idx}>
-                                        {ci > 0 && (
-                                          <span
-                                            className={cn(
-                                              'h-[2px]',
-                                              cheia ? 'flex-1' : 'w-10',
-                                              item.concluido ? 'bg-accent/50' : 'bg-line',
-                                            )}
-                                          />
-                                        )}
-                                        {idx === 0 ? (
-                                          <button
-                                            onClick={() => abrir(item)}
-                                            disabled={bloqueado}
-                                            aria-label="Começar o Código de Ética"
-                                            className="shrink-0 tap"
-                                          >
-                                            <span className={nohClasse(aberta)}>{conteudo}</span>
-                                          </button>
-                                        ) : (
+                            {Array.from({ length: Math.ceil(total / perRow) }).map((_, ri) => (
+                              <div key={ri} className="hstack w-full">
+                                {Array.from({ length: perRow }).map((_, c) => {
+                                  const idx = ri * perRow + c
+                                  const existe = idx < total
+                                  const aberta = item.concluido || (!bloqueado && idx === 0)
+                                  const conteudo = item.concluido ? (
+                                    <Check size={13} strokeWidth={3} />
+                                  ) : (
+                                    idx + 1
+                                  )
+                                  return (
+                                    <Fragment key={c}>
+                                      {c > 0 && (
+                                        <span
+                                          className={cn(
+                                            'h-[2px] flex-1',
+                                            !existe
+                                              ? 'invisible'
+                                              : item.concluido
+                                                ? 'bg-accent/50'
+                                                : 'bg-line',
+                                          )}
+                                        />
+                                      )}
+                                      {!existe ? (
+                                        <span className="invisible h-7 w-7 shrink-0" />
+                                      ) : idx === 0 ? (
+                                        <button
+                                          onClick={() => abrir(item)}
+                                          disabled={bloqueado}
+                                          aria-label="Começar o Código de Ética"
+                                          className="shrink-0 tap"
+                                        >
                                           <span className={nohClasse(aberta)}>{conteudo}</span>
-                                        )}
-                                      </Fragment>
-                                    )
-                                  })}
-                                </div>
-                              )
-                            })}
+                                        </button>
+                                      ) : (
+                                        <span className={nohClasse(aberta)}>{conteudo}</span>
+                                      )}
+                                    </Fragment>
+                                  )
+                                })}
+                              </div>
+                            ))}
                           </div>
                         </div>
                       )
