@@ -1,8 +1,9 @@
 # Tatá Plus — Contexto do Projeto (handoff)
 
 > Documento de continuidade. Se a conversa travar, uma nova sessão deve **ler este
-> arquivo primeiro** para retomar sem perder contexto. Última atualização: durante a
-> construção do tema claro/escuro + motor de Notícias.
+> arquivo primeiro** para retomar sem perder contexto. Última atualização: sistema de
+> provas (correção no servidor) + Código de Ética (leitura guiada em blocos + assinatura) +
+> histórico de respostas + importação do feed antigo + módulo Bar & Bebidas (em andamento).
 
 ---
 
@@ -125,7 +126,57 @@ descricao, created_at, unique(matricula,origem,referencia_id))`.
 - Resultado: **4.755 conclusões** vinculadas, **98 ativos** com progresso. Victor = 23 feitos. ✔
 - A barra de progressão e os cadeados de sequência já leem `treinamento_progresso`.
 
+### Histórico de respostas (quem respondeu o quê)
+- Tabela **`tata_plus.treinamento_respostas`** `(id, matricula, treinamento_id, bloco_indice,
+  questao_id, opcao_id, acertou, respondido_em)`. `bloco_indice` = null quando é prova de
+  desafio simples; preenchido quando é uma prova dentro de um bloco do Código de Ética.
+  Índices em `matricula` e `(treinamento_id, respondido_em)`. RLS on (leitura só via função/admin).
+- Gravada **no servidor**, dentro de `responder_prova` e `responder_bloco`: cada tentativa
+  insere **uma linha por questão** (a opção marcada + se acertou). Guarda TODAS as tentativas,
+  não só a que passou — dá pra ver onde as pessoas erram mais.
+- Começou a registrar **a partir de agora**; as respostas dos meus testes anteriores não
+  ficaram salvas (a tabela não existia). Pendente: uma função/painel de leitura desse histórico.
+
 ---
+
+## 6b. Provas / quiz nos desafios (correção no servidor)
+
+- **`treinamentos.prova`** (jsonb) — desafio com prova: `{aprovacao:100, questoes:[{id,
+  enunciado, opcoes:[{id, texto, correta}]}]}`. Aprovação = **100%** (tem que acertar tudo).
+- **Anti-cola:** o gabarito **nunca** vai pro cliente. `abrir_treinamento()` devolve a prova
+  **sem o campo `correta`**. A correção é toda no servidor:
+  - **`responder_prova(p_treino, p_respostas)`** — corrige, e se aprovar já conclui o desafio
+    (respeita limite 3/dia + desbloqueio sequencial + atribuição) e credita os pontos. Em caso
+    de erro devolve só a **lista de `erradas`** (ids das questões erradas), **nunca** a certa.
+  - O gabarito só é revelado **depois de concluído** (`abrir_treinamento` manda `gabarito`
+    quando `concluido=true`), pra pessoa relembrar o que marcou.
+- **`components/ProvaDesafio.jsx`** — prova respondida na mesma tela (sem modal, sem sobrepor
+  o texto, decisão do usuário p/ dificultar cola). Cabeçalho "Hora da revisão!". Regra de cor:
+  ao errar, a opção marcada fica **vermelha** e **não** revela a certa (a pessoa tenta de novo
+  até acertar); só quando o desafio já está **concluído** a certa aparece em **verde** (leitura).
+- É o **primeiro de muitos** — o modelo (jsonb + correção no servidor + esse componente) é o
+  padrão pra provas dos próximos desafios.
+
+## 6c. Código de Ética — leitura guiada em blocos + assinatura
+
+- Trilha **logo após a Integração**. O texto (desenhado por advogado — manter a coerência
+  jurídica ao editar) foi quebrado em **14 partes** (`treinamentos.blocos`, jsonb array).
+  Cada bloco = `{titulo, html, acao, ...}` com `acao` ∈:
+  - `prova` — verificação de 1+ questões (corrigida por **`responder_bloco(p_treino, p_indice,
+    p_respostas)`**, mesmo esquema anti-cola; exige 100% pra avançar; grava no histórico).
+  - `aceite` — caixa "Li e concordo" (texto em `aceite`).
+  - `assinatura` — bloco final; termo + **assinatura no dedo** (`components/AssinaturaPad.jsx`,
+    canvas com pointer events, só pra dar a sensação de assinar; o traço **não** é salvo).
+    Concluir = **`assinar_codigo_etica(p_treino)`** (credita pontos + marca conclusão).
+- **`components/CodigoEtica.jsx`** — leitor passo-a-passo: um bloco por vez, barra "Parte X de
+  N", avança conforme a `acao`. Reaberto depois de concluído, navega livre e mostra o gabarito
+  das provas em verde. Personaliza `{{user.name}}`/`{{user.first_name}}` no texto.
+- **Trilhinha na lista** (`routes/Treinamentos.jsx`) — ao expandir o Código de Ética, mostra as
+  14 partes como "casinhas" numeradas conectadas por linha, **5 por linha**, colunas alinhadas
+  (slots invisíveis preenchem a última linha). Só o **nó 1** (ou o cabeçalho) abre o desafio;
+  os outros números são só visual. `treinamentos_do_usuario()` devolve `blocos_total` pra isso.
+- **`blocos` é sanitizado** igual à prova: `abrir_treinamento` remove `correta` das opções
+  (gabarito só quando concluído).
 
 ## 7. Sync automático (reage a mudança de dado, não a relógio)
 
@@ -185,10 +236,12 @@ NÃO recriar como invoker senão quebra ranking/feed), `comunicados_feed`, `cart
 |---|---|
 | Login e-mail+senha (Supabase) | ✅ real |
 | Gate de ativos (app+RLS+Auth) | ✅ |
-| Comunidade (Feed): posts, foto, likes, comentários | ✅ real |
+| Comunidade (Feed): posts, foto, likes, comentários | ✅ real + histórico antigo importado (99 posts + 85 comentários) |
 | Comunicados: publicação admin, views, data evento, imagem, "em vigor" | ✅ real |
 | Avatares (em `auth_users`, auto-link do Storage, troca própria) | ✅ real |
-| Treinamentos/Desafios (trilhas, unlock sequencial, 3/dia, pontos) | ✅ metadata + consumo |
+| Treinamentos/Desafios (trilhas, unlock sequencial, 3/dia, pontos) | ✅ metadata + consumo + **provas (correção no servidor) + histórico de respostas** |
+| Integração — Missão/Visão/Valores (texto + vídeo Cinthia Moreno + prova) | ✅ real |
+| Código de Ética (14 partes, leitura em blocos, provas, aceites, assinatura) | ✅ real |
 | Ranking (pódio, filtros Geral/Unidade/Depto) | ✅ real |
 | Notícias (motor destaques + banner rotativo) | ✅ Fase 1 |
 | Tema claro/escuro | ✅ (cores do claro a afinar) |
@@ -227,7 +280,8 @@ NÃO recriar como invoker senão quebra ranking/feed), `comunicados_feed`, `cart
   (webhook Supabase→API Trello, ou n8n); (b) aviso ao colaborador quando marcar entregue;
   (c) gerador "recompensa ao alcance" nas Notícias; (d) fotos reais dos itens (Comunitive privadas/403);
   (e) reabastecer estoques (vários em 0).
-- **Provas/quiz** — perguntas, tentativas, cooldown 24h, desbloqueio de módulo.
+- **Provas/quiz** — ✅ correção no servidor (anti-cola), 100% pra passar, histórico de respostas
+  (`treinamento_respostas`). Pendente: painel/relatório de leitura desse histórico (onde erram mais).
 - **Tipo "envio moderado"** — colaborador envia → admin valida.
 - **Painel admin** — CRUD de treinamentos/atribuições/grupos.
 - **Conteúdo dos desafios (por categoria):** replicar categoria a categoria.
@@ -242,6 +296,14 @@ NÃO recriar como invoker senão quebra ranking/feed), `comunicados_feed`, `cart
     (Missão, Visão e Valores), `-03` (Apresentação TATÁ Plus); "História TATÁ Sushi" inativo (ordem 4).
     `components/VideoPlayer.jsx`: vídeo inline + `onAssistido` no ended → libera "Concluir desafio".
     Detecção por extensão do `arquivo_url` (mp4/webm/mov = vídeo; senão PDF). Falta subir os 3 MP4s.
+    - **Missão/Visão/Valores** (Integração, 2º desafio) — vira **texto + vídeo do YouTube**
+      (Cinthia Moreno, `gjWs9TbLCQM`) na mesma tela + prova. Vídeos do YouTube em
+      `treinamentos.midias` (jsonb), player `components/VideosYouTube.jsx`/`VideosLista`
+      (anti-pular + trava paisagem). `abrir_treinamento` devolve `midias`.
+  - ✅ **Código de Ética** — trilha nova logo após a Integração; 14 partes em blocos com
+    provas/aceites/assinatura (ver §6c). Conteúdo todo carregado no `blocos`.
+  - 🟡 **Bar & Bebidas** (em andamento) — desafio "Sakê Hakutsuru": texto de intro + **vídeo do
+    YouTube** (Sonia Yamane) + **PDF**. PDF vai no bucket `desafios`. Aguardando link do vídeo.
   - Extras TATÁ NEWS: prateleira de jornalzinhos (grid 4 col, sem caixa, #30→#1, estados por cor),
     pontos da trilha na capa "(300 pts)", gate de rolagem ("Role para realizar o desafio"),
     celebração animada ao concluir, pontos na pill do topo. Todos os 30 valem 10 pts.
