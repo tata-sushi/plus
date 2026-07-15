@@ -118,8 +118,9 @@ export function Submodulo({ nome, itens, onAbrir, admin = false }) {
             const estado = concl ? 'concluido' : item.janela_estado
             const abertoAgora = estado === 'aberto' // atual → citric marcante, sem selo
             const pode = abertoAgora || concl || admin
-            // realizado = verde escuro · aberto = citric · resto = cinza
-            const corIcone = concl ? 'text-accent-dim' : abertoAgora ? 'text-accent' : 'text-muted-2'
+            // já passou (pegou ou não) = segundo verde · aberto = citric · futuro = cinza
+            const jaPassou = concl || estado === 'encerrado'
+            const corIcone = jaPassou ? 'text-accent-dim' : abertoAgora ? 'text-accent' : 'text-muted-2'
             const recuar = estado === 'em_breve' && !admin // futuro recua um pouco
             return (
               <button
@@ -136,8 +137,8 @@ export function Submodulo({ nome, itens, onAbrir, admin = false }) {
                   </span>
                   {/* V = pegou → check vazado citric */}
                   {concl && (
-                    <span className="absolute -right-1.5 -top-1.5 grid h-4 w-4 place-items-center rounded-full border border-accent-dim bg-accent-soft text-accent-dim">
-                      <Check size={9} strokeWidth={3} />
+                    <span className="absolute -right-1.5 -top-1.5 grid h-[18px] w-[18px] place-items-center rounded-full bg-accent-soft text-accent-dim">
+                      <Check size={9} strokeWidth={2.5} />
                     </span>
                   )}
                   {/* X = não pegou → citric */}
@@ -190,8 +191,8 @@ export function Submodulo({ nome, itens, onAbrir, admin = false }) {
                   </span>
                   {/* resgatado → check vazado citric */}
                   {est === 'resgatado' && (
-                    <span className="absolute -right-1.5 -top-1.5 grid h-4 w-4 place-items-center rounded-full border border-accent-dim bg-accent-soft text-accent-dim">
-                      <Check size={9} strokeWidth={3} />
+                    <span className="absolute -right-1.5 -top-1.5 grid h-[18px] w-[18px] place-items-center rounded-full bg-accent-soft text-accent-dim">
+                      <Check size={9} strokeWidth={2.5} />
                     </span>
                   )}
                   {/* já passou (comemorado antes do programa) → segundo verde */}

@@ -624,8 +624,8 @@ export function Treinamentos() {
                         )}
                       >
                         {item.concluido && (
-                          <span className="absolute right-2 top-0 grid h-4 w-4 place-items-center rounded-full border border-accent-dim bg-accent-soft text-accent-dim">
-                            <Check size={10} strokeWidth={3} />
+                          <span className="absolute right-2 top-0 grid h-[18px] w-[18px] place-items-center rounded-full bg-accent-soft text-accent-dim">
+                            <Check size={10} strokeWidth={2.5} />
                           </span>
                         )}
                         {bloqueado && (
@@ -723,7 +723,7 @@ export function Treinamentos() {
                                             !existe
                                               ? 'invisible'
                                               : item.concluido
-                                                ? 'bg-accent-dim'
+                                                ? 'bg-accent-dim/60'
                                                 : 'bg-line',
                                           )}
                                         />
