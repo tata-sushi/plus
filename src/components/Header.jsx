@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { Notificacoes } from './Notificacoes.jsx'
 
 export function Header({ right }) {
   return (
@@ -17,7 +18,10 @@ export function Header({ right }) {
             <span className="ml-1 align-baseline text-[10px] font-semibold text-muted">2.0</span>
           </span>
         </Link>
-        {right && <div className="hstack gap-2">{right}</div>}
+        <div className="hstack gap-2">
+          {right}
+          <Notificacoes />
+        </div>
       </div>
     </header>
   )
