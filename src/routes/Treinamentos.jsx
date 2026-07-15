@@ -289,8 +289,9 @@ export function Treinamentos() {
               </button>
 
               {expandida && prateleira && (
-                <div className="grid grid-cols-4 gap-2 border-t border-line p-3">
-                  {tr.itens.map((item) => {
+                <div className="grid grid-cols-4 gap-3 border-t border-line p-4">
+                  {/* mais recente primeiro: #30 … #1 */}
+                  {[...tr.itens].reverse().map((item) => {
                     const bloqueado = !item.liberado && !item.concluido
                     const rotulo = (item.titulo.match(/#\d+/) || [item.titulo])[0]
                     return (
@@ -300,21 +301,26 @@ export function Treinamentos() {
                         disabled={bloqueado}
                         aria-label={item.titulo}
                         className={cn(
-                          'relative flex aspect-[3/4] flex-col items-center justify-center gap-1.5 rounded-xl border tap',
+                          'relative flex flex-col items-center gap-1 py-1.5 tap',
                           item.concluido
-                            ? 'border-accent/25 bg-accent-soft text-accent'
+                            ? 'text-accent'
                             : bloqueado
-                              ? 'border-line bg-surface-2 text-muted-2 opacity-50'
-                              : 'border-accent bg-accent text-black shadow-glow',
+                              ? 'text-muted-2 opacity-40'
+                              : 'text-text',
                         )}
                       >
                         {item.concluido && (
-                          <span className="absolute right-1 top-1 grid h-4 w-4 place-items-center rounded-full bg-accent text-black">
+                          <span className="absolute right-2 top-0 grid h-4 w-4 place-items-center rounded-full bg-accent text-black">
                             <Check size={11} strokeWidth={3} />
                           </span>
                         )}
-                        {bloqueado ? <Lock size={16} /> : <Icon size={20} />}
-                        <span className="text-[11px] font-bold">{rotulo}</span>
+                        {bloqueado && (
+                          <span className="absolute right-2 top-0">
+                            <Lock size={12} />
+                          </span>
+                        )}
+                        <Icon size={30} strokeWidth={1.8} />
+                        <span className="text-xs font-bold">{rotulo}</span>
                       </button>
                     )
                   })}
