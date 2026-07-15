@@ -43,6 +43,18 @@ const COMO_FUNCIONA = {
       <li>Os pontos são liberados só para cartões <strong>assinados, sem faltas ou atestados</strong> no período. <em>Ex.: 1 falta já tira a pontuação daquela competência.</em></li>
     </ul>
   `,
+  'Aniversário de Empresa': `
+    <p>Celebrar o tempo de casa é reconhecer a história construída por cada colaborador e reforçar o sentimento de pertencimento no Tatá Sushi. O Aniversário de Empresa é um gesto de reconhecimento pela dedicação, constância e contribuição de cada pessoa no crescimento coletivo.</p>
+    <p><strong>Como funciona:</strong></p>
+    <p>A cada ciclo de tempo de empresa, o colaborador é homenageado de forma especial. Os reconhecimentos variam conforme o tempo de casa e representam o crescimento e a evolução de cada pessoa dentro do Tatá.</p>
+    <p><strong>Critérios de elegibilidade:</strong></p>
+    <ul>
+      <li>Para participar do benefício, o(a) colaborador(a) deve ter, no mínimo, <strong>6 meses de empresa</strong>.</li>
+    </ul>
+    <p><strong>Programação:</strong></p>
+    <p>Início do programa em 2026, com o reconhecimento dos colaboradores nos níveis correspondentes.</p>
+    <p><strong>⚠️ Contagem a partir da implantação:</strong> a premiação por tempo de casa passa a contar a partir da data de implantação do programa. Períodos anteriores não serão considerados de forma retroativa.</p>
+  `,
 }
 
 // Submódulo dentro de uma trilha (ex.: dentro de "Especiais"). Recolhível.
@@ -64,6 +76,29 @@ export function Submodulo({ nome, itens, onAbrir, admin = false }) {
       ? 1
       : 0
   const itensOrdenados = [...itens].sort((a, b) => ativo(b) - ativo(a))
+
+  // "Como funciona" recolhível no topo da bancada (regras completas, sempre acessível)
+  const comoFunciona = COMO_FUNCIONA[nome] ? (
+    <div className="border-b border-line/60">
+      <button
+        onClick={() => setSobre((s) => !s)}
+        className="hstack w-full gap-2 px-4 py-2.5 text-left tap"
+      >
+        <Info size={14} className="shrink-0 text-muted" />
+        <span className="flex-1 text-xs font-semibold text-muted">Como funciona</span>
+        <ChevronDown
+          size={14}
+          className={cn('shrink-0 text-muted transition-transform', sobre && 'rotate-180')}
+        />
+      </button>
+      {sobre && (
+        <div
+          className="conteudo px-4 pb-4 text-[13px] leading-relaxed"
+          dangerouslySetInnerHTML={{ __html: COMO_FUNCIONA[nome] }}
+        />
+      )}
+    </div>
+  ) : null
 
   return (
     <div className="border-t border-line">
@@ -91,27 +126,7 @@ export function Submodulo({ nome, itens, onAbrir, admin = false }) {
       {/* Série mensal → bancada de calendários (mês/ano) */}
       {aberto && ehSerie && (
         <div className="bg-surface-2/40">
-          {COMO_FUNCIONA[nome] && (
-            <div className="border-b border-line/60">
-              <button
-                onClick={() => setSobre((s) => !s)}
-                className="hstack w-full gap-2 px-4 py-2.5 text-left tap"
-              >
-                <Info size={14} className="shrink-0 text-muted" />
-                <span className="flex-1 text-xs font-semibold text-muted">Como funciona</span>
-                <ChevronDown
-                  size={14}
-                  className={cn('shrink-0 text-muted transition-transform', sobre && 'rotate-180')}
-                />
-              </button>
-              {sobre && (
-                <div
-                  className="conteudo px-4 pb-4 text-[13px] leading-relaxed"
-                  dangerouslySetInnerHTML={{ __html: COMO_FUNCIONA[nome] }}
-                />
-              )}
-            </div>
-          )}
+          {comoFunciona}
           <div className="grid grid-cols-4 gap-3 p-4">
             {itensOrdenados.map((item) => {
             const concl = item.concluido
@@ -176,8 +191,10 @@ export function Submodulo({ nome, itens, onAbrir, admin = false }) {
 
       {/* Reconhecimento por tempo de casa → bancada de presentinhos */}
       {aberto && ehRec && (
-        <div className="grid grid-cols-4 gap-3 border-t border-line bg-surface-2/40 p-4">
-          {itensOrdenados.map((item) => {
+        <div className="border-t border-line bg-surface-2/40">
+          {comoFunciona}
+          <div className="grid grid-cols-4 gap-3 p-4">
+            {itensOrdenados.map((item) => {
             const est = item.estado_reconhecimento
             // resgatado/já passou = chip verde escuro + citric · disponível = citric fill · futuro = cinza
             const jaPassouRec = est === 'resgatado' || est === 'ja_passou'
@@ -230,6 +247,7 @@ export function Submodulo({ nome, itens, onAbrir, admin = false }) {
               </button>
             )
           })}
+          </div>
         </div>
       )}
 
