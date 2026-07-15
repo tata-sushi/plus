@@ -546,9 +546,7 @@ export function Treinamentos() {
                             </span>
                             <span className="min-w-0 flex-1">
                               <span className="block truncate text-sm font-medium">{item.titulo}</span>
-                              <span className="text-[11px] text-muted-2">
-                                {item.concluido ? 'Concluído' : `${total} partes`}
-                              </span>
+                              <span className="text-[11px] text-muted-2">{total} partes</span>
                             </span>
                             {item.pontos > 0 && (
                               <span className="hstack shrink-0 gap-1 text-[11px] font-semibold text-muted">
