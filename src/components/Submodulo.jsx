@@ -34,13 +34,13 @@ function competencia(di) {
 // da bancada, sempre acessíveis, para que cada mês possa ter um texto curtinho.
 const COMO_FUNCIONA = {
   '100% de Presença': `
-    <p>Sua pontualidade e comprometimento valem muito — e aqui no TATÁ Plus valem pontos! Todo mês em que você tiver <strong>100% de presença</strong> (presença por dias trabalhados), você ganha <strong>100 pontos extras</strong>. Sem sorteio, sem mistério e sem enrolação!</p>
+    <p>Sua pontualidade e comprometimento valem muito e aqui no TATÁ Plus valem pontos! Todo mês em que você tiver <strong>100% de presença</strong> (presença por dias trabalhados), você ganha <strong>100 pontos extras</strong>. Sem sorteio, sem mistério e sem enrolação!</p>
     <p><strong>Como funciona:</strong></p>
     <ul>
-      <li>O desafio é liberado <strong>todo mês, após o fechamento do mês</strong>, sempre com o período de <strong>21 a 20</strong>.</li>
-      <li>Cada competência fica aberta <strong>do dia 01 ao dia 10</strong>. Depois disso, fecha.</li>
-      <li>No aplicativo RHiD, confira seu cartão de ponto, assine, tire um print e anexe aqui no card do mês.</li>
-      <li>Os pontos são liberados só para cartões <strong>assinados, sem faltas ou atestados</strong> no período.</li>
+      <li>O desafio é liberado <strong>todo mês, após o fechamento do mês</strong>, sempre com o período de <strong>21 a 20</strong>. <em>Ex.: a competência de maio vai de 21/05 a 20/06.</em></li>
+      <li>Cada competência fica aberta <strong>do dia 01 ao dia 10</strong> do mês seguinte ao fechamento. Depois disso, fecha. <em>Ex.: a competência de maio fica disponível de 01/07 a 10/07.</em></li>
+      <li>No aplicativo RHiD, confira seu cartão de ponto, assine, tire um print e anexe aqui no desafio do respectivo mês.</li>
+      <li>Os pontos são liberados só para cartões <strong>assinados, sem faltas ou atestados</strong> no período. <em>Ex.: 1 falta já tira a pontuação daquela competência.</em></li>
     </ul>
   `,
 }
@@ -116,39 +116,46 @@ export function Submodulo({ nome, itens, onAbrir, admin = false }) {
             {itensOrdenados.map((item) => {
             const concl = item.concluido
             const estado = concl ? 'concluido' : item.janela_estado
-            const pode = estado === 'aberto' || concl || admin
+            const abertoAgora = estado === 'aberto' // atual → aceso (cítrico), sem selo
+            const pode = abertoAgora || concl || admin
             return (
               <button
                 key={item.id}
                 onClick={() => pode && onAbrir(item)}
                 disabled={!pode}
                 aria-label={`Presença ${competencia(item.data_inicio)}`}
-                className={cn(
-                  'relative flex flex-col items-center gap-1 py-1.5 tap',
-                  concl || estado === 'aberto'
-                    ? 'text-accent'
-                    : admin
-                      ? 'text-muted-2'
-                      : 'text-muted-2 opacity-40',
-                )}
+                className="relative flex flex-col items-center gap-1 py-1.5 tap"
               >
+                {/* V = pegou */}
                 {concl && (
-                  <span className="absolute right-0.5 top-0 grid h-3.5 w-3.5 place-items-center rounded-full bg-accent text-black">
+                  <span className="absolute right-0.5 top-0 z-10 grid h-3.5 w-3.5 place-items-center rounded-full bg-accent text-black">
                     <Check size={9} strokeWidth={3} />
                   </span>
                 )}
+                {/* X = não pegou */}
                 {estado === 'encerrado' && (
-                  <span className="absolute right-0.5 top-0">
+                  <span className="absolute right-0.5 top-0 z-10 text-muted-2">
                     <X size={11} strokeWidth={2.5} />
                   </span>
                 )}
+                {/* cadeado = próximos, ainda fechados */}
                 {estado === 'em_breve' && (
-                  <span className="absolute right-0.5 top-0">
+                  <span className="absolute right-0.5 top-0 z-10 text-muted-2">
                     <Lock size={10} />
                   </span>
                 )}
-                <Calendar size={23} strokeWidth={1.5} />
-                <span className="text-[10.5px] font-semibold">{competencia(item.data_inicio)}</span>
+                <span
+                  className={cn(
+                    'flex flex-col items-center gap-1',
+                    abertoAgora ? 'text-accent' : 'text-muted-2',
+                    !abertoAgora && !admin && 'opacity-40',
+                  )}
+                >
+                  <Calendar size={23} strokeWidth={1.5} />
+                  <span className="text-[10.5px] font-semibold">
+                    {competencia(item.data_inicio)}
+                  </span>
+                </span>
               </button>
             )
           })}
