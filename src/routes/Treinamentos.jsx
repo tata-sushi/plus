@@ -546,30 +546,41 @@ export function Treinamentos() {
                               </span>
                             )}
                           </div>
-                          {/* trilhinha: N casinhas ligadas por uma linha (só visão; a navegação é dentro) */}
-                          <div className="mt-3.5 hstack px-0.5">
-                            {Array.from({ length: item.blocos_total }).map((_, i) => (
-                              <Fragment key={i}>
-                                {i > 0 && (
-                                  <span
-                                    className={cn(
-                                      'h-[2px] flex-1',
-                                      item.concluido ? 'bg-accent/50' : 'bg-line',
-                                    )}
-                                  />
-                                )}
-                                <span
-                                  className={cn(
-                                    'grid h-5 w-5 shrink-0 place-items-center rounded-full text-[9px] font-bold',
-                                    item.concluido || (!bloqueado && i === 0)
-                                      ? 'bg-accent text-black'
-                                      : 'border border-line bg-surface-2 text-muted-2',
-                                  )}
-                                >
-                                  {item.concluido ? <Check size={11} strokeWidth={3} /> : i + 1}
-                                </span>
-                              </Fragment>
-                            ))}
+                          {/* trilhinha: N casinhas em várias linhas, ligadas por linha
+                              (só visão; a navegação real é dentro do módulo) */}
+                          <div className="mt-4 flex flex-col items-center gap-3">
+                            {Array.from({ length: Math.ceil(item.blocos_total / 4) }).map((_, ri) => {
+                              const inicio = ri * 4
+                              const casas = Array.from({ length: item.blocos_total })
+                                .slice(inicio, inicio + 4)
+                                .map((_, k) => inicio + k)
+                              return (
+                                <div key={ri} className="hstack">
+                                  {casas.map((idx, ci) => (
+                                    <Fragment key={idx}>
+                                      {ci > 0 && (
+                                        <span
+                                          className={cn(
+                                            'h-[2px] w-8',
+                                            item.concluido ? 'bg-accent/50' : 'bg-line',
+                                          )}
+                                        />
+                                      )}
+                                      <span
+                                        className={cn(
+                                          'grid h-7 w-7 shrink-0 place-items-center rounded-full text-[11px] font-bold',
+                                          item.concluido || (!bloqueado && idx === 0)
+                                            ? 'bg-accent text-black'
+                                            : 'border border-line bg-surface-2 text-muted-2',
+                                        )}
+                                      >
+                                        {item.concluido ? <Check size={13} strokeWidth={3} /> : idx + 1}
+                                      </span>
+                                    </Fragment>
+                                  ))}
+                                </div>
+                              )
+                            })}
                           </div>
                         </button>
                       )
