@@ -25,7 +25,7 @@ function competencia(di) {
 // Submódulo dentro de uma trilha (ex.: dentro de "Especiais"). Recolhível.
 // Série mensal de envio (ex.: 100% de Presença) → bancada de calendários (mês/ano),
 // no estilo do TATÁ NEWS. Demais → lista simples de desafios.
-export function Submodulo({ nome, itens, onAbrir }) {
+export function Submodulo({ nome, itens, onAbrir, admin = false }) {
   const [aberto, setAberto] = useState(false)
   const ehSerie = itens.length > 0 && itens.every((i) => i.tipo === 'envio')
   const feitos = itens.filter((i) => i.concluido).length
@@ -60,7 +60,7 @@ export function Submodulo({ nome, itens, onAbrir }) {
           {itens.map((item) => {
             const concl = item.concluido
             const estado = concl ? 'concluido' : item.janela_estado
-            const pode = estado === 'aberto' || concl
+            const pode = estado === 'aberto' || concl || admin
             return (
               <button
                 key={item.id}
@@ -73,7 +73,9 @@ export function Submodulo({ nome, itens, onAbrir }) {
                     ? 'text-accent'
                     : estado === 'aberto'
                       ? 'text-text'
-                      : 'text-muted-2 opacity-40',
+                      : admin
+                        ? 'text-muted-2'
+                        : 'text-muted-2 opacity-40',
                 )}
               >
                 {concl && (
@@ -103,7 +105,7 @@ export function Submodulo({ nome, itens, onAbrir }) {
               <button
                 key={item.id}
                 onClick={() => onAbrir(item)}
-                disabled={bloqueado}
+                disabled={bloqueado && !admin}
                 className={cn(
                   'hstack w-full gap-3 border-t border-line bg-surface-2/40 py-2.5 pl-7 pr-4 text-left tap',
                   bloqueado && 'opacity-55',
