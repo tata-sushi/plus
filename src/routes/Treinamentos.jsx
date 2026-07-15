@@ -613,28 +613,41 @@ export function Treinamentos() {
                         onClick={() => abrir(item)}
                         disabled={bloqueado}
                         aria-label={item.titulo}
-                        className={cn(
-                          'relative flex flex-col items-center gap-1 py-1.5 tap',
-                          // realizado = verde escuro · aberto = citric · futuro = cinza
-                          item.concluido
-                            ? 'text-accent-dim'
-                            : bloqueado
-                              ? 'text-muted-2 opacity-40'
-                              : 'text-accent',
-                        )}
+                        className="flex flex-col items-center gap-1.5 py-1.5 tap"
                       >
-                        {item.concluido && (
-                          <span className="absolute right-2 top-0 grid h-[18px] w-[18px] place-items-center rounded-full bg-accent-soft text-accent-dim">
-                            <Check size={10} strokeWidth={2.5} />
-                          </span>
-                        )}
-                        {bloqueado && (
-                          <span className="absolute right-2 top-0 text-muted-2">
-                            <Lock size={12} />
-                          </span>
-                        )}
-                        <Icon size={30} strokeWidth={1.8} />
-                        <span className="text-xs font-bold">{rotulo}</span>
+                        {/* mesmo modelo do Qualidade:
+                            feito = chip verde escuro (bg-accent-soft) + ícone citric
+                            aberto = citric (mais forte, sem chip) · futuro = cinza */}
+                        <span
+                          className={cn(
+                            'relative grid h-11 w-11 place-items-center rounded-2xl',
+                            item.concluido
+                              ? 'bg-accent-soft text-accent'
+                              : bloqueado
+                                ? 'text-muted-2 opacity-40'
+                                : 'text-accent',
+                          )}
+                        >
+                          <Icon size={26} strokeWidth={1.8} />
+                          {item.concluido && (
+                            <span className="absolute -right-1.5 -top-1.5 grid h-[18px] w-[18px] place-items-center rounded-full bg-accent-soft text-accent ring-2 ring-surface">
+                              <Check size={10} strokeWidth={2.5} />
+                            </span>
+                          )}
+                          {bloqueado && (
+                            <span className="absolute -right-1.5 -top-1.5 text-muted-2">
+                              <Lock size={12} />
+                            </span>
+                          )}
+                        </span>
+                        <span
+                          className={cn(
+                            'text-xs font-bold',
+                            item.concluido ? 'text-muted' : bloqueado ? 'text-muted-2' : 'text-accent',
+                          )}
+                        >
+                          {rotulo}
+                        </span>
                       </button>
                     )
                   })}
