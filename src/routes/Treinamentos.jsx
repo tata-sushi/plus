@@ -11,6 +11,7 @@ import {
   ArrowLeft,
   ArrowDown,
   Check,
+  FileText,
 } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Card } from '../components/Card.jsx'
@@ -167,7 +168,7 @@ function Detalhe({ treino, onFechar, onConcluir, onEnviarProva, onAssinarCodigo,
         />
       ) : ehVideo ? (
         <VideoPlayer src={data.arquivo_url} onAssistido={() => setVideosOk(true)} />
-      ) : ehPdf ? (
+      ) : ehPdf && !ehRico ? (
         <PdfViewer src={data.arquivo_url} onLido={() => setRolou(true)} />
       ) : ehRico ? (
         <div ref={conteudoRef} onScroll={aoRolarConteudo} className="flex-1 overflow-y-auto px-5 py-4">
@@ -198,6 +199,14 @@ function Detalhe({ treino, onFechar, onConcluir, onEnviarProva, onAssinarCodigo,
                       : 'Assista o vídeo para concluir o desafio.'
                 }
               />
+            </div>
+          )}
+          {ehPdf && (
+            <div className="mt-9">
+              <p className="mb-2 hstack gap-1.5 text-xs font-semibold text-muted">
+                <FileText size={14} /> Material de apoio
+              </p>
+              <PdfViewer src={data.arquivo_url} inline />
             </div>
           )}
           {ehProva && (

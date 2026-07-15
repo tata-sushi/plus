@@ -4,7 +4,9 @@ import { Loader2, ExternalLink } from 'lucide-react'
 // Renderiza o PDF como páginas (canvas) direto na tela — abre automático,
 // rola e lê dentro do app, sem clique/download. pdfjs carregado sob demanda.
 // onLido() é chamado quando o usuário rola até o fim (ou se o PDF couber sem rolar).
-export function PdfViewer({ src, onLido }) {
+// inline=true: renderiza as páginas no próprio fluxo (sem rolagem/altura própria),
+// pra encaixar dentro de um desafio com texto e vídeo — quem rola é o container de fora.
+export function PdfViewer({ src, onLido, inline = false }) {
   const paginasRef = useRef(null)
   const prontoRef = useRef(false) // só libera o "fim da rolagem" depois de renderizar tudo
   const [estado, setEstado] = useState('carregando') // 'carregando' | 'ok' | 'erro'
@@ -67,19 +69,44 @@ export function PdfViewer({ src, onLido }) {
   }
 
   if (estado === 'erro') {
+    const link = (
+      <a
+        href={src}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="btn-primary mt-3 inline-flex !py-2 text-xs"
+      >
+        <ExternalLink size={14} /> Abrir o PDF
+      </a>
+    )
+    if (inline) {
+      return (
+        <div className="rounded-card border border-line bg-surface px-4 py-5 text-center">
+          <p className="text-sm text-muted">Não deu pra exibir o PDF aqui.</p>
+          {link}
+        </div>
+      )
+    }
     return (
       <div className="grid flex-1 place-items-center px-6 text-center">
         <div>
           <p className="text-sm text-muted">Não deu pra exibir o PDF aqui.</p>
-          <a
-            href={src}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="btn-primary mt-3 inline-flex !py-2 text-xs"
-          >
-            <ExternalLink size={14} /> Abrir o PDF
-          </a>
+          {link}
         </div>
+      </div>
+    )
+  }
+
+  // Inline: as páginas entram no fluxo do desafio; a rolagem é do container de fora.
+  if (inline) {
+    return (
+      <div className="relative">
+        <div ref={paginasRef} className="rounded-card bg-surface-2 px-3 py-3" />
+        {estado === 'carregando' && (
+          <div className="hstack justify-center gap-2 py-8 text-xs text-muted-2">
+            <Loader2 size={18} className="animate-spin" /> Carregando PDF…
+          </div>
+        )}
       </div>
     )
   }
