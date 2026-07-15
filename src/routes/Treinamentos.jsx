@@ -13,6 +13,8 @@ import {
   Check,
   FileText,
   Download,
+  Gift,
+  Ban,
 } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Card } from '../components/Card.jsx'
@@ -33,7 +35,7 @@ import { useAuth } from '../lib/AuthContext.jsx'
 
 const TIPO_LABEL = { prova: 'Prova', envio: 'Envio' }
 
-function Detalhe({ treino, onFechar, onConcluir, onEnviarProva, onAssinarCodigo, concluindo }) {
+function Detalhe({ treino, onFechar, onConcluir, onEnviarProva, onAssinarCodigo, onResgatar, concluindo }) {
   const { usuario } = useAuth()
   const [data, setData] = useState(null)
   const [rolou, setRolou] = useState(false) // rolou o conteúdo até o fim?
@@ -73,6 +75,7 @@ function Detalhe({ treino, onFechar, onConcluir, onEnviarProva, onAssinarCodigo,
   const blocos = Array.isArray(data?.blocos) ? data.blocos : []
   const ehCodigo = blocos.length > 0 // Código de Ética: leitura guiada em blocos
   const ehEnvio = data?.tipo === 'envio' // anexo + moderação
+  const ehReconhecimento = data?.tipo === 'reconhecimento' // aniversário de empresa
   const midias = Array.isArray(data?.midias) ? data.midias : []
   const ehVideos = midias.length > 0
   const temHtml = !!data?.conteudo_html
@@ -193,6 +196,74 @@ function Detalhe({ treino, onFechar, onConcluir, onEnviarProva, onAssinarCodigo,
             />
           </div>
         </div>
+      ) : ehReconhecimento ? (
+        <div className="flex-1 overflow-y-auto px-5 py-7">
+          <div className="text-center">
+            <span className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-accent-soft text-accent">
+              <Gift size={30} />
+            </span>
+            <h2 className="mt-3 font-display text-xl font-bold">{treino.titulo}</h2>
+            <p className="mt-1.5 text-sm font-semibold text-accent">
+              {data.descricao || treino.descricao}
+            </p>
+          </div>
+          <div className="mt-7">
+            {(() => {
+              const est = treino.estado_reconhecimento
+              const ehPontos = (treino.pontos || 0) > 0
+              if (est === 'resgatado')
+                return (
+                  <div className="rounded-card border border-accent/30 bg-accent-soft px-4 py-5 text-center">
+                    <CheckCircle2 className="mx-auto text-accent" size={28} />
+                    <p className="mt-2 text-sm font-bold text-accent">Reconhecimento resgatado! 🎉</p>
+                    {ehPontos && (
+                      <p className="mt-0.5 text-xs text-muted">Os pontos já estão na sua carteira.</p>
+                    )}
+                  </div>
+                )
+              if (est === 'disponivel' && ehPontos)
+                return (
+                  <button
+                    onClick={() => onResgatar?.(treino)}
+                    className="btn-primary w-full !py-3.5 text-sm"
+                  >
+                    <Gift size={17} /> Resgatar {treino.pontos} pontos
+                  </button>
+                )
+              if (est === 'disponivel')
+                return (
+                  <div className="rounded-card border border-accent/30 bg-accent-soft px-4 py-4 text-center">
+                    <p className="text-sm font-semibold text-accent">Prêmio disponível! 🎁</p>
+                    <p className="mt-0.5 text-xs text-muted">
+                      Em breve você poderá solicitar a sua premiação por aqui.
+                    </p>
+                  </div>
+                )
+              if (est === 'ja_passou')
+                return (
+                  <div className="rounded-card border border-line bg-surface px-4 py-4">
+                    <div className="hstack gap-2 text-sm font-semibold text-muted">
+                      <Ban size={16} /> Comemorado antes do programa
+                    </div>
+                    <p className="mt-1.5 text-sm leading-snug text-muted">
+                      Você comemorou este aniversário de casa <strong>antes do início do
+                      programa</strong>, então este marco não fica disponível pra resgate. Mas
+                      relaxa — o reconhecimento vale <strong>daqui pra frente</strong>! 💚
+                    </p>
+                  </div>
+                )
+              return (
+                <div className="rounded-card border border-line bg-surface px-4 py-4 text-center">
+                  <Lock className="mx-auto text-muted-2" size={22} />
+                  <p className="mt-2 text-sm font-semibold">Falta um pouquinho!</p>
+                  <p className="mt-0.5 text-xs text-muted">
+                    Você desbloqueia este reconhecimento ao completar seu tempo de casa.
+                  </p>
+                </div>
+              )
+            })()}
+          </div>
+        </div>
       ) : ehSoVideos ? (
         <VideosYouTube
           chave={treino.id}
@@ -272,7 +343,7 @@ function Detalhe({ treino, onFechar, onConcluir, onEnviarProva, onAssinarCodigo,
         </div>
       )}
 
-      {!ehCodigo && !ehEnvio && (
+      {!ehCodigo && !ehEnvio && !ehReconhecimento && (
       <div className="safe-bottom border-t border-line px-5 py-3">
         {treino.concluido ? (
           <div className="hstack justify-center gap-2 rounded-card bg-accent-soft py-3 text-sm font-semibold text-accent">
@@ -380,8 +451,8 @@ export function Treinamentos() {
   }, [carregar])
 
   function abrir(item) {
-    // admin pode abrir qualquer desafio pra conferir; a ação (enviar/concluir) segue travada no servidor
-    if (!item.liberado && !item.concluido && !admin) return
+    // reconhecimento sempre abre (é informativo); admin abre qualquer um pra conferir
+    if (item.tipo !== 'reconhecimento' && !item.liberado && !item.concluido && !admin) return
     tapHaptic()
     setAviso('')
     setDetalhe(item)
@@ -453,6 +524,7 @@ export function Treinamentos() {
   async function resgatarReconhecimento(item) {
     const { data } = await supabase.rpc('resgatar_reconhecimento', { p_treino: item.id })
     if (data?.ok) {
+      setDetalhe(null)
       if (!data.ja_resgatado) setCelebrando({ pontos: Number(data.pontos) || 0 })
       carregar()
     } else {
@@ -719,14 +791,7 @@ export function Treinamentos() {
                     )
                   })}
                   {Object.entries(subcats).map(([nome, itens]) => (
-                    <Submodulo
-                      key={nome}
-                      nome={nome}
-                      itens={itens}
-                      onAbrir={abrir}
-                      onResgatar={resgatarReconhecimento}
-                      admin={admin}
-                    />
+                    <Submodulo key={nome} nome={nome} itens={itens} onAbrir={abrir} admin={admin} />
                   ))}
                 </div>
               )}
@@ -742,6 +807,7 @@ export function Treinamentos() {
           onConcluir={concluir}
           onEnviarProva={enviarProva}
           onAssinarCodigo={assinarCodigo}
+          onResgatar={resgatarReconhecimento}
           concluindo={concluindo}
         />
       )}
