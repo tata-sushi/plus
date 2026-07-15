@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import {
   Lock,
@@ -9,6 +9,7 @@ import {
   Star,
   Clock,
   ArrowLeft,
+  ArrowDown,
   Check,
 } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
@@ -24,7 +25,12 @@ const TIPO_LABEL = { prova: 'Prova', envio: 'Envio' }
 
 function Detalhe({ treino, onFechar, onConcluir, concluindo }) {
   const [data, setData] = useState(null)
+  const [leuTudo, setLeuTudo] = useState(false) // rolou o conteúdo até o fim?
+  const conteudoRef = useRef(null)
+
   useEffect(() => {
+    setData(null)
+    setLeuTudo(false)
     let ativo = true
     supabase.rpc('abrir_treinamento', { p_treino: treino.id }).then(({ data }) => {
       if (ativo) setData(data)
@@ -35,7 +41,24 @@ function Detalhe({ treino, onFechar, onConcluir, concluindo }) {
   }, [treino.id])
 
   const ehPdf = !!data?.arquivo_url
+  const temConteudo = ehPdf || !!data?.conteudo_html
   const podeConcluir = (treino.tipo === 'conteudo' || ehPdf) && !treino.concluido
+
+  // sem conteúdo real pra ler (fallback) → libera direto
+  useEffect(() => {
+    if (data && !temConteudo) setLeuTudo(true)
+  }, [data, temConteudo])
+
+  // conteúdo HTML: se couber sem rolar, já libera
+  useEffect(() => {
+    const el = conteudoRef.current
+    if (el && el.scrollHeight <= el.clientHeight + 4) setLeuTudo(true)
+  }, [data])
+
+  function aoRolarConteudo(e) {
+    const el = e.currentTarget
+    if (el.scrollTop + el.clientHeight >= el.scrollHeight - 48) setLeuTudo(true)
+  }
 
   // portal no <body>: escapa de qualquer transform/stacking do <main>
   return createPortal(
@@ -84,9 +107,9 @@ function Detalhe({ treino, onFechar, onConcluir, concluindo }) {
           <Loader2 size={22} className="animate-spin" />
         </div>
       ) : ehPdf ? (
-        <PdfViewer src={data.arquivo_url} />
+        <PdfViewer src={data.arquivo_url} onLido={() => setLeuTudo(true)} />
       ) : data.conteudo_html ? (
-        <div className="flex-1 overflow-y-auto px-5 py-4">
+        <div ref={conteudoRef} onScroll={aoRolarConteudo} className="flex-1 overflow-y-auto px-5 py-4">
           <div
             className="conteudo text-sm leading-relaxed"
             dangerouslySetInnerHTML={{ __html: data.conteudo_html }}
@@ -105,23 +128,25 @@ function Detalhe({ treino, onFechar, onConcluir, concluindo }) {
             <CheckCircle2 size={18} /> Concluído
           </div>
         ) : podeConcluir ? (
-          <button
-            onClick={() => onConcluir(treino)}
-            disabled={concluindo}
-            className={cn('btn-primary w-full !py-3.5 text-sm', concluindo && 'opacity-60')}
-          >
-            {concluindo ? (
-              <Loader2 size={18} className="animate-spin" />
-            ) : ehPdf ? (
-              treino.pontos > 0 ? (
+          leuTudo ? (
+            <button
+              onClick={() => onConcluir(treino)}
+              disabled={concluindo}
+              className={cn('btn-primary w-full !py-3.5 text-sm', concluindo && 'opacity-60')}
+            >
+              {concluindo ? (
+                <Loader2 size={18} className="animate-spin" />
+              ) : treino.pontos > 0 ? (
                 `Li e concluir · +${treino.pontos} pts`
               ) : (
                 'Li e concluir'
-              )
-            ) : (
-              'Concluir desafio'
-            )}
-          </button>
+              )}
+            </button>
+          ) : (
+            <div className="hstack justify-center gap-2 rounded-card bg-surface py-3 text-sm font-semibold text-muted-2">
+              <ArrowDown size={16} className="animate-bounce" /> Role até o fim para concluir
+            </div>
+          )
         ) : (
           <div className="hstack justify-center gap-2 rounded-card bg-surface py-3 text-sm font-semibold text-muted">
             <Clock size={16} /> Disponível em breve
