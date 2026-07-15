@@ -78,22 +78,22 @@ export function Submodulo({ nome, itens, onAbrir, admin = false }) {
                 )}
               >
                 {concl && (
-                  <span className="absolute right-1 top-0 grid h-4 w-4 place-items-center rounded-full bg-accent text-black">
-                    <Check size={11} strokeWidth={3} />
+                  <span className="absolute right-0.5 top-0 grid h-3.5 w-3.5 place-items-center rounded-full bg-accent text-black">
+                    <Check size={9} strokeWidth={3} />
                   </span>
                 )}
                 {estado === 'encerrado' && (
-                  <span className="absolute right-1 top-0">
-                    <X size={13} strokeWidth={2.75} />
+                  <span className="absolute right-0.5 top-0">
+                    <X size={11} strokeWidth={2.5} />
                   </span>
                 )}
                 {estado === 'em_breve' && (
-                  <span className="absolute right-1 top-0">
-                    <Lock size={12} />
+                  <span className="absolute right-0.5 top-0">
+                    <Lock size={10} />
                   </span>
                 )}
-                <Calendar size={30} strokeWidth={1.8} />
-                <span className="text-xs font-bold">{competencia(item.data_inicio)}</span>
+                <Calendar size={23} strokeWidth={1.5} />
+                <span className="text-[10.5px] font-semibold">{competencia(item.data_inicio)}</span>
               </button>
             )
           })}
