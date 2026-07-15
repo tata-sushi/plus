@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { CheckCircle2, Circle, Lock } from 'lucide-react'
+import { CheckCircle2, Lock } from 'lucide-react'
 import { cn } from '../lib/cn'
 
 // Carrega a IFrame Player API do YouTube uma única vez.
@@ -87,13 +87,8 @@ export function VideosYouTube({ videos, onAssistidos }) {
           return (
             <div key={v.yt}>
               <div className="mb-1.5 hstack gap-2">
-                {concluido ? (
-                  <CheckCircle2 size={16} className="text-accent" />
-                ) : ativo ? (
-                  <Circle size={16} className="text-muted-2" />
-                ) : (
-                  <Lock size={13} className="text-muted-2" />
-                )}
+                {concluido && <CheckCircle2 size={16} className="text-accent" />}
+                {!concluido && !ativo && <Lock size={13} className="text-muted-2" />}
                 <span className={cn('text-sm font-semibold', !concluido && !ativo && 'text-muted-2')}>
                   {v.nome}
                 </span>
