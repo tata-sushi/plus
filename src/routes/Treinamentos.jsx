@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { Fragment, useCallback, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import {
   Lock,
@@ -503,6 +503,77 @@ export function Treinamentos() {
                 <div className="border-t border-line">
                   {tr.itens.map((item) => {
                     const bloqueado = !item.liberado && !item.concluido
+                    // desafio com blocos (Código de Ética) → mostra a trilhinha de N casinhas
+                    if (item.blocos_total > 0) {
+                      return (
+                        <button
+                          key={item.id}
+                          onClick={() => abrir(item)}
+                          disabled={bloqueado}
+                          className={cn(
+                            'block w-full border-t border-line px-4 py-3.5 text-left first:border-t-0 tap',
+                            bloqueado && 'opacity-45',
+                          )}
+                        >
+                          <div className="hstack gap-3">
+                            <span
+                              className={cn(
+                                'grid h-8 w-8 shrink-0 place-items-center rounded-full',
+                                item.concluido
+                                  ? 'bg-accent-soft text-accent'
+                                  : bloqueado
+                                    ? 'bg-surface-2 text-muted-2'
+                                    : 'bg-accent text-black',
+                              )}
+                            >
+                              {item.concluido ? (
+                                <CheckCircle2 size={16} />
+                              ) : bloqueado ? (
+                                <Lock size={14} />
+                              ) : (
+                                <Play size={13} fill="currentColor" />
+                              )}
+                            </span>
+                            <span className="min-w-0 flex-1">
+                              <span className="block truncate text-sm font-medium">{item.titulo}</span>
+                              <span className="text-[11px] text-muted-2">
+                                {item.concluido ? 'Concluído' : `${item.blocos_total} partes`}
+                              </span>
+                            </span>
+                            {item.pontos > 0 && (
+                              <span className="hstack shrink-0 gap-1 text-[11px] font-semibold text-muted">
+                                <Star size={11} /> {item.pontos}
+                              </span>
+                            )}
+                          </div>
+                          {/* trilhinha: N casinhas ligadas por uma linha (só visão; a navegação é dentro) */}
+                          <div className="mt-3.5 hstack px-0.5">
+                            {Array.from({ length: item.blocos_total }).map((_, i) => (
+                              <Fragment key={i}>
+                                {i > 0 && (
+                                  <span
+                                    className={cn(
+                                      'h-[2px] flex-1',
+                                      item.concluido ? 'bg-accent/50' : 'bg-line',
+                                    )}
+                                  />
+                                )}
+                                <span
+                                  className={cn(
+                                    'grid h-5 w-5 shrink-0 place-items-center rounded-full text-[9px] font-bold',
+                                    item.concluido || (!bloqueado && i === 0)
+                                      ? 'bg-accent text-black'
+                                      : 'border border-line bg-surface-2 text-muted-2',
+                                  )}
+                                >
+                                  {item.concluido ? <Check size={11} strokeWidth={3} /> : i + 1}
+                                </span>
+                              </Fragment>
+                            ))}
+                          </div>
+                        </button>
+                      )
+                    }
                     return (
                       <button
                         key={item.id}
