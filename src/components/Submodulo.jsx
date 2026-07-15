@@ -3,6 +3,7 @@ import {
   ChevronDown,
   Lock,
   Check,
+  X,
   Play,
   CheckCircle2,
   Star,
@@ -69,13 +70,11 @@ export function Submodulo({ nome, itens, onAbrir, admin = false }) {
                 aria-label={`Presença ${competencia(item.data_inicio)}`}
                 className={cn(
                   'relative flex flex-col items-center gap-1 py-1.5 tap',
-                  concl
+                  concl || estado === 'aberto'
                     ? 'text-accent'
-                    : estado === 'aberto'
-                      ? 'text-text'
-                      : admin
-                        ? 'text-muted-2'
-                        : 'text-muted-2 opacity-40',
+                    : admin
+                      ? 'text-muted-2'
+                      : 'text-muted-2 opacity-40',
                 )}
               >
                 {concl && (
@@ -83,7 +82,12 @@ export function Submodulo({ nome, itens, onAbrir, admin = false }) {
                     <Check size={11} strokeWidth={3} />
                   </span>
                 )}
-                {(estado === 'em_breve' || estado === 'encerrado') && (
+                {estado === 'encerrado' && (
+                  <span className="absolute right-1 top-0">
+                    <X size={13} strokeWidth={2.75} />
+                  </span>
+                )}
+                {estado === 'em_breve' && (
                   <span className="absolute right-1 top-0">
                     <Lock size={12} />
                   </span>
