@@ -19,6 +19,7 @@ import { PdfViewer } from '../components/PdfViewer.jsx'
 import { VideoPlayer } from '../components/VideoPlayer.jsx'
 import { VideosYouTube, VideosLista } from '../components/VideosYouTube.jsx'
 import { IntroDesafio } from '../components/IntroDesafio.jsx'
+import { ProvaDesafio } from '../components/ProvaDesafio.jsx'
 import { cn } from '../lib/cn'
 import { tapHaptic } from '../lib/haptics.js'
 import { resolveIcon } from '../lib/icons.js'
@@ -27,11 +28,14 @@ import { useAuth } from '../lib/AuthContext.jsx'
 
 const TIPO_LABEL = { prova: 'Prova', envio: 'Envio' }
 
-function Detalhe({ treino, onFechar, onConcluir, concluindo }) {
+function Detalhe({ treino, onFechar, onConcluir, onEnviarProva, concluindo }) {
   const { usuario } = useAuth()
   const [data, setData] = useState(null)
   const [rolou, setRolou] = useState(false) // rolou o conteúdo até o fim?
   const [videosOk, setVideosOk] = useState(false) // assistiu todos os vídeos?
+  const [respostas, setRespostas] = useState({}) // { questaoId: opcaoId }
+  const [provaResultado, setProvaResultado] = useState(null) // resposta do responder_prova
+  const [enviandoProva, setEnviandoProva] = useState(false)
   const conteudoRef = useRef(null)
 
   const primeiroNome = usuario?.primeiroNome || (usuario?.nome || '').trim().split(/\s+/)[0] || ''
@@ -42,6 +46,8 @@ function Detalhe({ treino, onFechar, onConcluir, concluindo }) {
     setData(null)
     setRolou(false)
     setVideosOk(false)
+    setRespostas({})
+    setProvaResultado(null)
     let ativo = true
     supabase.rpc('abrir_treinamento', { p_treino: treino.id }).then(({ data }) => {
       if (ativo) setData(data)
@@ -54,22 +60,39 @@ function Detalhe({ treino, onFechar, onConcluir, concluindo }) {
   const midias = Array.isArray(data?.midias) ? data.midias : []
   const ehVideos = midias.length > 0
   const temHtml = !!data?.conteudo_html
+  const questoes = Array.isArray(data?.prova?.questoes) ? data.prova.questoes : []
+  const ehProva = questoes.length > 0
   const ehVideo = /\.(mp4|webm|mov)(\?|#|$)/i.test(data?.arquivo_url || '')
   const ehPdf = !!data?.arquivo_url && !ehVideo
-  const ehCombo = ehVideos && temHtml // texto + vídeo no mesmo desafio
-  const ehSoVideos = ehVideos && !temHtml
+  // conteúdo "rico" = texto e/ou prova (pode ter vídeo junto) → rola numa tela só
+  const ehRico = temHtml || ehProva
+  const ehSoVideos = ehVideos && !ehRico
   const ehMidia = ehVideos || ehVideo
-  const temConteudo = ehVideos || ehPdf || ehVideo || temHtml
-  const podeConcluir = (treino.tipo === 'conteudo' || ehPdf || ehMidia) && !treino.concluido
+  const temConteudo = ehVideos || ehPdf || ehVideo || ehRico
+  const podeConcluir = (treino.tipo === 'conteudo' || ehPdf || ehMidia || ehProva) && !treino.concluido
 
-  // o que trava a conclusão: rolar o texto e/ou assistir os vídeos
-  const precisaRolar = ehCombo || ehPdf || (temHtml && !ehVideos)
+  // o que trava a conclusão: rolar o conteúdo e/ou assistir os vídeos
+  const precisaRolar = ehRico || ehPdf
   const precisaVideos = ehVideos || ehVideo
   const faltaRolar = precisaRolar && !rolou
   const faltaVideos = precisaVideos && !videosOk
   const liberado = !faltaRolar && !faltaVideos
+  const todasRespondidas = ehProva && questoes.every((q) => respostas[q.id])
 
   const frase = data?.descricao || treino.descricao
+
+  function escolher(questaoId, opcaoId) {
+    setRespostas((r) => ({ ...r, [questaoId]: opcaoId }))
+    setProvaResultado(null) // limpa o destaque de erro ao trocar a resposta
+  }
+
+  async function submeterProva() {
+    if (!todasRespondidas || enviandoProva) return
+    setEnviandoProva(true)
+    const r = await onEnviarProva(treino, respostas)
+    setEnviandoProva(false)
+    if (r && !r.aprovado) setProvaResultado(r)
+  }
 
   // sem conteúdo real pra ler (fallback) → libera direto
   useEffect(() => {
@@ -115,31 +138,10 @@ function Detalhe({ treino, onFechar, onConcluir, concluindo }) {
         )}
       </div>
 
-      {/* Corpo: texto+vídeo, vídeos, vídeo/PDF embutido, HTML ou fallback */}
+      {/* Corpo: vídeos, vídeo/PDF embutido, conteúdo rico (texto + vídeo + prova) ou fallback */}
       {!data ? (
         <div className="hstack flex-1 justify-center py-16 text-muted-2">
           <Loader2 size={22} className="animate-spin" />
-        </div>
-      ) : ehCombo ? (
-        <div ref={conteudoRef} onScroll={aoRolarConteudo} className="flex-1 overflow-y-auto px-5 py-4">
-          {frase && (
-            <div className="mb-5">
-              <IntroDesafio titulo={treino.titulo} frase={frase} variante={1} />
-            </div>
-          )}
-          <div
-            className="conteudo text-sm leading-relaxed"
-            dangerouslySetInnerHTML={{ __html: personalizar(data.conteudo_html) }}
-          />
-          <div className="mt-8 border-t border-line pt-6">
-            <VideosLista
-              chave={treino.id}
-              videos={midias}
-              jaConcluido={treino.concluido}
-              onAssistidos={() => setVideosOk(true)}
-              rotulo={midias.length > 1 ? undefined : 'Assista o vídeo para concluir o desafio.'}
-            />
-          </div>
         </div>
       ) : ehSoVideos ? (
         <VideosYouTube
@@ -153,17 +155,47 @@ function Detalhe({ treino, onFechar, onConcluir, concluindo }) {
         <VideoPlayer src={data.arquivo_url} onAssistido={() => setVideosOk(true)} />
       ) : ehPdf ? (
         <PdfViewer src={data.arquivo_url} onLido={() => setRolou(true)} />
-      ) : temHtml ? (
+      ) : ehRico ? (
         <div ref={conteudoRef} onScroll={aoRolarConteudo} className="flex-1 overflow-y-auto px-5 py-4">
           {frase && (
             <div className="mb-5">
               <IntroDesafio titulo={treino.titulo} frase={frase} variante={1} />
             </div>
           )}
-          <div
-            className="conteudo text-sm leading-relaxed"
-            dangerouslySetInnerHTML={{ __html: personalizar(data.conteudo_html) }}
-          />
+          {temHtml && (
+            <div
+              className="conteudo text-sm leading-relaxed"
+              dangerouslySetInnerHTML={{ __html: personalizar(data.conteudo_html) }}
+            />
+          )}
+          {ehVideos && (
+            <div className="mt-8 border-t border-line pt-6">
+              <VideosLista
+                chave={treino.id}
+                videos={midias}
+                jaConcluido={treino.concluido}
+                onAssistidos={() => setVideosOk(true)}
+                semRecolher
+                rotulo={
+                  ehProva
+                    ? false
+                    : midias.length > 1
+                      ? undefined
+                      : 'Assista o vídeo para concluir o desafio.'
+                }
+              />
+            </div>
+          )}
+          {ehProva && (
+            <div className="mt-8 border-t border-line pt-6">
+              <ProvaDesafio
+                prova={data.prova}
+                respostas={respostas}
+                onResponder={escolher}
+                resultado={provaResultado}
+              />
+            </div>
+          )}
         </div>
       ) : (
         <div className="flex-1 overflow-y-auto px-5 py-4 text-sm text-muted">
@@ -178,15 +210,8 @@ function Detalhe({ treino, onFechar, onConcluir, concluindo }) {
             <CheckCircle2 size={18} /> Concluído
           </div>
         ) : podeConcluir ? (
-          liberado ? (
-            <button
-              onClick={() => onConcluir(treino)}
-              disabled={concluindo}
-              className={cn('btn-primary w-full !py-3.5 text-sm', concluindo && 'opacity-60')}
-            >
-              {concluindo ? <Loader2 size={18} className="animate-spin" /> : 'Concluir desafio'}
-            </button>
-          ) : (
+          !liberado ? (
+            // ainda falta rolar o conteúdo e/ou assistir os vídeos
             <div className="hstack justify-center gap-2 rounded-card bg-surface py-3 text-sm font-semibold text-muted-2">
               {faltaRolar ? (
                 <>
@@ -198,6 +223,41 @@ function Detalhe({ treino, onFechar, onConcluir, concluindo }) {
                 </>
               )}
             </div>
+          ) : ehProva ? (
+            <div className="space-y-2">
+              {provaResultado && !provaResultado.aprovado && (
+                <p className="text-center text-xs font-medium text-danger">
+                  {provaResultado.erro
+                    ? 'Não foi possível enviar agora. Tente de novo.'
+                    : provaResultado.total > 1
+                      ? `Você acertou ${provaResultado.acertos} de ${provaResultado.total}. Revise e tente de novo.`
+                      : 'Ainda não é essa. Revise o conteúdo e tente de novo.'}
+                </p>
+              )}
+              <button
+                onClick={submeterProva}
+                disabled={!todasRespondidas || enviandoProva}
+                className={cn(
+                  'btn-primary w-full !py-3.5 text-sm',
+                  (!todasRespondidas || enviandoProva) && 'opacity-60',
+                )}
+              >
+                {enviandoProva ? <Loader2 size={18} className="animate-spin" /> : 'Enviar resposta'}
+              </button>
+              {!todasRespondidas && (
+                <p className="text-center text-[11px] text-muted-2">
+                  Escolha uma resposta para enviar.
+                </p>
+              )}
+            </div>
+          ) : (
+            <button
+              onClick={() => onConcluir(treino)}
+              disabled={concluindo}
+              className={cn('btn-primary w-full !py-3.5 text-sm', concluindo && 'opacity-60')}
+            >
+              {concluindo ? <Loader2 size={18} className="animate-spin" /> : 'Concluir desafio'}
+            </button>
           )
         ) : (
           <div className="hstack justify-center gap-2 rounded-card bg-surface py-3 text-sm font-semibold text-muted">
@@ -275,6 +335,35 @@ export function Treinamentos() {
     } else {
       setAviso('Não foi possível concluir agora.')
     }
+  }
+
+  // Envio da prova: a correção é no servidor. Aprovado → conclui e celebra;
+  // reprovado → devolve o placar pro Detalhe destacar as questões erradas.
+  async function enviarProva(item, respostas) {
+    const { data, error } = await supabase.rpc('responder_prova', {
+      p_treino: item.id,
+      p_respostas: respostas,
+    })
+    if (!error && data?.ok && data.aprovado) {
+      setDetalhe(null)
+      setCelebrando({ pontos: Number(data.pontos) || 0 })
+      carregar()
+      return { aprovado: true }
+    }
+    if (data?.erro === 'limite_diario') {
+      setDetalhe(null)
+      setAviso('Você já concluiu 3 desafios hoje. Volte amanhã! 👋')
+      return { aprovado: true }
+    }
+    if (!error && data?.ok && data.aprovado === false) {
+      return {
+        aprovado: false,
+        acertos: data.acertos,
+        total: data.total,
+        erradas: data.erradas,
+      }
+    }
+    return { aprovado: false, erro: true }
   }
 
   return (
@@ -437,6 +526,7 @@ export function Treinamentos() {
           treino={detalhe}
           onFechar={() => setDetalhe(null)}
           onConcluir={concluir}
+          onEnviarProva={enviarProva}
           concluindo={concluindo}
         />
       )}
