@@ -615,20 +615,21 @@ export function Treinamentos() {
                         aria-label={item.titulo}
                         className={cn(
                           'relative flex flex-col items-center gap-1 py-1.5 tap',
+                          // realizado = verde escuro · aberto = citric · futuro = cinza
                           item.concluido
-                            ? 'text-accent'
+                            ? 'text-accent-dim'
                             : bloqueado
                               ? 'text-muted-2 opacity-40'
-                              : 'text-text',
+                              : 'text-accent',
                         )}
                       >
                         {item.concluido && (
-                          <span className="absolute right-2 top-0 grid h-4 w-4 place-items-center rounded-full bg-accent text-black">
-                            <Check size={11} strokeWidth={3} />
+                          <span className="absolute right-2 top-0 grid h-4 w-4 place-items-center rounded-full border border-accent bg-bg text-accent">
+                            <Check size={10} strokeWidth={3} />
                           </span>
                         )}
                         {bloqueado && (
-                          <span className="absolute right-2 top-0">
+                          <span className="absolute right-2 top-0 text-muted-2">
                             <Lock size={12} />
                           </span>
                         )}
@@ -648,11 +649,15 @@ export function Treinamentos() {
                     if (item.blocos_total > 0) {
                       const total = item.blocos_total
                       const perRow = 5
-                      const nohClasse = (aberta) =>
-                        cn(
-                          'grid h-7 w-7 shrink-0 place-items-center rounded-full text-[11px] font-bold',
-                          aberta ? 'bg-accent text-black' : 'border border-line bg-surface-2 text-muted-2',
-                        )
+                      const nohBase =
+                        'grid h-7 w-7 shrink-0 place-items-center rounded-full text-[11px] font-bold'
+                      // cor da casinha conforme o estado
+                      const casaCls = (idx) =>
+                        item.concluido
+                          ? 'bg-accent-soft text-accent' // realizado → número citric em verde suave
+                          : !bloqueado && idx === 0
+                            ? 'bg-accent text-black' // aberto → citric marcante
+                            : 'border border-line bg-surface-2 text-muted-2' // futuro → escuro
                       return (
                         <div
                           key={item.id}
@@ -700,17 +705,15 @@ export function Treinamentos() {
                               ficam invisíveis à direita), pras casinhas alinharem em coluna.
                               Só a casinha 1 (ou o cabeçalho) abre; as outras não fazem nada. */}
                           <div className="mt-4 flex flex-col gap-3">
-                            {Array.from({ length: Math.ceil(total / perRow) }).map((_, ri) => (
+                            {Array.from({
+                              length: Math.ceil((total + (item.concluido ? 1 : 0)) / perRow),
+                            }).map((_, ri) => (
                               <div key={ri} className="hstack w-full">
                                 {Array.from({ length: perRow }).map((_, c) => {
                                   const idx = ri * perRow + c
-                                  const existe = idx < total
-                                  const aberta = item.concluido || (!bloqueado && idx === 0)
-                                  const conteudo = item.concluido ? (
-                                    <Check size={13} strokeWidth={3} />
-                                  ) : (
-                                    idx + 1
-                                  )
+                                  const slots = total + (item.concluido ? 1 : 0)
+                                  const existe = idx < slots
+                                  const ehCheck = item.concluido && idx === total // círculo final vazado
                                   return (
                                     <Fragment key={c}>
                                       {c > 0 && (
@@ -720,13 +723,17 @@ export function Treinamentos() {
                                             !existe
                                               ? 'invisible'
                                               : item.concluido
-                                                ? 'bg-accent/50'
+                                                ? 'bg-accent-dim'
                                                 : 'bg-line',
                                           )}
                                         />
                                       )}
                                       {!existe ? (
                                         <span className="invisible h-7 w-7 shrink-0" />
+                                      ) : ehCheck ? (
+                                        <span className={cn(nohBase, 'border border-accent bg-bg text-accent')}>
+                                          <Check size={13} strokeWidth={3} />
+                                        </span>
                                       ) : idx === 0 ? (
                                         <button
                                           onClick={() => abrir(item)}
@@ -734,10 +741,10 @@ export function Treinamentos() {
                                           aria-label="Começar o Código de Ética"
                                           className="shrink-0 tap"
                                         >
-                                          <span className={nohClasse(aberta)}>{conteudo}</span>
+                                          <span className={cn(nohBase, casaCls(idx))}>{idx + 1}</span>
                                         </button>
                                       ) : (
-                                        <span className={nohClasse(aberta)}>{conteudo}</span>
+                                        <span className={cn(nohBase, casaCls(idx))}>{idx + 1}</span>
                                       )}
                                     </Fragment>
                                   )
