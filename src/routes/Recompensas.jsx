@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
-import { Gift, Loader2, Check, Clock, X, Settings2 } from 'lucide-react'
+import { Gift, Loader2, Check, Clock, X } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Section } from '../components/Section.jsx'
 import { Card } from '../components/Card.jsx'
@@ -89,19 +88,7 @@ export function Recompensas() {
 
   return (
     <>
-      <Header
-        title="Recompensas"
-        right={
-          usuario?.podePublicar ? (
-            <Link
-              to="/recompensas/admin"
-              className="hstack gap-1.5 rounded-full bg-surface-2 px-3 py-2 text-xs font-semibold text-muted tap"
-            >
-              <Settings2 size={15} /> Gerenciar
-            </Link>
-          ) : null
-        }
-      />
+      <Header title="Recompensas" />
 
       {/* Saldo */}
       <div className="px-5">

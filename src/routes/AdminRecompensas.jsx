@@ -307,7 +307,7 @@ export function AdminRecompensas() {
   if (!admin) {
     return (
       <>
-        <Header title="Gerenciar recompensas" />
+        <Header title="Administração" />
         <div className="grid place-items-center px-8 py-20 text-center">
           <span className="grid h-14 w-14 place-items-center rounded-full bg-danger/15 text-danger">
             <ShieldAlert size={26} />
@@ -316,8 +316,8 @@ export function AdminRecompensas() {
           <p className="mt-1 text-sm text-muted">
             Só administradores podem cadastrar recompensas.
           </p>
-          <button onClick={() => navigate('/recompensas')} className="btn-primary mt-6 !py-2.5">
-            Voltar às recompensas
+          <button onClick={() => navigate('/mais')} className="btn-primary mt-6 !py-2.5">
+            Voltar
           </button>
         </div>
       </>
@@ -327,7 +327,7 @@ export function AdminRecompensas() {
   return (
     <>
       <Header
-        title="Gerenciar recompensas"
+        title="Administração"
         right={
           aba === 'catalogo' ? (
             <button
@@ -341,8 +341,8 @@ export function AdminRecompensas() {
       />
 
       <div className="hstack gap-2 px-5 pt-1 text-sm">
-        <button onClick={() => navigate('/recompensas')} className="hstack gap-1 text-muted tap">
-          <ArrowLeft size={16} /> Recompensas
+        <button onClick={() => navigate('/mais')} className="hstack gap-1 text-muted tap">
+          <ArrowLeft size={16} /> Mais
         </button>
       </div>
 
