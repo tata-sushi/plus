@@ -1,16 +1,17 @@
-import { Check } from 'lucide-react'
+import { Check, X } from 'lucide-react'
 import { cn } from '../lib/cn'
 
 // Prova do desafio, respondida na mesma tela (sem modal, sem sobrepor o texto).
-// O gabarito NÃO vem pro cliente: a correção é feita no servidor (responder_prova),
-// então aqui só temos enunciado + opções. Depois de um envio errado, as questões
-// erradas ficam destacadas até a pessoa escolher de novo.
+// O gabarito NÃO vem pro cliente na abertura: a correção é no servidor
+// (responder_prova). Depois de um envio errado, o servidor devolve qual era a
+// certa só das questões erradas — então a opção marcada errada fica vermelha e
+// a correta fica verde. Ao trocar a resposta, o destaque some.
 export function ProvaDesafio({ prova, respostas, onResponder, resultado }) {
   const questoes = prova?.questoes || []
   const multiplas = questoes.length > 1
-  const erradas = new Set(
-    resultado && !resultado.aprovado && Array.isArray(resultado.erradas) ? resultado.erradas : [],
-  )
+  const reprovado = resultado && !resultado.aprovado
+  const erradas = new Set(reprovado && Array.isArray(resultado.erradas) ? resultado.erradas : [])
+  const corretas = reprovado && resultado.corretas ? resultado.corretas : {}
 
   return (
     <div className="flex flex-col gap-7">
@@ -32,6 +33,9 @@ export function ProvaDesafio({ prova, respostas, onResponder, resultado }) {
             <div className="flex flex-col gap-2">
               {(q.opcoes || []).map((o) => {
                 const escolhida = respostas[q.id] === o.id
+                // depois de um envio errado: a marcada fica vermelha, a certa verde
+                const vermelha = errou && escolhida
+                const verde = errou ? corretas[q.id] === o.id : escolhida
                 return (
                   <button
                     key={o.id}
@@ -39,34 +43,36 @@ export function ProvaDesafio({ prova, respostas, onResponder, resultado }) {
                     onClick={() => onResponder(q.id, o.id)}
                     className={cn(
                       'hstack w-full items-start gap-3 rounded-card border px-4 py-3 text-left text-sm tap transition-colors',
-                      escolhida
-                        ? 'border-accent bg-accent-soft'
-                        : errou
-                          ? 'border-danger/40 bg-surface'
+                      vermelha
+                        ? 'border-danger bg-danger/10'
+                        : verde
+                          ? 'border-accent bg-accent-soft'
                           : 'border-line bg-surface',
                     )}
                   >
                     <span
                       className={cn(
                         'mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full border',
-                        escolhida ? 'border-accent bg-accent text-black' : 'border-muted-2',
+                        vermelha
+                          ? 'border-danger bg-danger text-white'
+                          : verde
+                            ? 'border-accent bg-accent text-black'
+                            : 'border-muted-2',
                       )}
                     >
-                      {escolhida && <Check size={13} strokeWidth={3} />}
+                      {vermelha ? (
+                        <X size={13} strokeWidth={3} />
+                      ) : verde ? (
+                        <Check size={13} strokeWidth={3} />
+                      ) : null}
                     </span>
-                    <span className={cn('flex-1 leading-snug', escolhida && 'font-medium')}>
+                    <span className={cn('flex-1 leading-snug', (vermelha || verde) && 'font-medium')}>
                       {o.texto}
                     </span>
                   </button>
                 )
               })}
             </div>
-
-            {errou && (
-              <p className="mt-2 text-xs font-medium text-danger">
-                Essa resposta não está certa. Revise o conteúdo e escolha de novo.
-              </p>
-            )}
           </div>
         )
       })}
