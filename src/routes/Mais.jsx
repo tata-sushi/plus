@@ -229,6 +229,11 @@ export function Mais() {
           <LogOut size={16} /> Sair
         </button>
       </Section>
+
+      <footer className="mt-8 flex flex-col items-center gap-0.5 px-5 text-center text-[11px] text-muted-2">
+        <span className="font-semibold">TATÁ PLUS · versão 2.0</span>
+        <span>Desenvolvido por Victor Carvalho · Gestão e Inovação</span>
+      </footer>
     </>
   )
 }
