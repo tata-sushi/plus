@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { CheckCircle2, Lock } from 'lucide-react'
+import { CheckCircle2, Lock, ChevronDown, ChevronUp } from 'lucide-react'
 import { IntroDesafio } from './IntroDesafio.jsx'
 import { cn } from '../lib/cn'
 
@@ -153,11 +153,12 @@ export function VideosYouTube({ chave, videos, jaConcluido, onAssistidos, intro 
                 <span className={cn('text-sm font-semibold', !concluido && !ativo && 'text-muted-2')}>
                   {v.nome}
                 </span>
-                {concluido && (
-                  <span className="ml-auto shrink-0 text-[11px] font-semibold text-muted">
-                    {reaberto === i ? 'Fechar' : 'Rever'}
-                  </span>
-                )}
+                {concluido &&
+                  (reaberto === i ? (
+                    <ChevronUp size={18} className="ml-auto shrink-0 text-muted" />
+                  ) : (
+                    <ChevronDown size={18} className="ml-auto shrink-0 text-muted" />
+                  ))}
               </button>
               {mostrando && (
                 <div className="aspect-video w-full overflow-hidden rounded-xl bg-black [&>iframe]:h-full [&>iframe]:w-full">
