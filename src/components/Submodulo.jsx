@@ -41,6 +41,12 @@ export function Submodulo({ nome, itens, onAbrir, admin = false }) {
     itens.some((i) => i.janela_estado === 'aberto' && !i.concluido) ||
     itens.some((i) => i.estado_reconhecimento === 'disponivel')
   const HeaderIcon = ehSerie ? CalendarDays : PartyPopper
+  // o ativo (aberto / disponível) vem primeiro; o resto mantém a sequência (sort estável)
+  const ativo = (i) =>
+    (i.janela_estado === 'aberto' && !i.concluido) || i.estado_reconhecimento === 'disponivel'
+      ? 1
+      : 0
+  const itensOrdenados = [...itens].sort((a, b) => ativo(b) - ativo(a))
 
   return (
     <div className="border-t border-line">
@@ -68,7 +74,7 @@ export function Submodulo({ nome, itens, onAbrir, admin = false }) {
       {/* Série mensal → bancada de calendários (mês/ano) */}
       {aberto && ehSerie && (
         <div className="grid grid-cols-4 gap-3 bg-surface-2/40 p-4">
-          {itens.map((item) => {
+          {itensOrdenados.map((item) => {
             const concl = item.concluido
             const estado = concl ? 'concluido' : item.janela_estado
             const pode = estado === 'aberto' || concl || admin
@@ -113,9 +119,9 @@ export function Submodulo({ nome, itens, onAbrir, admin = false }) {
       {/* Reconhecimento por tempo de casa → bancada de presentinhos */}
       {aberto && ehRec && (
         <div className="grid grid-cols-4 gap-3 border-t border-line bg-surface-2/40 p-4">
-          {itens.map((item) => {
+          {itensOrdenados.map((item) => {
             const est = item.estado_reconhecimento
-            const ativo = est === 'disponivel' || est === 'resgatado'
+            const ativoRec = est === 'disponivel' || est === 'resgatado'
             return (
               <button
                 key={item.id}
@@ -123,7 +129,7 @@ export function Submodulo({ nome, itens, onAbrir, admin = false }) {
                 aria-label={tempoLabel(item.tempo_casa_meses)}
                 className={cn(
                   'relative flex flex-col items-center gap-1 py-1.5 tap',
-                  ativo ? 'text-accent' : 'text-muted-2',
+                  ativoRec ? 'text-accent' : 'text-muted-2',
                   (est === 'ja_passou' || est === 'bloqueado') && 'opacity-70',
                 )}
               >
