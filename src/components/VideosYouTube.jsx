@@ -93,11 +93,13 @@ function VideoYT({ id, onFim, travado = true }) {
   return <div ref={ref} className="h-full w-full" />
 }
 
-// Vídeos em sequência: só o atual toca; os concluídos ficam com check (colapsados);
-// os futuros ficam bloqueados. onAssistidos() dispara quando TODOS terminaram.
-// O progresso (quais vídeos já foram assistidos) fica salvo por desafio — quem
-// já viu não precisa rever ao reabrir.
-export function VideosYouTube({ chave, videos, jaConcluido, onAssistidos, intro }) {
+// Lista de vídeos em sequência (sem container de rolagem próprio): só o atual
+// toca; os concluídos ficam com check (colapsados); os futuros ficam bloqueados.
+// onAssistidos() dispara quando TODOS terminaram. O progresso (quais vídeos já
+// foram assistidos) fica salvo por desafio — quem já viu não precisa rever.
+// Por não ter container próprio, pode ser embutida junto de outro conteúdo
+// (ex.: texto + vídeo no mesmo desafio).
+export function VideosLista({ chave, videos, jaConcluido, onAssistidos, rotulo }) {
   const storageKey = `tp_videos_${chave}`
   const [reaberto, setReaberto] = useState(null) // vídeo já visto reaberto pra rever
   const [vistos, setVistos] = useState(() => {
@@ -130,12 +132,7 @@ export function VideosYouTube({ chave, videos, jaConcluido, onAssistidos, intro 
   }, [vistos, videos.length])
 
   return (
-    <div className="flex-1 overflow-y-auto px-4 py-4">
-      {intro && (
-        <div className="mb-5">
-          <IntroDesafio titulo={intro.titulo} frase={intro.frase} />
-        </div>
-      )}
+    <>
       <div className="flex flex-col gap-3">
         {videos.map((v, i) => {
           const concluido = vistos.has(i)
@@ -169,9 +166,30 @@ export function VideosYouTube({ chave, videos, jaConcluido, onAssistidos, intro 
           )
         })}
       </div>
-      <p className="mt-4 text-center text-xs text-muted-2">
-        Assista os vídeos para concluir o desafio.
-      </p>
+      {rotulo !== false && (
+        <p className="mt-4 text-center text-xs text-muted-2">
+          {rotulo || 'Assista os vídeos para concluir o desafio.'}
+        </p>
+      )}
+    </>
+  )
+}
+
+// Desafio só de vídeos: capa de introdução + lista, com rolagem própria.
+export function VideosYouTube({ chave, videos, jaConcluido, onAssistidos, intro }) {
+  return (
+    <div className="flex-1 overflow-y-auto px-4 py-4">
+      {intro && (
+        <div className="mb-5">
+          <IntroDesafio titulo={intro.titulo} frase={intro.frase} />
+        </div>
+      )}
+      <VideosLista
+        chave={chave}
+        videos={videos}
+        jaConcluido={jaConcluido}
+        onAssistidos={onAssistidos}
+      />
     </div>
   )
 }

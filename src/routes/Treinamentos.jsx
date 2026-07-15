@@ -17,7 +17,7 @@ import { Card } from '../components/Card.jsx'
 import { ProgressBar } from '../components/ProgressBar.jsx'
 import { PdfViewer } from '../components/PdfViewer.jsx'
 import { VideoPlayer } from '../components/VideoPlayer.jsx'
-import { VideosYouTube } from '../components/VideosYouTube.jsx'
+import { VideosYouTube, VideosLista } from '../components/VideosYouTube.jsx'
 import { IntroDesafio } from '../components/IntroDesafio.jsx'
 import { cn } from '../lib/cn'
 import { tapHaptic } from '../lib/haptics.js'
@@ -30,7 +30,8 @@ const TIPO_LABEL = { prova: 'Prova', envio: 'Envio' }
 function Detalhe({ treino, onFechar, onConcluir, concluindo }) {
   const { usuario } = useAuth()
   const [data, setData] = useState(null)
-  const [leuTudo, setLeuTudo] = useState(false) // rolou o conteúdo até o fim?
+  const [rolou, setRolou] = useState(false) // rolou o conteúdo até o fim?
+  const [videosOk, setVideosOk] = useState(false) // assistiu todos os vídeos?
   const conteudoRef = useRef(null)
 
   const primeiroNome = usuario?.primeiroNome || (usuario?.nome || '').trim().split(/\s+/)[0] || ''
@@ -39,7 +40,8 @@ function Detalhe({ treino, onFechar, onConcluir, concluindo }) {
 
   useEffect(() => {
     setData(null)
-    setLeuTudo(false)
+    setRolou(false)
+    setVideosOk(false)
     let ativo = true
     supabase.rpc('abrir_treinamento', { p_treino: treino.id }).then(({ data }) => {
       if (ativo) setData(data)
@@ -51,27 +53,38 @@ function Detalhe({ treino, onFechar, onConcluir, concluindo }) {
 
   const midias = Array.isArray(data?.midias) ? data.midias : []
   const ehVideos = midias.length > 0
+  const temHtml = !!data?.conteudo_html
   const ehVideo = /\.(mp4|webm|mov)(\?|#|$)/i.test(data?.arquivo_url || '')
   const ehPdf = !!data?.arquivo_url && !ehVideo
+  const ehCombo = ehVideos && temHtml // texto + vídeo no mesmo desafio
+  const ehSoVideos = ehVideos && !temHtml
   const ehMidia = ehVideos || ehVideo
-  const temConteudo = ehVideos || ehPdf || ehVideo || !!data?.conteudo_html
-  const podeConcluir =
-    (treino.tipo === 'conteudo' || ehPdf || ehMidia) && !treino.concluido
+  const temConteudo = ehVideos || ehPdf || ehVideo || temHtml
+  const podeConcluir = (treino.tipo === 'conteudo' || ehPdf || ehMidia) && !treino.concluido
+
+  // o que trava a conclusão: rolar o texto e/ou assistir os vídeos
+  const precisaRolar = ehCombo || ehPdf || (temHtml && !ehVideos)
+  const precisaVideos = ehVideos || ehVideo
+  const faltaRolar = precisaRolar && !rolou
+  const faltaVideos = precisaVideos && !videosOk
+  const liberado = !faltaRolar && !faltaVideos
+
+  const frase = data?.descricao || treino.descricao
 
   // sem conteúdo real pra ler (fallback) → libera direto
   useEffect(() => {
-    if (data && !temConteudo) setLeuTudo(true)
+    if (data && !temConteudo) setRolou(true)
   }, [data, temConteudo])
 
-  // conteúdo HTML: se couber sem rolar, já libera
+  // conteúdo HTML: se couber sem rolar, já libera a rolagem
   useEffect(() => {
     const el = conteudoRef.current
-    if (el && el.scrollHeight <= el.clientHeight + 4) setLeuTudo(true)
+    if (el && el.scrollHeight <= el.clientHeight + 4) setRolou(true)
   }, [data])
 
   function aoRolarConteudo(e) {
     const el = e.currentTarget
-    if (el.scrollTop + el.clientHeight >= el.scrollHeight - 48) setLeuTudo(true)
+    if (el.scrollTop + el.clientHeight >= el.scrollHeight - 48) setRolou(true)
   }
 
   // portal no <body>: escapa de qualquer transform/stacking do <main>
@@ -102,44 +115,49 @@ function Detalhe({ treino, onFechar, onConcluir, concluindo }) {
         )}
       </div>
 
-      {/* Cabeçalho do desafio (só conteúdo/texto — PDF e vídeo abrem direto) */}
-      {data && !ehPdf && !ehMidia && (
-        <div className="border-b border-line px-5 py-3">
-          <h1 className="font-display text-lg font-bold leading-tight">{treino.titulo}</h1>
-          {TIPO_LABEL[treino.tipo] && (
-            <div className="mt-1.5">
-              <span className="pill bg-surface-2 text-xs text-muted">{TIPO_LABEL[treino.tipo]}</span>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Corpo: PDF embutido, HTML ou fallback */}
+      {/* Corpo: texto+vídeo, vídeos, vídeo/PDF embutido, HTML ou fallback */}
       {!data ? (
         <div className="hstack flex-1 justify-center py-16 text-muted-2">
           <Loader2 size={22} className="animate-spin" />
         </div>
-      ) : ehVideos ? (
+      ) : ehCombo ? (
+        <div ref={conteudoRef} onScroll={aoRolarConteudo} className="flex-1 overflow-y-auto px-5 py-4">
+          {frase && (
+            <div className="mb-5">
+              <IntroDesafio titulo={treino.titulo} frase={frase} variante={1} />
+            </div>
+          )}
+          <div
+            className="conteudo text-sm leading-relaxed"
+            dangerouslySetInnerHTML={{ __html: personalizar(data.conteudo_html) }}
+          />
+          <div className="mt-8 border-t border-line pt-6">
+            <VideosLista
+              chave={treino.id}
+              videos={midias}
+              jaConcluido={treino.concluido}
+              onAssistidos={() => setVideosOk(true)}
+              rotulo={midias.length > 1 ? undefined : 'Assista o vídeo para concluir o desafio.'}
+            />
+          </div>
+        </div>
+      ) : ehSoVideos ? (
         <VideosYouTube
           chave={treino.id}
           videos={midias}
           jaConcluido={treino.concluido}
-          onAssistidos={() => setLeuTudo(true)}
-          intro={{ titulo: treino.titulo, frase: data.descricao || treino.descricao }}
+          onAssistidos={() => setVideosOk(true)}
+          intro={{ titulo: treino.titulo, frase }}
         />
       ) : ehVideo ? (
-        <VideoPlayer src={data.arquivo_url} onAssistido={() => setLeuTudo(true)} />
+        <VideoPlayer src={data.arquivo_url} onAssistido={() => setVideosOk(true)} />
       ) : ehPdf ? (
-        <PdfViewer src={data.arquivo_url} onLido={() => setLeuTudo(true)} />
-      ) : data.conteudo_html ? (
+        <PdfViewer src={data.arquivo_url} onLido={() => setRolou(true)} />
+      ) : temHtml ? (
         <div ref={conteudoRef} onScroll={aoRolarConteudo} className="flex-1 overflow-y-auto px-5 py-4">
-          {(data.descricao || treino.descricao) && (
+          {frase && (
             <div className="mb-5">
-              <IntroDesafio
-                titulo={treino.titulo}
-                frase={data.descricao || treino.descricao}
-                variante={1}
-              />
+              <IntroDesafio titulo={treino.titulo} frase={frase} variante={1} />
             </div>
           )}
           <div
@@ -160,7 +178,7 @@ function Detalhe({ treino, onFechar, onConcluir, concluindo }) {
             <CheckCircle2 size={18} /> Concluído
           </div>
         ) : podeConcluir ? (
-          leuTudo ? (
+          liberado ? (
             <button
               onClick={() => onConcluir(treino)}
               disabled={concluindo}
@@ -170,13 +188,13 @@ function Detalhe({ treino, onFechar, onConcluir, concluindo }) {
             </button>
           ) : (
             <div className="hstack justify-center gap-2 rounded-card bg-surface py-3 text-sm font-semibold text-muted-2">
-              {ehMidia ? (
+              {faltaRolar ? (
                 <>
-                  <Play size={15} fill="currentColor" /> Assista para realizar o desafio
+                  <ArrowDown size={16} className="animate-bounce" /> Role para realizar o desafio
                 </>
               ) : (
                 <>
-                  <ArrowDown size={16} className="animate-bounce" /> Role para realizar o desafio
+                  <Play size={15} fill="currentColor" /> Assista para realizar o desafio
                 </>
               )}
             </div>
