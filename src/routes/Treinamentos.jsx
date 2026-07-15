@@ -449,6 +449,17 @@ export function Treinamentos() {
     return { ok: false }
   }
 
+  // Resgate direto do nível de pontos (reconhecimento por tempo de casa)
+  async function resgatarReconhecimento(item) {
+    const { data } = await supabase.rpc('resgatar_reconhecimento', { p_treino: item.id })
+    if (data?.ok) {
+      if (!data.ja_resgatado) setCelebrando({ pontos: Number(data.pontos) || 0 })
+      carregar()
+    } else {
+      setAviso('Não foi possível resgatar agora.')
+    }
+  }
+
   return (
     <>
       <Header title="Treinamentos" />
@@ -708,7 +719,14 @@ export function Treinamentos() {
                     )
                   })}
                   {Object.entries(subcats).map(([nome, itens]) => (
-                    <Submodulo key={nome} nome={nome} itens={itens} onAbrir={abrir} admin={admin} />
+                    <Submodulo
+                      key={nome}
+                      nome={nome}
+                      itens={itens}
+                      onAbrir={abrir}
+                      onResgatar={resgatarReconhecimento}
+                      admin={admin}
+                    />
                   ))}
                 </div>
               )}
