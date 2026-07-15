@@ -96,8 +96,8 @@ function Detalhe({ treino, onFechar, onConcluir, concluindo }) {
         )}
       </div>
 
-      {/* Cabeçalho do desafio (só conteúdo/texto — PDF abre direto) */}
-      {data && !ehPdf && (
+      {/* Cabeçalho do desafio (só conteúdo/texto — PDF e vídeo abrem direto) */}
+      {data && !ehPdf && !ehMidia && (
         <div className="border-b border-line px-5 py-3">
           <h1 className="font-display text-lg font-bold leading-tight">{treino.titulo}</h1>
           {TIPO_LABEL[treino.tipo] && (
