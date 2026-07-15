@@ -11,9 +11,13 @@ import {
   Calendar,
   PartyPopper,
   Gift,
-  History,
+  Ban,
 } from 'lucide-react'
 import { cn } from '../lib/cn'
+
+// rótulo curto do tempo de casa: 6 → "6 meses", 12 → "1 ano", 24 → "2 anos"…
+const tempoLabel = (m) =>
+  m == null ? '' : m < 12 ? `${m} meses` : `${m / 12} ${m / 12 === 1 ? 'ano' : 'anos'}`
 
 // competência (folha 21→20) = mês anterior ao início da janela.
 // Ex.: janela abre 01/07 (período 21/06–20/07) → competência 06/2026.
@@ -28,7 +32,7 @@ function competencia(di) {
 // Submódulo dentro de uma trilha (ex.: dentro de "Especiais"). Recolhível.
 // Série mensal de envio (ex.: 100% de Presença) → bancada de calendários (mês/ano),
 // no estilo do TATÁ NEWS. Demais → lista simples de desafios.
-export function Submodulo({ nome, itens, onAbrir, onResgatar, admin = false }) {
+export function Submodulo({ nome, itens, onAbrir, admin = false }) {
   const [aberto, setAberto] = useState(false)
   const ehSerie = itens.length > 0 && itens.every((i) => i.tipo === 'envio')
   const ehRec = itens.length > 0 && itens.every((i) => i.tipo === 'reconhecimento')
@@ -106,72 +110,43 @@ export function Submodulo({ nome, itens, onAbrir, onResgatar, admin = false }) {
         </div>
       )}
 
-      {/* Reconhecimento por tempo de casa → escadinha de degraus */}
+      {/* Reconhecimento por tempo de casa → bancada de presentinhos */}
       {aberto && ehRec && (
-        <div className="border-t border-line bg-surface-2/40 px-3 py-3">
-          <p className="px-1 pb-1 text-[11px] leading-snug text-muted">
-            Sua escadinha de tempo de casa 🪜 A cada degrau, um reconhecimento. O que valer é daqui
-            pra frente — marcos antes da entrada no programa não são resgatáveis.
-          </p>
-          {itens.map((item, idx) => {
+        <div className="grid grid-cols-4 gap-3 border-t border-line bg-surface-2/40 p-4">
+          {itens.map((item) => {
             const est = item.estado_reconhecimento
-            const ehPontos = item.pontos > 0
-            const nodo =
-              est === 'resgatado'
-                ? { Icon: Check, cls: 'bg-accent text-black' }
-                : est === 'disponivel'
-                  ? { Icon: Gift, cls: 'bg-accent text-black ring-2 ring-accent/30' }
-                  : est === 'ja_passou'
-                    ? { Icon: History, cls: 'bg-surface-2 text-muted-2' }
-                    : { Icon: Lock, cls: 'border border-dashed border-line bg-surface text-muted-2' }
+            const ativo = est === 'disponivel' || est === 'resgatado'
             return (
-              <div key={item.id} style={{ paddingLeft: `${Math.min(idx, 6) * 11}px` }}>
-                <div
-                  className={cn(
-                    'mt-2 hstack gap-2.5 rounded-card border px-3 py-2.5',
-                    est === 'disponivel'
-                      ? 'border-accent/40 bg-accent-soft/40'
-                      : est === 'ja_passou'
-                        ? 'border-line bg-surface/60 opacity-75'
-                        : 'border-line bg-surface',
-                  )}
-                >
-                  <span
-                    className={cn(
-                      'grid h-8 w-8 shrink-0 place-items-center rounded-full',
-                      nodo.cls,
-                    )}
-                  >
-                    <nodo.Icon size={15} />
+              <button
+                key={item.id}
+                onClick={() => onAbrir(item)}
+                aria-label={tempoLabel(item.tempo_casa_meses)}
+                className={cn(
+                  'relative flex flex-col items-center gap-1 py-1.5 tap',
+                  ativo ? 'text-accent' : 'text-muted-2',
+                  (est === 'ja_passou' || est === 'bloqueado') && 'opacity-70',
+                )}
+              >
+                {est === 'resgatado' && (
+                  <span className="absolute right-0.5 top-0 grid h-3.5 w-3.5 place-items-center rounded-full bg-accent text-black">
+                    <Check size={9} strokeWidth={3} />
                   </span>
-                  <div className="min-w-0 flex-1">
-                    <div className="text-sm font-semibold leading-tight">{item.titulo}</div>
-                    <div className="mt-0.5 text-[11px] leading-snug text-muted-2">
-                      {item.descricao}
-                    </div>
-                  </div>
-                  {est === 'disponivel' && ehPontos ? (
-                    <button
-                      onClick={() => onResgatar?.(item)}
-                      className="btn-primary shrink-0 !px-3 !py-1.5 text-xs"
-                    >
-                      Resgatar
-                    </button>
-                  ) : est === 'disponivel' ? (
-                    <span className="pill shrink-0 bg-accent text-[10px] text-black">Disponível</span>
-                  ) : est === 'resgatado' ? (
-                    <span className="pill shrink-0 bg-accent-soft text-[10px] text-accent">Resgatado</span>
-                  ) : est === 'ja_passou' ? (
-                    <span className="pill shrink-0 bg-surface-2 text-[10px] text-muted-2">
-                      Antes do programa
-                    </span>
-                  ) : (
-                    <span className="pill shrink-0 bg-surface-2 text-[10px] text-muted-2">
-                      A conquistar
-                    </span>
-                  )}
-                </div>
-              </div>
+                )}
+                {est === 'ja_passou' && (
+                  <span className="absolute right-0.5 top-0">
+                    <Ban size={11} />
+                  </span>
+                )}
+                {est === 'bloqueado' && (
+                  <span className="absolute right-0.5 top-0">
+                    <Lock size={10} />
+                  </span>
+                )}
+                <Gift size={24} strokeWidth={1.6} />
+                <span className="text-center text-[10.5px] font-semibold leading-tight">
+                  {tempoLabel(item.tempo_casa_meses)}
+                </span>
+              </button>
             )
           })}
         </div>
