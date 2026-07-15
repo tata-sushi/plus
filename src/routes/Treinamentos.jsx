@@ -77,7 +77,7 @@ function Detalhe({ treino, onFechar, onConcluir, concluindo }) {
         >
           <ArrowLeft size={15} /> Voltar
         </button>
-        <div className="min-w-0 flex-1 truncate text-center font-display text-sm font-bold">
+        <div className="min-w-0 flex-1 truncate text-center text-xs font-medium text-muted">
           ({treino.titulo})
         </div>
         {treino.pontos > 0 ? (
@@ -113,7 +113,12 @@ function Detalhe({ treino, onFechar, onConcluir, concluindo }) {
           <Loader2 size={22} className="animate-spin" />
         </div>
       ) : ehVideos ? (
-        <VideosYouTube videos={midias} onAssistidos={() => setLeuTudo(true)} />
+        <VideosYouTube
+          chave={treino.id}
+          videos={midias}
+          jaConcluido={treino.concluido}
+          onAssistidos={() => setLeuTudo(true)}
+        />
       ) : ehVideo ? (
         <VideoPlayer src={data.arquivo_url} onAssistido={() => setLeuTudo(true)} />
       ) : ehPdf ? (

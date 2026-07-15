@@ -91,9 +91,33 @@ function VideoYT({ id, onFim }) {
 
 // Vídeos em sequência: só o atual toca; os concluídos ficam com check (colapsados);
 // os futuros ficam bloqueados. onAssistidos() dispara quando TODOS terminaram.
-export function VideosYouTube({ videos, onAssistidos }) {
-  const [vistos, setVistos] = useState(() => new Set())
+// O progresso (quais vídeos já foram assistidos) fica salvo por desafio — quem
+// já viu não precisa rever ao reabrir.
+export function VideosYouTube({ chave, videos, jaConcluido, onAssistidos }) {
+  const storageKey = `tp_videos_${chave}`
+  const [vistos, setVistos] = useState(() => {
+    // desafio já concluído no app → todos contam como vistos
+    if (jaConcluido) return new Set(videos.map((_, i) => i))
+    try {
+      const salvo = JSON.parse(localStorage.getItem(storageKey) || '[]')
+      return new Set(Array.isArray(salvo) ? salvo : [])
+    } catch {
+      return new Set()
+    }
+  })
   const atual = videos.findIndex((_, i) => !vistos.has(i))
+
+  function marcar(i) {
+    setVistos((s) => {
+      const n = new Set(s).add(i)
+      try {
+        localStorage.setItem(storageKey, JSON.stringify([...n]))
+      } catch {
+        /* ignore */
+      }
+      return n
+    })
+  }
 
   useEffect(() => {
     if (videos.length && vistos.size >= videos.length) onAssistidos?.()
@@ -117,7 +141,7 @@ export function VideosYouTube({ videos, onAssistidos }) {
               </div>
               {ativo && (
                 <div className="aspect-video w-full overflow-hidden rounded-xl bg-black [&>iframe]:h-full [&>iframe]:w-full">
-                  <VideoYT id={v.yt} onFim={() => setVistos((s) => new Set(s).add(i))} />
+                  <VideoYT id={v.yt} onFim={() => marcar(i)} />
                 </div>
               )}
             </div>
@@ -125,7 +149,7 @@ export function VideosYouTube({ videos, onAssistidos }) {
         })}
       </div>
       <p className="mt-4 text-center text-xs text-muted-2">
-        Assista os {videos.length} vídeos, um de cada vez, para concluir o desafio.
+        Assista os vídeos para concluir o desafio.
       </p>
     </div>
   )
