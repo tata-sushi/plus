@@ -503,19 +503,29 @@ export function Treinamentos() {
                 <div className="border-t border-line">
                   {tr.itens.map((item) => {
                     const bloqueado = !item.liberado && !item.concluido
-                    // desafio com blocos (Código de Ética) → mostra a trilhinha de N casinhas
+                    // desafio com blocos (Código de Ética) → cabeçalho + trilhinha de casinhas
                     if (item.blocos_total > 0) {
+                      const total = item.blocos_total
+                      const perRow = 5
+                      const nohClasse = (aberta) =>
+                        cn(
+                          'grid h-7 w-7 shrink-0 place-items-center rounded-full text-[11px] font-bold',
+                          aberta ? 'bg-accent text-black' : 'border border-line bg-surface-2 text-muted-2',
+                        )
                       return (
-                        <button
+                        <div
                           key={item.id}
-                          onClick={() => abrir(item)}
-                          disabled={bloqueado}
                           className={cn(
-                            'block w-full border-t border-line px-4 py-3.5 text-left first:border-t-0 tap',
+                            'border-t border-line px-4 py-3.5 first:border-t-0',
                             bloqueado && 'opacity-45',
                           )}
                         >
-                          <div className="hstack gap-3">
+                          {/* cabeçalho — clicável pra entrar */}
+                          <button
+                            onClick={() => abrir(item)}
+                            disabled={bloqueado}
+                            className="hstack w-full gap-3 text-left tap"
+                          >
                             <span
                               className={cn(
                                 'grid h-8 w-8 shrink-0 place-items-center rounded-full',
@@ -537,7 +547,7 @@ export function Treinamentos() {
                             <span className="min-w-0 flex-1">
                               <span className="block truncate text-sm font-medium">{item.titulo}</span>
                               <span className="text-[11px] text-muted-2">
-                                {item.concluido ? 'Concluído' : `${item.blocos_total} partes`}
+                                {item.concluido ? 'Concluído' : `${total} partes`}
                               </span>
                             </span>
                             {item.pontos > 0 && (
@@ -545,44 +555,57 @@ export function Treinamentos() {
                                 <Star size={11} /> {item.pontos}
                               </span>
                             )}
-                          </div>
-                          {/* trilhinha: N casinhas em várias linhas, ligadas por linha
-                              (só visão; a navegação real é dentro do módulo) */}
-                          <div className="mt-4 flex flex-col items-center gap-3">
-                            {Array.from({ length: Math.ceil(item.blocos_total / 4) }).map((_, ri) => {
-                              const inicio = ri * 4
-                              const casas = Array.from({ length: item.blocos_total })
-                                .slice(inicio, inicio + 4)
+                          </button>
+
+                          {/* trilhinha: linhas cheias ponta a ponta, última reduzida à esquerda.
+                              Só a casinha 1 (ou o cabeçalho) abre; as outras não fazem nada. */}
+                          <div className="mt-4 flex flex-col gap-3">
+                            {Array.from({ length: Math.ceil(total / perRow) }).map((_, ri) => {
+                              const inicio = ri * perRow
+                              const casas = Array.from({ length: total })
+                                .slice(inicio, inicio + perRow)
                                 .map((_, k) => inicio + k)
+                              const cheia = casas.length === perRow
                               return (
-                                <div key={ri} className="hstack">
-                                  {casas.map((idx, ci) => (
-                                    <Fragment key={idx}>
-                                      {ci > 0 && (
-                                        <span
-                                          className={cn(
-                                            'h-[2px] w-8',
-                                            item.concluido ? 'bg-accent/50' : 'bg-line',
-                                          )}
-                                        />
-                                      )}
-                                      <span
-                                        className={cn(
-                                          'grid h-7 w-7 shrink-0 place-items-center rounded-full text-[11px] font-bold',
-                                          item.concluido || (!bloqueado && idx === 0)
-                                            ? 'bg-accent text-black'
-                                            : 'border border-line bg-surface-2 text-muted-2',
+                                <div key={ri} className={cn('hstack', cheia && 'w-full')}>
+                                  {casas.map((idx, ci) => {
+                                    const aberta = item.concluido || (!bloqueado && idx === 0)
+                                    const conteudo = item.concluido ? (
+                                      <Check size={13} strokeWidth={3} />
+                                    ) : (
+                                      idx + 1
+                                    )
+                                    return (
+                                      <Fragment key={idx}>
+                                        {ci > 0 && (
+                                          <span
+                                            className={cn(
+                                              'h-[2px]',
+                                              cheia ? 'flex-1' : 'w-10',
+                                              item.concluido ? 'bg-accent/50' : 'bg-line',
+                                            )}
+                                          />
                                         )}
-                                      >
-                                        {item.concluido ? <Check size={13} strokeWidth={3} /> : idx + 1}
-                                      </span>
-                                    </Fragment>
-                                  ))}
+                                        {idx === 0 ? (
+                                          <button
+                                            onClick={() => abrir(item)}
+                                            disabled={bloqueado}
+                                            aria-label="Começar o Código de Ética"
+                                            className="shrink-0 tap"
+                                          >
+                                            <span className={nohClasse(aberta)}>{conteudo}</span>
+                                          </button>
+                                        ) : (
+                                          <span className={nohClasse(aberta)}>{conteudo}</span>
+                                        )}
+                                      </Fragment>
+                                    )
+                                  })}
                                 </div>
                               )
                             })}
                           </div>
-                        </button>
+                        </div>
                       )
                     }
                     return (

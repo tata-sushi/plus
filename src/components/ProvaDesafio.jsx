@@ -13,7 +13,8 @@ export function ProvaDesafio({ prova, respostas, onResponder, resultado, conclui
   const multiplas = questoes.length > 1
   const reprovado = !concluido && resultado && !resultado.aprovado
   const erradas = new Set(reprovado && Array.isArray(resultado.erradas) ? resultado.erradas : [])
-  const corretas = reprovado && resultado.corretas ? resultado.corretas : {}
+  // a resposta certa só é revelada quando o desafio já foi concluído (a pessoa
+  // acertou). Enquanto erra, marcamos só a errada em vermelho, sem entregar a certa.
   const gab = concluido && gabarito ? gabarito : null
 
   return (
@@ -37,13 +38,10 @@ export function ProvaDesafio({ prova, respostas, onResponder, resultado, conclui
               {(q.opcoes || []).map((o) => {
                 const escolhida = respostas[q.id] === o.id
                 // concluído: só a resposta certa (gabarito) fica verde, em leitura.
-                // envio errado: a marcada fica vermelha, a certa verde.
+                // envio errado: a marcada fica vermelha, e NADA fica verde (não
+                // revela a certa). Antes de enviar: a escolhida fica verde (seleção).
                 const vermelha = errou && escolhida
-                const verde = gab
-                  ? gab[q.id] === o.id
-                  : errou
-                    ? corretas[q.id] === o.id
-                    : escolhida
+                const verde = gab ? gab[q.id] === o.id : !errou && escolhida
                 return (
                   <button
                     key={o.id}
