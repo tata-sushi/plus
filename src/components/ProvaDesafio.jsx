@@ -14,10 +14,7 @@ export function ProvaDesafio({ prova, respostas, onResponder, resultado }) {
 
   return (
     <div className="flex flex-col gap-7">
-      <div className="hstack gap-2 text-accent">
-        <span className="text-xs font-bold uppercase tracking-wide">Prova</span>
-        <span className="h-px flex-1 bg-line" />
-      </div>
+      <p className="text-[0.95rem] font-bold text-accent">Hora da revisão!</p>
 
       {questoes.map((q, qi) => {
         const errou = erradas.has(q.id)

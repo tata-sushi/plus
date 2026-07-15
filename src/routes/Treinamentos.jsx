@@ -169,7 +169,7 @@ function Detalhe({ treino, onFechar, onConcluir, onEnviarProva, concluindo }) {
             />
           )}
           {ehVideos && (
-            <div className="mt-8 border-t border-line pt-6">
+            <div className="mt-9">
               <VideosLista
                 chave={treino.id}
                 videos={midias}
@@ -187,7 +187,7 @@ function Detalhe({ treino, onFechar, onConcluir, onEnviarProva, concluindo }) {
             </div>
           )}
           {ehProva && (
-            <div className="mt-8 border-t border-line pt-6">
+            <div className="mt-9">
               <ProvaDesafio
                 prova={data.prova}
                 respostas={respostas}
