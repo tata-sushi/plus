@@ -252,7 +252,10 @@ export function Treinamentos() {
           const Icon = resolveIcon(tr.icone)
           const total = tr.itens.length
           const feitos = tr.itens.filter((i) => i.concluido).length
+          const pontosTrilha = tr.itens.reduce((s, i) => s + (i.pontos || 0), 0)
           const expandida = aberta === tr.id
+          // TATÁ NEWS abre como prateleira de jornalzinhos (#1, #2, …)
+          const prateleira = tr.nome === 'TATÁ NEWS'
           return (
             <Card key={tr.id} className="!p-0 overflow-hidden">
               <button
@@ -266,8 +269,13 @@ export function Treinamentos() {
                   <div className="font-semibold">{tr.nome}</div>
                   <div className="mt-0.5 hstack justify-between gap-2 text-xs text-muted">
                     <span>{feitos}/{total} concluídos</span>
-                    <span className="font-semibold text-accent">
-                      {total ? Math.round((feitos / total) * 100) : 0}%
+                    <span>
+                      <span className="font-semibold text-accent">
+                        {total ? Math.round((feitos / total) * 100) : 0}%
+                      </span>
+                      {pontosTrilha > 0 && (
+                        <span className="text-muted-2"> ({pontosTrilha} pts)</span>
+                      )}
                     </span>
                   </div>
                   <div className="mt-1.5">
@@ -280,7 +288,40 @@ export function Treinamentos() {
                 />
               </button>
 
-              {expandida && (
+              {expandida && prateleira && (
+                <div className="grid grid-cols-4 gap-2 border-t border-line p-3">
+                  {tr.itens.map((item) => {
+                    const bloqueado = !item.liberado && !item.concluido
+                    const rotulo = (item.titulo.match(/#\d+/) || [item.titulo])[0]
+                    return (
+                      <button
+                        key={item.id}
+                        onClick={() => abrir(item)}
+                        disabled={bloqueado}
+                        aria-label={item.titulo}
+                        className={cn(
+                          'relative flex aspect-[3/4] flex-col items-center justify-center gap-1.5 rounded-xl border tap',
+                          item.concluido
+                            ? 'border-accent/25 bg-accent-soft text-accent'
+                            : bloqueado
+                              ? 'border-line bg-surface-2 text-muted-2 opacity-50'
+                              : 'border-accent bg-accent text-black shadow-glow',
+                        )}
+                      >
+                        {item.concluido && (
+                          <span className="absolute right-1 top-1 grid h-4 w-4 place-items-center rounded-full bg-accent text-black">
+                            <Check size={11} strokeWidth={3} />
+                          </span>
+                        )}
+                        {bloqueado ? <Lock size={16} /> : <Icon size={20} />}
+                        <span className="text-[11px] font-bold">{rotulo}</span>
+                      </button>
+                    )
+                  })}
+                </div>
+              )}
+
+              {expandida && !prateleira && (
                 <div className="border-t border-line">
                   {tr.itens.map((item) => {
                     const bloqueado = !item.liberado && !item.concluido
