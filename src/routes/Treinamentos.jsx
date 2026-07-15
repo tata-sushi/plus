@@ -18,17 +18,24 @@ import { ProgressBar } from '../components/ProgressBar.jsx'
 import { PdfViewer } from '../components/PdfViewer.jsx'
 import { VideoPlayer } from '../components/VideoPlayer.jsx'
 import { VideosYouTube } from '../components/VideosYouTube.jsx'
+import { IntroDesafio } from '../components/IntroDesafio.jsx'
 import { cn } from '../lib/cn'
 import { tapHaptic } from '../lib/haptics.js'
 import { resolveIcon } from '../lib/icons.js'
 import { supabase } from '../lib/supabase.js'
+import { useAuth } from '../lib/AuthContext.jsx'
 
 const TIPO_LABEL = { prova: 'Prova', envio: 'Envio' }
 
 function Detalhe({ treino, onFechar, onConcluir, concluindo }) {
+  const { usuario } = useAuth()
   const [data, setData] = useState(null)
   const [leuTudo, setLeuTudo] = useState(false) // rolou o conteúdo até o fim?
   const conteudoRef = useRef(null)
+
+  const primeiroNome = usuario?.primeiroNome || (usuario?.nome || '').trim().split(/\s+/)[0] || ''
+  const personalizar = (html) =>
+    (html || '').replace(/\{\{\s*(?:user\.first_name|primeiro_nome|nome)\s*\}\}/gi, primeiroNome)
 
   useEffect(() => {
     setData(null)
@@ -126,9 +133,18 @@ function Detalhe({ treino, onFechar, onConcluir, concluindo }) {
         <PdfViewer src={data.arquivo_url} onLido={() => setLeuTudo(true)} />
       ) : data.conteudo_html ? (
         <div ref={conteudoRef} onScroll={aoRolarConteudo} className="flex-1 overflow-y-auto px-5 py-4">
+          {(data.descricao || treino.descricao) && (
+            <div className="mb-5">
+              <IntroDesafio
+                titulo={treino.titulo}
+                frase={data.descricao || treino.descricao}
+                variante={1}
+              />
+            </div>
+          )}
           <div
             className="conteudo text-sm leading-relaxed"
-            dangerouslySetInnerHTML={{ __html: data.conteudo_html }}
+            dangerouslySetInnerHTML={{ __html: personalizar(data.conteudo_html) }}
           />
         </div>
       ) : (
