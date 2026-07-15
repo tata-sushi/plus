@@ -16,6 +16,7 @@ import {
   UtensilsCrossed,
   Sun,
   Moon,
+  ShieldCheck,
 } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Section } from '../components/Section.jsx'
@@ -186,6 +187,18 @@ export function Mais() {
           })}
         </div>
       </Section>
+
+      {usuario?.podePublicar && (
+        <Section className="mt-5" title="Administração">
+          <Link to="/admin" className="card hstack gap-3 px-4 py-3.5 tap">
+            <div className="grid h-9 w-9 place-items-center rounded-full bg-accent-soft text-accent">
+              <ShieldCheck size={18} />
+            </div>
+            <span className="flex-1 text-sm font-semibold">Painel de administração</span>
+            <ChevronRight size={16} className="text-muted" />
+          </Link>
+        </Section>
+      )}
 
       <Section className="mt-5" title="Aparência">
         <div className="card grid grid-cols-2 gap-1.5 p-1.5">

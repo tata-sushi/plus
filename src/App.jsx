@@ -47,6 +47,7 @@ export function App() {
         <Route path="/jornada" element={<Jornada />} />
         <Route path="/perfil/:id" element={<Perfil />} />
         <Route path="/recompensas" element={<Recompensas />} />
+        <Route path="/admin" element={<AdminRecompensas />} />
         <Route path="/recompensas/admin" element={<AdminRecompensas />} />
         <Route path="/rh" element={<RhFacil />} />
         <Route path="/assistente" element={<AssistenteIa />} />
