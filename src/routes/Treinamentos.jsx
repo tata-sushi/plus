@@ -12,6 +12,7 @@ import {
   ArrowDown,
   Check,
   FileText,
+  Download,
 } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Card } from '../components/Card.jsx'
@@ -207,6 +208,14 @@ function Detalhe({ treino, onFechar, onConcluir, onEnviarProva, onAssinarCodigo,
                 <FileText size={14} /> Material de apoio
               </p>
               <PdfViewer src={data.arquivo_url} inline />
+              <a
+                href={`${data.arquivo_url}?download`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-ghost mt-3 w-full !py-3 text-sm"
+              >
+                <Download size={16} /> Baixar PDF
+              </a>
             </div>
           )}
           {ehProva && (
