@@ -116,45 +116,55 @@ export function Submodulo({ nome, itens, onAbrir, admin = false }) {
             {itensOrdenados.map((item) => {
             const concl = item.concluido
             const estado = concl ? 'concluido' : item.janela_estado
-            const abertoAgora = estado === 'aberto' // atual → citric marcante, sem selo
+            const abertoAgora = estado === 'aberto'
             const pode = abertoAgora || concl || admin
-            // já passou (pegou ou não) = segundo verde · aberto = citric · futuro = cinza
+            // já passou (pegou/não) = chip verde escuro + citric · aberto = citric fill · futuro = cinza
             const jaPassou = concl || estado === 'encerrado'
-            const corIcone = jaPassou ? 'text-accent-dim' : abertoAgora ? 'text-accent' : 'text-muted-2'
-            const recuar = estado === 'em_breve' && !admin // futuro recua um pouco
             return (
               <button
                 key={item.id}
                 onClick={() => pode && onAbrir(item)}
                 disabled={!pode}
                 aria-label={`Presença ${competencia(item.data_inicio)}`}
-                className="flex flex-col items-center gap-1 py-1.5 tap"
+                className="flex flex-col items-center gap-1.5 py-1.5 tap"
               >
-                {/* ícone + selo encostado no canto (modelo TATÁ NEWS) */}
-                <span className="relative">
-                  <span className={cn('block', corIcone, recuar && 'opacity-50')}>
-                    <Calendar size={23} strokeWidth={1.5} />
-                  </span>
-                  {/* V = pegou → check vazado citric */}
+                {/* modelo Qualidade: feito = chip verde escuro + ícone citric */}
+                <span
+                  className={cn(
+                    'relative grid h-11 w-11 place-items-center rounded-2xl',
+                    jaPassou
+                      ? 'bg-accent-soft text-accent'
+                      : abertoAgora
+                        ? 'bg-accent text-black'
+                        : 'text-muted-2 opacity-40',
+                  )}
+                >
+                  <Calendar size={22} strokeWidth={1.6} />
+                  {/* V = pegou → círculo verde escuro + check citric */}
                   {concl && (
-                    <span className="absolute -right-1.5 -top-1.5 grid h-[18px] w-[18px] place-items-center rounded-full bg-accent-soft text-accent-dim">
-                      <Check size={9} strokeWidth={2.5} />
+                    <span className="absolute -right-1.5 -top-1.5 grid h-[18px] w-[18px] place-items-center rounded-full bg-accent-soft text-accent ring-2 ring-surface">
+                      <Check size={10} strokeWidth={2.5} />
                     </span>
                   )}
-                  {/* X = não pegou → citric */}
+                  {/* X = não pegou */}
                   {estado === 'encerrado' && (
-                    <span className="absolute -right-1.5 -top-1.5 text-accent">
-                      <X size={11} strokeWidth={2.5} />
+                    <span className="absolute -right-1.5 -top-1.5 grid h-[18px] w-[18px] place-items-center rounded-full bg-surface-3 text-muted ring-2 ring-surface">
+                      <X size={10} strokeWidth={3} />
                     </span>
                   )}
-                  {/* cadeado = próximos, ainda fechados → cinza */}
+                  {/* cadeado = futuro */}
                   {estado === 'em_breve' && (
                     <span className="absolute -right-1.5 -top-1.5 text-muted-2">
-                      <Lock size={10} />
+                      <Lock size={11} />
                     </span>
                   )}
                 </span>
-                <span className={cn('text-[10.5px] font-semibold', corIcone, recuar && 'opacity-50')}>
+                <span
+                  className={cn(
+                    'text-[10.5px] font-semibold',
+                    estado === 'em_breve' ? 'text-muted-2' : 'text-text',
+                  )}
+                >
                   {competencia(item.data_inicio)}
                 </span>
               </button>
@@ -169,50 +179,50 @@ export function Submodulo({ nome, itens, onAbrir, admin = false }) {
         <div className="grid grid-cols-4 gap-3 border-t border-line bg-surface-2/40 p-4">
           {itensOrdenados.map((item) => {
             const est = item.estado_reconhecimento
-            // realizado/já passou = segundo verde · disponível (liberado) = citric · futuro = cinza
-            const corRec =
-              est === 'resgatado' || est === 'ja_passou'
-                ? 'text-accent-dim'
-                : est === 'disponivel'
-                  ? 'text-accent'
-                  : 'text-muted-2'
-            const recuarRec = est === 'bloqueado' // futuro recua
+            // resgatado/já passou = chip verde escuro + citric · disponível = citric fill · futuro = cinza
+            const jaPassouRec = est === 'resgatado' || est === 'ja_passou'
             return (
               <button
                 key={item.id}
                 onClick={() => onAbrir(item)}
                 aria-label={tempoLabel(item.tempo_casa_meses)}
-                className="flex flex-col items-center gap-1 py-1.5 tap"
+                className="flex flex-col items-center gap-1.5 py-1.5 tap"
               >
-                {/* ícone + selo encostado no canto (modelo TATÁ NEWS) */}
-                <span className="relative">
-                  <span className={cn('block', corRec, recuarRec && 'opacity-50')}>
-                    <Gift size={24} strokeWidth={1.6} />
-                  </span>
-                  {/* resgatado → check vazado citric */}
+                {/* modelo Qualidade: feito = chip verde escuro + ícone citric */}
+                <span
+                  className={cn(
+                    'relative grid h-11 w-11 place-items-center rounded-2xl',
+                    jaPassouRec
+                      ? 'bg-accent-soft text-accent'
+                      : est === 'disponivel'
+                        ? 'bg-accent text-black'
+                        : 'text-muted-2 opacity-40',
+                  )}
+                >
+                  <Gift size={22} strokeWidth={1.7} />
+                  {/* resgatado → círculo verde escuro + check citric */}
                   {est === 'resgatado' && (
-                    <span className="absolute -right-1.5 -top-1.5 grid h-[18px] w-[18px] place-items-center rounded-full bg-accent-soft text-accent-dim">
-                      <Check size={9} strokeWidth={2.5} />
+                    <span className="absolute -right-1.5 -top-1.5 grid h-[18px] w-[18px] place-items-center rounded-full bg-accent-soft text-accent ring-2 ring-surface">
+                      <Check size={10} strokeWidth={2.5} />
                     </span>
                   )}
-                  {/* já passou (comemorado antes do programa) → segundo verde */}
+                  {/* já passou (comemorado antes do programa) → não resgatável */}
                   {est === 'ja_passou' && (
-                    <span className="absolute -right-1.5 -top-1.5 text-accent-dim">
-                      <Ban size={11} />
+                    <span className="absolute -right-1.5 -top-1.5 grid h-[18px] w-[18px] place-items-center rounded-full bg-surface-3 text-muted ring-2 ring-surface">
+                      <Ban size={10} />
                     </span>
                   )}
                   {/* futuro, ainda bloqueado → cinza */}
                   {est === 'bloqueado' && (
                     <span className="absolute -right-1.5 -top-1.5 text-muted-2">
-                      <Lock size={10} />
+                      <Lock size={11} />
                     </span>
                   )}
                 </span>
                 <span
                   className={cn(
                     'text-center text-[10.5px] font-semibold leading-tight',
-                    corRec,
-                    recuarRec && 'opacity-50',
+                    est === 'bloqueado' ? 'text-muted-2' : 'text-text',
                   )}
                 >
                   {tempoLabel(item.tempo_casa_meses)}

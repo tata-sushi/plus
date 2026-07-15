@@ -643,7 +643,7 @@ export function Treinamentos() {
                         <span
                           className={cn(
                             'text-xs font-bold',
-                            item.concluido ? 'text-muted' : bloqueado ? 'text-muted-2' : 'text-accent',
+                            bloqueado ? 'text-muted-2' : 'text-text',
                           )}
                         >
                           {rotulo}
@@ -667,7 +667,7 @@ export function Treinamentos() {
                       // cor da casinha conforme o estado
                       const casaCls = (idx) =>
                         item.concluido
-                          ? 'bg-accent-soft text-accent-dim' // realizado → número no segundo verde
+                          ? 'bg-accent-soft text-accent' // realizado → chip verde escuro + número citric
                           : !bloqueado && idx === 0
                             ? 'bg-accent text-black' // aberto → citric marcante
                             : 'border border-line bg-surface-2 text-muted-2' // futuro → escuro
@@ -744,7 +744,7 @@ export function Treinamentos() {
                                       {!existe ? (
                                         <span className="invisible h-7 w-7 shrink-0" />
                                       ) : ehCheck ? (
-                                        <span className={cn(nohBase, 'bg-accent-soft text-accent-dim')}>
+                                        <span className={cn(nohBase, 'bg-accent-soft text-accent')}>
                                           <Check size={13} strokeWidth={3} />
                                         </span>
                                       ) : idx === 0 ? (
