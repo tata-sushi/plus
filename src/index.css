@@ -112,6 +112,32 @@
   }
 }
 
+/* Conteúdo HTML dos desafios (missão/visão, procedimentos, etc.) */
+.conteudo p { margin-bottom: 0.85rem; }
+.conteudo h1, .conteudo h2, .conteudo h3, .conteudo h4 {
+  margin-top: 1.4rem;
+  margin-bottom: 0.35rem;
+  font-weight: 700;
+  font-size: 1.02rem;
+  color: rgb(var(--accent));
+}
+.conteudo > :first-child { margin-top: 0; }
+.conteudo em { font-style: normal; font-weight: 500; font-size: 0.85em; color: rgb(var(--muted)); }
+.conteudo ul { margin: 0.4rem 0 1.1rem; padding: 0; list-style: none; }
+.conteudo li { position: relative; padding-left: 1.15rem; margin-bottom: 0.5rem; }
+.conteudo li::before {
+  content: '';
+  position: absolute;
+  left: 0.1rem;
+  top: 0.55em;
+  height: 5px;
+  width: 5px;
+  border-radius: 9999px;
+  background: rgb(var(--accent));
+}
+.conteudo strong { font-weight: 700; }
+.conteudo a { color: rgb(var(--accent)); text-decoration: underline; }
+
 /* Animações */
 /* Sem frame "to": ao terminar, o transform volta a none — um transform que
    persiste no <main> viraria containing block e prenderia os overlays fixed. */
