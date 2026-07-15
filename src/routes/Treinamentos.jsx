@@ -17,6 +17,7 @@ import { Card } from '../components/Card.jsx'
 import { ProgressBar } from '../components/ProgressBar.jsx'
 import { PdfViewer } from '../components/PdfViewer.jsx'
 import { VideoPlayer } from '../components/VideoPlayer.jsx'
+import { VideosYouTube } from '../components/VideosYouTube.jsx'
 import { cn } from '../lib/cn'
 import { tapHaptic } from '../lib/haptics.js'
 import { resolveIcon } from '../lib/icons.js'
@@ -41,10 +42,14 @@ function Detalhe({ treino, onFechar, onConcluir, concluindo }) {
     }
   }, [treino.id])
 
+  const midias = Array.isArray(data?.midias) ? data.midias : []
+  const ehVideos = midias.length > 0
   const ehVideo = /\.(mp4|webm|mov)(\?|#|$)/i.test(data?.arquivo_url || '')
   const ehPdf = !!data?.arquivo_url && !ehVideo
-  const temConteudo = ehPdf || ehVideo || !!data?.conteudo_html
-  const podeConcluir = (treino.tipo === 'conteudo' || ehPdf || ehVideo) && !treino.concluido
+  const ehMidia = ehVideos || ehVideo
+  const temConteudo = ehVideos || ehPdf || ehVideo || !!data?.conteudo_html
+  const podeConcluir =
+    (treino.tipo === 'conteudo' || ehPdf || ehMidia) && !treino.concluido
 
   // sem conteúdo real pra ler (fallback) → libera direto
   useEffect(() => {
@@ -108,6 +113,8 @@ function Detalhe({ treino, onFechar, onConcluir, concluindo }) {
         <div className="hstack flex-1 justify-center py-16 text-muted-2">
           <Loader2 size={22} className="animate-spin" />
         </div>
+      ) : ehVideos ? (
+        <VideosYouTube videos={midias} onAssistidos={() => setLeuTudo(true)} />
       ) : ehVideo ? (
         <VideoPlayer src={data.arquivo_url} onAssistido={() => setLeuTudo(true)} />
       ) : ehPdf ? (
@@ -142,7 +149,7 @@ function Detalhe({ treino, onFechar, onConcluir, concluindo }) {
             </button>
           ) : (
             <div className="hstack justify-center gap-2 rounded-card bg-surface py-3 text-sm font-semibold text-muted-2">
-              {ehVideo ? (
+              {ehMidia ? (
                 <>
                   <Play size={15} fill="currentColor" /> Assista para realizar o desafio
                 </>

@@ -237,6 +237,14 @@ NÃO recriar como invoker senão quebra ranking/feed), `comunicados_feed`, `cart
     `pdfjs-dist` carregado sob demanda — iframe não renderizava inline no celular) + botão
     "Li e concluir" (usa `concluir_treinamento`, tipo segue 'conteudo'). Bucket **`desafios`** (público, upload admin).
     Falta: usuário subir os 30 PDFs no bucket.
+  - ✅ **Integração (3 vídeos)** — trilha movida pro TOPO (ordem 0). Os 3 desafios existentes
+    (histórico preservado) apontam pra `desafios/integracao-01.mp4` (Boa-vindas), `-02`
+    (Missão, Visão e Valores), `-03` (Apresentação TATÁ Plus); "História TATÁ Sushi" inativo (ordem 4).
+    `components/VideoPlayer.jsx`: vídeo inline + `onAssistido` no ended → libera "Concluir desafio".
+    Detecção por extensão do `arquivo_url` (mp4/webm/mov = vídeo; senão PDF). Falta subir os 3 MP4s.
+  - Extras TATÁ NEWS: prateleira de jornalzinhos (grid 4 col, sem caixa, #30→#1, estados por cor),
+    pontos da trilha na capa "(300 pts)", gate de rolagem ("Role para realizar o desafio"),
+    celebração animada ao concluir, pontos na pill do topo. Todos os 30 valem 10 pts.
   - Pendentes: demais categorias (texto HTML + rehospedar as 135 imagens Comunitive/403 no bucket `desafios`).
 - **Artes das Notícias** — trocar gradientes placeholder por imagens base (só preencher
   `imagem_url` por categoria).
