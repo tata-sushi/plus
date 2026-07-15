@@ -19,13 +19,13 @@ import { cn } from '../lib/cn'
 const tempoLabel = (m) =>
   m == null ? '' : m < 12 ? `${m} meses` : `${m / 12} ${m / 12 === 1 ? 'ano' : 'anos'}`
 
-// competência (folha 21→20) = mês anterior ao início da janela.
-// Ex.: janela abre 01/07 (período 21/06–20/07) → competência 06/2026.
+// competência (folha 21→20) = mês de início do período (2 meses antes da janela).
+// Ex.: janela abre 01/08 (período 21/06–20/07) → competência 06/2026.
 function competencia(di) {
   if (!di) return ''
   const d = new Date(`${di}T00:00:00`)
   d.setDate(1)
-  d.setMonth(d.getMonth() - 1)
+  d.setMonth(d.getMonth() - 2)
   return `${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`
 }
 
