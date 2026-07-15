@@ -11,16 +11,9 @@ import {
   Calendar,
   PartyPopper,
   Gift,
+  History,
 } from 'lucide-react'
 import { cn } from '../lib/cn'
-
-// selo/ícone por estado do reconhecimento (tempo de casa)
-const REC = {
-  disponivel: { Icon: Gift, cls: 'bg-accent text-black' },
-  resgatado: { Icon: CheckCircle2, cls: 'bg-accent-soft text-accent' },
-  ja_passou: { Icon: X, cls: 'bg-surface-2 text-muted-2' },
-  bloqueado: { Icon: Lock, cls: 'bg-surface-2 text-muted-2' },
-}
 
 // competência (folha 21→20) = mês anterior ao início da janela.
 // Ex.: janela abre 01/07 (período 21/06–20/07) → competência 06/2026.
@@ -113,49 +106,71 @@ export function Submodulo({ nome, itens, onAbrir, onResgatar, admin = false }) {
         </div>
       )}
 
-      {/* Reconhecimento por tempo de casa → níveis com estado */}
+      {/* Reconhecimento por tempo de casa → escadinha de degraus */}
       {aberto && ehRec && (
-        <div>
-          <div className="border-t border-line bg-surface-2/40 px-4 py-3 text-[11px] leading-snug text-muted">
-            Reconhecimento pelo seu tempo de casa 🎉 A partir de 6 meses, cada marco libera um prêmio.
-            Marcos anteriores à entrada no programa não contam retroativo.
-          </div>
-          {itens.map((item) => {
+        <div className="border-t border-line bg-surface-2/40 px-3 py-3">
+          <p className="px-1 pb-1 text-[11px] leading-snug text-muted">
+            Sua escadinha de tempo de casa 🪜 A cada degrau, um reconhecimento. O que valer é daqui
+            pra frente — marcos antes da entrada no programa não são resgatáveis.
+          </p>
+          {itens.map((item, idx) => {
             const est = item.estado_reconhecimento
-            const cfg = REC[est] || REC.bloqueado
             const ehPontos = item.pontos > 0
-            const dim = est === 'ja_passou' || est === 'bloqueado'
+            const nodo =
+              est === 'resgatado'
+                ? { Icon: Check, cls: 'bg-accent text-black' }
+                : est === 'disponivel'
+                  ? { Icon: Gift, cls: 'bg-accent text-black ring-2 ring-accent/30' }
+                  : est === 'ja_passou'
+                    ? { Icon: History, cls: 'bg-surface-2 text-muted-2' }
+                    : { Icon: Lock, cls: 'border border-dashed border-line bg-surface text-muted-2' }
             return (
-              <div
-                key={item.id}
-                className={cn(
-                  'hstack gap-3 border-t border-line bg-surface-2/40 px-4 py-3',
-                  dim && 'opacity-70',
-                )}
-              >
-                <span className={cn('grid h-8 w-8 shrink-0 place-items-center rounded-full', cfg.cls)}>
-                  <cfg.Icon size={15} />
-                </span>
-                <div className="min-w-0 flex-1">
-                  <div className="text-sm font-semibold">{item.titulo}</div>
-                  <div className="text-[11px] leading-snug text-muted-2">{item.descricao}</div>
-                </div>
-                {est === 'disponivel' && ehPontos ? (
-                  <button
-                    onClick={() => onResgatar?.(item)}
-                    className="btn-primary shrink-0 !px-3 !py-1.5 text-xs"
+              <div key={item.id} style={{ paddingLeft: `${Math.min(idx, 6) * 11}px` }}>
+                <div
+                  className={cn(
+                    'mt-2 hstack gap-2.5 rounded-card border px-3 py-2.5',
+                    est === 'disponivel'
+                      ? 'border-accent/40 bg-accent-soft/40'
+                      : est === 'ja_passou'
+                        ? 'border-line bg-surface/60 opacity-75'
+                        : 'border-line bg-surface',
+                  )}
+                >
+                  <span
+                    className={cn(
+                      'grid h-8 w-8 shrink-0 place-items-center rounded-full',
+                      nodo.cls,
+                    )}
                   >
-                    Resgatar
-                  </button>
-                ) : est === 'disponivel' ? (
-                  <span className="pill shrink-0 bg-accent-soft text-[10px] text-accent">Disponível</span>
-                ) : est === 'resgatado' ? (
-                  <span className="pill shrink-0 bg-accent-soft text-[10px] text-accent">Resgatado</span>
-                ) : est === 'ja_passou' ? (
-                  <span className="pill shrink-0 bg-surface-2 text-[10px] text-muted-2">Já passou</span>
-                ) : (
-                  <Lock size={13} className="shrink-0 text-muted-2" />
-                )}
+                    <nodo.Icon size={15} />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-sm font-semibold leading-tight">{item.titulo}</div>
+                    <div className="mt-0.5 text-[11px] leading-snug text-muted-2">
+                      {item.descricao}
+                    </div>
+                  </div>
+                  {est === 'disponivel' && ehPontos ? (
+                    <button
+                      onClick={() => onResgatar?.(item)}
+                      className="btn-primary shrink-0 !px-3 !py-1.5 text-xs"
+                    >
+                      Resgatar
+                    </button>
+                  ) : est === 'disponivel' ? (
+                    <span className="pill shrink-0 bg-accent text-[10px] text-black">Disponível</span>
+                  ) : est === 'resgatado' ? (
+                    <span className="pill shrink-0 bg-accent-soft text-[10px] text-accent">Resgatado</span>
+                  ) : est === 'ja_passou' ? (
+                    <span className="pill shrink-0 bg-surface-2 text-[10px] text-muted-2">
+                      Antes do programa
+                    </span>
+                  ) : (
+                    <span className="pill shrink-0 bg-surface-2 text-[10px] text-muted-2">
+                      A conquistar
+                    </span>
+                  )}
+                </div>
               </div>
             )
           })}
