@@ -78,8 +78,7 @@ function Detalhe({ treino, onFechar, onConcluir, concluindo }) {
           <ArrowLeft size={15} /> Voltar
         </button>
         <div className="min-w-0 flex-1 truncate text-center font-display text-sm font-bold">
-          Desafio{' '}
-          <span className="text-xs font-medium text-muted">({treino.titulo})</span>
+          ({treino.titulo})
         </div>
         {treino.pontos > 0 ? (
           <span className="pill shrink-0 bg-accent-soft text-accent">

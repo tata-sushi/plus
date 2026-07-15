@@ -28,8 +28,25 @@ function VideoYT({ id, onFim }) {
   useEffect(() => {
     let player
     let intervalo
+    let iframeEl = null
     let cancelado = false
     const maxAssistido = { current: 0 }
+
+    // tela cheia: gira pra paisagem (Android; iOS não expõe essa API)
+    function aoMudarTelaCheia() {
+      const cheio = document.fullscreenElement === iframeEl
+      if (cheio) {
+        screen.orientation?.lock?.('landscape').catch(() => {})
+      } else {
+        try {
+          screen.orientation?.unlock?.()
+        } catch {
+          /* ignore */
+        }
+      }
+    }
+    document.addEventListener('fullscreenchange', aoMudarTelaCheia)
+    document.addEventListener('webkitfullscreenchange', aoMudarTelaCheia)
 
     carregarYT().then((YT) => {
       if (cancelado || !ref.current) return
@@ -37,6 +54,9 @@ function VideoYT({ id, onFim }) {
         videoId: id,
         playerVars: { playsinline: 1, rel: 0, modestbranding: 1, disablekb: 1 },
         events: {
+          onReady: (e) => {
+            iframeEl = e.target.getIframe?.() || null
+          },
           onStateChange: (e) => {
             if (e.data === 0) onFim() // 0 = ENDED
           },
@@ -57,6 +77,8 @@ function VideoYT({ id, onFim }) {
     return () => {
       cancelado = true
       clearInterval(intervalo)
+      document.removeEventListener('fullscreenchange', aoMudarTelaCheia)
+      document.removeEventListener('webkitfullscreenchange', aoMudarTelaCheia)
       try {
         player?.destroy?.()
       } catch {
