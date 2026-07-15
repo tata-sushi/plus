@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { CheckCircle2, Lock } from 'lucide-react'
+import { IntroDesafio } from './IntroDesafio.jsx'
 import { cn } from '../lib/cn'
 
 // Carrega a IFrame Player API do YouTube uma única vez.
@@ -23,7 +24,8 @@ function carregarYT() {
 const TOLERANCIA_S = 1.5 // margem pra não travar por buffering
 
 // Player do vídeo atual — trava avanço (não deixa passar pra frente do que já assistiu).
-function VideoYT({ id, onFim }) {
+// travado=false (rever): navegação livre.
+function VideoYT({ id, onFim, travado = true }) {
   const ref = useRef(null)
   useEffect(() => {
     let player
@@ -63,15 +65,17 @@ function VideoYT({ id, onFim }) {
         },
       })
       // trava o avanço: se o usuário arrastar pra frente, volta pro ponto máximo já assistido
-      intervalo = setInterval(() => {
-        if (!player?.getCurrentTime) return
-        const atual = player.getCurrentTime()
-        if (atual > maxAssistido.current + TOLERANCIA_S) {
-          player.seekTo(maxAssistido.current, true)
-        } else {
-          maxAssistido.current = Math.max(maxAssistido.current, atual)
-        }
-      }, 500)
+      if (travado) {
+        intervalo = setInterval(() => {
+          if (!player?.getCurrentTime) return
+          const atual = player.getCurrentTime()
+          if (atual > maxAssistido.current + TOLERANCIA_S) {
+            player.seekTo(maxAssistido.current, true)
+          } else {
+            maxAssistido.current = Math.max(maxAssistido.current, atual)
+          }
+        }, 500)
+      }
     })
 
     return () => {
@@ -93,8 +97,9 @@ function VideoYT({ id, onFim }) {
 // os futuros ficam bloqueados. onAssistidos() dispara quando TODOS terminaram.
 // O progresso (quais vídeos já foram assistidos) fica salvo por desafio — quem
 // já viu não precisa rever ao reabrir.
-export function VideosYouTube({ chave, videos, jaConcluido, onAssistidos }) {
+export function VideosYouTube({ chave, videos, jaConcluido, onAssistidos, intro }) {
   const storageKey = `tp_videos_${chave}`
+  const [reaberto, setReaberto] = useState(null) // vídeo já visto reaberto pra rever
   const [vistos, setVistos] = useState(() => {
     // desafio já concluído no app → todos contam como vistos
     if (jaConcluido) return new Set(videos.map((_, i) => i))
@@ -126,22 +131,37 @@ export function VideosYouTube({ chave, videos, jaConcluido, onAssistidos }) {
 
   return (
     <div className="flex-1 overflow-y-auto px-4 py-4">
+      {intro && (
+        <div className="mb-5">
+          <IntroDesafio titulo={intro.titulo} frase={intro.frase} />
+        </div>
+      )}
       <div className="flex flex-col gap-3">
         {videos.map((v, i) => {
           const concluido = vistos.has(i)
           const ativo = i === atual
+          const mostrando = ativo || reaberto === i
           return (
             <div key={v.yt}>
-              <div className="mb-1.5 hstack gap-2">
-                {concluido && <CheckCircle2 size={16} className="text-accent" />}
-                {!concluido && !ativo && <Lock size={13} className="text-muted-2" />}
+              <button
+                onClick={() => concluido && setReaberto(reaberto === i ? null : i)}
+                disabled={!concluido}
+                className="mb-1.5 hstack w-full gap-2 text-left tap"
+              >
+                {concluido && <CheckCircle2 size={16} className="shrink-0 text-accent" />}
+                {!concluido && !ativo && <Lock size={13} className="shrink-0 text-muted-2" />}
                 <span className={cn('text-sm font-semibold', !concluido && !ativo && 'text-muted-2')}>
                   {v.nome}
                 </span>
-              </div>
-              {ativo && (
+                {concluido && (
+                  <span className="ml-auto shrink-0 text-[11px] font-semibold text-muted">
+                    {reaberto === i ? 'Fechar' : 'Rever'}
+                  </span>
+                )}
+              </button>
+              {mostrando && (
                 <div className="aspect-video w-full overflow-hidden rounded-xl bg-black [&>iframe]:h-full [&>iframe]:w-full">
-                  <VideoYT id={v.yt} onFim={() => marcar(i)} />
+                  <VideoYT id={v.yt} travado={!concluido} onFim={() => marcar(i)} />
                 </div>
               )}
             </div>

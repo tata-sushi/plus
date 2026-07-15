@@ -118,6 +118,7 @@ function Detalhe({ treino, onFechar, onConcluir, concluindo }) {
           videos={midias}
           jaConcluido={treino.concluido}
           onAssistidos={() => setLeuTudo(true)}
+          intro={{ titulo: treino.titulo, frase: data.descricao || treino.descricao }}
         />
       ) : ehVideo ? (
         <VideoPlayer src={data.arquivo_url} onAssistido={() => setLeuTudo(true)} />
