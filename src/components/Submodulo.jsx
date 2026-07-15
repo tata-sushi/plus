@@ -116,8 +116,11 @@ export function Submodulo({ nome, itens, onAbrir, admin = false }) {
             {itensOrdenados.map((item) => {
             const concl = item.concluido
             const estado = concl ? 'concluido' : item.janela_estado
-            const abertoAgora = estado === 'aberto' // atual → aceso (cítrico), sem selo
+            const abertoAgora = estado === 'aberto' // atual → citric marcante, sem selo
             const pode = abertoAgora || concl || admin
+            // realizado = verde escuro · aberto = citric · resto = cinza
+            const corIcone = concl ? 'text-accent-dim' : abertoAgora ? 'text-accent' : 'text-muted-2'
+            const recuar = estado === 'em_breve' && !admin // futuro recua um pouco
             return (
               <button
                 key={item.id}
@@ -128,41 +131,29 @@ export function Submodulo({ nome, itens, onAbrir, admin = false }) {
               >
                 {/* ícone + selo encostado no canto (modelo TATÁ NEWS) */}
                 <span className="relative">
-                  <span
-                    className={cn(
-                      'block',
-                      abertoAgora ? 'text-accent' : 'text-muted-2',
-                      !abertoAgora && !admin && 'opacity-40',
-                    )}
-                  >
+                  <span className={cn('block', corIcone, recuar && 'opacity-50')}>
                     <Calendar size={23} strokeWidth={1.5} />
                   </span>
-                  {/* V = pegou */}
+                  {/* V = pegou → check vazado citric */}
                   {concl && (
-                    <span className="absolute -right-1.5 -top-1.5 grid h-3.5 w-3.5 place-items-center rounded-full bg-accent text-black ring-2 ring-surface-2">
+                    <span className="absolute -right-1.5 -top-1.5 grid h-4 w-4 place-items-center rounded-full border border-accent bg-bg text-accent">
                       <Check size={9} strokeWidth={3} />
                     </span>
                   )}
-                  {/* X = não pegou */}
+                  {/* X = não pegou → citric */}
                   {estado === 'encerrado' && (
-                    <span className="absolute -right-1.5 -top-1.5 text-muted-2">
+                    <span className="absolute -right-1.5 -top-1.5 text-accent">
                       <X size={11} strokeWidth={2.5} />
                     </span>
                   )}
-                  {/* cadeado = próximos, ainda fechados */}
+                  {/* cadeado = próximos, ainda fechados → cinza */}
                   {estado === 'em_breve' && (
                     <span className="absolute -right-1.5 -top-1.5 text-muted-2">
                       <Lock size={10} />
                     </span>
                   )}
                 </span>
-                <span
-                  className={cn(
-                    'text-[10.5px] font-semibold',
-                    abertoAgora ? 'text-accent' : 'text-muted-2',
-                    !abertoAgora && !admin && 'opacity-40',
-                  )}
-                >
+                <span className={cn('text-[10.5px] font-semibold', corIcone, recuar && 'opacity-50')}>
                   {competencia(item.data_inicio)}
                 </span>
               </button>
@@ -177,7 +168,10 @@ export function Submodulo({ nome, itens, onAbrir, admin = false }) {
         <div className="grid grid-cols-4 gap-3 border-t border-line bg-surface-2/40 p-4">
           {itensOrdenados.map((item) => {
             const est = item.estado_reconhecimento
-            const ativoRec = est === 'disponivel' || est === 'resgatado'
+            // resgatado = verde escuro · disponível = citric · resto = cinza
+            const corRec =
+              est === 'resgatado' ? 'text-accent-dim' : est === 'disponivel' ? 'text-accent' : 'text-muted-2'
+            const recuarRec = est === 'bloqueado' // futuro recua
             return (
               <button
                 key={item.id}
@@ -187,25 +181,22 @@ export function Submodulo({ nome, itens, onAbrir, admin = false }) {
               >
                 {/* ícone + selo encostado no canto (modelo TATÁ NEWS) */}
                 <span className="relative">
-                  <span
-                    className={cn(
-                      'block',
-                      ativoRec ? 'text-accent' : 'text-muted-2',
-                      (est === 'ja_passou' || est === 'bloqueado') && 'opacity-70',
-                    )}
-                  >
+                  <span className={cn('block', corRec, recuarRec && 'opacity-50')}>
                     <Gift size={24} strokeWidth={1.6} />
                   </span>
+                  {/* resgatado → check vazado citric */}
                   {est === 'resgatado' && (
-                    <span className="absolute -right-1.5 -top-1.5 grid h-3.5 w-3.5 place-items-center rounded-full bg-accent text-black ring-2 ring-surface-2">
+                    <span className="absolute -right-1.5 -top-1.5 grid h-4 w-4 place-items-center rounded-full border border-accent bg-bg text-accent">
                       <Check size={9} strokeWidth={3} />
                     </span>
                   )}
+                  {/* já passou (comemorado antes do programa) → citric */}
                   {est === 'ja_passou' && (
-                    <span className="absolute -right-1.5 -top-1.5 text-muted-2">
+                    <span className="absolute -right-1.5 -top-1.5 text-accent">
                       <Ban size={11} />
                     </span>
                   )}
+                  {/* futuro, ainda bloqueado → cinza */}
                   {est === 'bloqueado' && (
                     <span className="absolute -right-1.5 -top-1.5 text-muted-2">
                       <Lock size={10} />
@@ -215,8 +206,8 @@ export function Submodulo({ nome, itens, onAbrir, admin = false }) {
                 <span
                   className={cn(
                     'text-center text-[10.5px] font-semibold leading-tight',
-                    ativoRec ? 'text-accent' : 'text-muted-2',
-                    (est === 'ja_passou' || est === 'bloqueado') && 'opacity-70',
+                    corRec,
+                    recuarRec && 'opacity-50',
                   )}
                 >
                   {tempoLabel(item.tempo_casa_meses)}
