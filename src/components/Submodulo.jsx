@@ -124,37 +124,46 @@ export function Submodulo({ nome, itens, onAbrir, admin = false }) {
                 onClick={() => pode && onAbrir(item)}
                 disabled={!pode}
                 aria-label={`Presença ${competencia(item.data_inicio)}`}
-                className="relative flex flex-col items-center gap-1 py-1.5 tap"
+                className="flex flex-col items-center gap-1 py-1.5 tap"
               >
-                {/* V = pegou */}
-                {concl && (
-                  <span className="absolute right-0.5 top-0 z-10 grid h-3.5 w-3.5 place-items-center rounded-full bg-accent text-black">
-                    <Check size={9} strokeWidth={3} />
+                {/* ícone + selo encostado no canto (modelo TATÁ NEWS) */}
+                <span className="relative">
+                  <span
+                    className={cn(
+                      'block',
+                      abertoAgora ? 'text-accent' : 'text-muted-2',
+                      !abertoAgora && !admin && 'opacity-40',
+                    )}
+                  >
+                    <Calendar size={23} strokeWidth={1.5} />
                   </span>
-                )}
-                {/* X = não pegou */}
-                {estado === 'encerrado' && (
-                  <span className="absolute right-0.5 top-0 z-10 text-muted-2">
-                    <X size={11} strokeWidth={2.5} />
-                  </span>
-                )}
-                {/* cadeado = próximos, ainda fechados */}
-                {estado === 'em_breve' && (
-                  <span className="absolute right-0.5 top-0 z-10 text-muted-2">
-                    <Lock size={10} />
-                  </span>
-                )}
+                  {/* V = pegou */}
+                  {concl && (
+                    <span className="absolute -right-1.5 -top-1.5 grid h-3.5 w-3.5 place-items-center rounded-full bg-accent text-black ring-2 ring-surface-2">
+                      <Check size={9} strokeWidth={3} />
+                    </span>
+                  )}
+                  {/* X = não pegou */}
+                  {estado === 'encerrado' && (
+                    <span className="absolute -right-1.5 -top-1.5 text-muted-2">
+                      <X size={11} strokeWidth={2.5} />
+                    </span>
+                  )}
+                  {/* cadeado = próximos, ainda fechados */}
+                  {estado === 'em_breve' && (
+                    <span className="absolute -right-1.5 -top-1.5 text-muted-2">
+                      <Lock size={10} />
+                    </span>
+                  )}
+                </span>
                 <span
                   className={cn(
-                    'flex flex-col items-center gap-1',
+                    'text-[10.5px] font-semibold',
                     abertoAgora ? 'text-accent' : 'text-muted-2',
                     !abertoAgora && !admin && 'opacity-40',
                   )}
                 >
-                  <Calendar size={23} strokeWidth={1.5} />
-                  <span className="text-[10.5px] font-semibold">
-                    {competencia(item.data_inicio)}
-                  </span>
+                  {competencia(item.data_inicio)}
                 </span>
               </button>
             )
@@ -174,29 +183,42 @@ export function Submodulo({ nome, itens, onAbrir, admin = false }) {
                 key={item.id}
                 onClick={() => onAbrir(item)}
                 aria-label={tempoLabel(item.tempo_casa_meses)}
-                className={cn(
-                  'relative flex flex-col items-center gap-1 py-1.5 tap',
-                  ativoRec ? 'text-accent' : 'text-muted-2',
-                  (est === 'ja_passou' || est === 'bloqueado') && 'opacity-70',
-                )}
+                className="flex flex-col items-center gap-1 py-1.5 tap"
               >
-                {est === 'resgatado' && (
-                  <span className="absolute right-0.5 top-0 grid h-3.5 w-3.5 place-items-center rounded-full bg-accent text-black">
-                    <Check size={9} strokeWidth={3} />
+                {/* ícone + selo encostado no canto (modelo TATÁ NEWS) */}
+                <span className="relative">
+                  <span
+                    className={cn(
+                      'block',
+                      ativoRec ? 'text-accent' : 'text-muted-2',
+                      (est === 'ja_passou' || est === 'bloqueado') && 'opacity-70',
+                    )}
+                  >
+                    <Gift size={24} strokeWidth={1.6} />
                   </span>
-                )}
-                {est === 'ja_passou' && (
-                  <span className="absolute right-0.5 top-0">
-                    <Ban size={11} />
-                  </span>
-                )}
-                {est === 'bloqueado' && (
-                  <span className="absolute right-0.5 top-0">
-                    <Lock size={10} />
-                  </span>
-                )}
-                <Gift size={24} strokeWidth={1.6} />
-                <span className="text-center text-[10.5px] font-semibold leading-tight">
+                  {est === 'resgatado' && (
+                    <span className="absolute -right-1.5 -top-1.5 grid h-3.5 w-3.5 place-items-center rounded-full bg-accent text-black ring-2 ring-surface-2">
+                      <Check size={9} strokeWidth={3} />
+                    </span>
+                  )}
+                  {est === 'ja_passou' && (
+                    <span className="absolute -right-1.5 -top-1.5 text-muted-2">
+                      <Ban size={11} />
+                    </span>
+                  )}
+                  {est === 'bloqueado' && (
+                    <span className="absolute -right-1.5 -top-1.5 text-muted-2">
+                      <Lock size={10} />
+                    </span>
+                  )}
+                </span>
+                <span
+                  className={cn(
+                    'text-center text-[10.5px] font-semibold leading-tight',
+                    ativoRec ? 'text-accent' : 'text-muted-2',
+                    (est === 'ja_passou' || est === 'bloqueado') && 'opacity-70',
+                  )}
+                >
                   {tempoLabel(item.tempo_casa_meses)}
                 </span>
               </button>
