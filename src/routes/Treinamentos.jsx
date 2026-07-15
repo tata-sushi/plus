@@ -23,7 +23,7 @@ import { VideosYouTube, VideosLista } from '../components/VideosYouTube.jsx'
 import { IntroDesafio } from '../components/IntroDesafio.jsx'
 import { ProvaDesafio } from '../components/ProvaDesafio.jsx'
 import { EnvioDesafio } from '../components/EnvioDesafio.jsx'
-import { SubEnvios } from '../components/SubEnvios.jsx'
+import { Submodulo } from '../components/Submodulo.jsx'
 import { CodigoEtica } from '../components/CodigoEtica.jsx'
 import { cn } from '../lib/cn'
 import { tapHaptic } from '../lib/haptics.js'
@@ -708,7 +708,7 @@ export function Treinamentos() {
                     )
                   })}
                   {Object.entries(subcats).map(([nome, itens]) => (
-                    <SubEnvios key={nome} nome={nome} itens={itens} onAbrir={abrir} />
+                    <Submodulo key={nome} nome={nome} itens={itens} onAbrir={abrir} />
                   ))}
                 </div>
               )}
