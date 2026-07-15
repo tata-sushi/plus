@@ -136,7 +136,7 @@ export function Submodulo({ nome, itens, onAbrir, admin = false }) {
                   </span>
                   {/* V = pegou → check vazado citric */}
                   {concl && (
-                    <span className="absolute -right-1.5 -top-1.5 grid h-4 w-4 place-items-center rounded-full border border-accent bg-bg text-accent">
+                    <span className="absolute -right-1.5 -top-1.5 grid h-4 w-4 place-items-center rounded-full border border-accent-dim bg-accent-soft text-accent-dim">
                       <Check size={9} strokeWidth={3} />
                     </span>
                   )}
@@ -168,9 +168,13 @@ export function Submodulo({ nome, itens, onAbrir, admin = false }) {
         <div className="grid grid-cols-4 gap-3 border-t border-line bg-surface-2/40 p-4">
           {itensOrdenados.map((item) => {
             const est = item.estado_reconhecimento
-            // resgatado = verde escuro · disponível = citric · resto = cinza
+            // realizado/já passou = segundo verde · disponível (liberado) = citric · futuro = cinza
             const corRec =
-              est === 'resgatado' ? 'text-accent-dim' : est === 'disponivel' ? 'text-accent' : 'text-muted-2'
+              est === 'resgatado' || est === 'ja_passou'
+                ? 'text-accent-dim'
+                : est === 'disponivel'
+                  ? 'text-accent'
+                  : 'text-muted-2'
             const recuarRec = est === 'bloqueado' // futuro recua
             return (
               <button
@@ -186,13 +190,13 @@ export function Submodulo({ nome, itens, onAbrir, admin = false }) {
                   </span>
                   {/* resgatado → check vazado citric */}
                   {est === 'resgatado' && (
-                    <span className="absolute -right-1.5 -top-1.5 grid h-4 w-4 place-items-center rounded-full border border-accent bg-bg text-accent">
+                    <span className="absolute -right-1.5 -top-1.5 grid h-4 w-4 place-items-center rounded-full border border-accent-dim bg-accent-soft text-accent-dim">
                       <Check size={9} strokeWidth={3} />
                     </span>
                   )}
-                  {/* já passou (comemorado antes do programa) → citric */}
+                  {/* já passou (comemorado antes do programa) → segundo verde */}
                   {est === 'ja_passou' && (
-                    <span className="absolute -right-1.5 -top-1.5 text-accent">
+                    <span className="absolute -right-1.5 -top-1.5 text-accent-dim">
                       <Ban size={11} />
                     </span>
                   )}

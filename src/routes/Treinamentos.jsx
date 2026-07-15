@@ -624,7 +624,7 @@ export function Treinamentos() {
                         )}
                       >
                         {item.concluido && (
-                          <span className="absolute right-2 top-0 grid h-4 w-4 place-items-center rounded-full border border-accent bg-bg text-accent">
+                          <span className="absolute right-2 top-0 grid h-4 w-4 place-items-center rounded-full border border-accent-dim bg-accent-soft text-accent-dim">
                             <Check size={10} strokeWidth={3} />
                           </span>
                         )}
@@ -654,7 +654,7 @@ export function Treinamentos() {
                       // cor da casinha conforme o estado
                       const casaCls = (idx) =>
                         item.concluido
-                          ? 'bg-accent-soft text-accent' // realizado → número citric em verde suave
+                          ? 'bg-accent-soft text-accent-dim' // realizado → número no segundo verde
                           : !bloqueado && idx === 0
                             ? 'bg-accent text-black' // aberto → citric marcante
                             : 'border border-line bg-surface-2 text-muted-2' // futuro → escuro
@@ -731,7 +731,7 @@ export function Treinamentos() {
                                       {!existe ? (
                                         <span className="invisible h-7 w-7 shrink-0" />
                                       ) : ehCheck ? (
-                                        <span className={cn(nohBase, 'border border-accent bg-bg text-accent')}>
+                                        <span className={cn(nohBase, 'bg-accent-soft text-accent-dim')}>
                                           <Check size={13} strokeWidth={3} />
                                         </span>
                                       ) : idx === 0 ? (
