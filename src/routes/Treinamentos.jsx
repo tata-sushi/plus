@@ -337,6 +337,8 @@ function Detalhe({ treino, onFechar, onConcluir, onEnviarProva, onAssinarCodigo,
 }
 
 export function Treinamentos() {
+  const { usuario } = useAuth()
+  const admin = usuario?.podePublicar
   const [trilhas, setTrilhas] = useState([])
   const [carregando, setCarregando] = useState(true)
   const [aberta, setAberta] = useState(null) // trilha_id expandida
@@ -378,10 +380,8 @@ export function Treinamentos() {
   }, [carregar])
 
   function abrir(item) {
-    if (!item.liberado || item.concluido) {
-      if (item.concluido) setDetalhe(item)
-      return
-    }
+    // admin pode abrir qualquer desafio pra conferir; a ação (enviar/concluir) segue travada no servidor
+    if (!item.liberado && !item.concluido && !admin) return
     tapHaptic()
     setAviso('')
     setDetalhe(item)
@@ -708,7 +708,7 @@ export function Treinamentos() {
                     )
                   })}
                   {Object.entries(subcats).map(([nome, itens]) => (
-                    <Submodulo key={nome} nome={nome} itens={itens} onAbrir={abrir} />
+                    <Submodulo key={nome} nome={nome} itens={itens} onAbrir={abrir} admin={admin} />
                   ))}
                 </div>
               )}
