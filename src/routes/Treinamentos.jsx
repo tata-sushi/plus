@@ -16,6 +16,7 @@ import { Header } from '../components/Header.jsx'
 import { Card } from '../components/Card.jsx'
 import { ProgressBar } from '../components/ProgressBar.jsx'
 import { PdfViewer } from '../components/PdfViewer.jsx'
+import { VideoPlayer } from '../components/VideoPlayer.jsx'
 import { cn } from '../lib/cn'
 import { tapHaptic } from '../lib/haptics.js'
 import { resolveIcon } from '../lib/icons.js'
@@ -40,9 +41,10 @@ function Detalhe({ treino, onFechar, onConcluir, concluindo }) {
     }
   }, [treino.id])
 
-  const ehPdf = !!data?.arquivo_url
-  const temConteudo = ehPdf || !!data?.conteudo_html
-  const podeConcluir = (treino.tipo === 'conteudo' || ehPdf) && !treino.concluido
+  const ehVideo = /\.(mp4|webm|mov)(\?|#|$)/i.test(data?.arquivo_url || '')
+  const ehPdf = !!data?.arquivo_url && !ehVideo
+  const temConteudo = ehPdf || ehVideo || !!data?.conteudo_html
+  const podeConcluir = (treino.tipo === 'conteudo' || ehPdf || ehVideo) && !treino.concluido
 
   // sem conteúdo real pra ler (fallback) → libera direto
   useEffect(() => {
@@ -106,6 +108,8 @@ function Detalhe({ treino, onFechar, onConcluir, concluindo }) {
         <div className="hstack flex-1 justify-center py-16 text-muted-2">
           <Loader2 size={22} className="animate-spin" />
         </div>
+      ) : ehVideo ? (
+        <VideoPlayer src={data.arquivo_url} onAssistido={() => setLeuTudo(true)} />
       ) : ehPdf ? (
         <PdfViewer src={data.arquivo_url} onLido={() => setLeuTudo(true)} />
       ) : data.conteudo_html ? (
@@ -138,7 +142,15 @@ function Detalhe({ treino, onFechar, onConcluir, concluindo }) {
             </button>
           ) : (
             <div className="hstack justify-center gap-2 rounded-card bg-surface py-3 text-sm font-semibold text-muted-2">
-              <ArrowDown size={16} className="animate-bounce" /> Role para realizar o desafio
+              {ehVideo ? (
+                <>
+                  <Play size={15} fill="currentColor" /> Assista para realizar o desafio
+                </>
+              ) : (
+                <>
+                  <ArrowDown size={16} className="animate-bounce" /> Role para realizar o desafio
+                </>
+              )}
             </div>
           )
         ) : (
