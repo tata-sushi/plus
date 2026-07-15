@@ -12,6 +12,7 @@ import {
   PartyPopper,
   Gift,
   Ban,
+  Info,
 } from 'lucide-react'
 import { cn } from '../lib/cn'
 
@@ -29,11 +30,27 @@ function competencia(di) {
   return `${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`
 }
 
+// Regras completas da série (sem datas — valem pra todos os meses). Ficam no topo
+// da bancada, sempre acessíveis, para que cada mês possa ter um texto curtinho.
+const COMO_FUNCIONA = {
+  '100% de Presença': `
+    <p>Sua pontualidade e comprometimento valem muito — e aqui no TATÁ Plus valem pontos! Todo mês em que você tiver <strong>100% de presença</strong> (presença por dias trabalhados), você ganha <strong>100 pontos extras</strong>. Sem sorteio, sem mistério e sem enrolação!</p>
+    <p><strong>Como funciona:</strong></p>
+    <ul>
+      <li>O desafio é liberado <strong>todo mês, após o fechamento do mês</strong>, sempre com o período de <strong>21 a 20</strong>.</li>
+      <li>Cada competência fica aberta <strong>do dia 01 ao dia 10</strong>. Depois disso, fecha.</li>
+      <li>No aplicativo RHiD, confira seu cartão de ponto, assine, tire um print e anexe aqui no card do mês.</li>
+      <li>Os pontos são liberados só para cartões <strong>assinados, sem faltas ou atestados</strong> no período.</li>
+    </ul>
+  `,
+}
+
 // Submódulo dentro de uma trilha (ex.: dentro de "Especiais"). Recolhível.
 // Série mensal de envio (ex.: 100% de Presença) → bancada de calendários (mês/ano),
 // no estilo do TATÁ NEWS. Demais → lista simples de desafios.
 export function Submodulo({ nome, itens, onAbrir, admin = false }) {
   const [aberto, setAberto] = useState(false)
+  const [sobre, setSobre] = useState(false)
   const ehSerie = itens.length > 0 && itens.every((i) => i.tipo === 'envio')
   const ehRec = itens.length > 0 && itens.every((i) => i.tipo === 'reconhecimento')
   const feitos = itens.filter((i) => i.concluido).length
@@ -73,8 +90,30 @@ export function Submodulo({ nome, itens, onAbrir, admin = false }) {
 
       {/* Série mensal → bancada de calendários (mês/ano) */}
       {aberto && ehSerie && (
-        <div className="grid grid-cols-4 gap-3 bg-surface-2/40 p-4">
-          {itensOrdenados.map((item) => {
+        <div className="bg-surface-2/40">
+          {COMO_FUNCIONA[nome] && (
+            <div className="border-b border-line/60">
+              <button
+                onClick={() => setSobre((s) => !s)}
+                className="hstack w-full gap-2 px-4 py-2.5 text-left tap"
+              >
+                <Info size={14} className="shrink-0 text-muted" />
+                <span className="flex-1 text-xs font-semibold text-muted">Como funciona</span>
+                <ChevronDown
+                  size={14}
+                  className={cn('shrink-0 text-muted transition-transform', sobre && 'rotate-180')}
+                />
+              </button>
+              {sobre && (
+                <div
+                  className="conteudo px-4 pb-4 text-[13px] leading-relaxed"
+                  dangerouslySetInnerHTML={{ __html: COMO_FUNCIONA[nome] }}
+                />
+              )}
+            </div>
+          )}
+          <div className="grid grid-cols-4 gap-3 p-4">
+            {itensOrdenados.map((item) => {
             const concl = item.concluido
             const estado = concl ? 'concluido' : item.janela_estado
             const pode = estado === 'aberto' || concl || admin
@@ -113,6 +152,7 @@ export function Submodulo({ nome, itens, onAbrir, admin = false }) {
               </button>
             )
           })}
+          </div>
         </div>
       )}
 
