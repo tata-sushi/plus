@@ -274,8 +274,11 @@ function Detalhe({
                     </div>
                     <p className="mt-1.5 text-sm leading-snug text-muted">
                       Você comemorou este aniversário de casa <strong>antes do início do
-                      programa</strong>, então este marco não fica disponível pra resgate. Mas
-                      relaxa — o reconhecimento vale <strong>daqui pra frente</strong>! 💚
+                      programa</strong>. Por isso, este marco não fica disponível para resgate.
+                    </p>
+                    <p className="mt-1.5 text-sm leading-snug text-muted">
+                      Mas não se preocupe, o reconhecimento passa a valer <strong>daqui para
+                      frente</strong>! 💚
                     </p>
                   </div>
                 )

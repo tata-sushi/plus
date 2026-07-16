@@ -11,7 +11,9 @@ export function IntroDesafio({ titulo, frase, variante = 0, Icone }) {
             <Icone size={27} />
           </span>
         )}
-        <h2 className="font-display text-[1.7rem] font-bold leading-tight">{titulo}</h2>
+        <h2 className="whitespace-pre-line font-display text-[1.7rem] font-bold leading-tight">
+          {titulo}
+        </h2>
         {frase && (
           <p className="mx-auto mt-3 max-w-[22rem] whitespace-pre-line text-sm font-semibold leading-relaxed text-accent">
             {frase}
