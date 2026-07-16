@@ -460,6 +460,12 @@ function Detalhe({
 export function Treinamentos() {
   const { usuario } = useAuth()
   const admin = usuario?.podePublicar
+  // personaliza o "Como funciona" das bancadas (ex.: nome no Saúde em Dia)
+  const primeiroNome = usuario?.primeiroNome || (usuario?.nome || '').trim().split(/\s+/)[0] || ''
+  const personalizarComo = (html) =>
+    (html || '')
+      .replace(/\{\{\s*user\.name\s*\}\}/gi, (usuario?.nome || '').trim())
+      .replace(/\{\{\s*(?:user\.first_name|primeiro_nome|nome)\s*\}\}/gi, primeiroNome)
   const [trilhas, setTrilhas] = useState([])
   const [carregando, setCarregando] = useState(true)
   const [aberta, setAberta] = useState(null) // trilha_id expandida
@@ -859,7 +865,14 @@ export function Treinamentos() {
                     )
                   })}
                   {Object.entries(subcats).map(([nome, itens]) => (
-                    <Submodulo key={nome} nome={nome} itens={itens} onAbrir={abrir} admin={admin} />
+                    <Submodulo
+                      key={nome}
+                      nome={nome}
+                      itens={itens}
+                      onAbrir={abrir}
+                      admin={admin}
+                      personalizar={personalizarComo}
+                    />
                   ))}
                 </div>
               )}
