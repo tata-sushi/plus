@@ -1,9 +1,11 @@
 # Tatá Plus — Contexto do Projeto (handoff)
 
 > Documento de continuidade. Se a conversa travar, uma nova sessão deve **ler este
-> arquivo primeiro** para retomar sem perder contexto. Última atualização: sistema de
-> provas (correção no servidor) + Código de Ética (leitura guiada em blocos + assinatura) +
-> histórico de respostas + importação do feed antigo + módulo Bar & Bebidas (em andamento).
+> arquivo primeiro** para retomar sem perder contexto. Última atualização: visual unificado das
+> bancadas (modelo Qualidade) + TATÁ + (envio com rótulo, leitura+prova em 2 páginas, avaliação/NPS)
+> + séries de envio **sequenciais** (Indicação Premiada e Saúde em Dia, 10 vagas, em Especiais)
+> + Aniversário de Empresa + Governança embutida em **iframe** (portal Líderes) + Home em **grid 2-col**.
+> Ver **§13** para o detalhamento dessa sessão.
 
 ---
 
@@ -64,12 +66,16 @@
   ProfileView, **DestaqueBanner**.
 
 ### BottomNav (5 itens, grid-cols-5)
-`Início · Ranking · Feed(/comunidade) · Ouvidoria · Mais`
+`Início · Ranking · Feed(/comunidade) · [Governança|Ouvidoria] · Mais`
+O 4º slot **reveza**: `governanca.tem` → **Governança** (`/governanca`, `ShieldCheck`); senão
+**Ouvidoria** (`/ouvidoria`, `Ear`). Ver §13.
 
 ### Menu "Mais" (lista de navegação)
 Cardápio, Comunicados, Minha jornada, Treinamentos, Procedimentos, Recompensas, RH Fácil,
-Assistente IA, Painel de manutenção. + Carteira real (`meu_saldo`) no header do perfil.
-+ Seção **Aparência** (toggle Claro/Escuro).
+Assistente IA, Painel de manutenção (+ **Ouvidoria** para quem tem Governança, já que ela sai da
+barra nesse caso). + Carteira real (`meu_saldo`) no header do perfil.
++ Seção **Aparência** (toggle Claro/Escuro). Rodapé: assinatura "TATÁ PLUS · versão 2.0 /
+Desenvolvido por Victor Carvalho · Gestão e Inovação".
 
 ---
 
@@ -246,7 +252,10 @@ NÃO recriar como invoker senão quebra ranking/feed), `comunicados_feed`, `cart
 | Notícias (motor destaques + banner rotativo) | ✅ Fase 1 |
 | Tema claro/escuro | ✅ (cores do claro a afinar) |
 | Carteira real no Mais (`meu_saldo`) | ✅ |
-| Governança (tabela de acesso + gate do botão) | ✅ Fase 1 (portal externo é Google Sheets) |
+| Governança (portal Líderes **embutido em iframe** + revezamento do botão) | ✅ `routes/Governanca.jsx` → `lideres.tatasushi.tech`; acesso via `governanca_acessos`. Ponte de sessão `lideres_session` = próximo passo (§13) |
+| TATÁ + (trilha livre: envios com rótulo, leitura+prova, avaliação/NPS) | ✅ ver §13 |
+| Séries de envio sequenciais (Indicação Premiada, Saúde em Dia — 10 vagas) | ✅ em Especiais, ver §13 |
+| Aniversário de Empresa (reconhecimento por tempo de casa) | ✅ ver §13 |
 | Cardápio | 🟡 mock (cardapioSemanal); app real de trás fica pra depois |
 | Recompensas | ✅ real: catálogo importado do Comunitive (16 prêmios, pontos = mesma moeda, `detalhes`/"como usar" por item, emoji placeholder — fotos do Comunitive são privadas/403, subir pelo painel). Painel admin (`/recompensas/admin`, gate `podePublicar`) cadastra/edita/ativa via `admin_salvar_recompensa`/`admin_listar_recompensas`; `resgatar()` debita saldo (origem `resgate`) e abate `estoque`. Catálogo abre janelinha (bottom-sheet) com foto/regras/resgate. |
 | Ouvidoria | 🟡 iframe externo |
@@ -324,17 +333,17 @@ NÃO recriar como invoker senão quebra ranking/feed), `comunicados_feed`, `cart
 ## 12. Home — estado atual (✅ concluído)
 
 Ordem das seções na Início (`Home.jsx`):
-1. Card de identificação (compacto) — **`ProgressRing` de % para todos** (sem ícone de
-   Governança no card; a Governança do líder fica no carrossel Sugestões e no card do Mais).
+1. Card de identificação (compacto) — **`ProgressRing` de % para todos**.
 2. **Menu do dia**
 3. **Notícias** (seção com título "Notícias") — banner quadrado (`DestaqueBanner`). **Unificado com o Comunicado**: quando
    há comunicado, ele entra aqui com **prioridade** (mostra sempre que existir) e uma **pílula
    "Comunicado"** (accent). Sem comunicado, rotaciona os destaques de gamificação (um por
    visita). O comunicado voltou ao motor `destaques()` como candidato `categoria='comunicado'`,
    prioridade 110.
-4. **TATÁ PLUS** — carrossel horizontal com snap + **seta de deslize suave** (só o chevron, sem fundo); no fim
-   da página. Para **líderes**, entra o card **Governança de Processos** (identidade carbon:
-   `bgClassName='bg-carbon'`, `badgeClassName='bg-white text-carbon'`, `textClassName='text-white'`).
+4. **TATÁ PLUS** — **grid de 2 colunas** (sem scroll lateral): tiles verticais mais altos
+   (`PromoCard`, `min-h 150px`, cantos 8px, ícone maior no topo, nome+descrição embaixo).
+   Cards: **Treinamentos** e **Recompensas**. O card de Governança **foi removido** daqui
+   (acesso agora pelo botão da barra de navegação).
 
 (O card do **Mais** também mostra o `ProgressRing` de desafios.)
 
@@ -346,3 +355,87 @@ card). Em telas altas fica na proporção cheia.
 
 **Próximos candidatos:** afinar cores do tema claro; trocar gradientes das Notícias por
 artes reais (`imagem_url`); Fase 2 RH.
+
+---
+
+## 13. Sessão recente — visual unificado, TATÁ +, séries sequenciais e Governança embutida
+
+### Sistema visual das bancadas (modelo Qualidade)
+Padrão único de estado em todas as trilhas/bancadas (Presença, TATÁ NEWS, Código de Ética,
+Aniversário, séries do TATÁ +):
+- **feito / já passou** = chip verde escuro (`bg-accent-soft`, `#20301A`) + ícone **citric** (`text-accent`, `#70FF41`);
+- **aberto / atual** = círculo **citric** com ícone preto (`bg-accent text-black`);
+- **futuro** = cinza (`text-muted-2 opacity-40`) + cadeado.
+Badges (V/X/cadeado) "colam" no ícone (canto sup. dir.), rótulos brancos. TATÁ NEWS reordenado **#1→#30**.
+
+### Novos tipos de desafio
+- **Envio moderado com rótulo** — `treinamentos.envio_rotulo` (ex.: `currículo`, `certificado`,
+  `exame ASO`, `print da avaliação`, `print`, `cartão de ponto`). `EnvioDesafio` usa o rótulo no
+  texto de anexo; **`admin_moderar_envio` usa o rótulo na notificação** (antes era fixo "cartão de
+  ponto" — bug corrigido nesta sessão).
+- **Leitura + prova em 2 páginas** — `components/LeituraProva.jsx`: lê o PDF numa página e faz a
+  prova em outra (não dá pra consultar durante). Detecção: `arquivo_url` (PDF) **e** `prova`.
+  **Timer de 1 dia** após reprovar (`treinamentos.prova_espera_horas` + tabela
+  `treinamento_tentativas`); **as respostas erradas NÃO são gravadas** (só o timestamp da tentativa).
+  Estilo "Parte X de Y" (como o Código de Ética) + link de download do PDF no fim.
+- **Avaliação (nota / NPS)** — `treinamentos.avaliacao` (jsonb `{pergunta,min,max,rotulo_min/meio/max}`)
+  + `components/Avaliacao.jsx` + `responder_avaliacao` + tabela `treinamento_avaliacoes`.
+
+### TATÁ + (trilha **livre**, `trilhas.sequencial=false`)
+Desafios avulsos ativos: **Certificado Não Se Cale** (envio 50), **Redes sociais** (envio 10),
+**Spotify** (conteúdo + avaliação 10), **Prevenção ao Assédio** (PDF + prova 10), **Wellhub**
+(conteúdo 20; vídeos Bunny/mediadelivery embutidos como iframe no `conteudo_html`), **Cartilha
+Amarela** (PDF + prova 50). Os desafios que vieram da base antiga e não entraram no escopo foram
+**desativados**. `responder_prova` respeita a flag `sequencial` da trilha (livre = não gateia).
+
+### Séries de envio **sequenciais** (Indicação Premiada, Saúde em Dia) — na trilha **Especiais**
+Cada série = **10 "vagas"** de envio na mesma `subcategoria`, com `treinamentos.serie_sequencial=true`.
+Bancada no estilo TATÁ NEWS: a **vaga N+1 só abre quando a N é aprovada** pelo RH. Como cada vaga é
+um `treinamento` próprio, a carteira credita pontos **por vaga** (unique `matricula+treino`) — sem
+esbarrar na unicidade por desafio. Detalhes:
+- `treinamentos_do_usuario` e `enviar_desafio` calculam a liberação por sequência (checam se as
+  vagas anteriores, mesma `subcategoria`+`trilha`, estão concluídas). `enviar_desafio` bloqueia
+  envio em vaga fechada (`vaga_bloqueada`).
+- `components/Submodulo.jsx` tem o **variante sequencial** da bancada (detecção: série de envio
+  **sem `data_inicio`**; presença é a série mensal, que tem data). Ícone por série
+  (Indicação → `UserPlus`, Saúde → `HeartPulse`); número da vaga = **posição** na série (1→10),
+  desacoplado da `ordem` global (permite posicionar a série na trilha sem bagunçar o rótulo).
+- Ambas moram em **Especiais** (junto de 100% de Presença e Aniversário de Empresa), ordem 30–39
+  (Indicação) e 40–49 (Saúde). Indicação = 80 pts/vaga (prêmio R$ 80 por contratação efetivada,
+  resgatável); Saúde = 10 pts/vaga (ASO periódico).
+
+### Presença / Aniversário de Empresa (trilha Especiais)
+- **100% de Presença**: "Como funciona" recolhível no topo da bancada (regras completas, sempre
+  acessível) + textos mensais curtos. Estados do calendário: **aberto=citric, X=não pegou,
+  V=pegou, cadeado=futuro**. `competencia(data_inicio)` = mês de início (2 meses antes da janela).
+- **Aniversário de Empresa** (renomeado de "Comemoração por tempo de casa"): `tipo=reconhecimento`,
+  bancada de presentinhos (`Gift`), estados resgatado/disponível/já-passou/bloqueado; "Como
+  funciona" + capa festa no detalhe (`IntroDesafio` + `PartyPopper`). `data_implantacao_reconhecimento()`
+  define o corte retroativo; elegível a partir de 6 meses de casa.
+
+### Governança embutida (portal Líderes)
+- **BottomNav**: 4º botão **reveza** — **Governança** (`ShieldCheck`) p/ quem tem `governanca.tem`,
+  senão **Ouvidoria**. Pra quem vê Governança na barra, a **Ouvidoria** entra como linha no **Mais**
+  (ninguém perde o canal). Sem backend novo — `acesso_governanca()` já expunha `governanca.tem`.
+- `routes/Governanca.jsx` virou um **iframe** do portal Líderes (`lideres.tatasushi.tech`,
+  repo **`tata-sushi/lideres`**) — mesmo padrão da Ouvidoria (tela cheia, sem header).
+- **Anatomia do portal:** ~**76 páginas HTML estáticas** (GitHub Pages, `/compliance/...`) + dados
+  via **Google Apps Script / Planilhas**. A auth NÃO são 40 sistemas: todas as páginas leem **uma**
+  sessão `localStorage['lideres_session']` = `{displayName, perfil, expiresAt, paginas:[{id,url}]}`
+  e cada página só checa "essa página está na minha lista?". **Próximo passo:** ponte de sessão
+  (o app grava o `lideres_session` depois do login) + servir as páginas na **mesma origem** do app
+  (elimina o handoff cross-origin). **Migração Sheets→Supabase** fica para depois (o dono do repo
+  fará quando o app estiver fechado).
+
+### Home
+Carrossel "TATÁ PLUS" virou **grid de 2 colunas** (sem scroll lateral): `PromoCard` reescrito como
+tile vertical (`min-h 150px`, cantos 8px, ícone maior no topo, nome+descrição embaixo). Cards:
+**Treinamentos** e **Recompensas**. Card de Governança **removido** do carrossel.
+
+### Novas tabelas / colunas desta sessão
+- `treinamentos.envio_rotulo` (text), `.prova_espera_horas` (int), `.avaliacao` (jsonb),
+  `.serie_sequencial` (bool), `.subcategoria` (agrupa a bancada), `.tempo_casa_meses`, `.blocos`.
+- `treinamento_envios` (envio moderado, PK `matricula+treino`), `treinamento_tentativas`
+  (timer de reprova), `treinamento_avaliacoes` (nota/NPS). `trilhas.sequencial` (bool).
+- Funções novas/alteradas: `enviar_desafio`, `admin_moderar_envio`, `responder_avaliacao`,
+  `treinamentos_do_usuario` (lógica sequencial de vaga), `acesso_governanca`.
