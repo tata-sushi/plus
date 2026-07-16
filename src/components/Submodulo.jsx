@@ -64,13 +64,20 @@ const COMO_FUNCIONA = {
     <p>Os períodos anteriores não serão considerados de forma retroativa.</p>
   `,
   'Indicação Premiada': `
-    <p><strong>Indique talentos para o TATÁ!</strong></p>
-    <p>Cada desafio corresponde a uma indicação.</p>
-    <p>Anexe o currículo no desafio aberto e, quando a contratação for <strong>efetivada</strong>, seu prêmio de <strong>R$ 80</strong> ficará disponível para resgate aqui no TATÁ Plus.</p>
-    <p><strong>Como funciona</strong></p>
-    <p>O próximo desafio será aberto somente após a aprovação da indicação anterior. Assim, você poderá acompanhar cada indicação com calma.</p>
-    <p>Serão disponibilizados até <strong>10 desafios</strong>, e você poderá indicar várias pessoas ao longo do tempo.</p>
-    <p>Anexe o currículo da pessoa no desafio aberto e aguarde o retorno da área de Gente &amp; Gestão (RH).</p>
+    <p>Você já conhece o nosso programa de <strong>Indicação Premiada</strong>, no qual a sua contribuição pode valer muito mais do que você imagina?</p>
+    <p>Sabemos o quanto a equipe é fundamental para o sucesso do TATÁ. Por isso, incentivamos e recompensamos quem nos ajuda a trazer novos talentos que vêm para somar.</p>
+    <p><strong>Como participar</strong></p>
+    <p>É simples: se você conhece alguém com o perfil para trabalhar conosco, indique essa pessoa.</p>
+    <p>Se ela for contratada e efetivada após o período de experiência, você ganha um prêmio de <strong>R$ 80,00</strong>.</p>
+    <p>Mas não é só isso. Você também estará ajudando a fortalecer nossa equipe, trazendo novas ideias e energia para o nosso ambiente de trabalho e tornando-o cada vez melhor.</p>
+    <p>Todos são essenciais para o crescimento e o desenvolvimento do TATÁ, e queremos recompensar o seu compromisso em nos ajudar a encontrar os melhores talentos do mercado.</p>
+    <p>Então, pense em pessoas talentosas que você conhece, que possam contribuir com a nossa equipe, e faça a sua indicação.</p>
+    <p><strong>Como fazer</strong></p>
+    <p><strong>1º</strong> Se você tem uma indicação, solicite o currículo dessa pessoa e anexe no campo abaixo.</p>
+    <p><strong>2º</strong> Aguarde o TATÁ entrar em contato com a pessoa indicada para agendar a entrevista e os testes.</p>
+    <p><strong>3º</strong> Se a sua indicação for contratada, você deverá aguardar o período de adaptação e experiência.</p>
+    <p><strong>4º</strong> Ao término do período de experiência, no caso de efetivação, seu prêmio estará disponível para resgate aqui no TATÁ Plus.</p>
+    <p>Contamos com você!</p>
   `,
   'Saúde em Dia': `
     <p><strong>Mantenha seu exame periódico (ASO) em dia e ganhe pontos a cada novo exame!</strong></p>
