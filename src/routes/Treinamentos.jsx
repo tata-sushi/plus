@@ -637,8 +637,8 @@ export function Treinamentos() {
           // trilha de um único desafio em blocos (ex.: Código de Ética) → contagem por partes
           const blocosItem = tr.itens.length === 1 && tr.itens[0].blocos_total > 0 ? tr.itens[0] : null
           const expandida = aberta === tr.id
-          // TATÁ NEWS abre como prateleira de jornalzinhos (#1, #2, …)
-          const prateleira = tr.nome === 'TATÁ NEWS'
+          // Tatá News abre como prateleira de jornalzinhos (#1, #2, …)
+          const prateleira = tr.nome === 'Tatá News'
           // itens soltos (direto na trilha) x agrupados por subcategoria (ex.: séries mensais)
           const soltos = tr.itens.filter((i) => !i.subcategoria)
           const subcats = tr.itens.reduce((acc, i) => {
@@ -759,24 +759,10 @@ export function Treinamentos() {
                             bloqueado && 'opacity-45',
                           )}
                         >
-                          {/* cabeçalho — clicável pra entrar */}
-                          <button
-                            onClick={() => abrir(item)}
-                            disabled={bloqueado}
-                            className="hstack w-full gap-3 text-left tap"
-                          >
-                            <span className="min-w-0 flex-1" />
-                            {item.pontos > 0 && (
-                              <span className="hstack shrink-0 gap-1 text-[11px] font-semibold text-muted">
-                                <Star size={11} /> {item.pontos}
-                              </span>
-                            )}
-                          </button>
-
                           {/* trilhinha: todas as fileiras com os mesmos 5 slots (os vazios
                               ficam invisíveis à direita), pras casinhas alinharem em coluna.
-                              Só a casinha 1 (ou o cabeçalho) abre; as outras não fazem nada. */}
-                          <div className="mt-4 flex flex-col gap-3">
+                              Só a casinha 1 abre o desafio; as outras são só visuais. */}
+                          <div className="flex flex-col gap-3">
                             {Array.from({
                               length: Math.ceil((total + (item.concluido ? 1 : 0)) / perRow),
                             }).map((_, ri) => (
