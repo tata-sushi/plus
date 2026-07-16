@@ -408,7 +408,7 @@ export function AdminRecompensas() {
           <Section className="mt-4" title={`Envios (${envios.length})`}>
             {envios.length === 0 ? (
               <div className="card p-8 text-center text-sm text-muted">
-                Nenhum cartão de ponto enviado ainda. Quando alguém anexar no desafio de presença,
+                Nenhum envio ainda. Quando alguém anexar um arquivo num desafio de envio,
                 aparece aqui pra você aprovar ou reprovar.
               </div>
             ) : (
