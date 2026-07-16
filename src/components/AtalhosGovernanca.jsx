@@ -72,7 +72,7 @@ export function AtalhosGovernanca() {
                 key={p.id}
                 to={p.to || '/governanca'}
                 onClick={tapHaptic}
-                className="hstack gap-2 rounded-pill border border-line bg-fill px-3 py-1.5 tap"
+                className="hstack gap-2 rounded-pill border border-line bg-fill px-3.5 py-2.5 tap"
               >
                 <Icon size={14} className="shrink-0 text-accent" />
                 <span className="min-w-0 flex-1 truncate text-xs font-semibold">{p.label}</span>
