@@ -23,13 +23,13 @@ import { cn } from '../lib/cn'
 const tempoLabel = (m) =>
   m == null ? '' : m < 12 ? `${m} meses` : `${m / 12} ${m / 12 === 1 ? 'ano' : 'anos'}`
 
-// competência (folha 21→20) = mês de início do período (2 meses antes da janela).
-// Ex.: janela abre 01/08 (período 21/06–20/07) → competência 06/2026.
+// competência (folha 21→20) = mês de fechamento do período (1 mês antes da janela).
+// Ex.: janela abre 01/07 (período 21/05–20/06) → competência 06/2026.
 function competencia(di) {
   if (!di) return ''
   const d = new Date(`${di}T00:00:00`)
   d.setDate(1)
-  d.setMonth(d.getMonth() - 2)
+  d.setMonth(d.getMonth() - 1)
   return `${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`
 }
 
@@ -37,44 +37,48 @@ function competencia(di) {
 // da bancada, sempre acessíveis, para que cada mês possa ter um texto curtinho.
 const COMO_FUNCIONA = {
   '100% de Presença': `
-    <p>Sua pontualidade e comprometimento valem muito e aqui no TATÁ Plus valem pontos! Todo mês em que você tiver <strong>100% de presença</strong> (presença por dias trabalhados), você ganha <strong>100 pontos extras</strong>. Sem sorteio, sem mistério e sem enrolação!</p>
-    <p><strong>Como funciona:</strong></p>
-    <ul>
-      <li>O desafio é liberado <strong>todo mês, após o fechamento do mês</strong>, sempre com o período de <strong>21 a 20</strong>. <em>Ex.: a competência de maio vai de 21/05 a 20/06.</em></li>
-      <li>Cada competência fica aberta <strong>do dia 01 ao dia 10</strong> do mês seguinte ao fechamento. Depois disso, fecha. <em>Ex.: a competência de maio fica disponível de 01/07 a 10/07.</em></li>
-      <li>No aplicativo RHiD, confira seu cartão de ponto, assine, tire um print e anexe aqui no desafio do respectivo mês.</li>
-      <li>Os pontos são liberados só para cartões <strong>assinados, sem faltas ou atestados</strong> no período. <em>Ex.: 1 falta já tira a pontuação daquela competência.</em></li>
-    </ul>
+    <p>Sua pontualidade e seu comprometimento valem muito. E, aqui no Tatá Plus, também valem pontos!</p>
+    <p>Todo mês em que você tiver <strong>100% de presença</strong>, considerando os dias trabalhados, você ganha <strong>100 pontos extras</strong>.</p>
+    <p>Sem sorteio, sem mistério e sem enrolação!</p>
+    <p><strong>Como funciona</strong></p>
+    <p>O desafio é liberado todos os meses, após o fechamento da competência, considerando sempre o período do dia <strong>21 ao dia 20</strong>.</p>
+    <p><em>Exemplo: a competência de maio corresponde ao período de 21/05 a 20/06.</em></p>
+    <p>Cada competência fica disponível do dia <strong>01 ao dia 10</strong> do mês seguinte ao fechamento. Depois desse período, o desafio é encerrado.</p>
+    <p><em>Exemplo: a competência de maio fica disponível de 01/07 a 10/07.</em></p>
+    <p>No aplicativo RHiD, confira seu cartão de ponto, assine, tire um print e anexe aqui no desafio do respectivo mês.</p>
+    <p>Os pontos são liberados somente para cartões <strong>assinados e sem faltas ou atestados</strong> no período.</p>
+    <p><em>Exemplo: uma falta já impede o recebimento da pontuação daquela competência.</em></p>
   `,
   'Aniversário de Empresa': `
-    <p>Celebrar o tempo de casa é reconhecer a história construída por cada colaborador e reforçar o sentimento de pertencimento no Tatá Sushi. O Aniversário de Empresa é um gesto de reconhecimento pela dedicação, constância e contribuição de cada pessoa no crescimento coletivo.</p>
-    <p><strong>Como funciona:</strong></p>
-    <p>A cada ciclo de tempo de empresa, o colaborador é homenageado de forma especial. Os reconhecimentos variam conforme o tempo de casa e representam o crescimento e a evolução de cada pessoa dentro do Tatá.</p>
-    <p><strong>Critérios de elegibilidade:</strong></p>
-    <ul>
-      <li>Para participar do benefício, o(a) colaborador(a) deve ter, no mínimo, <strong>6 meses de empresa</strong>.</li>
-    </ul>
-    <p><strong>Programação:</strong></p>
-    <p>Início do programa em 2026, com o reconhecimento dos colaboradores nos níveis correspondentes.</p>
-    <p><strong>⚠️ Contagem a partir da implantação:</strong> a premiação por tempo de casa passa a contar a partir da data de implantação do programa. Períodos anteriores não serão considerados de forma retroativa.</p>
+    <p>Celebrar o tempo de casa é reconhecer a história construída por cada colaborador e reforçar o sentimento de pertencimento no Tatá.</p>
+    <p>O Aniversário de Empresa é um gesto de reconhecimento pela dedicação, constância e contribuição de cada pessoa para o crescimento coletivo.</p>
+    <p><strong>Como funciona</strong></p>
+    <p>A cada ciclo de tempo de empresa, o colaborador é homenageado de forma especial.</p>
+    <p>Os reconhecimentos variam conforme o tempo de casa e representam o crescimento e a evolução de cada pessoa dentro do Tatá.</p>
+    <p><strong>Critérios de elegibilidade</strong></p>
+    <p>Para participar do benefício, o colaborador deve ter, no mínimo, <strong>6 meses de empresa</strong>.</p>
+    <p><strong>Programação</strong></p>
+    <p>O programa terá início em 2026, com o reconhecimento dos colaboradores nos níveis correspondentes.</p>
+    <p><strong>Contagem a partir da implantação</strong></p>
+    <p>A premiação por tempo de casa passa a contar a partir da data de implantação do programa.</p>
+    <p>Os períodos anteriores não serão considerados de forma retroativa.</p>
   `,
   'Indicação Premiada': `
-    <p>Indique talentos para o TATÁ! Cada <strong>vaga</strong> é uma indicação. Anexe o currículo na vaga aberta e, quando a contratação for <strong>efetivada</strong>, seu prêmio de <strong>R$ 80</strong> fica disponível para resgate aqui no TATÁ +.</p>
-    <p><strong>Como funciona:</strong></p>
-    <ul>
-      <li>A próxima vaga só <strong>abre depois</strong> que a anterior é aprovada. <em>Assim você acompanha cada indicação com calma.</em></li>
-      <li>São até <strong>10 vagas</strong> — você pode indicar várias pessoas ao longo do tempo.</li>
-      <li>Anexe o <strong>currículo</strong> da pessoa na vaga aberta e aguarde o retorno do RH.</li>
-    </ul>
+    <p><strong>Indique talentos para o Tatá!</strong></p>
+    <p>Cada desafio corresponde a uma indicação.</p>
+    <p>Anexe o currículo no desafio aberto e, quando a contratação for <strong>efetivada</strong>, seu prêmio de <strong>R$ 80</strong> ficará disponível para resgate aqui no Tatá Plus.</p>
+    <p><strong>Como funciona</strong></p>
+    <p>O próximo desafio será aberto somente após a aprovação da indicação anterior. Assim, você poderá acompanhar cada indicação com calma.</p>
+    <p>Serão disponibilizados até <strong>10 desafios</strong>, e você poderá indicar várias pessoas ao longo do tempo.</p>
+    <p>Anexe o currículo da pessoa no desafio aberto e aguarde o retorno da área de Gente &amp; Gestão (RH).</p>
   `,
   'Saúde em Dia': `
-    <p>Mantenha seu <strong>exame periódico (ASO)</strong> em dia e ganhe pontos a cada novo exame!</p>
-    <p><strong>Como funciona:</strong></p>
-    <ul>
-      <li>Anexe o <strong>ASO</strong> na vaga aberta. Depois da validação do RH, os pontos entram na carteira.</li>
-      <li>A próxima vaga <strong>abre depois</strong> que a anterior é aprovada — a cada exame novo você resgata de novo.</li>
-      <li>São até <strong>10 vagas</strong> ao longo do tempo.</li>
-    </ul>
+    <p><strong>Mantenha seu exame periódico (ASO) em dia e ganhe pontos a cada novo exame!</strong></p>
+    <p><strong>Como funciona</strong></p>
+    <p>Anexe o ASO no desafio aberto.</p>
+    <p>Após a validação da área de Gente &amp; Gestão (RH), os pontos serão adicionados à sua carteira.</p>
+    <p>O próximo desafio será aberto depois que o anterior for aprovado. A cada novo exame, você poderá resgatar os pontos novamente.</p>
+    <p>Serão disponibilizados até <strong>10 desafios</strong> ao longo do tempo.</p>
   `,
 }
 
