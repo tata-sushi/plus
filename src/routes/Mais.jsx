@@ -17,6 +17,7 @@ import {
   Sun,
   Moon,
   ShieldCheck,
+  Ear,
 } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Section } from '../components/Section.jsx'
@@ -55,6 +56,11 @@ export function Mais() {
   const nome = usuario?.nome || currentUser.nome
   const cargo = usuario?.cargo || currentUser.cargo
   const loja = usuario?.loja || currentUser.loja
+  // quem vê Governança na barra reveza com a Ouvidoria — então a Ouvidoria
+  // entra aqui no menu, para essa pessoa não perder o acesso ao canal.
+  const navItens = usuario?.governanca?.tem
+    ? [...itens, { to: '/ouvidoria', label: 'Ouvidoria', icon: Ear }]
+    : itens
 
   const inputFoto = useRef(null)
   const [enviando, setEnviando] = useState(false)
@@ -167,7 +173,7 @@ export function Mais() {
 
       <Section className="mt-5" title="Navegação">
         <div className="card overflow-hidden">
-          {itens.map((i, idx) => {
+          {navItens.map((i, idx) => {
             const Icon = i.icon
             return (
               <Link
