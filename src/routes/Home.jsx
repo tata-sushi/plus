@@ -34,10 +34,10 @@ const sugestoesCards = [
     emBreve: true,
   },
   {
+    to: '/organograma',
     badgeIcon: Network,
     title: 'Organograma',
     subtitle: 'Veja a estrutura do time',
-    emBreve: true,
   },
 ]
 
