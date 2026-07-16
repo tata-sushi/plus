@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Flag, Gift, Plus } from 'lucide-react'
+import { Flag, Gift, Plus, Star, Network } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Section } from '../components/Section.jsx'
 import { Card } from '../components/Card.jsx'
 import { PromoCard } from '../components/PromoCard.jsx'
+import { AtalhosGovernanca } from '../components/AtalhosGovernanca.jsx'
 import { ProgressRing } from '../components/ProgressRing.jsx'
 import { Avatar } from '../components/Avatar.jsx'
 import { DestaqueBanner } from '../components/DestaqueBanner.jsx'
@@ -13,7 +14,7 @@ import { useAuth } from '../lib/AuthContext.jsx'
 import { supabase } from '../lib/supabase.js'
 import { currentUser, menuDoDia } from '../lib/mockData.js'
 
-const tataPlusCards = [
+const sugestoesCards = [
   {
     to: '/treinamentos',
     badgeIcon: Flag,
@@ -26,6 +27,18 @@ const tataPlusCards = [
     title: 'Recompensas',
     subtitle: 'Conheça nossas recompensas',
   },
+  {
+    badgeIcon: Star,
+    title: 'Avaliação do cardápio',
+    subtitle: 'Avalie o cardápio do dia',
+    emBreve: true,
+  },
+  {
+    badgeIcon: Network,
+    title: 'Organograma',
+    subtitle: 'Veja a estrutura do time',
+    emBreve: true,
+  },
 ]
 
 export function Home() {
@@ -35,7 +48,7 @@ export function Home() {
   const cargo = usuario?.cargo || currentUser.cargo
   const loja = usuario?.loja || currentUser.loja
 
-  const cards = tataPlusCards
+  const cards = sugestoesCards
 
   // Progresso real de desafios (para o anel do card de identificação)
   const [progresso, setProgresso] = useState(null)
@@ -131,16 +144,17 @@ export function Home() {
         </Section>
       )}
 
-      {/* TATÁ PLUS — grid de 2 colunas (sem scroll lateral) */}
-      <Section className="mt-4 hsm:mt-3" title="TATÁ PLUS">
+      {/* Sugestões — grid de 2 colunas (sem scroll lateral) */}
+      <Section className="mt-4 hsm:mt-3" title="Sugestões">
         <div className="grid grid-cols-2 gap-3">
           {cards.map((c, i) => (
             <PromoCard
-              key={c.to}
+              key={c.title}
               to={c.to}
               badgeIcon={c.badgeIcon}
               title={c.title}
               subtitle={c.subtitle}
+              emBreve={c.emBreve}
               bgClassName={c.bgClassName}
               badgeClassName={c.badgeClassName}
               textClassName={c.textClassName}
@@ -149,6 +163,9 @@ export function Home() {
           ))}
         </div>
       </Section>
+
+      {/* Atalhos — exclusivo p/ quem tem acesso à Governança */}
+      {usuario?.governanca?.tem && <AtalhosGovernanca />}
 
     </>
   )
