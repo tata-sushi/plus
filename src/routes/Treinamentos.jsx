@@ -28,6 +28,7 @@ import { ProvaDesafio } from '../components/ProvaDesafio.jsx'
 import { EnvioDesafio } from '../components/EnvioDesafio.jsx'
 import { Submodulo } from '../components/Submodulo.jsx'
 import { CodigoEtica } from '../components/CodigoEtica.jsx'
+import { LeituraProva } from '../components/LeituraProva.jsx'
 import { cn } from '../lib/cn'
 import { tapHaptic } from '../lib/haptics.js'
 import { resolveIcon } from '../lib/icons.js'
@@ -84,6 +85,8 @@ function Detalhe({ treino, onFechar, onConcluir, onEnviarProva, onAssinarCodigo,
   const ehProva = questoes.length > 0
   const ehVideo = /\.(mp4|webm|mov)(\?|#|$)/i.test(data?.arquivo_url || '')
   const ehPdf = !!data?.arquivo_url && !ehVideo
+  // PDF + prova → leitura obrigatória e depois a prova numa 2ª página (Cartilha Amarela)
+  const ehLeituraProva = ehPdf && ehProva
   // conteúdo "rico" = texto e/ou prova (pode ter vídeo junto) → rola numa tela só
   const ehRico = temHtml || ehProva
   const ehSoVideos = ehVideos && !ehRico
@@ -268,6 +271,18 @@ function Detalhe({ treino, onFechar, onConcluir, onEnviarProva, onAssinarCodigo,
             })()}
           </div>
         </div>
+      ) : ehLeituraProva ? (
+        <LeituraProva
+          introHtml={personalizar(data.conteudo_html || '')}
+          pdfUrl={data.arquivo_url}
+          prova={data.prova}
+          concluido={data.concluido}
+          respostas={respostas}
+          onResponder={escolher}
+          resultado={provaResultado}
+          onEnviar={submeterProva}
+          enviando={enviandoProva}
+        />
       ) : ehSoVideos ? (
         <VideosYouTube
           chave={treino.id}
@@ -347,7 +362,7 @@ function Detalhe({ treino, onFechar, onConcluir, onEnviarProva, onAssinarCodigo,
         </div>
       )}
 
-      {!ehCodigo && !ehEnvio && !ehReconhecimento && (
+      {!ehCodigo && !ehEnvio && !ehReconhecimento && !ehLeituraProva && (
       <div className="safe-bottom border-t border-line px-5 py-3">
         {treino.concluido ? (
           <div className="hstack justify-center gap-2 rounded-card bg-accent-soft py-3 text-sm font-semibold text-accent">
