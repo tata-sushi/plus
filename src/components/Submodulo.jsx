@@ -108,6 +108,7 @@ export function Submodulo({ nome, itens, onAbrir, admin = false, personalizar = 
   const ehSeq = ehSerie && itens.every((i) => !i.data_inicio)
   const ehMensal = ehSerie && !ehSeq
   const feitos = itens.filter((i) => i.concluido).length
+  const pontos = itens.reduce((s, i) => s + (i.pontos || 0), 0)
   const temAcao =
     itens.some((i) => i.janela_estado === 'aberto' && !i.concluido) ||
     itens.some((i) => i.estado_reconhecimento === 'disponivel')
@@ -160,6 +161,9 @@ export function Submodulo({ nome, itens, onAbrir, admin = false, personalizar = 
             {temAcao ? ' · disponível' : ''}
           </span>
         </span>
+        {pontos > 0 && (
+          <span className="shrink-0 text-[11px] font-semibold text-muted-2">{pontos} pts</span>
+        )}
         {temAcao && <span className="h-2 w-2 shrink-0 rounded-full bg-accent" />}
         <ChevronDown
           size={16}
