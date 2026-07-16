@@ -29,6 +29,7 @@ import { EnvioDesafio } from '../components/EnvioDesafio.jsx'
 import { Submodulo } from '../components/Submodulo.jsx'
 import { CodigoEtica } from '../components/CodigoEtica.jsx'
 import { LeituraProva } from '../components/LeituraProva.jsx'
+import { Avaliacao } from '../components/Avaliacao.jsx'
 import { cn } from '../lib/cn'
 import { tapHaptic } from '../lib/haptics.js'
 import { resolveIcon } from '../lib/icons.js'
@@ -37,7 +38,16 @@ import { useAuth } from '../lib/AuthContext.jsx'
 
 const TIPO_LABEL = { prova: 'Prova', envio: 'Envio' }
 
-function Detalhe({ treino, onFechar, onConcluir, onEnviarProva, onAssinarCodigo, onResgatar, concluindo }) {
+function Detalhe({
+  treino,
+  onFechar,
+  onConcluir,
+  onEnviarProva,
+  onEnviarAvaliacao,
+  onAssinarCodigo,
+  onResgatar,
+  concluindo,
+}) {
   const { usuario } = useAuth()
   const [data, setData] = useState(null)
   const [rolou, setRolou] = useState(false) // rolou o conteúdo até o fim?
@@ -45,6 +55,7 @@ function Detalhe({ treino, onFechar, onConcluir, onEnviarProva, onAssinarCodigo,
   const [respostas, setRespostas] = useState({}) // { questaoId: opcaoId }
   const [provaResultado, setProvaResultado] = useState(null) // resposta do responder_prova
   const [enviandoProva, setEnviandoProva] = useState(false)
+  const [enviandoAvaliacao, setEnviandoAvaliacao] = useState(false)
   const conteudoRef = useRef(null)
 
   const nomeCompleto = (usuario?.nome || '').trim()
@@ -87,6 +98,7 @@ function Detalhe({ treino, onFechar, onConcluir, onEnviarProva, onAssinarCodigo,
   const ehPdf = !!data?.arquivo_url && !ehVideo
   // PDF + prova → leitura obrigatória e depois a prova numa 2ª página (Cartilha Amarela)
   const ehLeituraProva = ehPdf && ehProva
+  const ehAvaliacao = !!data?.avaliacao // desafio de nota/NPS (ex.: avalie a playlist)
   // conteúdo "rico" = texto e/ou prova (pode ter vídeo junto) → rola numa tela só
   const ehRico = temHtml || ehProva
   const ehSoVideos = ehVideos && !ehRico
@@ -115,6 +127,13 @@ function Detalhe({ treino, onFechar, onConcluir, onEnviarProva, onAssinarCodigo,
     const r = await onEnviarProva(treino, respostas)
     setEnviandoProva(false)
     if (r && !r.aprovado) setProvaResultado(r)
+  }
+
+  async function submeterAvaliacao(nota) {
+    if (nota == null || enviandoAvaliacao) return
+    setEnviandoAvaliacao(true)
+    await onEnviarAvaliacao(treino, nota)
+    setEnviandoAvaliacao(false)
   }
 
   // sem conteúdo real pra ler (fallback) → libera direto
@@ -272,6 +291,14 @@ function Detalhe({ treino, onFechar, onConcluir, onEnviarProva, onAssinarCodigo,
             })()}
           </div>
         </div>
+      ) : ehAvaliacao ? (
+        <Avaliacao
+          introHtml={personalizar(data.conteudo_html || '')}
+          avaliacao={data.avaliacao}
+          concluido={data.concluido}
+          onEnviar={submeterAvaliacao}
+          enviando={enviandoAvaliacao}
+        />
       ) : ehLeituraProva ? (
         <LeituraProva
           introHtml={personalizar(data.conteudo_html || '')}
@@ -363,7 +390,7 @@ function Detalhe({ treino, onFechar, onConcluir, onEnviarProva, onAssinarCodigo,
         </div>
       )}
 
-      {!ehCodigo && !ehEnvio && !ehReconhecimento && !ehLeituraProva && (
+      {!ehCodigo && !ehEnvio && !ehReconhecimento && !ehLeituraProva && !ehAvaliacao && (
       <div className="safe-bottom border-t border-line px-5 py-3">
         {treino.concluido ? (
           <div className="hstack justify-center gap-2 rounded-card bg-accent-soft py-3 text-sm font-semibold text-accent">
@@ -530,6 +557,24 @@ export function Treinamentos() {
       }
     }
     return { aprovado: false, erro: true }
+  }
+
+  // Envio da avaliação (nota/NPS): conclui o desafio e credita os pontos.
+  async function enviarAvaliacao(item, nota) {
+    const { data } = await supabase.rpc('responder_avaliacao', {
+      p_treino: item.id,
+      p_nota: nota,
+    })
+    if (data?.erro === 'limite_diario') {
+      setDetalhe(null)
+      setAviso('Você já concluiu 3 desafios hoje. Volte amanhã! 👋')
+      return
+    }
+    if (data?.ok) {
+      setDetalhe(null)
+      if ((Number(data.pontos) || 0) > 0) setCelebrando({ pontos: Number(data.pontos) })
+      carregar()
+    }
   }
 
   // Assinatura do Código de Ética: conclui o módulo e credita os pontos.
@@ -855,6 +900,7 @@ export function Treinamentos() {
           onFechar={() => setDetalhe(null)}
           onConcluir={concluir}
           onEnviarProva={enviarProva}
+          onEnviarAvaliacao={enviarAvaliacao}
           onAssinarCodigo={assinarCodigo}
           onResgatar={resgatarReconhecimento}
           concluindo={concluindo}
