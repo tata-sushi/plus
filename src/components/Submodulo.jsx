@@ -227,17 +227,18 @@ export function Submodulo({ nome, itens, onAbrir, admin = false }) {
         <div className="bg-surface-2/40">
           {comoFunciona}
           <div className="grid grid-cols-4 gap-3 p-4">
-            {itensSeq.map((item) => {
+            {itensSeq.map((item, i) => {
               const concl = item.concluido
               const aberta = !concl && item.liberado
               const pode = aberta || concl || admin
               const TileIcon = SERIE_ICON[nome] || ClipboardList
+              const numero = i + 1 // posição na série (1 → 10), independente da ordem global
               return (
                 <button
                   key={item.id}
                   onClick={() => pode && onAbrir(item)}
                   disabled={!pode}
-                  aria-label={`${nome} ${item.ordem}`}
+                  aria-label={`${nome} ${numero}`}
                   className="flex flex-col items-center gap-1.5 py-1.5 tap"
                 >
                   {/* modelo Qualidade: feito = chip verde escuro + ícone citric */}
@@ -271,7 +272,7 @@ export function Submodulo({ nome, itens, onAbrir, admin = false }) {
                       !concl && !aberta ? 'text-muted-2' : 'text-text',
                     )}
                   >
-                    {item.ordem}
+                    {numero}
                   </span>
                 </button>
               )
