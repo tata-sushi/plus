@@ -36,7 +36,7 @@ import { resolveIcon } from '../lib/icons.js'
 import { supabase } from '../lib/supabase.js'
 import { useAuth } from '../lib/AuthContext.jsx'
 
-const TIPO_LABEL = { prova: 'Prova', envio: 'Envio' }
+const TIPO_LABEL = { prova: 'Prova' }
 
 function Detalhe({
   treino,
