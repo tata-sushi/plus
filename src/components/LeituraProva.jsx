@@ -1,12 +1,21 @@
 import { useRef, useState } from 'react'
-import { Loader2, ArrowRight, ArrowLeft, FileText, CheckCircle2, ArrowDown } from 'lucide-react'
+import { Loader2, ArrowRight, ArrowLeft, FileText, CheckCircle2, ArrowDown, Download, Clock } from 'lucide-react'
 import { PdfViewer } from './PdfViewer.jsx'
 import { ProvaDesafio } from './ProvaDesafio.jsx'
+import { ProgressBar } from './ProgressBar.jsx'
 import { cn } from '../lib/cn'
 
-// Leitura obrigatória (PDF) + prova numa SEGUNDA página. A prova nunca aparece
-// junto do PDF: a pessoa lê primeiro, avança, e só então responde — sem poder
-// consultar as respostas no material enquanto faz o quiz.
+// tempo de espera legível a partir de segundos
+function tempoEspera(s) {
+  if (!s || s <= 0) return 'instantes'
+  if (s >= 3600) return `${Math.ceil(s / 3600)}h`
+  if (s >= 60) return `${Math.ceil(s / 60)} min`
+  return 'instantes'
+}
+
+// Leitura obrigatória (PDF) + prova numa SEGUNDA página, no modelo em partes do
+// Código de Ética (Parte 1 de 2 + %). A prova nunca aparece junto do PDF: a pessoa
+// lê primeiro, avança, e só então responde — sem consultar as respostas no material.
 export function LeituraProva({
   introHtml,
   pdfUrl,
@@ -23,6 +32,12 @@ export function LeituraProva({
   const scrollRef = useRef(null)
   const questoes = prova?.questoes || []
   const todasResp = questoes.length > 0 && questoes.every((q) => respostas[q.id])
+  const pct = concluido ? 1 : fase === 'prova' ? 0.5 : 0
+
+  // em espera: acabou de errar (com timer) ou tentou de novo cedo demais
+  const emEspera =
+    !concluido && !!resultado && !resultado.aprovado && (resultado.aguarde || resultado.espera_horas > 0)
+  const segRestantes = resultado?.segundos ?? (resultado?.espera_horas || 0) * 3600
 
   // após o PDF renderizar: se couber sem rolar, já libera; senão espera a rolagem
   function aoRenderizar() {
@@ -36,11 +51,15 @@ export function LeituraProva({
 
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
-      {/* trilho de etapas */}
-      <div className="hstack gap-3 border-b border-line px-5 py-2.5 text-[11px] font-bold">
-        <span className={cn(fase === 'leitura' ? 'text-accent' : 'text-muted-2')}>1 · Leitura</span>
-        <span className="h-px flex-1 bg-line" />
-        <span className={cn(fase === 'prova' ? 'text-accent' : 'text-muted-2')}>2 · Prova</span>
+      {/* progresso em partes (modelo Código de Ética) */}
+      <div className="border-b border-line px-5 py-3">
+        <div className="hstack justify-between text-xs font-semibold">
+          <span className="text-muted">Parte {fase === 'leitura' ? 1 : 2} de 2</span>
+          <span className="text-accent">{Math.round(pct * 100)}%</span>
+        </div>
+        <div className="mt-2">
+          <ProgressBar value={pct} />
+        </div>
       </div>
 
       {fase === 'leitura' ? (
@@ -59,6 +78,14 @@ export function LeituraProva({
             <FileText size={14} /> Cartilha — leia até o fim
           </p>
           <PdfViewer src={pdfUrl} inline onLido={aoRenderizar} />
+          <a
+            href={`${pdfUrl}?download`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn-ghost mt-3 w-full !py-3 text-sm"
+          >
+            <Download size={16} /> Baixar PDF
+          </a>
         </div>
       ) : (
         <div key="prova" className="animate-page flex-1 overflow-y-auto px-5 py-5">
@@ -111,6 +138,16 @@ export function LeituraProva({
               </>
             )}
           </button>
+        ) : emEspera ? (
+          <div className="rounded-card border border-warn/30 bg-warn/10 px-4 py-3.5 text-center">
+            <Clock className="mx-auto text-warn" size={22} />
+            <p className="mt-1.5 text-sm font-bold text-warn">
+              {resultado.aguarde ? 'Ainda no intervalo de espera' : 'Não foi dessa vez'}
+            </p>
+            <p className="mt-0.5 text-xs text-muted">
+              Você pode refazer a prova em <strong>~{tempoEspera(segRestantes)}</strong>.
+            </p>
+          </div>
         ) : (
           <div className="space-y-2">
             {resultado?.erro && (

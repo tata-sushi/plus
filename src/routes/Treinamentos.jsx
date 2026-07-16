@@ -511,12 +511,21 @@ export function Treinamentos() {
       setAviso('Você já concluiu 3 desafios hoje. Volte amanhã! 👋')
       return { aprovado: true }
     }
+    if (data?.erro === 'aguarde') {
+      return {
+        aprovado: false,
+        aguarde: true,
+        segundos: Number(data.segundos) || 0,
+        espera_horas: Number(data.espera_horas) || 0,
+      }
+    }
     if (!error && data?.ok && data.aprovado === false) {
       return {
         aprovado: false,
         acertos: data.acertos,
         total: data.total,
         erradas: data.erradas,
+        espera_horas: Number(data.espera_horas) || 0,
       }
     }
     return { aprovado: false, erro: true }
