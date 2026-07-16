@@ -1,8 +1,9 @@
 import { Link } from 'react-router-dom'
 import { cn } from '../lib/cn'
 
-// Tile do grid "TATÁ PLUS" (2 colunas): ícone maior no topo e nome + descrição
-// embaixo. Cantos suaves (8px) pra um visual um pouco mais retangular.
+// Tile do grid "Sugestões" (2 colunas): ícone maior no topo e nome + descrição
+// embaixo. Raio no padrão do app (rounded-card). Com `emBreve`, vira um card
+// desativado (sem link) e ganha a pílula "Em breve".
 export function PromoCard({
   to,
   badgeIcon: BadgeIcon,
@@ -12,16 +13,16 @@ export function PromoCard({
   bgClassName = 'hero-card',
   badgeClassName = 'bg-accent text-black shadow-glow',
   textClassName,
+  emBreve = false,
 }) {
-  return (
-    <Link
-      to={to}
-      className={cn(
-        bgClassName,
-        'reveal tap flex min-h-[150px] flex-col justify-between !rounded-lg p-4',
-        className,
-      )}
-    >
+  const base = cn(
+    bgClassName,
+    'reveal flex min-h-[150px] flex-col justify-between rounded-card p-4',
+    className,
+  )
+
+  const conteudo = (
+    <>
       <span
         className={cn(
           'flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl',
@@ -40,6 +41,23 @@ export function PromoCard({
           {subtitle}
         </div>
       </div>
+    </>
+  )
+
+  if (emBreve) {
+    return (
+      <div className={cn(base, 'relative opacity-60')} aria-disabled="true">
+        <span className="absolute right-3 top-3 rounded-pill bg-surface-3 px-2 py-0.5 text-[10px] font-semibold text-muted">
+          Em breve
+        </span>
+        {conteudo}
+      </div>
+    )
+  }
+
+  return (
+    <Link to={to} className={cn(base, 'tap')}>
+      {conteudo}
     </Link>
   )
 }
