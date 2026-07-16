@@ -38,7 +38,7 @@ src/
 ├── index.css                # Tailwind + tokens
 ├── components/              # design system compartilhado
 │   ├── AppShell.jsx         # layout com bottom nav
-│   ├── BottomNav.jsx        # tabs: Início/Comunicados/Treinamentos/Procedimentos/Mais
+│   ├── BottomNav.jsx        # tabs: Início · Ranking · Feed · Governança|Ouvidoria · Mais
 │   ├── Header.jsx
 │   ├── Card.jsx / StatCard.jsx / Section.jsx
 │   ├── ProgressBar.jsx / ProgressRing.jsx
@@ -60,10 +60,18 @@ src/
     └── mockData.js          # dados mockados (feed, treinamentos, etc.)
 ```
 
+## Documentação
+
+O contexto detalhado do projeto — backend Supabase, modelo de pontuação, tipos de desafio,
+séries de envio sequenciais, governança embutida, decisões e pendências — fica em
+**`docs/CONTEXTO.md`**. É o documento de handoff, atualizado a cada bloco de trabalho (a §13
+traz o histórico da sessão mais recente).
+
 ## Próximos passos
 
-- [ ] Integrar Supabase (auth, feed, ledger de pontos, catálogo de recompensas)
-- [ ] Ativar assinatura em `push` real e notificações
-- [ ] Painel de manutenção com CRUD
-- [ ] RH Fácil (fluxo de tickets)
-- [ ] Assistente IA
+Roadmap e pendências vivas em `docs/CONTEXTO.md` (§11). Em aberto no momento:
+
+- [ ] Ponte de sessão da Governança (login único do app → portal Líderes) + servir o portal na mesma origem
+- [ ] Fase 2 RH nas Notícias (absenteísmo, sanções, banco de horas, gorjeta)
+- [ ] Painel admin: CRUD de treinamentos/atribuições/grupos
+- [ ] Afinar cores do tema claro
