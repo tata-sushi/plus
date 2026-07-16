@@ -634,6 +634,8 @@ export function Treinamentos() {
           const total = tr.itens.length
           const feitos = tr.itens.filter((i) => i.concluido).length
           const pontosTrilha = tr.itens.reduce((s, i) => s + (i.pontos || 0), 0)
+          // trilha de um único desafio em blocos (ex.: Código de Ética) → contagem por partes
+          const blocosItem = tr.itens.length === 1 && tr.itens[0].blocos_total > 0 ? tr.itens[0] : null
           const expandida = aberta === tr.id
           // TATÁ NEWS abre como prateleira de jornalzinhos (#1, #2, …)
           const prateleira = tr.nome === 'TATÁ NEWS'
@@ -655,7 +657,11 @@ export function Treinamentos() {
                 <div className="min-w-0 flex-1">
                   <div className="font-semibold">{tr.nome}</div>
                   <div className="mt-0.5 hstack justify-between gap-2 text-xs text-muted">
-                    <span>{feitos}/{total} concluídos</span>
+                    <span>
+                      {blocosItem
+                        ? `${blocosItem.concluido ? blocosItem.blocos_total : 1} de ${blocosItem.blocos_total} partes`
+                        : `${feitos}/${total} concluídos`}
+                    </span>
                     <span>
                       <span className="font-semibold text-accent">
                         {total ? Math.round((feitos / total) * 100) : 0}%
@@ -777,10 +783,7 @@ export function Treinamentos() {
                                 <Play size={13} fill="currentColor" />
                               )}
                             </span>
-                            <span className="min-w-0 flex-1">
-                              <span className="block truncate text-sm font-medium">{item.titulo}</span>
-                              <span className="text-[11px] text-muted-2">{total} partes</span>
-                            </span>
+                            <span className="min-w-0 flex-1" />
                             {item.pontos > 0 && (
                               <span className="hstack shrink-0 gap-1 text-[11px] font-semibold text-muted">
                                 <Star size={11} /> {item.pontos}
