@@ -64,7 +64,7 @@ export function AtalhosGovernanca() {
       }
     >
       {fixadas.length > 0 ? (
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-1 gap-2">
           {fixadas.map((p) => {
             const Icon = resolveIcon(p.icon)
             return (
