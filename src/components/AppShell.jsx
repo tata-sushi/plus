@@ -10,20 +10,14 @@ export function AppShell() {
   const location = useLocation()
   const semNav = SEM_NAV.includes(location.pathname)
 
-  // Orientação: o app é retrato; só o organograma vai para paisagem (e já entra
-  // girado). O manifest é 'any' para permitir; aqui a gente ajusta por rota.
-  // Best-effort e à prova de erro: navegadores sem a API (ex.: iOS) ignoram.
+  // Orientação: o app fica travado em RETRATO; só o organograma vai para
+  // PAISAGEM (e já entra girado). O manifest é 'any' para permitir os dois; aqui
+  // a gente trava por rota. Best-effort e à prova de erro (iOS etc. ignoram).
   useEffect(() => {
     const o = window.screen?.orientation
     try {
-      if (semNav) {
-        const p = o?.lock?.('landscape')
-        if (p?.catch) p.catch(() => {})
-      } else {
-        // não força retrato (evita travar e impedir o giro do organograma);
-        // libera e deixa o aparelho seguir seu padrão (retrato ao segurar em pé).
-        o?.unlock?.()
-      }
+      const p = o?.lock?.(semNav ? 'landscape' : 'portrait')
+      if (p?.catch) p.catch(() => {})
     } catch {
       /* sem suporte à API de orientação */
     }
