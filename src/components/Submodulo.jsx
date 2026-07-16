@@ -37,7 +37,7 @@ function competencia(di) {
 // da bancada, sempre acessíveis, para que cada mês possa ter um texto curtinho.
 const COMO_FUNCIONA = {
   '100% de Presença': `
-    <p>Sua pontualidade e seu comprometimento valem muito. E, aqui no Tatá Plus, também valem pontos!</p>
+    <p>Sua pontualidade e seu comprometimento valem muito. E, aqui no TATÁ Plus, também valem pontos!</p>
     <p>Todo mês em que você tiver <strong>100% de presença</strong>, considerando os dias trabalhados, você ganha <strong>100 pontos extras</strong>.</p>
     <p>Sem sorteio, sem mistério e sem enrolação!</p>
     <p><strong>Como funciona</strong></p>
@@ -50,11 +50,11 @@ const COMO_FUNCIONA = {
     <p><em>Exemplo: uma falta já impede o recebimento da pontuação daquela competência.</em></p>
   `,
   'Aniversário de Empresa': `
-    <p>Celebrar o tempo de casa é reconhecer a história construída por cada colaborador e reforçar o sentimento de pertencimento no Tatá.</p>
+    <p>Celebrar o tempo de casa é reconhecer a história construída por cada colaborador e reforçar o sentimento de pertencimento no TATÁ.</p>
     <p>O Aniversário de Empresa é um gesto de reconhecimento pela dedicação, constância e contribuição de cada pessoa para o crescimento coletivo.</p>
     <p><strong>Como funciona</strong></p>
     <p>A cada ciclo de tempo de empresa, o colaborador é homenageado de forma especial.</p>
-    <p>Os reconhecimentos variam conforme o tempo de casa e representam o crescimento e a evolução de cada pessoa dentro do Tatá.</p>
+    <p>Os reconhecimentos variam conforme o tempo de casa e representam o crescimento e a evolução de cada pessoa dentro do TATÁ.</p>
     <p><strong>Critérios de elegibilidade</strong></p>
     <p>Para participar do benefício, o colaborador deve ter, no mínimo, <strong>6 meses de empresa</strong>.</p>
     <p><strong>Programação</strong></p>
@@ -64,9 +64,9 @@ const COMO_FUNCIONA = {
     <p>Os períodos anteriores não serão considerados de forma retroativa.</p>
   `,
   'Indicação Premiada': `
-    <p><strong>Indique talentos para o Tatá!</strong></p>
+    <p><strong>Indique talentos para o TATÁ!</strong></p>
     <p>Cada desafio corresponde a uma indicação.</p>
-    <p>Anexe o currículo no desafio aberto e, quando a contratação for <strong>efetivada</strong>, seu prêmio de <strong>R$ 80</strong> ficará disponível para resgate aqui no Tatá Plus.</p>
+    <p>Anexe o currículo no desafio aberto e, quando a contratação for <strong>efetivada</strong>, seu prêmio de <strong>R$ 80</strong> ficará disponível para resgate aqui no TATÁ Plus.</p>
     <p><strong>Como funciona</strong></p>
     <p>O próximo desafio será aberto somente após a aprovação da indicação anterior. Assim, você poderá acompanhar cada indicação com calma.</p>
     <p>Serão disponibilizados até <strong>10 desafios</strong>, e você poderá indicar várias pessoas ao longo do tempo.</p>
