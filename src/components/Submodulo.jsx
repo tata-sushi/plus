@@ -80,7 +80,7 @@ const COMO_FUNCIONA = {
     <p>Contamos com você!</p>
   `,
   'Saúde em Dia': `
-    <p><strong>Mantenha seu exame periódico (ASO) em dia e ganhe pontos a cada novo exame!</strong></p>
+    <p>{{user.first_name}}, mantenha seu <strong>exame periódico (ASO)</strong> em dia e ganhe pontos a cada novo exame!</p>
     <p><strong>Como funciona</strong></p>
     <p>Anexe o ASO no desafio aberto.</p>
     <p>Após a validação da área de Gente &amp; Gestão (RH), os pontos serão adicionados à sua carteira.</p>
@@ -98,7 +98,7 @@ const SERIE_ICON = {
 // Submódulo dentro de uma trilha (ex.: dentro de "Especiais"). Recolhível.
 // Série mensal de envio (ex.: 100% de Presença) → bancada de calendários (mês/ano),
 // no estilo do TATÁ NEWS. Demais → lista simples de desafios.
-export function Submodulo({ nome, itens, onAbrir, admin = false }) {
+export function Submodulo({ nome, itens, onAbrir, admin = false, personalizar = (h) => h }) {
   const [aberto, setAberto] = useState(false)
   const [sobre, setSobre] = useState(false)
   const ehSerie = itens.length > 0 && itens.every((i) => i.tipo === 'envio')
@@ -138,7 +138,7 @@ export function Submodulo({ nome, itens, onAbrir, admin = false }) {
       {sobre && (
         <div
           className="conteudo px-4 pb-4 text-[13px] leading-relaxed"
-          dangerouslySetInnerHTML={{ __html: COMO_FUNCIONA[nome] }}
+          dangerouslySetInnerHTML={{ __html: personalizar(COMO_FUNCIONA[nome]) }}
         />
       )}
     </div>
