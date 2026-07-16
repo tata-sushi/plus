@@ -21,7 +21,9 @@ export default defineConfig({
         theme_color: '#0A0A0A',
         background_color: '#0A0A0A',
         display: 'standalone',
-        orientation: 'portrait',
+        // 'any' permite girar; o app trava retrato via JS (screen.orientation)
+        // e libera paisagem só no organograma. Ver components/AppShell.jsx.
+        orientation: 'any',
         lang: 'pt-BR',
         start_url: '/',
         scope: '/',
