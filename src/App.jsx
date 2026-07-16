@@ -19,6 +19,7 @@ import { Cardapio } from './routes/Cardapio.jsx'
 import { Comunidade } from './routes/Comunidade.jsx'
 import { Ouvidoria } from './routes/Ouvidoria.jsx'
 import { Governanca } from './routes/Governanca.jsx'
+import { Organograma } from './routes/Organograma.jsx'
 
 function Splash() {
   return (
@@ -57,6 +58,7 @@ export function App() {
         <Route path="/cardapio" element={<Cardapio />} />
         <Route path="/comunidade" element={<Comunidade />} />
         <Route path="/governanca" element={<Governanca />} />
+        <Route path="/organograma" element={<Organograma />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
     </Routes>
