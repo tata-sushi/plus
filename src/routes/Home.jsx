@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Flag, Gift, Plus, ChevronRight, Landmark } from 'lucide-react'
+import { Flag, Gift, Plus, ChevronRight } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Section } from '../components/Section.jsx'
 import { Card } from '../components/Card.jsx'
@@ -37,21 +37,7 @@ export function Home() {
 
   const [tataIdx, setTataIdx] = useState(0)
 
-  // Governança entra no carrossel só para quem tem acesso (badge preto/branco)
-  const cards = usuario?.governanca?.tem
-    ? [
-        ...tataPlusCards,
-        {
-          to: '/governanca',
-          badgeIcon: Landmark,
-          title: 'Governança de Processos',
-          subtitle: 'Painel dos líderes',
-          bgClassName: 'bg-carbon',
-          badgeClassName: 'bg-white text-carbon',
-          textClassName: 'text-white',
-        },
-      ]
-    : tataPlusCards
+  const cards = tataPlusCards
 
   // Progresso real de desafios (para o anel do card de identificação)
   const [progresso, setProgresso] = useState(null)
