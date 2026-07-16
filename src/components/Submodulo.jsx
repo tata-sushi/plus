@@ -13,6 +13,9 @@ import {
   Gift,
   Ban,
   Info,
+  UserPlus,
+  HeartPulse,
+  ClipboardList,
 } from 'lucide-react'
 import { cn } from '../lib/cn'
 
@@ -55,6 +58,30 @@ const COMO_FUNCIONA = {
     <p>Início do programa em 2026, com o reconhecimento dos colaboradores nos níveis correspondentes.</p>
     <p><strong>⚠️ Contagem a partir da implantação:</strong> a premiação por tempo de casa passa a contar a partir da data de implantação do programa. Períodos anteriores não serão considerados de forma retroativa.</p>
   `,
+  'Indicação Premiada': `
+    <p>Indique talentos para o TATÁ! Cada <strong>vaga</strong> é uma indicação. Anexe o currículo na vaga aberta e, quando a contratação for <strong>efetivada</strong>, seu prêmio de <strong>R$ 80</strong> fica disponível para resgate aqui no TATÁ +.</p>
+    <p><strong>Como funciona:</strong></p>
+    <ul>
+      <li>A próxima vaga só <strong>abre depois</strong> que a anterior é aprovada. <em>Assim você acompanha cada indicação com calma.</em></li>
+      <li>São até <strong>10 vagas</strong> — você pode indicar várias pessoas ao longo do tempo.</li>
+      <li>Anexe o <strong>currículo</strong> da pessoa na vaga aberta e aguarde o retorno do RH.</li>
+    </ul>
+  `,
+  'Saúde em Dia': `
+    <p>Mantenha seu <strong>exame periódico (ASO)</strong> em dia e ganhe pontos a cada novo exame!</p>
+    <p><strong>Como funciona:</strong></p>
+    <ul>
+      <li>Anexe o <strong>ASO</strong> na vaga aberta. Depois da validação do RH, os pontos entram na carteira.</li>
+      <li>A próxima vaga <strong>abre depois</strong> que a anterior é aprovada — a cada exame novo você resgata de novo.</li>
+      <li>São até <strong>10 vagas</strong> ao longo do tempo.</li>
+    </ul>
+  `,
+}
+
+// ícone de cada série sequencial (bancada de "vagas" que liberam uma a uma)
+const SERIE_ICON = {
+  'Indicação Premiada': UserPlus,
+  'Saúde em Dia': HeartPulse,
 }
 
 // Submódulo dentro de uma trilha (ex.: dentro de "Especiais"). Recolhível.
@@ -65,17 +92,23 @@ export function Submodulo({ nome, itens, onAbrir, admin = false }) {
   const [sobre, setSobre] = useState(false)
   const ehSerie = itens.length > 0 && itens.every((i) => i.tipo === 'envio')
   const ehRec = itens.length > 0 && itens.every((i) => i.tipo === 'reconhecimento')
+  // série sequencial (Indicação, Saúde): "vagas" que liberam uma a uma, sem janela de
+  // data. Presença é série mensal (tem data_inicio) — é o que distingue as duas.
+  const ehSeq = ehSerie && itens.every((i) => !i.data_inicio)
+  const ehMensal = ehSerie && !ehSeq
   const feitos = itens.filter((i) => i.concluido).length
   const temAcao =
     itens.some((i) => i.janela_estado === 'aberto' && !i.concluido) ||
     itens.some((i) => i.estado_reconhecimento === 'disponivel')
-  const HeaderIcon = ehSerie ? CalendarDays : PartyPopper
+  const HeaderIcon = ehMensal ? CalendarDays : ehSeq ? SERIE_ICON[nome] || ClipboardList : PartyPopper
   // o ativo (aberto / disponível) vem primeiro; o resto mantém a sequência (sort estável)
   const ativo = (i) =>
     (i.janela_estado === 'aberto' && !i.concluido) || i.estado_reconhecimento === 'disponivel'
       ? 1
       : 0
   const itensOrdenados = [...itens].sort((a, b) => ativo(b) - ativo(a))
+  // série sequencial mantém a ordem natural das vagas (1 → 10), como uma trilha de progresso
+  const itensSeq = [...itens].sort((a, b) => (a.ordem || 0) - (b.ordem || 0))
 
   // "Como funciona" recolhível no topo da bancada (regras completas, sempre acessível)
   const comoFunciona = COMO_FUNCIONA[nome] ? (
@@ -124,7 +157,7 @@ export function Submodulo({ nome, itens, onAbrir, admin = false }) {
       </button>
 
       {/* Série mensal → bancada de calendários (mês/ano) */}
-      {aberto && ehSerie && (
+      {aberto && ehMensal && (
         <div className="bg-surface-2/40">
           {comoFunciona}
           <div className="grid grid-cols-4 gap-3 p-4">
@@ -185,6 +218,64 @@ export function Submodulo({ nome, itens, onAbrir, admin = false }) {
               </button>
             )
           })}
+          </div>
+        </div>
+      )}
+
+      {/* Série sequencial (Indicação, Saúde) → bancada de "vagas" que liberam uma a uma */}
+      {aberto && ehSeq && (
+        <div className="bg-surface-2/40">
+          {comoFunciona}
+          <div className="grid grid-cols-4 gap-3 p-4">
+            {itensSeq.map((item) => {
+              const concl = item.concluido
+              const aberta = !concl && item.liberado
+              const pode = aberta || concl || admin
+              const TileIcon = SERIE_ICON[nome] || ClipboardList
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => pode && onAbrir(item)}
+                  disabled={!pode}
+                  aria-label={`${nome} ${item.ordem}`}
+                  className="flex flex-col items-center gap-1.5 py-1.5 tap"
+                >
+                  {/* modelo Qualidade: feito = chip verde escuro + ícone citric */}
+                  <span
+                    className={cn(
+                      'relative grid h-11 w-11 place-items-center rounded-2xl',
+                      concl
+                        ? 'bg-accent-soft text-accent'
+                        : aberta
+                          ? 'bg-accent text-black'
+                          : 'text-muted-2 opacity-40',
+                    )}
+                  >
+                    <TileIcon size={20} strokeWidth={1.7} />
+                    {/* aprovada → círculo verde escuro + check citric */}
+                    {concl && (
+                      <span className="absolute -right-1.5 -top-1.5 grid h-[18px] w-[18px] place-items-center rounded-full bg-accent-soft text-accent ring-2 ring-surface">
+                        <Check size={10} strokeWidth={2.5} />
+                      </span>
+                    )}
+                    {/* bloqueada (vaga futura) → cadeado */}
+                    {!concl && !aberta && (
+                      <span className="absolute -right-1.5 -top-1.5 text-muted-2">
+                        <Lock size={11} />
+                      </span>
+                    )}
+                  </span>
+                  <span
+                    className={cn(
+                      'text-[10.5px] font-semibold',
+                      !concl && !aberta ? 'text-muted-2' : 'text-text',
+                    )}
+                  >
+                    {item.ordem}
+                  </span>
+                </button>
+              )
+            })}
           </div>
         </div>
       )}
