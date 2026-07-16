@@ -765,24 +765,6 @@ export function Treinamentos() {
                             disabled={bloqueado}
                             className="hstack w-full gap-3 text-left tap"
                           >
-                            <span
-                              className={cn(
-                                'grid h-8 w-8 shrink-0 place-items-center rounded-full',
-                                item.concluido
-                                  ? 'bg-accent-soft text-accent'
-                                  : bloqueado
-                                    ? 'bg-surface-2 text-muted-2'
-                                    : 'bg-accent text-black',
-                              )}
-                            >
-                              {item.concluido ? (
-                                <CheckCircle2 size={16} />
-                              ) : bloqueado ? (
-                                <Lock size={14} />
-                              ) : (
-                                <Play size={13} fill="currentColor" />
-                              )}
-                            </span>
                             <span className="min-w-0 flex-1" />
                             {item.pontos > 0 && (
                               <span className="hstack shrink-0 gap-1 text-[11px] font-semibold text-muted">
