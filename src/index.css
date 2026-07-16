@@ -154,6 +154,38 @@
   color: rgb(var(--muted-2));
   text-align: center;
 }
+.conteudo table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.8rem 0 1.2rem;
+  font-size: 0.88em;
+}
+.conteudo th,
+.conteudo td {
+  border: 1px solid var(--line);
+  padding: 0.5rem 0.7rem;
+  text-align: left;
+}
+.conteudo thead th {
+  background: rgb(var(--surface-2));
+  font-weight: 700;
+}
+/* vídeo embutido (iframe responsivo, ex.: Bunny/mediadelivery) */
+.conteudo .video {
+  position: relative;
+  padding-top: 56.25%;
+  margin: 0.8rem 0 1.2rem;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  background: #000;
+}
+.conteudo .video iframe {
+  position: absolute;
+  inset: 0;
+  height: 100%;
+  width: 100%;
+  border: 0;
+}
 
 /* Animações */
 /* Sem frame "to": ao terminar, o transform volta a none — um transform que
