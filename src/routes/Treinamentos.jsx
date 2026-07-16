@@ -15,6 +15,7 @@ import {
   Download,
   Gift,
   Ban,
+  PartyPopper,
 } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Card } from '../components/Card.jsx'
@@ -198,15 +199,12 @@ function Detalhe({ treino, onFechar, onConcluir, onEnviarProva, onAssinarCodigo,
         </div>
       ) : ehReconhecimento ? (
         <div className="flex-1 overflow-y-auto px-5 py-7">
-          <div className="text-center">
-            <span className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-accent-soft text-accent">
-              <Gift size={30} />
-            </span>
-            <h2 className="mt-3 font-display text-xl font-bold">{treino.titulo}</h2>
-            <p className="mt-1.5 text-sm font-semibold text-accent">
-              {data.descricao || treino.descricao}
-            </p>
-          </div>
+          <IntroDesafio
+            titulo={treino.titulo}
+            frase={data.descricao || treino.descricao}
+            variante={2}
+            Icone={PartyPopper}
+          />
           {data.conteudo_html && (
             <div
               className="conteudo mt-6 text-sm leading-relaxed"

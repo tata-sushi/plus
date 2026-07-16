@@ -1,11 +1,16 @@
 // Capa de introdução do desafio: título grande + frase de destaque,
 // com elementos abstratos suaves no fundo (padrão único; o texto dá a
 // identidade de cada desafio). `variante` troca o arranjo dos elementos.
-export function IntroDesafio({ titulo, frase, variante = 0 }) {
+export function IntroDesafio({ titulo, frase, variante = 0, Icone }) {
   return (
     <div className="relative overflow-hidden rounded-2xl border border-line bg-surface px-6 py-12 text-center">
       <Fundo variante={variante} />
       <div className="relative">
+        {Icone && (
+          <span className="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-full bg-accent-soft text-accent">
+            <Icone size={27} />
+          </span>
+        )}
         <h2 className="font-display text-[1.7rem] font-bold leading-tight">{titulo}</h2>
         {frase && (
           <p className="mx-auto mt-3 max-w-[22rem] whitespace-pre-line text-sm font-semibold leading-relaxed text-accent">
