@@ -8,11 +8,22 @@ const TAM_MAX = 15 * 1024 * 1024 // 15 MB
 // Desafio de "envio moderado": o colaborador anexa um arquivo (imagem ou PDF)
 // que vai pra um bucket privado e fica aguardando a moderação do admin. Só depois
 // de aprovado é que os pontos entram. Estados: sem envio / pendente / aprovado / reprovado.
-export function EnvioDesafio({ treinoId, matricula, envio, concluido, liberado, dataFim, pontos, onEnviado }) {
+export function EnvioDesafio({
+  treinoId,
+  matricula,
+  envio,
+  concluido,
+  liberado,
+  dataFim,
+  pontos,
+  rotulo,
+  onEnviado,
+}) {
   const inputRef = useRef(null)
   const [enviando, setEnviando] = useState(false)
   const [erro, setErro] = useState('')
 
+  const oQue = rotulo || 'arquivo'
   const status = concluido ? 'aprovado' : envio?.status || null
   const prazo = dataFim
     ? new Date(`${dataFim}T00:00:00`).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long' })
@@ -61,7 +72,7 @@ export function EnvioDesafio({ treinoId, matricula, envio, concluido, liberado, 
     return (
       <div className="rounded-card border border-accent/30 bg-accent-soft px-4 py-5 text-center">
         <CheckCircle2 className="mx-auto text-accent" size={28} />
-        <p className="mt-2 text-sm font-bold text-accent">Cartão aprovado! +{pontos} pontos</p>
+        <p className="mt-2 text-sm font-bold text-accent">Aprovado! +{pontos} pontos</p>
         <p className="mt-0.5 text-xs text-muted">Seus pontos já entraram na carteira. 🎉</p>
       </div>
     )
@@ -74,7 +85,7 @@ export function EnvioDesafio({ treinoId, matricula, envio, concluido, liberado, 
           <Clock className="mx-auto text-warn" size={25} />
           <p className="mt-2 text-sm font-bold text-warn">Enviado! Aguardando análise</p>
           <p className="mt-0.5 text-xs text-muted">
-            Assim que o RH validar seu cartão, seus {pontos} pontos entram.
+            Assim que o RH validar seu envio, seus {pontos} pontos entram.
           </p>
         </div>
         <input
@@ -108,13 +119,13 @@ export function EnvioDesafio({ treinoId, matricula, envio, concluido, liberado, 
       {status === 'reprovado' && (
         <div className="mb-3 rounded-card border border-danger/30 bg-danger/10 px-4 py-3">
           <div className="hstack gap-2 text-sm font-semibold text-danger">
-            <XCircle size={17} /> Cartão não aprovado
+            <XCircle size={17} /> Envio não aprovado
           </div>
           {envio?.motivo && <p className="mt-1 text-xs text-muted">{envio.motivo}</p>}
-          <p className="mt-1 text-[11px] text-muted-2">Confira o cartão e envie novamente.</p>
+          <p className="mt-1 text-[11px] text-muted-2">Confira e envie novamente.</p>
         </div>
       )}
-      <p className="mb-2 text-sm font-semibold">Anexar cartão de ponto</p>
+      <p className="mb-2 text-sm font-semibold">Anexar {oQue}</p>
       <input
         ref={inputRef}
         type="file"

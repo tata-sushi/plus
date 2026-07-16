@@ -196,6 +196,7 @@ function Detalhe({ treino, onFechar, onConcluir, onEnviarProva, onAssinarCodigo,
               liberado={data.liberado}
               dataFim={data.data_fim}
               pontos={data.pontos}
+              rotulo={data.envio_rotulo}
               onEnviado={recarregar}
             />
           </div>
