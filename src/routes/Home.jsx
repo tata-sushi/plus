@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Flag, Gift, Plus, ChevronRight } from 'lucide-react'
+import { Flag, Gift, Plus } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Section } from '../components/Section.jsx'
 import { Card } from '../components/Card.jsx'
@@ -34,8 +34,6 @@ export function Home() {
   const primeiroNome = usuario?.primeiroNome || currentUser.primeiroNome
   const cargo = usuario?.cargo || currentUser.cargo
   const loja = usuario?.loja || currentUser.loja
-
-  const [tataIdx, setTataIdx] = useState(0)
 
   const cards = tataPlusCards
 
@@ -133,36 +131,22 @@ export function Home() {
         </Section>
       )}
 
-      {/* TATÁ PLUS — carrossel horizontal (um card por vez) */}
+      {/* TATÁ PLUS — grid de 2 colunas (sem scroll lateral) */}
       <Section className="mt-4 hsm:mt-3" title="TATÁ PLUS">
-        <div className="relative">
-          <div
-            onScroll={(e) => {
-              const el = e.currentTarget
-              const passo = (el.firstElementChild?.clientWidth || el.clientWidth) + 12
-              setTataIdx(Math.round(el.scrollLeft / passo))
-            }}
-            className="-mx-5 flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-px-5 px-5 no-scrollbar"
-          >
-            {cards.map((c, i) => (
-              <PromoCard
-                key={c.to}
-                to={c.to}
-                badgeIcon={c.badgeIcon}
-                title={c.title}
-                subtitle={c.subtitle}
-                bgClassName={c.bgClassName}
-                badgeClassName={c.badgeClassName}
-                textClassName={c.textClassName}
-                className={`w-full shrink-0 snap-start reveal-${i + 1}`}
-              />
-            ))}
-          </div>
-          {tataIdx < cards.length - 1 && (
-            <span className="pointer-events-none absolute right-1 top-1/2 -translate-y-1/2 opacity-80">
-              <ChevronRight size={20} className="animate-nudge text-muted" />
-            </span>
-          )}
+        <div className="grid grid-cols-2 gap-3">
+          {cards.map((c, i) => (
+            <PromoCard
+              key={c.to}
+              to={c.to}
+              badgeIcon={c.badgeIcon}
+              title={c.title}
+              subtitle={c.subtitle}
+              bgClassName={c.bgClassName}
+              badgeClassName={c.badgeClassName}
+              textClassName={c.textClassName}
+              className={`reveal-${i + 1}`}
+            />
+          ))}
         </div>
       </Section>
 

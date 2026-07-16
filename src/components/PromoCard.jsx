@@ -1,6 +1,8 @@
 import { Link } from 'react-router-dom'
 import { cn } from '../lib/cn'
 
+// Tile do grid "TATÁ PLUS" (2 colunas): ícone maior no topo e nome + descrição
+// embaixo. Cantos suaves (8px) pra um visual um pouco mais retangular.
 export function PromoCard({
   to,
   badgeIcon: BadgeIcon,
@@ -14,21 +16,27 @@ export function PromoCard({
   return (
     <Link
       to={to}
-      className={cn(bgClassName, 'reveal tap flex items-center gap-4 rounded-card p-4', className)}
+      className={cn(
+        bgClassName,
+        'reveal tap flex min-h-[150px] flex-col justify-between !rounded-lg p-4',
+        className,
+      )}
     >
       <span
         className={cn(
-          'flex h-16 w-16 shrink-0 items-center justify-center rounded-full',
+          'flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl',
           badgeClassName,
         )}
       >
-        <BadgeIcon size={28} strokeWidth={2} />
+        <BadgeIcon size={30} strokeWidth={2} />
       </span>
-      <div className="min-w-0 flex-1">
-        <div className={cn('font-display text-lg font-bold leading-tight', textClassName)}>
+      <div className="mt-4 min-w-0">
+        <div className={cn('font-display text-base font-bold leading-tight', textClassName)}>
           {title}
         </div>
-        <div className={cn('mt-0.5 text-xs', textClassName ? 'text-white/70' : 'text-muted')}>
+        <div
+          className={cn('mt-1 text-xs leading-snug', textClassName ? 'text-white/70' : 'text-muted')}
+        >
           {subtitle}
         </div>
       </div>
