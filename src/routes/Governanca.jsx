@@ -5,7 +5,10 @@ const GOVERNANCA_URL = 'https://lideres.tatasushi.tech/compliance/index2.html'
 
 export function Governanca() {
   return (
-    <div className="-mb-24 flex h-[calc(100dvh-3.5rem-env(safe-area-inset-bottom))] flex-col">
+    // Preenche a tela inteira (100dvh): o iframe vai até o rodapé e a barra de
+    // navegação (opaca, fixa) cobre a parte de baixo — assim não sobra vão escuro
+    // entre a página e a nav, em nenhum aparelho. Fundo branco por garantia.
+    <div className="-mb-24 flex h-[100dvh] flex-col bg-white">
       <div className="safe-top shrink-0 bg-bg" />
       <iframe
         src={GOVERNANCA_URL}
