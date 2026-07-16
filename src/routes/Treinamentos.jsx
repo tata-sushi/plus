@@ -1,5 +1,6 @@
 import { Fragment, useCallback, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
+import { useNavigate } from 'react-router-dom'
 import {
   Lock,
   CheckCircle2,
@@ -49,6 +50,7 @@ function Detalhe({
   concluindo,
 }) {
   const { usuario } = useAuth()
+  const navigate = useNavigate()
   const [data, setData] = useState(null)
   const [rolou, setRolou] = useState(false) // rolou o conteúdo até o fim?
   const [videosOk, setVideosOk] = useState(false) // assistiu todos os vídeos?
@@ -150,6 +152,19 @@ function Detalhe({
   function aoRolarConteudo(e) {
     const el = e.currentTarget
     if (el.scrollTop + el.clientHeight >= el.scrollHeight - 48) setRolou(true)
+  }
+
+  // links internos dentro do conteúdo (ex.: botão "Ver o organograma" → /organograma)
+  // roteiam pelo app em vez de recarregar a página; links externos seguem normais.
+  function aoClicarConteudo(e) {
+    const a = e.target.closest('a')
+    if (!a) return
+    const href = a.getAttribute('href') || ''
+    if (href.startsWith('/') && !href.startsWith('//')) {
+      e.preventDefault()
+      onFechar()
+      navigate(href)
+    }
   }
 
   // portal no <body>: escapa de qualquer transform/stacking do <main>
@@ -336,6 +351,7 @@ function Detalhe({
           {temHtml && (
             <div
               className="conteudo text-sm leading-relaxed"
+              onClick={aoClicarConteudo}
               dangerouslySetInnerHTML={{ __html: personalizar(data.conteudo_html) }}
             />
           )}
