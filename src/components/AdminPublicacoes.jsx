@@ -212,14 +212,8 @@ export function AdminPublicacoes() {
 
   return (
     <>
-      <div className="px-5 pt-4">
-        <button onClick={abrirForm} className="btn-primary w-full !py-3 text-sm">
-          <Plus size={16} /> Novo comunicado
-        </button>
-      </div>
-
       {/* Filtros */}
-      <div className="hstack gap-2 px-5 pt-3">
+      <div className="hstack gap-2 px-5 pt-4">
         <select
           value={filtroTipo}
           onChange={(e) => setFiltroTipo(e.target.value)}
@@ -355,6 +349,13 @@ export function AdminPublicacoes() {
           )}
         </Section>
       )}
+
+      {/* Criar novo — no rodapé da lista */}
+      <div className="px-5 pb-2 pt-4">
+        <button onClick={abrirForm} className="btn-primary w-full !py-3 text-sm">
+          <Plus size={16} /> Novo comunicado
+        </button>
+      </div>
 
       {/* Editor de novo comunicado */}
       {form && (
