@@ -8,7 +8,7 @@ import {
   Calendar,
   Image as ImageIcon,
   LayoutGrid,
-  FileText,
+  Smartphone,
   Bell,
   Eye,
   Megaphone,
@@ -42,9 +42,7 @@ export function AdminPublicacoes() {
   const [titulo, setTitulo] = useState('')
   const [corpo, setCorpo] = useState('')
   const [tipo, setTipo] = useState('comunicado')
-  const [noCarrossel, setNoCarrossel] = useState(true)
-  const [naPagina, setNaPagina] = useState(true)
-  const [notificar, setNotificar] = useState(true)
+  const [pushAviso, setPushAviso] = useState(true)
   const [dataEvento, setDataEvento] = useState('')
   const [validoDe, setValidoDe] = useState('')
   const [validoAte, setValidoAte] = useState('')
@@ -103,9 +101,7 @@ export function AdminPublicacoes() {
     setTitulo('')
     setCorpo('')
     setTipo('comunicado')
-    setNoCarrossel(true)
-    setNaPagina(true)
-    setNotificar(true)
+    setPushAviso(true)
     setDataEvento('')
     setValidoDe('')
     setValidoAte('')
@@ -153,21 +149,19 @@ export function AdminPublicacoes() {
       p_corpo: c,
       p_tipo: tipo,
       p_imagem_url: imagem_url,
-      p_no_carrossel: noCarrossel,
-      p_na_pagina: naPagina,
-      p_notificar: notificar,
-      p_prioridade: tipo === 'comunicado' ? 110 : 100,
       p_data_evento: dataEvento || null,
       p_data_inicio: validoDe || null,
       p_data_fim: validoAte || null,
       p_alvos,
+      p_push: tipo === 'aviso' ? pushAviso : false,
     })
     setPublicando(false)
     if (error) {
       setErro('Não foi possível publicar.')
       return
     }
-    if (notificar && novoId) {
+    // aviso com push ligado: dispara no celular do público-alvo
+    if (tipo === 'aviso' && pushAviso && novoId) {
       supabase.functions.invoke('enviar_push', { body: { pub_id: novoId } }).catch(() => {})
     }
     fecharForm()
@@ -253,14 +247,14 @@ export function AdminPublicacoes() {
                               <LayoutGrid size={11} /> Carrossel
                             </span>
                           )}
-                          {p.na_pagina && (
-                            <span className="hstack gap-0.5">
-                              <FileText size={11} /> Página
-                            </span>
-                          )}
                           {p.notificar && (
                             <span className="hstack gap-0.5">
-                              <Bell size={11} /> Push
+                              <Bell size={11} /> Sininho
+                            </span>
+                          )}
+                          {p.push && (
+                            <span className="hstack gap-0.5">
+                              <Smartphone size={11} /> Push
                             </span>
                           )}
                           <span className="hstack gap-0.5">
@@ -376,26 +370,49 @@ export function AdminPublicacoes() {
                 ))}
               </select>
 
-              {/* Canais */}
-              <div className="mt-2 grid grid-cols-3 gap-1.5">
-                {[
-                  { on: noCarrossel, set: setNoCarrossel, label: 'Carrossel', Icon: LayoutGrid },
-                  { on: naPagina, set: setNaPagina, label: 'Página', Icon: FileText },
-                  { on: notificar, set: setNotificar, label: 'Notificar', Icon: Bell },
-                ].map((o) => (
-                  <button
-                    key={o.label}
-                    type="button"
-                    onClick={() => o.set((s) => !s)}
+              {/* Onde aparece — derivado do tipo */}
+              <div className="mt-2 hstack gap-2 rounded-card border border-line bg-surface px-3 py-2.5 text-[11px] font-medium text-muted">
+                {tipo === 'aviso' ? (
+                  <>
+                    <Bell size={13} className="text-accent" /> Aparece no sininho (notificação).
+                  </>
+                ) : (
+                  <>
+                    <LayoutGrid size={13} className="text-accent" /> Aparece no carrossel da Home.
+                  </>
+                )}
+              </div>
+
+              {/* Aviso: disparar push ou não */}
+              {tipo === 'aviso' && (
+                <button
+                  type="button"
+                  onClick={() => setPushAviso((s) => !s)}
+                  className="mt-2 hstack w-full justify-between rounded-card border border-line bg-surface px-4 py-3 tap"
+                >
+                  <div className="text-left">
+                    <div className="hstack gap-1.5 text-sm font-semibold">
+                      <Smartphone size={15} /> Disparar push no celular
+                    </div>
+                    <div className="text-[11px] text-muted">
+                      {pushAviso ? 'Notifica o aparelho do público-alvo.' : 'Só no sininho, sem push.'}
+                    </div>
+                  </div>
+                  <span
                     className={cn(
-                      'hstack justify-center gap-1.5 rounded-card border px-2 py-2 text-xs font-semibold tap',
-                      o.on ? 'border-accent bg-accent-soft text-accent' : 'border-line text-muted-2',
+                      'relative h-6 w-10 shrink-0 rounded-full transition-colors',
+                      pushAviso ? 'bg-accent' : 'bg-surface-2',
                     )}
                   >
-                    <o.Icon size={14} /> {o.label}
-                  </button>
-                ))}
-              </div>
+                    <span
+                      className={cn(
+                        'absolute top-0.5 h-5 w-5 rounded-full bg-white transition-all',
+                        pushAviso ? 'left-[18px]' : 'left-0.5',
+                      )}
+                    />
+                  </span>
+                </button>
+              )}
 
               {/* Data do evento */}
               <label className="mt-2 hstack gap-3 rounded-card border border-line bg-surface px-4 py-3">
