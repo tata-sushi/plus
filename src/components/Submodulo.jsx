@@ -34,8 +34,8 @@ function competencia(di) {
   return `${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`
 }
 
-// rótulo curto do mês do período (para a bancada de Metas): 2026-06-21 → "jun/26"
-const MESES = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez']
+// rótulo curto do mês do período (para a bancada de Metas): 2026-06-21 → "Jun/26"
+const MESES = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
 function mesCurto(di) {
   if (!di) return ''
   const d = new Date(`${di}T00:00:00`)
