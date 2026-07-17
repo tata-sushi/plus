@@ -212,12 +212,15 @@ export function AdminPublicacoes() {
 
   return (
     <>
-      {/* Filtros */}
+      {/* Ações + filtro numa linha: Novo · tipo · arquivar */}
       <div className="hstack gap-2 px-5 pt-4">
+        <button onClick={abrirForm} className="btn-primary shrink-0 !px-3 !py-2 text-xs">
+          <Plus size={15} /> Novo
+        </button>
         <select
           value={filtroTipo}
           onChange={(e) => setFiltroTipo(e.target.value)}
-          className="flex-1 rounded-card border border-line bg-surface px-3 py-2 text-xs text-text outline-none"
+          className="min-w-0 flex-1 rounded-card border border-line bg-surface px-3 py-2 text-xs text-text outline-none"
         >
           <option value="todos">Todos os tipos</option>
           <option value="comunicado">Comunicados</option>
@@ -226,12 +229,13 @@ export function AdminPublicacoes() {
         </select>
         <button
           onClick={() => setVerArquivados((v) => !v)}
+          aria-label={verArquivados ? 'Ver ativos' : 'Ver arquivados'}
           className={cn(
-            'hstack gap-1.5 rounded-card border px-3 py-2 text-xs font-semibold tap',
+            'shrink-0 rounded-card border px-2.5 py-2 tap',
             verArquivados ? 'border-accent bg-accent-soft text-accent' : 'border-line text-muted',
           )}
         >
-          <Archive size={14} /> Arquivados
+          <Archive size={16} />
         </button>
       </div>
 
@@ -349,13 +353,6 @@ export function AdminPublicacoes() {
           )}
         </Section>
       )}
-
-      {/* Criar novo — no rodapé da lista */}
-      <div className="px-5 pb-2 pt-4">
-        <button onClick={abrirForm} className="btn-primary w-full !py-3 text-sm">
-          <Plus size={16} /> Novo comunicado
-        </button>
-      </div>
 
       {/* Editor de novo comunicado */}
       {form && (
