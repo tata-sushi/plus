@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Crown, Loader2 } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Tabs } from '../components/Tabs.jsx'
@@ -15,10 +16,13 @@ const abas = [
 
 const fmt = (n) => Number(n || 0).toLocaleString('pt-BR')
 
-function PodiumItem({ pos, c }) {
+function PodiumItem({ pos, c, onClick }) {
   const isFirst = pos === 1
   return (
-    <div className={`flex min-w-0 flex-1 flex-col items-center ${isFirst ? '' : 'mt-5'}`}>
+    <button
+      onClick={onClick}
+      className={`flex min-w-0 flex-1 flex-col items-center tap ${isFirst ? '' : 'mt-5'}`}
+    >
       {isFirst && <Crown size={20} className="mb-1 text-accent" />}
       <div className="relative">
         <Avatar
@@ -39,12 +43,13 @@ function PodiumItem({ pos, c }) {
         {(c.nome || '').split(' ')[0]}
       </div>
       <div className="text-[11px] font-bold text-accent">{fmt(c.pontos)}</div>
-    </div>
+    </button>
   )
 }
 
 export function Ranking() {
   const { usuario } = useAuth()
+  const navigate = useNavigate()
   const [tab, setTab] = useState('geral')
   const [dados, setDados] = useState([])
   const [carregando, setCarregando] = useState(true)
@@ -96,9 +101,9 @@ export function Ranking() {
           {/* Pódio */}
           <div className="px-5">
             <div className="hero-card flex items-end justify-center gap-3 px-4 pb-4 pt-6">
-              {p2 && <PodiumItem pos={2} c={p2} />}
-              {p1 && <PodiumItem pos={1} c={p1} />}
-              {p3 && <PodiumItem pos={3} c={p3} />}
+              {p2 && <PodiumItem pos={2} c={p2} onClick={() => navigate(`/perfil/${p2.matricula}`)} />}
+              {p1 && <PodiumItem pos={1} c={p1} onClick={() => navigate(`/perfil/${p1.matricula}`)} />}
+              {p3 && <PodiumItem pos={3} c={p3} onClick={() => navigate(`/perfil/${p3.matricula}`)} />}
             </div>
           </div>
 
@@ -108,11 +113,12 @@ export function Ranking() {
               {lista.map((c, i) => {
                 const isSelf = c.matricula === usuario?.matricula
                 return (
-                  <div
+                  <button
                     key={c.matricula}
-                    className={`hstack gap-3 px-4 py-3 ${i > 0 ? 'border-t border-line' : ''} ${
-                      isSelf ? 'bg-accent-soft' : ''
-                    }`}
+                    onClick={() => navigate(`/perfil/${c.matricula}`)}
+                    className={`hstack w-full gap-3 px-4 py-3 text-left tap ${
+                      i > 0 ? 'border-t border-line' : ''
+                    } ${isSelf ? 'bg-accent-soft' : ''}`}
                   >
                     <span className="w-5 shrink-0 text-center text-sm font-bold text-muted">
                       {i + 1}
@@ -133,7 +139,7 @@ export function Ranking() {
                       {fmt(c.pontos)}
                       <span className="ml-0.5 text-[10px] font-medium text-muted">pts</span>
                     </span>
-                  </div>
+                  </button>
                 )
               })}
             </div>
