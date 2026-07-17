@@ -1,57 +1,20 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
-import {
-  Eye,
-  Plus,
-  Send,
-  X,
-  Loader2,
-  Trash2,
-  Calendar,
-  Image as ImageIcon,
-  LayoutGrid,
-  FileText,
-  Bell,
-} from 'lucide-react'
+import { useCallback, useEffect, useState } from 'react'
+import { Eye, Loader2, Calendar } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Card } from '../components/Card.jsx'
 import { cn } from '../lib/cn'
-import { tapHaptic } from '../lib/haptics.js'
 import { dataCurta, dataBR, ehHoje, eventoVigente } from '../lib/tempo.js'
-import { useAuth } from '../lib/AuthContext.jsx'
 import { supabase } from '../lib/supabase.js'
 
-const TAM_MAX = 15 * 1024 * 1024 // 15 MB
-
+// Página só de leitura. A criação/gestão de comunicados, notícias e avisos
+// fica no Painel de administração (aba "Avisos").
 export function Comunicados() {
-  const { usuario } = useAuth()
-  const matricula = usuario?.matricula
-  const admin = !!usuario?.podePublicar
-
   const [comunicados, setComunicados] = useState([])
   const [carregando, setCarregando] = useState(true)
   const [erro, setErro] = useState('')
 
-  const [form, setForm] = useState(false)
-  const [titulo, setTitulo] = useState('')
-  const [corpo, setCorpo] = useState('')
-  const [tipo, setTipo] = useState('comunicado')
-  const [noCarrossel, setNoCarrossel] = useState(true)
-  const [naPagina, setNaPagina] = useState(true)
-  const [notificar, setNotificar] = useState(true)
-  const [dataEvento, setDataEvento] = useState('')
-  const [validoDe, setValidoDe] = useState('')
-  const [validoAte, setValidoAte] = useState('')
-  const [alvoModo, setAlvoModo] = useState('todos')
-  const [unidadesSel, setUnidadesSel] = useState([])
-  const [departamentosSel, setDepartamentosSel] = useState([])
-  const [opcoes, setOpcoes] = useState({ unidades: [], departamentos: [] })
-  const [imgFile, setImgFile] = useState(null)
-  const [imgPreview, setImgPreview] = useState('')
-  const [publicando, setPublicando] = useState(false)
-  const imgInput = useRef(null)
-
   const carregar = useCallback(async () => {
-    // ler_comunicados registra a leitura e devolve o feed (contagem já certa)
+    // ler_comunicados registra a leitura e devolve o feed (respeita o público-alvo)
     const { data, error } = await supabase.rpc('ler_comunicados')
     if (error) {
       setErro('Não foi possível carregar os comunicados.')
@@ -66,358 +29,9 @@ export function Comunicados() {
     carregar()
   }, [carregar])
 
-  useEffect(() => {
-    if (!admin) return
-    supabase.rpc('segmentacao_opcoes').then(({ data }) => {
-      if (data) setOpcoes({ unidades: data.unidades || [], departamentos: data.departamentos || [] })
-    })
-  }, [admin])
-
-  function alternarLista(setter, valor) {
-    setter((arr) => (arr.includes(valor) ? arr.filter((x) => x !== valor) : [...arr, valor]))
-  }
-
-  function escolherImagem(e) {
-    const f = e.target.files?.[0]
-    e.target.value = ''
-    if (!f) return
-    if (!f.type.startsWith('image/')) {
-      setErro('Selecione uma imagem.')
-      return
-    }
-    if (f.size > TAM_MAX) {
-      setErro('Imagem muito grande (máx. 15 MB).')
-      return
-    }
-    setErro('')
-    if (imgPreview) URL.revokeObjectURL(imgPreview)
-    setImgFile(f)
-    setImgPreview(URL.createObjectURL(f))
-  }
-
-  function removerImagem() {
-    if (imgPreview) URL.revokeObjectURL(imgPreview)
-    setImgFile(null)
-    setImgPreview('')
-  }
-
-  function fecharForm() {
-    setForm(false)
-    setTitulo('')
-    setCorpo('')
-    setTipo('comunicado')
-    setNoCarrossel(true)
-    setNaPagina(true)
-    setNotificar(true)
-    setDataEvento('')
-    setValidoDe('')
-    setValidoAte('')
-    setAlvoModo('todos')
-    setUnidadesSel([])
-    setDepartamentosSel([])
-    removerImagem()
-  }
-
-  async function publicar() {
-    const t = titulo.trim()
-    const c = corpo.trim()
-    if (!t || !c || publicando || !matricula) return
-    tapHaptic()
-    setPublicando(true)
-    setErro('')
-
-    let imagem_url = null
-    if (imgFile) {
-      const ext = (imgFile.name.split('.').pop() || 'jpg').toLowerCase()
-      const caminho = `${matricula}/${crypto.randomUUID()}.${ext}`
-      const { error: upErr } = await supabase.storage
-        .from('comunicados')
-        .upload(caminho, imgFile, { cacheControl: '3600', contentType: imgFile.type })
-      if (upErr) {
-        setPublicando(false)
-        setErro('Não foi possível enviar a imagem.')
-        return
-      }
-      imagem_url = supabase.storage.from('comunicados').getPublicUrl(caminho).data.publicUrl
-    }
-
-    let p_alvos = null
-    if (alvoModo === 'segmentar') {
-      const arr = [
-        ...unidadesSel.map((v) => ({ tipo: 'unidade', valor: v })),
-        ...departamentosSel.map((v) => ({ tipo: 'departamento', valor: v })),
-      ]
-      if (arr.length) p_alvos = arr
-    }
-
-    const { data: novoId, error } = await supabase.rpc('publicar_conteudo', {
-      p_titulo: t,
-      p_corpo: c,
-      p_tipo: tipo,
-      p_imagem_url: imagem_url,
-      p_no_carrossel: noCarrossel,
-      p_na_pagina: naPagina,
-      p_notificar: notificar,
-      p_prioridade: tipo === 'comunicado' ? 110 : 100,
-      p_data_evento: dataEvento || null,
-      p_data_inicio: validoDe || null,
-      p_data_fim: validoAte || null,
-      p_alvos,
-    })
-    setPublicando(false)
-    if (error) {
-      setErro('Não foi possível publicar.')
-      return
-    }
-    // dispara o push no celular do público-alvo (não bloqueia a publicação)
-    if (notificar && novoId) {
-      supabase.functions.invoke('enviar_push', { body: { pub_id: novoId } }).catch(() => {})
-    }
-    fecharForm()
-    carregar()
-  }
-
-  async function excluir(id) {
-    tapHaptic()
-    const { error } = await supabase.from('publicacoes').delete().eq('id', id)
-    if (!error) setComunicados((prev) => prev.filter((c) => c.id !== id))
-  }
-
   return (
     <>
       <Header />
-
-      {/* Botão de publicar — só admin */}
-      {admin && (
-        <div className="px-5 pt-2">
-          {!form ? (
-            <button onClick={() => setForm(true)} className="btn-primary w-full !py-3 text-sm">
-              <Plus size={16} /> Novo comunicado
-            </button>
-          ) : (
-            <Card>
-              <div className="hstack justify-between">
-                <span className="font-display text-sm font-bold">Novo comunicado</span>
-                <button onClick={fecharForm} className="text-muted tap" aria-label="Fechar">
-                  <X size={18} />
-                </button>
-              </div>
-              <input
-                value={titulo}
-                onChange={(e) => setTitulo(e.target.value)}
-                placeholder="Título"
-                className="mt-3 w-full rounded-card border border-line bg-surface px-4 py-3 text-sm font-semibold outline-none placeholder:text-muted-2"
-              />
-              <textarea
-                value={corpo}
-                onChange={(e) => setCorpo(e.target.value)}
-                placeholder="Escreva o comunicado…"
-                rows={4}
-                className="mt-2 w-full resize-none rounded-card border border-line bg-surface px-4 py-3 text-sm outline-none placeholder:text-muted-2"
-              />
-
-              <label className="mt-2 hstack gap-3 rounded-card border border-line bg-surface px-4 py-3">
-                <Calendar size={16} className="shrink-0 text-muted" />
-                <span className="text-sm text-muted">Data do evento</span>
-                <input
-                  type="date"
-                  value={dataEvento}
-                  onChange={(e) => setDataEvento(e.target.value)}
-                  className="ml-auto bg-transparent text-sm text-text outline-none"
-                />
-                {dataEvento && (
-                  <button
-                    type="button"
-                    onClick={() => setDataEvento('')}
-                    className="text-muted-2 tap"
-                    aria-label="Limpar data"
-                  >
-                    <X size={15} />
-                  </button>
-                )}
-              </label>
-
-              {/* Imagem */}
-              {imgPreview ? (
-                <div className="relative mt-2">
-                  <img src={imgPreview} alt="" className="w-full rounded-card object-cover" />
-                  <button
-                    onClick={removerImagem}
-                    className="absolute right-2 top-2 grid h-8 w-8 place-items-center rounded-full bg-black/60 text-white backdrop-blur tap"
-                    aria-label="Remover imagem"
-                  >
-                    <X size={16} />
-                  </button>
-                </div>
-              ) : (
-                <button
-                  onClick={() => imgInput.current?.click()}
-                  className="mt-2 hstack w-full justify-center gap-2 rounded-card border border-dashed border-line bg-surface px-4 py-3 text-sm font-semibold text-muted tap"
-                >
-                  <ImageIcon size={16} /> Adicionar imagem
-                </button>
-              )}
-              <input
-                ref={imgInput}
-                type="file"
-                accept="image/*"
-                onChange={escolherImagem}
-                className="hidden"
-              />
-
-              {/* Tipo do conteúdo */}
-              <div className="mt-3 flex gap-1.5">
-                {[
-                  { v: 'comunicado', label: 'Comunicado' },
-                  { v: 'noticia', label: 'Notícia' },
-                  { v: 'aviso', label: 'Aviso' },
-                ].map((o) => (
-                  <button
-                    key={o.v}
-                    type="button"
-                    onClick={() => setTipo(o.v)}
-                    className={cn(
-                      'flex-1 rounded-card border px-2 py-2 text-xs font-semibold tap',
-                      tipo === o.v
-                        ? 'border-accent bg-accent-soft text-accent'
-                        : 'border-line text-muted',
-                    )}
-                  >
-                    {o.label}
-                  </button>
-                ))}
-              </div>
-
-              {/* Onde aparece (canais) */}
-              <div className="mt-2 grid grid-cols-3 gap-1.5">
-                {[
-                  { on: noCarrossel, set: setNoCarrossel, label: 'Carrossel', Icon: LayoutGrid },
-                  { on: naPagina, set: setNaPagina, label: 'Página', Icon: FileText },
-                  { on: notificar, set: setNotificar, label: 'Notificar', Icon: Bell },
-                ].map((o) => (
-                  <button
-                    key={o.label}
-                    type="button"
-                    onClick={() => o.set((s) => !s)}
-                    className={cn(
-                      'hstack justify-center gap-1.5 rounded-card border px-2 py-2 text-xs font-semibold tap',
-                      o.on ? 'border-accent bg-accent-soft text-accent' : 'border-line text-muted-2',
-                    )}
-                  >
-                    <o.Icon size={14} /> {o.label}
-                  </button>
-                ))}
-              </div>
-
-              {/* Período de validade (opcional) */}
-              <div className="mt-2 grid grid-cols-2 gap-1.5">
-                <label className="hstack gap-2 rounded-card border border-line bg-surface px-3 py-2.5">
-                  <span className="text-[11px] text-muted">Válido de</span>
-                  <input
-                    type="date"
-                    value={validoDe}
-                    onChange={(e) => setValidoDe(e.target.value)}
-                    className="ml-auto bg-transparent text-xs text-text outline-none"
-                  />
-                </label>
-                <label className="hstack gap-2 rounded-card border border-line bg-surface px-3 py-2.5">
-                  <span className="text-[11px] text-muted">até</span>
-                  <input
-                    type="date"
-                    value={validoAte}
-                    onChange={(e) => setValidoAte(e.target.value)}
-                    className="ml-auto bg-transparent text-xs text-text outline-none"
-                  />
-                </label>
-              </div>
-
-              {/* Público-alvo */}
-              <div className="mt-2 flex gap-1.5">
-                {[
-                  { v: 'todos', label: 'Todos' },
-                  { v: 'segmentar', label: 'Segmentar' },
-                ].map((o) => (
-                  <button
-                    key={o.v}
-                    type="button"
-                    onClick={() => setAlvoModo(o.v)}
-                    className={cn(
-                      'flex-1 rounded-card border px-2 py-2 text-xs font-semibold tap',
-                      alvoModo === o.v
-                        ? 'border-accent bg-accent-soft text-accent'
-                        : 'border-line text-muted',
-                    )}
-                  >
-                    {o.label}
-                  </button>
-                ))}
-              </div>
-
-              {alvoModo === 'segmentar' && (
-                <div className="mt-2 rounded-card border border-line bg-surface p-3">
-                  <div className="text-[11px] font-semibold text-muted">Unidades</div>
-                  <div className="mt-1.5 flex flex-wrap gap-1.5">
-                    {opcoes.unidades.map((u) => (
-                      <button
-                        key={u}
-                        type="button"
-                        onClick={() => alternarLista(setUnidadesSel, u)}
-                        className={cn(
-                          'rounded-pill border px-2.5 py-1 text-[11px] font-semibold tap',
-                          unidadesSel.includes(u)
-                            ? 'border-accent bg-accent text-black'
-                            : 'border-line text-muted',
-                        )}
-                      >
-                        {u}
-                      </button>
-                    ))}
-                  </div>
-                  <div className="mt-3 text-[11px] font-semibold text-muted">Departamentos</div>
-                  <div className="mt-1.5 flex flex-wrap gap-1.5">
-                    {opcoes.departamentos.map((d) => (
-                      <button
-                        key={d}
-                        type="button"
-                        onClick={() => alternarLista(setDepartamentosSel, d)}
-                        className={cn(
-                          'rounded-pill border px-2.5 py-1 text-[11px] font-semibold tap',
-                          departamentosSel.includes(d)
-                            ? 'border-accent bg-accent text-black'
-                            : 'border-line text-muted',
-                        )}
-                      >
-                        {d}
-                      </button>
-                    ))}
-                  </div>
-                  <div className="mt-2.5 text-[10px] leading-snug text-muted-2">
-                    Aparece para quem está em qualquer unidade <b>ou</b> departamento marcado. Sem
-                    nada marcado, vai para todos.
-                  </div>
-                </div>
-              )}
-
-              <button
-                onClick={publicar}
-                disabled={!titulo.trim() || !corpo.trim() || publicando}
-                className={cn(
-                  'btn-primary mt-3 w-full !py-3 text-sm',
-                  (!titulo.trim() || !corpo.trim() || publicando) && 'opacity-50',
-                )}
-              >
-                {publicando ? (
-                  <Loader2 size={16} className="animate-spin" />
-                ) : (
-                  <>
-                    <Send size={15} /> Publicar
-                  </>
-                )}
-              </button>
-            </Card>
-          )}
-        </div>
-      )}
 
       <div className="mt-3 flex flex-col gap-3 px-5">
         {carregando && (
@@ -439,46 +53,32 @@ export function Comunicados() {
         {comunicados.map((c) => {
           const vigente = ehHoje(c.created_at) || eventoVigente(c.data_evento)
           return (
-          <Card
-            key={c.id}
-            className={cn('reveal', vigente && 'ring-2 ring-accent/70 shadow-glow')}
-          >
-            <div className="hstack items-start justify-between gap-2">
+            <Card key={c.id} className={cn('reveal', vigente && 'ring-2 ring-accent/70 shadow-glow')}>
               <h3 className="font-display text-base font-bold leading-snug">{c.titulo}</h3>
-              {admin && (
-                <button
-                  onClick={() => excluir(c.id)}
-                  className="shrink-0 text-muted-2 tap"
-                  aria-label="Excluir comunicado"
-                >
-                  <Trash2 size={15} />
-                </button>
+              <p className="mt-1 whitespace-pre-wrap text-sm text-muted">{c.corpo}</p>
+
+              {c.imagem_url && (
+                <img
+                  src={c.imagem_url}
+                  alt=""
+                  className="mt-3 w-full rounded-2xl object-cover"
+                  loading="lazy"
+                />
               )}
-            </div>
-            <p className="mt-1 whitespace-pre-wrap text-sm text-muted">{c.corpo}</p>
 
-            {c.imagem_url && (
-              <img
-                src={c.imagem_url}
-                alt=""
-                className="mt-3 w-full rounded-2xl object-cover"
-                loading="lazy"
-              />
-            )}
+              {c.data_evento && (
+                <div className="mt-2 hstack w-fit gap-1.5 rounded-pill bg-accent-soft px-2.5 py-1 text-[11px] font-semibold text-accent">
+                  <Calendar size={12} /> Evento · {dataBR(c.data_evento)}
+                </div>
+              )}
 
-            {c.data_evento && (
-              <div className="mt-2 hstack w-fit gap-1.5 rounded-pill bg-accent-soft px-2.5 py-1 text-[11px] font-semibold text-accent">
-                <Calendar size={12} /> Evento · {dataBR(c.data_evento)}
+              <div className="mt-3 hstack justify-between text-[11px] text-muted">
+                <span>Data de publicação · {dataCurta(c.created_at)}</span>
+                <span className="hstack gap-1">
+                  <Eye size={12} /> {c.visualizacoes}
+                </span>
               </div>
-            )}
-
-            <div className="mt-3 hstack justify-between text-[11px] text-muted">
-              <span>Data de publicação · {dataCurta(c.created_at)}</span>
-              <span className="hstack gap-1">
-                <Eye size={12} /> {c.visualizacoes}
-              </span>
-            </div>
-          </Card>
+            </Card>
           )
         })}
       </div>

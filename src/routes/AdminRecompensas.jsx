@@ -21,6 +21,7 @@ import { Card } from '../components/Card.jsx'
 import { Avatar } from '../components/Avatar.jsx'
 import { RecompensaFoto } from '../components/RecompensaFoto.jsx'
 import { PhotoCropper } from '../components/PhotoCropper.jsx'
+import { AdminPublicacoes } from '../components/AdminPublicacoes.jsx'
 import { cn } from '../lib/cn'
 import { tapHaptic } from '../lib/haptics.js'
 import { useAuth } from '../lib/AuthContext.jsx'
@@ -348,11 +349,20 @@ export function AdminRecompensas() {
 
       {/* Abas */}
       <div className="px-5 pt-3">
-        <div className="card grid grid-cols-3 gap-1.5 p-1.5">
+        <div className="card grid grid-cols-4 gap-1 p-1.5">
+          <button
+            onClick={() => setAba('comunicados')}
+            className={cn(
+              'rounded-2xl py-2.5 text-xs font-semibold tap',
+              aba === 'comunicados' ? 'bg-accent text-black' : 'text-muted',
+            )}
+          >
+            Avisos
+          </button>
           <button
             onClick={() => setAba('catalogo')}
             className={cn(
-              'rounded-2xl py-2.5 text-sm font-semibold tap',
+              'rounded-2xl py-2.5 text-xs font-semibold tap',
               aba === 'catalogo' ? 'bg-accent text-black' : 'text-muted',
             )}
           >
@@ -361,7 +371,7 @@ export function AdminRecompensas() {
           <button
             onClick={() => setAba('pedidos')}
             className={cn(
-              'hstack justify-center gap-1.5 rounded-2xl py-2.5 text-sm font-semibold tap',
+              'hstack justify-center gap-1 rounded-2xl py-2.5 text-xs font-semibold tap',
               aba === 'pedidos' ? 'bg-accent text-black' : 'text-muted',
             )}
           >
@@ -380,7 +390,7 @@ export function AdminRecompensas() {
           <button
             onClick={() => setAba('envios')}
             className={cn(
-              'hstack justify-center gap-1.5 rounded-2xl py-2.5 text-sm font-semibold tap',
+              'hstack justify-center gap-1 rounded-2xl py-2.5 text-xs font-semibold tap',
               aba === 'envios' ? 'bg-accent text-black' : 'text-muted',
             )}
           >
@@ -399,7 +409,9 @@ export function AdminRecompensas() {
         </div>
       </div>
 
-      {aba === 'envios' ? (
+      {aba === 'comunicados' ? (
+        <AdminPublicacoes />
+      ) : aba === 'envios' ? (
         carregandoEnvios ? (
           <div className="hstack justify-center py-16 text-muted-2">
             <Loader2 size={22} className="animate-spin" />
