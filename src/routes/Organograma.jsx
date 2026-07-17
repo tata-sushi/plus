@@ -30,7 +30,7 @@ export function Organograma() {
           top: 'calc(env(safe-area-inset-top) + 12px)',
           left: 'calc(env(safe-area-inset-left) + 12px)',
           background: '#35383F',
-          padding: '7px 12px',
+          padding: '10px 12px',
           boxShadow: '0 4px 16px rgba(0,0,0,0.18)',
         }}
       >
