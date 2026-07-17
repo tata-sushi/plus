@@ -20,6 +20,7 @@ import { Comunidade } from './routes/Comunidade.jsx'
 import { Ouvidoria } from './routes/Ouvidoria.jsx'
 import { Governanca } from './routes/Governanca.jsx'
 import { Organograma } from './routes/Organograma.jsx'
+import { GerenciarAtalhos } from './routes/GerenciarAtalhos.jsx'
 
 function Splash() {
   return (
@@ -59,6 +60,7 @@ export function App() {
         <Route path="/comunidade" element={<Comunidade />} />
         <Route path="/governanca" element={<Governanca />} />
         <Route path="/organograma" element={<Organograma />} />
+        <Route path="/atalhos-governanca" element={<GerenciarAtalhos />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
     </Routes>
