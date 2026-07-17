@@ -50,11 +50,10 @@ export function JornadaExtra() {
                   <span
                     className={cn(
                       'grid h-14 w-14 place-items-center rounded-2xl',
-                      !on && 'bg-surface-2',
+                      on ? 'bg-accent-soft text-accent' : 'bg-surface-2 text-muted-2',
                     )}
-                    style={on ? { background: e.cor } : undefined}
                   >
-                    <Icon size={24} className={on ? 'text-white' : 'text-muted-2'} />
+                    <Icon size={24} />
                   </span>
                   <span
                     className={cn(
