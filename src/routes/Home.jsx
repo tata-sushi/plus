@@ -8,7 +8,7 @@ import { PromoCard } from '../components/PromoCard.jsx'
 import { AtalhosGovernanca } from '../components/AtalhosGovernanca.jsx'
 import { ProgressRing } from '../components/ProgressRing.jsx'
 import { Avatar } from '../components/Avatar.jsx'
-import { DestaqueBanner } from '../components/DestaqueBanner.jsx'
+import { Carrossel } from '../components/Carrossel.jsx'
 import { resolveIcon } from '../lib/icons.js'
 import { useAuth } from '../lib/AuthContext.jsx'
 import { supabase } from '../lib/supabase.js'
@@ -62,27 +62,13 @@ export function Home() {
     }
   }, [])
 
-  // Destaque rotativo: um por visita (cicla a cada vez que abre a home)
-  const [destaque, setDestaque] = useState(null)
+  // Notícias: carrossel com todos os destaques (já ordenados por prioridade
+  // no RPC — aniversário e comunicado primeiro).
+  const [destaques, setDestaques] = useState([])
   useEffect(() => {
     let ativo = true
     supabase.rpc('destaques').then(({ data }) => {
-      if (!ativo) return
-      const lista = data || []
-      if (!lista.length) {
-        setDestaque(null)
-        return
-      }
-      // Comunicado tem prioridade: se houver, mostra ele; senão, rotaciona
-      const com = lista.find((x) => x.categoria === 'comunicado')
-      if (com) {
-        setDestaque(com)
-        return
-      }
-      const k = 'tp_destaque_rot'
-      const i = Number(localStorage.getItem(k) || '0') % lista.length
-      localStorage.setItem(k, String((i + 1) % 100000))
-      setDestaque(lista[i])
+      if (ativo) setDestaques(data || [])
     })
     return () => {
       ativo = false
@@ -137,10 +123,10 @@ export function Home() {
         </Card>
       </Section>
 
-      {/* Notícias — banner (comunicado prioriza; senão rotaciona) */}
-      {destaque && (
+      {/* Notícias — carrossel automático (aniversário, comunicados, avisos…) */}
+      {destaques.length > 0 && (
         <Section className="reveal reveal-3 mt-4 hsm:mt-3" title="Notícias">
-          <DestaqueBanner d={destaque} />
+          <Carrossel itens={destaques} />
         </Section>
       )}
 

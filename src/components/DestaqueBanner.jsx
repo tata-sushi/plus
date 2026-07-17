@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { Target, Trophy, Megaphone, Star, ChevronRight } from 'lucide-react'
+import { Target, Trophy, Megaphone, Star, ChevronRight, PartyPopper, Cake } from 'lucide-react'
 
 // Cada categoria tem um "template" de fundo (placeholder até chegarem as artes).
 // Quando houver imagem real, d.imagem_url entra por cima do gradiente.
@@ -8,6 +8,11 @@ const TEMPLATES = {
   ranking: { grad: 'from-violet-500/30 via-violet-500/5', Icon: Trophy, tint: 'text-violet-200' },
   comunicado: { grad: 'from-accent/30 via-accent/5', Icon: Megaphone, tint: 'text-accent' },
   pontos: { grad: 'from-emerald-500/30 via-emerald-500/5', Icon: Star, tint: 'text-emerald-200' },
+  aniversario: {
+    grad: 'from-pink-500/45 via-fuchsia-500/15',
+    Icon: PartyPopper,
+    tint: 'text-pink-200',
+  },
 }
 
 export function DestaqueBanner({ d }) {
@@ -42,6 +47,11 @@ export function DestaqueBanner({ d }) {
           {d.categoria === 'comunicado' && (
             <span className="pill w-fit bg-accent text-black text-[10px] uppercase tracking-wide">
               <Megaphone size={12} /> Comunicado
+            </span>
+          )}
+          {d.categoria === 'aniversario' && (
+            <span className="pill w-fit bg-pink-500 text-white text-[10px] uppercase tracking-wide">
+              <Cake size={12} /> Aniversário
             </span>
           )}
           <div className="mt-1.5 font-display text-lg font-bold leading-snug text-white">
