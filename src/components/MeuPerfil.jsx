@@ -2,13 +2,17 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Sparkles, Lock } from 'lucide-react'
 import { Section } from './Section.jsx'
+import { Card } from './Card.jsx'
 import { supabase } from '../lib/supabase.js'
 import { DISC, dominanteDe } from '../lib/disc.js'
+import { signoDe } from '../lib/signo.js'
 import { cn } from '../lib/cn'
 
-// Instrumentos exibidos em "Meu perfil". disponivel=false → aparece como "Em
-// breve" (o teste ainda não está nos desafios). Quando o teste entrar, basta
-// marcar disponivel=true e adicionar o resumo correspondente em resumoDe().
+// Seletor de variação "texto" (U+FE0E): símbolo do signo monocromático (cítrico).
+const VS_TEXTO = String.fromCharCode(0xfe0e)
+
+// Instrumentos de perfil. disponivel=false → "Em breve" (teste ainda não está
+// nos desafios). Ligar depois é só marcar true e tratar o resumo em resumoDe().
 const INSTRUMENTOS = [
   { chave: 'disc', nome: 'DISC', disponivel: true },
   { chave: 'mbti', nome: 'MBTI', disponivel: false },
@@ -30,17 +34,22 @@ function resumoDe(chave, p) {
 export function MeuPerfil() {
   const navigate = useNavigate()
   const [perfis, setPerfis] = useState(undefined) // undefined = carregando
+  const [signo, setSigno] = useState(null)
+  const [signoAberto, setSignoAberto] = useState(false)
 
   useEffect(() => {
     let ativo = true
-    supabase.rpc('meu_perfil').then(({ data }) => {
-      if (!ativo) return
-      const map = {}
-      ;(data || []).forEach((p) => {
-        map[p.instrumento] = p
-      })
-      setPerfis(map)
-    })
+    Promise.all([supabase.rpc('meu_perfil'), supabase.rpc('minha_jornada_extra')]).then(
+      ([pr, er]) => {
+        if (!ativo) return
+        const map = {}
+        ;(pr.data || []).forEach((p) => {
+          map[p.instrumento] = p
+        })
+        setPerfis(map)
+        setSigno(signoDe(er.data?.data_nascimento))
+      },
+    )
     return () => {
       ativo = false
     }
@@ -50,7 +59,7 @@ export function MeuPerfil() {
 
   return (
     <Section className="reveal reveal-3 mt-5" title="Meu perfil">
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-4 gap-2">
         {INSTRUMENTOS.map((inst) => {
           const p = perfis[inst.chave]
           const feito = !!p
@@ -65,7 +74,7 @@ export function MeuPerfil() {
               }}
               disabled={!inst.disponivel}
               className={cn(
-                'card flex flex-col items-center gap-1.5 px-2 py-3.5 text-center tap',
+                'card flex flex-col items-center gap-1.5 px-1.5 py-3.5 text-center tap',
                 !inst.disponivel && 'opacity-60',
               )}
             >
@@ -92,7 +101,38 @@ export function MeuPerfil() {
             </button>
           )
         })}
+
+        {/* Signo — na mesma linha das análises de perfil; abre a leitura ao tocar */}
+        <button
+          onClick={() => signo && setSignoAberto((v) => !v)}
+          disabled={!signo}
+          className={cn(
+            'card flex flex-col items-center gap-1.5 px-1.5 py-3.5 text-center tap',
+            signoAberto && 'ring-1 ring-accent',
+          )}
+        >
+          <span className="grid h-9 w-9 place-items-center rounded-xl bg-accent-soft text-lg leading-none text-accent">
+            {signo ? signo.emoji + VS_TEXTO : '—'}
+          </span>
+          <span className="text-xs font-semibold leading-none">Signo</span>
+          <span className="text-[10px] leading-tight text-muted">{signo ? signo.nome : '—'}</span>
+        </button>
       </div>
+
+      {signoAberto && signo && (
+        <Card className="mt-2">
+          <div className="hstack gap-3">
+            <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-accent-soft text-2xl leading-none text-accent">
+              {signo.emoji + VS_TEXTO}
+            </span>
+            <div className="min-w-0">
+              <div className="font-display text-base font-bold">{signo.nome}</div>
+              <div className="text-xs text-muted">Elemento {signo.elemento}</div>
+            </div>
+          </div>
+          <p className="mt-3 text-sm text-muted">{signo.review}</p>
+        </Card>
+      )}
     </Section>
   )
 }

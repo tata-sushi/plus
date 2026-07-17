@@ -6,7 +6,7 @@ import { Card } from './Card.jsx'
 import { Avatar } from './Avatar.jsx'
 import { ProgressBar } from './ProgressBar.jsx'
 import { MeuPerfil } from './MeuPerfil.jsx'
-import { JornadaExtra } from './JornadaExtra.jsx'
+import { Conquistas } from './Conquistas.jsx'
 import { useCountUp } from '../lib/useCountUp.js'
 import { minhasAcoes } from '../lib/mockData.js'
 
@@ -44,8 +44,11 @@ export function ProfileView({ colaborador, isSelf }) {
         </div>
       </div>
 
+      {/* Conquistas — logo abaixo da identificação */}
+      {isSelf && <Conquistas />}
+
       {/* Carteira */}
-      <Section className="reveal reveal-1 mt-5" title="Carteira de pontos">
+      <Section className="reveal reveal-2 mt-5" title="Carteira de pontos">
         <Card>
           <div className="hstack justify-between">
             <div>
@@ -75,11 +78,8 @@ export function ProfileView({ colaborador, isSelf }) {
         </div>
       </Section>
 
-      {/* Meu perfil (DISC) — só no próprio perfil */}
+      {/* Meu perfil (DISC · MBTI · Big Five · Signo) — só no próprio perfil */}
       {isSelf && <MeuPerfil />}
-
-      {/* Emblemas + signo — só no próprio perfil */}
-      {isSelf && <JornadaExtra />}
 
       {/* Ações — só para o próprio perfil */}
       {isSelf && (
