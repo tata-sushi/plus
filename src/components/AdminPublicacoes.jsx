@@ -370,48 +370,40 @@ export function AdminPublicacoes() {
                 ))}
               </select>
 
-              {/* Onde aparece — derivado do tipo */}
-              <div className="mt-2 hstack gap-2 rounded-card border border-line bg-surface px-3 py-2.5 text-[11px] font-medium text-muted">
-                {tipo === 'aviso' ? (
-                  <>
-                    <Bell size={13} className="text-accent" /> Aparece no sininho (notificação).
-                  </>
-                ) : (
-                  <>
-                    <LayoutGrid size={13} className="text-accent" /> Aparece no carrossel da Home.
-                  </>
-                )}
-              </div>
-
-              {/* Aviso: disparar push ou não */}
-              {tipo === 'aviso' && (
-                <button
-                  type="button"
-                  onClick={() => setPushAviso((s) => !s)}
-                  className="mt-2 hstack w-full justify-between rounded-card border border-line bg-surface px-4 py-3 tap"
-                >
-                  <div className="text-left">
-                    <div className="hstack gap-1.5 text-sm font-semibold">
-                      <Smartphone size={15} /> Disparar push no celular
-                    </div>
-                    <div className="text-[11px] text-muted">
-                      {pushAviso ? 'Notifica o aparelho do público-alvo.' : 'Só no sininho, sem push.'}
-                    </div>
-                  </div>
-                  <span
-                    className={cn(
-                      'relative h-6 w-10 shrink-0 rounded-full transition-colors',
-                      pushAviso ? 'bg-accent' : 'bg-surface-2',
-                    )}
+              {/* Onde aparece — derivado do tipo (aviso traz o push junto) */}
+              {tipo === 'aviso' ? (
+                <div className="mt-2 hstack w-full justify-between gap-2 rounded-card border border-line bg-surface px-4 py-3">
+                  <span className="hstack gap-1.5 text-sm font-medium text-muted">
+                    <Bell size={14} className="text-accent" /> Sininho
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setPushAviso((s) => !s)}
+                    className="hstack gap-2 tap"
+                    aria-label="Disparar push no celular"
                   >
+                    <span className="hstack gap-1 text-xs font-semibold text-muted">
+                      <Smartphone size={13} /> Push
+                    </span>
                     <span
                       className={cn(
-                        'absolute top-0.5 h-5 w-5 rounded-full bg-white transition-all',
-                        pushAviso ? 'left-[18px]' : 'left-0.5',
+                        'relative h-6 w-10 shrink-0 rounded-full transition-colors',
+                        pushAviso ? 'bg-accent' : 'bg-surface-2',
                       )}
-                    />
-                  </span>
-                </button>
+                    >
+                      <span
+                        className={cn(
+                          'absolute top-0.5 h-5 w-5 rounded-full bg-white transition-all',
+                          pushAviso ? 'left-[18px]' : 'left-0.5',
+                        )}
+                      />
+                    </span>
+                  </button>
+                </div>
+              ) : (
+                <div className="mt-2 hstack gap-2 rounded-card border border-line bg-surface px-3 py-2.5 text-[11px] font-medium text-muted">
+                  <LayoutGrid size={13} className="text-accent" /> Aparece no carrossel da Home.
+                </div>
               )}
 
               {/* Data do evento */}
