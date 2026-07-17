@@ -8,6 +8,9 @@ import {
   Trash2,
   Calendar,
   Image as ImageIcon,
+  LayoutGrid,
+  FileText,
+  Bell,
 } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Card } from '../components/Card.jsx'
@@ -31,6 +34,10 @@ export function Comunicados() {
   const [form, setForm] = useState(false)
   const [titulo, setTitulo] = useState('')
   const [corpo, setCorpo] = useState('')
+  const [tipo, setTipo] = useState('comunicado')
+  const [noCarrossel, setNoCarrossel] = useState(true)
+  const [naPagina, setNaPagina] = useState(true)
+  const [notificar, setNotificar] = useState(true)
   const [dataEvento, setDataEvento] = useState('')
   const [imgFile, setImgFile] = useState(null)
   const [imgPreview, setImgPreview] = useState('')
@@ -81,6 +88,10 @@ export function Comunicados() {
     setForm(false)
     setTitulo('')
     setCorpo('')
+    setTipo('comunicado')
+    setNoCarrossel(true)
+    setNaPagina(true)
+    setNotificar(true)
     setDataEvento('')
     removerImagem()
   }
@@ -108,43 +119,29 @@ export function Comunicados() {
       imagem_url = supabase.storage.from('comunicados').getPublicUrl(caminho).data.publicUrl
     }
 
-    const { data, error } = await supabase
-      .from('comunicados')
-      .insert({
-        titulo: t,
-        corpo: c,
-        autor_matricula: matricula,
-        data_evento: dataEvento || null,
-        imagem_url,
-      })
-      .select('id, created_at')
-      .single()
+    const { error } = await supabase.rpc('publicar_conteudo', {
+      p_titulo: t,
+      p_corpo: c,
+      p_tipo: tipo,
+      p_imagem_url: imagem_url,
+      p_no_carrossel: noCarrossel,
+      p_na_pagina: naPagina,
+      p_notificar: notificar,
+      p_prioridade: tipo === 'comunicado' ? 110 : 100,
+      p_data_evento: dataEvento || null,
+    })
     setPublicando(false)
     if (error) {
       setErro('Não foi possível publicar.')
       return
     }
-    setComunicados((prev) => [
-      {
-        id: data.id,
-        titulo: t,
-        corpo: c,
-        autor_matricula: matricula,
-        autor_nome: usuario?.nome,
-        created_at: data.created_at,
-        data_evento: dataEvento || null,
-        imagem_url,
-        visualizacoes: 1,
-        lido: true,
-      },
-      ...prev,
-    ])
     fecharForm()
+    carregar()
   }
 
   async function excluir(id) {
     tapHaptic()
-    const { error } = await supabase.from('comunicados').delete().eq('id', id)
+    const { error } = await supabase.from('publicacoes').delete().eq('id', id)
     if (!error) setComunicados((prev) => prev.filter((c) => c.id !== id))
   }
 
@@ -229,6 +226,50 @@ export function Comunicados() {
                 onChange={escolherImagem}
                 className="hidden"
               />
+
+              {/* Tipo do conteúdo */}
+              <div className="mt-3 flex gap-1.5">
+                {[
+                  { v: 'comunicado', label: 'Comunicado' },
+                  { v: 'noticia', label: 'Notícia' },
+                  { v: 'aviso', label: 'Aviso' },
+                ].map((o) => (
+                  <button
+                    key={o.v}
+                    type="button"
+                    onClick={() => setTipo(o.v)}
+                    className={cn(
+                      'flex-1 rounded-card border px-2 py-2 text-xs font-semibold tap',
+                      tipo === o.v
+                        ? 'border-accent bg-accent-soft text-accent'
+                        : 'border-line text-muted',
+                    )}
+                  >
+                    {o.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Onde aparece (canais) */}
+              <div className="mt-2 grid grid-cols-3 gap-1.5">
+                {[
+                  { on: noCarrossel, set: setNoCarrossel, label: 'Carrossel', Icon: LayoutGrid },
+                  { on: naPagina, set: setNaPagina, label: 'Página', Icon: FileText },
+                  { on: notificar, set: setNotificar, label: 'Notificar', Icon: Bell },
+                ].map((o) => (
+                  <button
+                    key={o.label}
+                    type="button"
+                    onClick={() => o.set((s) => !s)}
+                    className={cn(
+                      'hstack justify-center gap-1.5 rounded-card border px-2 py-2 text-xs font-semibold tap',
+                      o.on ? 'border-accent bg-accent-soft text-accent' : 'border-line text-muted-2',
+                    )}
+                  >
+                    <o.Icon size={14} /> {o.label}
+                  </button>
+                ))}
+              </div>
 
               <button
                 onClick={publicar}
