@@ -417,7 +417,7 @@ function Detalhe({
               onClick={() => navigate('/perfil-disc')}
               className="btn-primary w-full !py-3.5 text-sm"
             >
-              Refazer / ver meu perfil
+              Ver meu perfil
             </button>
           ) : !liberado ? (
             <div className="hstack justify-center gap-2 rounded-card bg-surface py-3 text-sm font-semibold text-muted-2">
