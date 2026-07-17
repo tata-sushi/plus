@@ -8,6 +8,14 @@ import { DISC, ORDEM, dominanteDe } from '../lib/disc.js'
 // Desafio DISC no módulo Soft Skill (marca conclusão + 10 pts ao terminar).
 const DISC_TREINO_ID = 'e3df3ef3-790a-45d7-8b49-de2f1d350936'
 
+// Corta a espera se a rede do celular engolir a resposta (evita travar em "Calculando").
+function comTimeout(promise, ms) {
+  return Promise.race([
+    promise,
+    new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), ms)),
+  ])
+}
+
 function Resultado({ resultado, onVoltar }) {
   const pont = resultado.pontuacoes || {}
   const total = ORDEM.reduce((s, k) => s + (Number(pont[k]) || 0), 0) || 1
@@ -121,16 +129,33 @@ export function QuestionarioDisc() {
   async function enviar(todas) {
     setEnviando(true)
     setErro('')
-    const { data, error } = await supabase.rpc('responder_perfil_disc', { p_respostas: todas })
-    if (error || !data) {
+    try {
+      const { data, error } = await comTimeout(
+        supabase.rpc('responder_perfil_disc', { p_respostas: todas }),
+        15000,
+      )
+      if (error) throw error
+      if (data) {
+        // mostra o resultado na hora; marcar o desafio (pontos) roda em segundo plano
+        supabase.rpc('concluir_treinamento', { p_treino: DISC_TREINO_ID }).catch(() => {})
+        setResultado(data)
+        return
+      }
+      throw new Error('sem_dados')
+    } catch {
+      // a resposta pode ter se perdido no caminho mesmo tendo salvo — recupera o perfil salvo
+      const { data: perfis } = await comTimeout(supabase.rpc('meu_perfil'), 10000).catch(() => ({
+        data: null,
+      }))
+      const disc = (perfis || []).find((p) => p.instrumento === 'disc')
+      if (disc) {
+        setResultado({ perfil: disc.perfil, pontuacoes: disc.pontuacoes })
+        return
+      }
+      setErro('Não foi possível calcular agora. Verifique sua conexão e toque novamente.')
+    } finally {
       setEnviando(false)
-      setErro('Não foi possível enviar agora. Tente de novo.')
-      return
     }
-    // mostra o resultado na hora; marcar o desafio (pontos) roda em segundo plano
-    supabase.rpc('concluir_treinamento', { p_treino: DISC_TREINO_ID }).catch(() => {})
-    setEnviando(false)
-    setResultado(data)
   }
 
   // Seleciona a alternativa. NÃO avança sozinho — a pessoa usa o botão abaixo.
@@ -175,10 +200,10 @@ export function QuestionarioDisc() {
         </div>
       </div>
 
-      {/* pergunta */}
-      <div className="flex flex-1 flex-col px-5 pt-6">
+      {/* pergunta + respostas + botão, tudo junto e centralizado na vertical */}
+      <div className="flex flex-1 flex-col justify-center px-5 pb-8">
         <h2 className="font-display text-lg font-bold leading-snug">{q.enunciado}</h2>
-        <div className="mt-4 flex flex-col gap-2.5">
+        <div className="mt-5 flex flex-col gap-2.5">
           {q.opcoes.map((o) => (
             <button
               key={o.id}
@@ -197,18 +222,16 @@ export function QuestionarioDisc() {
 
         {erro && <p className="mt-4 text-center text-xs font-medium text-danger">{erro}</p>}
 
-        <div className="mt-auto pt-6 pb-5">
-          <button
-            onClick={() => (ultima ? enviar(respostas) : setIdx((i) => i + 1))}
-            disabled={!escolhida}
-            className="btn-primary w-full !py-3.5 text-sm disabled:pointer-events-none disabled:opacity-40"
-          >
-            {ultima ? 'Ver meu perfil' : 'Próxima'}
-          </button>
-          <p className="mt-3 text-center text-[11px] text-muted-2">
-            Escolha a alternativa que mais combina com você. Não há resposta certa ou errada.
-          </p>
-        </div>
+        <button
+          onClick={() => (ultima ? enviar(respostas) : setIdx((i) => i + 1))}
+          disabled={!escolhida}
+          className="btn-primary mt-6 w-full !py-3.5 text-sm disabled:pointer-events-none disabled:opacity-40"
+        >
+          {ultima ? 'Ver meu perfil' : 'Próxima'}
+        </button>
+        <p className="mt-3 text-center text-[11px] text-muted-2">
+          Escolha a alternativa que mais combina com você. Não há resposta certa ou errada.
+        </p>
       </div>
     </div>
   )
