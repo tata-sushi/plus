@@ -21,9 +21,11 @@ export default defineConfig({
         theme_color: '#0A0A0A',
         background_color: '#0A0A0A',
         display: 'standalone',
-        // 'any' permite girar; o app trava retrato via JS (screen.orientation)
-        // e libera paisagem só no organograma. Ver components/AppShell.jsx.
-        orientation: 'any',
+        // Retrato é o padrão do app (garantido pelo manifesto, mesmo sem JS).
+        // O organograma pede paisagem em runtime via screen.orientation.lock
+        // ('landscape') — ver components/AppShell.jsx. Trocar aqui exige
+        // REINSTALAR o PWA (a orientação é "assada" na instalação).
+        orientation: 'portrait',
         lang: 'pt-BR',
         start_url: '/',
         scope: '/',
