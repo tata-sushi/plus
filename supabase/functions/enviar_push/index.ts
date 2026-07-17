@@ -1,9 +1,10 @@
 import { createClient } from 'npm:@supabase/supabase-js@2'
 
 // Web Push (RFC 8291 aes128gcm + VAPID ES256) com SÓ Web Crypto + fetch.
-// Sem libs externas: `web-push` (npm) e `@negrel/webpush` (jsr) não rodam/baixam
-// no runtime Deno da Edge Function. Esta implementação em Web Crypto roda igual
-// em Node e Deno e foi validada contra o FCM (201). Deploy: enviar_push (verify_jwt=true).
+// Sem libs externas (web-push/npm e @negrel/webpush/jsr não rodam/baixam no Deno
+// da Edge). Usa apenas o client do usuário (admin); as chaves VAPID e a limpeza
+// de inscrições mortas vêm por RPCs SECURITY DEFINER (push_payload /
+// remover_push_mortas) — a service role não está disponível neste projeto.
 const enc = new TextEncoder()
 const cors = {
   'Access-Control-Allow-Origin': '*',
@@ -75,12 +76,7 @@ async function enviarUm(sub: { endpoint: string; keys: { p256dh: string; auth: s
   const jwt = await vapidJwt(sub.endpoint, vapid.subject, vapid.publicKey, vapid.privateKey)
   const res = await fetch(sub.endpoint, {
     method: 'POST',
-    headers: {
-      'Content-Encoding': 'aes128gcm',
-      'Content-Type': 'application/octet-stream',
-      TTL: '2419200',
-      Authorization: `vapid t=${jwt}, k=${vapid.publicKey}`,
-    },
+    headers: { 'Content-Encoding': 'aes128gcm', 'Content-Type': 'application/octet-stream', TTL: '2419200', Authorization: `vapid t=${jwt}, k=${vapid.publicKey}` },
     body,
   })
   return res.status
@@ -88,41 +84,39 @@ async function enviarUm(sub: { endpoint: string; keys: { p256dh: string; auth: s
 
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors })
+  const url = Deno.env.get('SUPABASE_URL') ?? ''
+  const anonKey = Deno.env.get('SUPABASE_ANON_KEY') ?? ''
+  const db = createClient(url, anonKey, {
+    db: { schema: 'tata_plus' },
+    global: { headers: { Authorization: req.headers.get('Authorization') ?? '' } },
+  })
   try {
     const { pub_id } = await req.json()
     if (!pub_id) return json({ erro: 'pub_id_obrigatorio' }, 400)
-    const url = Deno.env.get('SUPABASE_URL')!
-    const authHeader = req.headers.get('Authorization') ?? ''
-    // client do usuário: push_payload só devolve algo se for admin (pode_publicar)
-    const userClient = createClient(url, Deno.env.get('SUPABASE_ANON_KEY')!, {
-      db: { schema: 'tata_plus' },
-      global: { headers: { Authorization: authHeader } },
-    })
-    const { data: payload, error } = await userClient.rpc('push_payload', { p_pub: pub_id })
+    // push_payload é SECURITY DEFINER e só devolve dados para admin (pode_publicar);
+    // traz título/corpo/url, as inscrições do público-alvo e as chaves VAPID.
+    const { data: payload, error } = await db.rpc('push_payload', { p_pub: pub_id })
     if (error) return json({ erro: error.message }, 400)
     if (!payload) return json({ erro: 'sem_permissao' }, 403)
     const subs = (payload.subs ?? []) as Array<{ endpoint: string; p256dh: string; auth: string }>
+    const vapid = payload.vapid as { public: string; private: string; subject: string } | null
     if (!subs.length) return json({ enviados: 0, removidos: 0 })
-
-    // service role: lê as chaves VAPID e limpa inscrições mortas
-    const svc = createClient(url, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!, { db: { schema: 'tata_plus' } })
-    const { data: cfg } = await svc.from('push_config').select('vapid_public, vapid_private, subject').eq('id', 1).single()
-    if (!cfg) return json({ erro: 'sem_config' }, 500)
-    const vapid = { subject: cfg.subject, publicKey: cfg.vapid_public, privateKey: cfg.vapid_private }
+    if (!vapid) return json({ erro: 'sem_config' }, 500)
+    const v = { subject: vapid.subject, publicKey: vapid.public, privateKey: vapid.private }
     const payloadObj = { title: payload.titulo, body: payload.corpo, url: payload.url }
-
     let enviados = 0
     const mortos: string[] = []
     await Promise.all(subs.map(async (s) => {
       try {
-        const st = await enviarUm({ endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } }, payloadObj, vapid)
+        const st = await enviarUm({ endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } }, payloadObj, v)
         if (st >= 200 && st < 300) enviados++
         else if (st === 404 || st === 410) mortos.push(s.endpoint)
       } catch (_e) { /* erro de rede numa inscrição: ignora */ }
     }))
-    if (mortos.length) await svc.from('push_subscriptions').delete().in('endpoint', mortos)
+    if (mortos.length) await db.rpc('remover_push_mortas', { p_endpoints: mortos })
     return json({ enviados, removidos: mortos.length })
   } catch (e) {
+    console.error('enviar_push', e)
     return json({ erro: String((e as Error)?.message ?? e) }, 500)
   }
 })
