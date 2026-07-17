@@ -5,10 +5,11 @@ Portal do colaborador Tatá Sushi — PWA instalável servida em `plus.tatasushi
 ## Stack
 
 - **Vite + React 18** — SPA rápida, sem SSR
-- **Tailwind CSS** — design system dark + verde neon
+- **Tailwind CSS** — design system dark + verde neon (tema claro/escuro por tokens CSS)
 - **React Router** — 5 tabs principais + rotas secundárias
 - **vite-plugin-pwa** — manifest, service worker, cache offline
 - **lucide-react** — ícones
+- **Supabase** (Postgres, schema `tata_plus`) — auth, dados e RPCs `SECURITY DEFINER`
 
 ## Como rodar
 
@@ -34,30 +35,34 @@ Push em `main` dispara `.github/workflows/deploy.yml`, que buildeia e publica no
 ```
 src/
 ├── App.jsx                  # rotas
-├── main.jsx                 # entry + registro do SW
-├── index.css                # Tailwind + tokens
-├── components/              # design system compartilhado
-│   ├── AppShell.jsx         # layout com bottom nav
+├── main.jsx                 # entry + registro do SW (BrowserRouter, sem basename)
+├── index.css                # Tailwind + tokens + estilos do .conteudo (HTML dos desafios)
+├── components/              # design system + desafios
+│   ├── AppShell.jsx         # layout + bottom nav + trava de orientação por rota
 │   ├── BottomNav.jsx        # tabs: Início · Ranking · Feed · Governança|Ouvidoria · Mais
-│   ├── Header.jsx
-│   ├── Card.jsx / StatCard.jsx / Section.jsx
-│   ├── ProgressBar.jsx / ProgressRing.jsx
-│   ├── IconTile.jsx / Badge.jsx / Avatar.jsx / Tabs.jsx
-│   └── ComingSoon.jsx
+│   ├── Header.jsx / Card.jsx / ProgressBar.jsx / ProgressRing.jsx / PromoCard.jsx
+│   ├── Submodulo.jsx        # bancadas: presença (mês), série sequencial, reconhecimento,
+│   │                        #   Metas & Prêmio (série de conteúdo mensal) e lista simples
+│   ├── IntroDesafio.jsx     # capa do desafio (título + frase)
+│   ├── ProvaDesafio.jsx     # quiz (correção no servidor)
+│   ├── EnvioDesafio.jsx     # upload moderado
+│   ├── CodigoEtica.jsx      # leitura em blocos + prova/aceite/assinatura
+│   ├── LeituraProva.jsx / Avaliacao.jsx
+│   ├── VideosYouTube.jsx / VideoPlayer.jsx / PdfViewer.jsx
+│   └── AtalhosGovernanca.jsx
 ├── routes/
-│   ├── Home.jsx             # Início — completo
-│   ├── Comunicados.jsx      # Feed
-│   ├── Treinamentos.jsx     # Desafios + pontuação
-│   ├── Procedimentos.jsx    # Links úteis por setor
-│   ├── Jornada.jsx          # Perfil, rank, carteira
-│   ├── Recompensas.jsx      # Catálogo de resgate
-│   ├── Mais.jsx             # Menu de acessos extras
-│   ├── RhFacil.jsx          # placeholder
-│   ├── AssistenteIa.jsx     # placeholder
-│   └── Manutencao.jsx       # placeholder
+│   ├── Home.jsx             # Início (grid Sugestões + Atalhos gov)
+│   ├── Comunicados.jsx / Treinamentos.jsx / Procedimentos.jsx / Jornada.jsx
+│   ├── Recompensas.jsx      # catálogo + painel admin
+│   ├── Mais.jsx
+│   ├── Governanca.jsx       # iframe do portal Líderes
+│   ├── Organograma.jsx      # iframe tela cheia (landscape) + botão flutuante
+│   └── RhFacil / AssistenteIa / Manutencao (placeholders)
 └── lib/
-    ├── cn.js                # utilitário de className
-    └── mockData.js          # dados mockados (feed, treinamentos, etc.)
+    ├── cn.js / haptics.js / icons.js (iconMap das trilhas)
+    ├── supabase.js          # client
+    ├── AuthContext.jsx      # sessão + perfil do usuário
+    └── mockData.js          # dados ainda mockados (cardápio, catálogo gov, etc.)
 ```
 
 ## Documentação
@@ -67,10 +72,26 @@ séries de envio sequenciais, governança embutida, decisões e pendências — 
 **`docs/CONTEXTO.md`**. É o documento de handoff, atualizado a cada bloco de trabalho (a §13
 traz o histórico da sessão mais recente).
 
+## Conteúdo das trilhas (estado)
+
+Detalhe por sessão em `docs/CONTEXTO.md` (§13–§14). Resumo:
+
+- **Prontas:** Integração, Código de Ética, Qualidade, **Gente & Gestão** (12 desafios),
+  Especiais (100% de Presença, Aniversário, Indicação, Saúde), Tatá News, **Tatá Plus**.
+- **Gorjeta & Prêmio:** intros (vídeos) + **Metas & Prêmio mensal** — bancada de "caixinhas"
+  por mês (série de conteúdo com janela de data), **direcionada por unidade+departamento**
+  (alvo composto). Ver §14.
+- **Soft Skill:** 3 submódulos (Inteligência Emocional, Missão dos Desbravadores, DISC).
+  **Inteligência Emocional** montado (12/16); faltam 4 desafios de **formulário/texto livre**.
+
 ## Próximos passos
 
-Roadmap e pendências vivas em `docs/CONTEXTO.md` (§11). Em aberto no momento:
+Roadmap e pendências vivas em `docs/CONTEXTO.md` (§11, §14). Em aberto no momento:
 
+- [ ] **Mecânica de formulário / texto livre** (desafio com campos de texto + escolha) — fecha os
+      4 itens de IE pendentes e as reflexões
+- [ ] **Análise de perfil** — tabela `perfil_colaborador` (genérica, jsonb) + questionários DISC e
+      MBTI (Desbravadores) com cálculo do perfil no servidor
 - [ ] Ponte de sessão da Governança (login único do app → portal Líderes) + servir o portal na mesma origem
 - [ ] Fase 2 RH nas Notícias (absenteísmo, sanções, banco de horas, gorjeta)
 - [ ] Painel admin: CRUD de treinamentos/atribuições/grupos
