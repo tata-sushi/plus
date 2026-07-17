@@ -13,6 +13,8 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,png,webmanifest,woff2}'],
         navigateFallback: '/index.html',
         navigateFallbackDenylist: [/^\/api/],
+        // handlers de push (notificação no celular) — ver public/push-sw.js
+        importScripts: ['/push-sw.js'],
       },
       manifest: {
         name: 'Tatá Plus',

@@ -1,10 +1,11 @@
-import { useState } from 'react'
-import { Lock, Eye, EyeOff, Check, Loader2, ShieldCheck, Sun, Moon } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { Lock, Eye, EyeOff, Check, Loader2, ShieldCheck, Sun, Moon, Bell } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Section } from '../components/Section.jsx'
 import { cn } from '../lib/cn'
 import { tapHaptic } from '../lib/haptics.js'
 import { getTheme, applyTheme } from '../lib/theme.js'
+import { estadoPush, ativarPush, desativarPush } from '../lib/push.js'
 import { useAuth } from '../lib/AuthContext.jsx'
 
 const TEMAS = [
@@ -15,6 +16,9 @@ const TEMAS = [
 export function Manutencao() {
   const { updatePassword } = useAuth()
   const [tema, setTema] = useState(getTheme)
+  const [push, setPush] = useState({ suportado: false, ativo: false, permissao: 'default' })
+  const [pushBusy, setPushBusy] = useState(false)
+  const [pushErro, setPushErro] = useState('')
   const [nova, setNova] = useState('')
   const [confirma, setConfirma] = useState('')
   const [mostrar, setMostrar] = useState(false)
@@ -30,6 +34,31 @@ export function Manutencao() {
   function trocarTema(t) {
     tapHaptic()
     setTema(applyTheme(t))
+  }
+
+  useEffect(() => {
+    let ativo = true
+    estadoPush().then((e) => ativo && setPush(e))
+    return () => {
+      ativo = false
+    }
+  }, [])
+
+  async function alternarPush() {
+    if (pushBusy) return
+    tapHaptic()
+    setPushBusy(true)
+    setPushErro('')
+    const r = push.ativo ? await desativarPush() : await ativarPush()
+    if (!r.ok) {
+      setPushErro(
+        r.erro === 'permissao'
+          ? 'Permissão de notificação negada. Ative nas configurações do navegador.'
+          : 'Não foi possível ativar as notificações neste aparelho.',
+      )
+    }
+    setPush(await estadoPush())
+    setPushBusy(false)
   }
 
   async function salvar(e) {
@@ -158,6 +187,42 @@ export function Manutencao() {
               <Icon size={16} /> {label}
             </button>
           ))}
+        </div>
+      </Section>
+
+      <Section className="mt-5" title="Notificações">
+        <div className="card p-4">
+          <div className="hstack gap-3">
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-accent-soft text-accent">
+              <Bell size={20} />
+            </span>
+            <div className="min-w-0 flex-1">
+              <div className="font-display text-sm font-bold">Notificações no celular</div>
+              <div className="text-xs text-muted">
+                {push.suportado
+                  ? 'Receba avisos e comunicados mesmo com o app fechado.'
+                  : 'Instale o app na tela inicial para ativar as notificações.'}
+              </div>
+            </div>
+            <button
+              onClick={alternarPush}
+              disabled={!push.suportado || pushBusy}
+              className={cn(
+                'shrink-0 rounded-pill px-4 py-2 text-xs font-bold tap',
+                push.ativo ? 'bg-surface text-danger' : 'btn-primary !py-2',
+                (!push.suportado || pushBusy) && 'opacity-50',
+              )}
+            >
+              {pushBusy ? (
+                <Loader2 size={14} className="animate-spin" />
+              ) : push.ativo ? (
+                'Desativar'
+              ) : (
+                'Ativar'
+              )}
+            </button>
+          </div>
+          {pushErro && <div className="mt-2 text-[11px] font-medium text-danger">{pushErro}</div>}
         </div>
       </Section>
     </>
