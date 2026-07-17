@@ -16,7 +16,7 @@ import {
   UserPlus,
   HeartPulse,
   ClipboardList,
-  Trophy,
+  Coins,
 } from 'lucide-react'
 import { cn } from '../lib/cn'
 
@@ -127,7 +127,7 @@ export function Submodulo({ nome, itens, onAbrir, admin = false, personalizar = 
     itens.some((i) => i.janela_estado === 'aberto' && !i.concluido) ||
     itens.some((i) => i.estado_reconhecimento === 'disponivel')
   const HeaderIcon = ehMensalConteudo
-    ? Trophy
+    ? Coins
     : ehMensal
       ? CalendarDays
       : ehSeq
@@ -261,7 +261,7 @@ export function Submodulo({ nome, itens, onAbrir, admin = false, personalizar = 
         </div>
       )}
 
-      {/* Série mensal de conteúdo (Metas & Prêmio) → bancada de troféus por mês.
+      {/* Série mensal de conteúdo (Metas & Prêmio) → bancada de calendários por mês.
           Passado = concluído (✓) ou fechado (cinza) · atual = destaque citric · futuro = cadeado (oculto). */}
       {aberto && ehMensalConteudo && (
         <div className="bg-surface-2/40">
@@ -290,7 +290,7 @@ export function Submodulo({ nome, itens, onAbrir, admin = false, personalizar = 
                           : 'text-muted-2 opacity-40',
                     )}
                   >
-                    <Trophy size={20} strokeWidth={1.7} />
+                    <Calendar size={22} strokeWidth={1.6} />
                     {/* concluído → check citric */}
                     {concl && (
                       <span className="absolute -right-1.5 -top-1.5 grid h-[18px] w-[18px] place-items-center rounded-full bg-accent-soft text-accent ring-2 ring-surface">
