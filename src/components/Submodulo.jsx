@@ -16,6 +16,7 @@ import {
   UserPlus,
   HeartPulse,
   ClipboardList,
+  Trophy,
 } from 'lucide-react'
 import { cn } from '../lib/cn'
 
@@ -31,6 +32,14 @@ function competencia(di) {
   d.setDate(1)
   d.setMonth(d.getMonth() - 1)
   return `${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`
+}
+
+// rótulo curto do mês do período (para a bancada de Metas): 2026-06-21 → "jun/26"
+const MESES = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez']
+function mesCurto(di) {
+  if (!di) return ''
+  const d = new Date(`${di}T00:00:00`)
+  return `${MESES[d.getMonth()]}/${String(d.getFullYear()).slice(2)}`
 }
 
 // Regras completas da série (sem datas — valem pra todos os meses). Ficam no topo
@@ -101,18 +110,29 @@ const SERIE_ICON = {
 export function Submodulo({ nome, itens, onAbrir, admin = false, personalizar = (h) => h }) {
   const [aberto, setAberto] = useState(false)
   const [sobre, setSobre] = useState(false)
-  const ehSerie = itens.length > 0 && itens.every((i) => i.tipo === 'envio')
+  const ehSerieEnvio = itens.length > 0 && itens.every((i) => i.tipo === 'envio')
+  // série mensal de conteúdo (Metas & Prêmio): "ler e confirmar" por mês, com janela de data
+  const ehSerieConteudo = itens.length > 0 && itens.every((i) => i.tipo === 'conteudo' && i.data_inicio)
+  const ehSerie = ehSerieEnvio || ehSerieConteudo
   const ehRec = itens.length > 0 && itens.every((i) => i.tipo === 'reconhecimento')
   // série sequencial (Indicação, Saúde): "vagas" que liberam uma a uma, sem janela de
-  // data. Presença é série mensal (tem data_inicio) — é o que distingue as duas.
-  const ehSeq = ehSerie && itens.every((i) => !i.data_inicio)
-  const ehMensal = ehSerie && !ehSeq
+  // data. Presença é série mensal de envio (tem data_inicio) — é o que distingue as duas.
+  const ehSeq = ehSerieEnvio && itens.every((i) => !i.data_inicio)
+  const ehMensalEnvio = ehSerieEnvio && !ehSeq
+  const ehMensalConteudo = ehSerieConteudo
+  const ehMensal = ehMensalEnvio || ehMensalConteudo
   const feitos = itens.filter((i) => i.concluido).length
   const pontos = itens.reduce((s, i) => s + (i.pontos || 0), 0)
   const temAcao =
     itens.some((i) => i.janela_estado === 'aberto' && !i.concluido) ||
     itens.some((i) => i.estado_reconhecimento === 'disponivel')
-  const HeaderIcon = ehMensal ? CalendarDays : ehSeq ? SERIE_ICON[nome] || ClipboardList : PartyPopper
+  const HeaderIcon = ehMensalConteudo
+    ? Trophy
+    : ehMensal
+      ? CalendarDays
+      : ehSeq
+        ? SERIE_ICON[nome] || ClipboardList
+        : PartyPopper
   // o ativo (aberto / disponível) vem primeiro; o resto mantém a sequência (sort estável)
   const ativo = (i) =>
     (i.janela_estado === 'aberto' && !i.concluido) || i.estado_reconhecimento === 'disponivel'
@@ -121,6 +141,10 @@ export function Submodulo({ nome, itens, onAbrir, admin = false, personalizar = 
   const itensOrdenados = [...itens].sort((a, b) => ativo(b) - ativo(a))
   // série sequencial mantém a ordem natural das vagas (1 → 10), como uma trilha de progresso
   const itensSeq = [...itens].sort((a, b) => (a.ordem || 0) - (b.ordem || 0))
+  // série mensal de conteúdo (Metas): ordem cronológica (mais antigo → mais novo)
+  const itensMes = [...itens].sort((a, b) =>
+    String(a.data_inicio || '').localeCompare(String(b.data_inicio || '')),
+  )
 
   // "Como funciona" recolhível no topo da bancada (regras completas, sempre acessível)
   const comoFunciona = COMO_FUNCIONA[nome] ? (
@@ -171,8 +195,8 @@ export function Submodulo({ nome, itens, onAbrir, admin = false, personalizar = 
         />
       </button>
 
-      {/* Série mensal → bancada de calendários (mês/ano) */}
-      {aberto && ehMensal && (
+      {/* Série mensal de envio (Presença) → bancada de calendários (mês/ano) */}
+      {aberto && ehMensalEnvio && (
         <div className="bg-surface-2/40">
           {comoFunciona}
           <div className="grid grid-cols-4 gap-3 p-4">
@@ -233,6 +257,64 @@ export function Submodulo({ nome, itens, onAbrir, admin = false, personalizar = 
               </button>
             )
           })}
+          </div>
+        </div>
+      )}
+
+      {/* Série mensal de conteúdo (Metas & Prêmio) → bancada de troféus por mês.
+          Passado = concluído (✓) ou fechado (cinza) · atual = destaque citric · futuro = cadeado (oculto). */}
+      {aberto && ehMensalConteudo && (
+        <div className="bg-surface-2/40">
+          {comoFunciona}
+          <div className="grid grid-cols-4 gap-3 p-4">
+            {itensMes.map((item) => {
+              const concl = item.concluido
+              const estado = concl ? 'concluido' : item.janela_estado
+              const abertoAgora = estado === 'aberto'
+              const pode = abertoAgora || concl || admin
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => pode && onAbrir(item)}
+                  disabled={!pode}
+                  aria-label={`Metas ${mesCurto(item.data_inicio)}`}
+                  className="flex flex-col items-center gap-1.5 py-1.5 tap"
+                >
+                  <span
+                    className={cn(
+                      'relative grid h-11 w-11 place-items-center rounded-2xl',
+                      concl
+                        ? 'bg-accent-soft text-accent'
+                        : abertoAgora
+                          ? 'bg-accent text-black'
+                          : 'text-muted-2 opacity-40',
+                    )}
+                  >
+                    <Trophy size={20} strokeWidth={1.7} />
+                    {/* concluído → check citric */}
+                    {concl && (
+                      <span className="absolute -right-1.5 -top-1.5 grid h-[18px] w-[18px] place-items-center rounded-full bg-accent-soft text-accent ring-2 ring-surface">
+                        <Check size={10} strokeWidth={2.5} />
+                      </span>
+                    )}
+                    {/* futuro → cadeado (conteúdo oculto) */}
+                    {estado === 'em_breve' && (
+                      <span className="absolute -right-1.5 -top-1.5 text-muted-2">
+                        <Lock size={11} />
+                      </span>
+                    )}
+                  </span>
+                  <span
+                    className={cn(
+                      'text-[10.5px] font-semibold',
+                      abertoAgora || concl ? 'text-text' : 'text-muted-2',
+                    )}
+                  >
+                    {mesCurto(item.data_inicio)}
+                  </span>
+                </button>
+              )
+            })}
           </div>
         </div>
       )}
