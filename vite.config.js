@@ -21,9 +21,9 @@ export default defineConfig({
         theme_color: '#0A0A0A',
         background_color: '#0A0A0A',
         display: 'standalone',
-        // App inteiro travado em RETRATO (garantido pelo manifesto, mesmo sem
-        // JS). O organograma abre no NAVEGADOR (fora do PWA), onde gira sozinho
-        // com o aparelho — ver routes/Organograma.jsx. Trocar aqui exige
+        // Retrato é o padrão do app (garantido pelo manifesto, mesmo sem JS).
+        // O organograma vai para paisagem via TELA CHEIA + orientation.lock
+        // ('landscape') — ver routes/Organograma.jsx. Trocar aqui exige
         // REINSTALAR o PWA (a orientação é "assada" na instalação).
         orientation: 'portrait',
         lang: 'pt-BR',
