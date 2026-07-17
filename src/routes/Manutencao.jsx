@@ -1,13 +1,20 @@
 import { useState } from 'react'
-import { Lock, Eye, EyeOff, Check, Loader2, ShieldCheck } from 'lucide-react'
+import { Lock, Eye, EyeOff, Check, Loader2, ShieldCheck, Sun, Moon } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Section } from '../components/Section.jsx'
 import { cn } from '../lib/cn'
 import { tapHaptic } from '../lib/haptics.js'
+import { getTheme, applyTheme } from '../lib/theme.js'
 import { useAuth } from '../lib/AuthContext.jsx'
+
+const TEMAS = [
+  { v: 'light', label: 'Claro', Icon: Sun },
+  { v: 'dark', label: 'Escuro', Icon: Moon },
+]
 
 export function Manutencao() {
   const { updatePassword } = useAuth()
+  const [tema, setTema] = useState(getTheme)
   const [nova, setNova] = useState('')
   const [confirma, setConfirma] = useState('')
   const [mostrar, setMostrar] = useState(false)
@@ -19,6 +26,11 @@ export function Manutencao() {
   const naoConfere = confirma.length > 0 && nova !== confirma
   const podeSalvar =
     nova.length >= 6 && nova === confirma && !enviando
+
+  function trocarTema(t) {
+    tapHaptic()
+    setTema(applyTheme(t))
+  }
 
   async function salvar(e) {
     e.preventDefault()
@@ -129,6 +141,23 @@ export function Manutencao() {
               {enviando ? <Loader2 size={18} className="animate-spin" /> : 'Salvar nova senha'}
             </button>
           </form>
+        </div>
+      </Section>
+
+      <Section className="mt-5" title="Aparência">
+        <div className="card grid grid-cols-2 gap-1.5 p-1.5">
+          {TEMAS.map(({ v, label, Icon }) => (
+            <button
+              key={v}
+              onClick={() => trocarTema(v)}
+              className={cn(
+                'hstack justify-center gap-2 rounded-2xl py-2.5 text-sm font-semibold tap',
+                tema === v ? 'bg-accent text-black' : 'text-muted',
+              )}
+            >
+              <Icon size={16} /> {label}
+            </button>
+          ))}
         </div>
       </Section>
     </>

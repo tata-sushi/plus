@@ -2,11 +2,6 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import {
   Trophy,
-  GraduationCap,
-  ClipboardList,
-  Gift,
-  HeartHandshake,
-  Sparkles,
   Wrench,
   LogOut,
   ChevronRight,
@@ -14,8 +9,6 @@ import {
   Loader2,
   Megaphone,
   UtensilsCrossed,
-  Sun,
-  Moon,
   ShieldCheck,
   Ear,
   Pin,
@@ -29,23 +22,11 @@ import { currentUser, redesSociais } from '../lib/mockData.js'
 import { useAuth } from '../lib/AuthContext.jsx'
 import { supabase } from '../lib/supabase.js'
 import { tapHaptic } from '../lib/haptics.js'
-import { getTheme, applyTheme } from '../lib/theme.js'
-import { cn } from '../lib/cn'
-
-const TEMAS = [
-  { v: 'light', label: 'Claro', Icon: Sun },
-  { v: 'dark', label: 'Escuro', Icon: Moon },
-]
 
 const itens = [
   { to: '/cardapio', label: 'Cardápio', icon: UtensilsCrossed },
   { to: '/comunicados', label: 'Comunicados', icon: Megaphone },
   { to: '/jornada', label: 'Minha jornada', icon: Trophy },
-  { to: '/treinamentos', label: 'Treinamentos', icon: GraduationCap },
-  { to: '/procedimentos', label: 'Procedimentos', icon: ClipboardList },
-  { to: '/recompensas', label: 'Recompensas', icon: Gift },
-  { to: '/rh', label: 'RH Fácil', icon: HeartHandshake },
-  { to: '/assistente', label: 'Assistente IA', icon: Sparkles },
   { to: '/manutencao', label: 'Painel de manutenção', icon: Wrench },
 ]
 
@@ -72,7 +53,6 @@ export function Mais() {
   const [erro, setErro] = useState('')
   const [saldo, setSaldo] = useState(null)
   const [progresso, setProgresso] = useState(null)
-  const [tema, setTema] = useState(getTheme)
 
   useEffect(() => {
     let ativo = true
@@ -86,11 +66,6 @@ export function Mais() {
       ativo = false
     }
   }, [])
-
-  function trocarTema(t) {
-    tapHaptic()
-    setTema(applyTheme(t))
-  }
 
   async function trocarFoto(e) {
     const f = e.target.files?.[0]
@@ -210,23 +185,6 @@ export function Mais() {
           </Link>
         </Section>
       )}
-
-      <Section className="mt-5" title="Aparência">
-        <div className="card grid grid-cols-2 gap-1.5 p-1.5">
-          {TEMAS.map(({ v, label, Icon }) => (
-            <button
-              key={v}
-              onClick={() => trocarTema(v)}
-              className={cn(
-                'hstack justify-center gap-2 rounded-2xl py-2.5 text-sm font-semibold tap',
-                tema === v ? 'bg-accent text-black' : 'text-muted',
-              )}
-            >
-              <Icon size={16} /> {label}
-            </button>
-          ))}
-        </div>
-      </Section>
 
       <Section className="mt-5" title="Redes sociais da Tatá">
         <SocialLinks items={redesSociais} />
