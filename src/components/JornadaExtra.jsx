@@ -7,6 +7,10 @@ import { CATALOGO_EMBLEMAS } from '../lib/emblemas.js'
 import { signoDe } from '../lib/signo.js'
 import { cn } from '../lib/cn'
 
+// Seletor de variação "texto" (U+FE0E): força o símbolo do signo a renderizar
+// monocromático em vez de emoji colorido, pra ele pegar a cor cítrica.
+const VS_TEXTO = String.fromCharCode(0xfe0e)
+
 // Seções extras da Minha jornada: Emblemas (conquistas) e Signo (com leitura
 // profissional). Uma única chamada ao RPC minha_jornada_extra alimenta as duas.
 export function JornadaExtra() {
@@ -75,8 +79,8 @@ export function JornadaExtra() {
         <Section className="reveal reveal-3 mt-5" title="Seu signo">
           <Card>
             <div className="hstack gap-3">
-              <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-surface-2 text-2xl">
-                {signo.emoji}
+              <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-accent-soft text-2xl leading-none text-accent">
+                {signo.emoji + VS_TEXTO}
               </span>
               <div className="min-w-0">
                 <div className="font-display text-base font-bold">{signo.nome}</div>
