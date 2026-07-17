@@ -7,6 +7,8 @@ import { DISC, ORDEM, dominanteDe } from '../lib/disc.js'
 
 // Desafio DISC no módulo Soft Skill (marca conclusão + 10 pts ao terminar).
 const DISC_TREINO_ID = 'e3df3ef3-790a-45d7-8b49-de2f1d350936'
+// A cada quantos meses o teste reabre (espelha treinamentos.recorrencia_meses no banco).
+const RECORRENCIA_MESES = 12
 
 // Corta a espera se a rede do celular engolir a resposta (evita travar em "Calculando").
 function comTimeout(promise, ms) {
@@ -16,7 +18,18 @@ function comTimeout(promise, ms) {
   ])
 }
 
-function Resultado({ resultado, onVoltar }) {
+// Data em que o teste volta a ficar disponível (última conclusão + recorrência).
+function proximaEm(concluidoEm) {
+  const d = new Date(concluidoEm)
+  d.setMonth(d.getMonth() + RECORRENCIA_MESES)
+  return d
+}
+function fmtMesAno(d) {
+  const s = d.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })
+  return s.charAt(0).toUpperCase() + s.slice(1)
+}
+
+function Resultado({ resultado, onVoltar, disponivelEm }) {
   const pont = resultado.pontuacoes || {}
   const total = ORDEM.reduce((s, k) => s + (Number(pont[k]) || 0), 0) || 1
   const dominante = dominanteDe(pont)
@@ -79,6 +92,12 @@ function Resultado({ resultado, onVoltar }) {
         mostra suas tendências.
       </p>
 
+      {disponivelEm && (
+        <p className="mt-3 text-center text-xs font-semibold text-accent">
+          Você poderá refazer o teste em {fmtMesAno(disponivelEm)}.
+        </p>
+      )}
+
       <button onClick={onVoltar} className="btn-primary mt-5 w-full !py-3.5 text-sm">
         Concluir
       </button>
@@ -94,11 +113,29 @@ export function QuestionarioDisc() {
   const [enviando, setEnviando] = useState(false)
   const [erro, setErro] = useState('')
   const [resultado, setResultado] = useState(null)
+  const [disponivelEm, setDisponivelEm] = useState(null)
 
   useEffect(() => {
-    supabase.rpc('perfil_questionario', { p_instrumento: 'disc' }).then(({ data }) => {
-      setPerguntas(data || [])
+    let ativo = true
+    Promise.all([
+      supabase.rpc('perfil_questionario', { p_instrumento: 'disc' }),
+      supabase.rpc('meu_perfil'),
+    ]).then(([qres, pres]) => {
+      if (!ativo) return
+      // Já tem perfil e ainda está na janela de recorrência? Mostra o resultado (travado p/ refazer).
+      const disc = (pres.data || []).find((p) => p.instrumento === 'disc')
+      if (disc?.concluido_em) {
+        const prox = proximaEm(disc.concluido_em)
+        if (new Date() < prox) {
+          setResultado({ perfil: disc.perfil, pontuacoes: disc.pontuacoes })
+          setDisponivelEm(prox)
+        }
+      }
+      setPerguntas(qres.data || [])
     })
+    return () => {
+      ativo = false
+    }
   }, [])
 
   if (perguntas === null) {
@@ -117,7 +154,11 @@ export function QuestionarioDisc() {
             <ArrowLeft size={16} /> Voltar
           </button>
         </div>
-        <Resultado resultado={resultado} onVoltar={() => navigate(-1)} />
+        <Resultado
+          resultado={resultado}
+          onVoltar={() => navigate(-1)}
+          disponivelEm={disponivelEm}
+        />
       </>
     )
   }
@@ -138,6 +179,7 @@ export function QuestionarioDisc() {
       if (data) {
         // mostra o resultado na hora; marcar o desafio (pontos) roda em segundo plano
         supabase.rpc('concluir_treinamento', { p_treino: DISC_TREINO_ID }).catch(() => {})
+        setDisponivelEm(proximaEm(new Date()))
         setResultado(data)
         return
       }
@@ -149,6 +191,10 @@ export function QuestionarioDisc() {
       }))
       const disc = (perfis || []).find((p) => p.instrumento === 'disc')
       if (disc) {
+        if (disc.concluido_em) {
+          const prox = proximaEm(disc.concluido_em)
+          if (new Date() < prox) setDisponivelEm(prox)
+        }
         setResultado({ perfil: disc.perfil, pontuacoes: disc.pontuacoes })
         return
       }
