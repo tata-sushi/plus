@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   Heart,
   MessageCircle,
@@ -22,6 +23,7 @@ import { supabase } from '../lib/supabase.js'
 const TAM_MAX = 15 * 1024 * 1024 // 15 MB
 
 function PostCard({ post, matricula, meuNome, meuAvatar, onCurtir, onExcluir }) {
+  const navigate = useNavigate()
   const [abrir, setAbrir] = useState(false)
   const [comentarios, setComentarios] = useState([])
   const [carregando, setCarregando] = useState(false)
@@ -79,15 +81,20 @@ function PostCard({ post, matricula, meuNome, meuAvatar, onCurtir, onExcluir }) 
     <Card className="reveal">
       {/* Autor */}
       <div className="hstack gap-3">
-        <Avatar name={post.autor_nome || '—'} src={post.autor_avatar} size={40} />
-        <div className="min-w-0 flex-1">
-          <div className="text-sm font-semibold">{post.autor_nome || 'Colaborador'}</div>
-          <div className="text-[11px] text-muted">
-            {post.autor_cargo}
-            {post.autor_cargo ? ' · ' : ''}
-            {tempoRelativo(post.created_at)}
+        <button
+          onClick={() => post.autor_matricula && navigate(`/perfil/${post.autor_matricula}`)}
+          className="hstack min-w-0 flex-1 gap-3 text-left tap"
+        >
+          <Avatar name={post.autor_nome || '—'} src={post.autor_avatar} size={40} />
+          <div className="min-w-0 flex-1">
+            <div className="text-sm font-semibold">{post.autor_nome || 'Colaborador'}</div>
+            <div className="text-[11px] text-muted">
+              {post.autor_cargo}
+              {post.autor_cargo ? ' · ' : ''}
+              {tempoRelativo(post.created_at)}
+            </div>
           </div>
-        </div>
+        </button>
         {meuPost && (
           <button
             onClick={() => onExcluir(post)}
