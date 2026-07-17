@@ -5,7 +5,7 @@ import { Section } from './Section.jsx'
 import { Card } from './Card.jsx'
 import { Avatar } from './Avatar.jsx'
 import { ProgressBar } from './ProgressBar.jsx'
-import { PerfilDisc } from './PerfilDisc.jsx'
+import { MeuPerfil } from './MeuPerfil.jsx'
 import { useCountUp } from '../lib/useCountUp.js'
 import { minhasAcoes } from '../lib/mockData.js'
 
@@ -75,7 +75,7 @@ export function ProfileView({ colaborador, isSelf }) {
       </Section>
 
       {/* Meu perfil (DISC) — só no próprio perfil */}
-      {isSelf && <PerfilDisc />}
+      {isSelf && <MeuPerfil />}
 
       {/* Ações — só para o próprio perfil */}
       {isSelf && (
