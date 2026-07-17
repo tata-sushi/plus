@@ -1,16 +1,18 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowLeft, RotateCcw } from 'lucide-react'
+import { ArrowLeft, RotateCcw, Smartphone } from 'lucide-react'
 import { tapHaptic } from '../lib/haptics.js'
 
-// Organograma (HTML no portal Líderes) em tela cheia + PAISAGEM.
+// Organograma (HTML no portal Líderes). Abre em RETRATO e deixa a pessoa
+// ESCOLHER ir para paisagem — não força.
 //
 // O app é travado em RETRATO pelo manifesto do PWA. Um `screen.orientation.lock`
 // "pelado" NÃO funciona nesse cenário no Android. O que funciona é o par
 // clássico: entrar em TELA CHEIA (requestFullscreen) e então travar em
 // 'landscape'. Enquanto está em tela cheia o Chrome respeita a trava; ao sair,
 // volta para o retrato do manifesto. Sem rotação por CSS — logo, sem tela preta
-// e com zoom/arrasto nativos do organograma.
+// e com zoom/arrasto nativos do organograma. O botão flutuante é um liga/desliga
+// entre retrato e paisagem.
 const ORGANOGRAMA_URL = 'https://lideres.tatasushi.tech/compliance/areas/organograma2.html'
 
 function pedirTelaCheia(el) {
@@ -58,9 +60,7 @@ export function Organograma() {
   const [cheia, setCheia] = useState(false)
 
   useEffect(() => {
-    // a navegação até aqui foi um toque recente: tenta já entrar em paisagem.
-    if (boxRef.current) entrarPaisagem(boxRef.current)
-
+    // NÃO força paisagem: abre em retrato e deixa a pessoa escolher pelo botão.
     const aoMudar = () => setCheia(emTelaCheia())
     document.addEventListener('fullscreenchange', aoMudar)
     document.addEventListener('webkitfullscreenchange', aoMudar)
@@ -77,9 +77,11 @@ export function Organograma() {
     navigate('/')
   }
 
-  function girar() {
+  // liga/desliga a paisagem sem sair da página
+  function alternarPaisagem() {
     tapHaptic()
-    if (boxRef.current) entrarPaisagem(boxRef.current)
+    if (cheia) sairTelaCheia()
+    else if (boxRef.current) entrarPaisagem(boxRef.current)
   }
 
   return (
@@ -108,17 +110,22 @@ export function Organograma() {
         <ArrowLeft size={16} strokeWidth={2.2} color="#CFFF00" /> App
       </button>
 
-      {/* Fora da tela cheia (ex.: auto-entrada bloqueada por falta de gesto, ou
-          o usuário saiu da tela cheia): oferece o toque para ir à paisagem. */}
-      {!cheia && (
-        <button
-          onClick={girar}
-          className="fixed bottom-6 left-1/2 z-50 flex -translate-x-1/2 items-center gap-2 rounded-pill bg-accent px-5 py-3 text-sm font-semibold text-black shadow-lg tap"
-          style={{ marginBottom: 'env(safe-area-inset-bottom, 0px)' }}
-        >
-          <RotateCcw size={16} /> Girar para paisagem
-        </button>
-      )}
+      {/* Liga/desliga a paisagem — a pessoa escolhe. */}
+      <button
+        onClick={alternarPaisagem}
+        className="fixed bottom-6 left-1/2 z-50 flex -translate-x-1/2 items-center gap-2 rounded-pill bg-accent px-5 py-3 text-sm font-semibold text-black shadow-lg tap"
+        style={{ marginBottom: 'env(safe-area-inset-bottom, 0px)' }}
+      >
+        {cheia ? (
+          <>
+            <Smartphone size={16} /> Voltar ao retrato
+          </>
+        ) : (
+          <>
+            <RotateCcw size={16} /> Girar para paisagem
+          </>
+        )}
+      </button>
     </div>
   )
 }
