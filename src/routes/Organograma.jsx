@@ -27,10 +27,10 @@ export function Organograma() {
         aria-label="Voltar ao aplicativo"
         className="fixed z-50 flex items-center gap-1.5 rounded-pill font-mono text-[10px] font-medium text-white tap"
         style={{
-          top: 'calc(env(safe-area-inset-top) + 12px)',
+          top: 'calc(env(safe-area-inset-top) + 8px)',
           left: 'calc(env(safe-area-inset-left) + 12px)',
           background: '#35383F',
-          padding: '10px 12px',
+          padding: '9px 12px',
           boxShadow: '0 4px 16px rgba(0,0,0,0.18)',
         }}
       >
