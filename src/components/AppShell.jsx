@@ -1,6 +1,8 @@
+import { useEffect } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 import { BottomNav } from './BottomNav'
 import { cn } from '../lib/cn'
+import { estadoPush, ativarPush } from '../lib/push.js'
 
 // Rotas em tela cheia, sem a barra de navegação (ex.: organograma em paisagem).
 const SEM_NAV = ['/organograma']
@@ -11,6 +13,18 @@ const SEM_NAV = ['/organograma']
 export function AppShell() {
   const location = useLocation()
   const semNav = SEM_NAV.includes(location.pathname)
+
+  // Primeiro acesso: sobe o pop-up NATIVO de permissão de notificação uma vez.
+  // Se a pessoa não ativar aqui, o toggle continua no Painel de manutenção.
+  useEffect(() => {
+    if (localStorage.getItem('tp_push_ask')) return
+    estadoPush().then((e) => {
+      if (e.suportado && e.permissao === 'default') {
+        localStorage.setItem('tp_push_ask', '1')
+        ativarPush()
+      }
+    })
+  }, [])
 
   return (
     <div className="min-h-[100dvh] bg-bg">
