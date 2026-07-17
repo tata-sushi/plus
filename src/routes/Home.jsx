@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Flag, Gift, Plus, Star, Network } from 'lucide-react'
+import { Flag, Gift, Plus, Star, Network, Bell, X } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Section } from '../components/Section.jsx'
 import { Card } from '../components/Card.jsx'
@@ -12,6 +12,8 @@ import { Carrossel } from '../components/Carrossel.jsx'
 import { resolveIcon } from '../lib/icons.js'
 import { useAuth } from '../lib/AuthContext.jsx'
 import { supabase } from '../lib/supabase.js'
+import { estadoPush, ativarPush } from '../lib/push.js'
+import { tapHaptic } from '../lib/haptics.js'
 import { currentUser, menuDoDia } from '../lib/mockData.js'
 
 const sugestoesCards = [
@@ -75,6 +77,25 @@ export function Home() {
     }
   }, [])
 
+  // Primeiro acesso: oferece ativar as notificações no celular (uma vez).
+  const [pushBanner, setPushBanner] = useState(false)
+  useEffect(() => {
+    if (localStorage.getItem('tp_push_ask')) return
+    estadoPush().then((e) => {
+      if (e.suportado && e.permissao === 'default') setPushBanner(true)
+    })
+  }, [])
+  function ativarBanner() {
+    tapHaptic()
+    localStorage.setItem('tp_push_ask', '1')
+    setPushBanner(false)
+    ativarPush()
+  }
+  function dispensarBanner() {
+    localStorage.setItem('tp_push_ask', '1')
+    setPushBanner(false)
+  }
+
   return (
     <>
       <Header />
@@ -93,6 +114,31 @@ export function Home() {
           <ProgressRing value={(progresso?.pct ?? 0) / 100} size={54} stroke={5} />
         </div>
       </div>
+
+      {/* Primeiro acesso: ativar notificações no celular */}
+      {pushBanner && (
+        <div className="px-5 pt-3">
+          <div className="card hstack gap-3 p-3.5">
+            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-accent-soft text-accent">
+              <Bell size={17} />
+            </span>
+            <div className="min-w-0 flex-1">
+              <div className="text-sm font-semibold leading-snug">Ativar notificações?</div>
+              <div className="text-xs text-muted">Receba avisos e comunicados no celular.</div>
+            </div>
+            <button onClick={ativarBanner} className="btn-primary shrink-0 !px-3.5 !py-2 text-xs">
+              Ativar
+            </button>
+            <button
+              onClick={dispensarBanner}
+              className="shrink-0 text-muted-2 tap"
+              aria-label="Agora não"
+            >
+              <X size={16} />
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Menu do dia — uma linha com scroll lateral e botão + fixo à direita */}
       <Section className="reveal reveal-1 mt-4 hsm:mt-3" title="Menu do dia">

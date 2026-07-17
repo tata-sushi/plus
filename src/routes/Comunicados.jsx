@@ -150,7 +150,7 @@ export function Comunicados() {
       if (arr.length) p_alvos = arr
     }
 
-    const { error } = await supabase.rpc('publicar_conteudo', {
+    const { data: novoId, error } = await supabase.rpc('publicar_conteudo', {
       p_titulo: t,
       p_corpo: c,
       p_tipo: tipo,
@@ -168,6 +168,10 @@ export function Comunicados() {
     if (error) {
       setErro('Não foi possível publicar.')
       return
+    }
+    // dispara o push no celular do público-alvo (não bloqueia a publicação)
+    if (notificar && novoId) {
+      supabase.functions.invoke('enviar_push', { body: { pub_id: novoId } }).catch(() => {})
     }
     fecharForm()
     carregar()
