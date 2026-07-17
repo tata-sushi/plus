@@ -439,3 +439,64 @@ tile vertical (`min-h 150px`, cantos 8px, ícone maior no topo, nome+descrição
   (timer de reprova), `treinamento_avaliacoes` (nota/NPS). `trilhas.sequencial` (bool).
 - Funções novas/alteradas: `enviar_desafio`, `admin_moderar_envio`, `responder_avaliacao`,
   `treinamentos_do_usuario` (lógica sequencial de vaga), `acesso_governanca`.
+
+---
+
+## 14. Sessão recente — Gente & Gestão, Gorjeta & Prêmio mensal, Soft Skill
+
+### Conteúdo montado
+- **Tatá Plus** — revisão de conteúdo: Certificado Não Se Cale (quebra de linha no título da capa),
+  Redes sociais, Spotify, Glassdoor, Prevenção ao Assédio, **Wellhub**, Cartilha Amarela. Emojis
+  removidos dos títulos/botões. Regra de caixa: **TATÁ maiúsculo no conteúdo**, "Tatá" só em nomes de
+  trilha. Rótulo **"Envio"** removido da lista de itens (`TIPO_LABEL` só tem `prova`).
+- **Gente & Gestão** — 12 desafios montados (conteúdo + prova + PDFs + vídeos). "Introdução" movida
+  p/ ordem 1. Desafio **Organograma** com botão que abre a rota interna `/organograma`.
+- **Especiais** — pontos por submódulo no cabeçalho da bancada (`Submodulo` soma `pontos` dos itens).
+
+### Links internos dentro do conteúdo dos desafios
+`Treinamentos.jsx` (Detalhe): a div `.conteudo` tem `onClick` que intercepta `<a href="/...">` (interno)
+e roteia via `useNavigate` (fecha o modal + navega), em vez de recarregar a página (não há 404.html de
+SPA no Pages). Links externos seguem normais. Usado pelo botão "Ver o organograma".
+
+### Gorjeta & Prêmio — direcionamento composto + Metas mensal
+- **Alvo composto `unidade_departamento`** — `tem_acesso_treinamento` ganhou o caso
+  `alvo_tipo='unidade_departamento'` com `alvo_valor = unidade || '|' || departamento` (ex.:
+  `Administrativo|Rh`). É o "E" (unidade **e** departamento), já que os alvos antigos eram "OU".
+  CHECK de `treinamento_atribuicoes.alvo_tipo` estendido. Cada Metas mensal recebe **1 atribuição** dessa.
+- **Metas & Prêmio = série de CONTEÚDO mensal** — desafio `tipo=conteudo` com `subcategoria` (nome do
+  prêmio, ex.: "Prêmio Delivery Itaim") + `data_inicio`/`data_fim` (período 21→20). `treinamentos_do_usuario`
+  passou a calcular `janela_estado`/`liberado` também p/ série de conteúdo (antes só `envio`):
+  em_breve / aberto / encerrado pela data. `Submodulo` ganhou o variante **`ehMensalConteudo`** (bancada
+  de "caixinhas" por mês, rótulo `mesCurto` = "Jun/26", ordem cronológica): passado = ✓/fechado,
+  atual = destaque citric (só ler + concluir), futuro = **cadeado, não abre** (conteúdo oculto).
+  Conclusão = ler + confirmar (sem upload). Ícone da trilha = **`Coins`** (novo no `iconMap`); cabeçalho
+  do submódulo = `Coins`, caixinhas = `Calendar`.
+- **CSS das metas** (`.conteudo .meta-item/.meta-val/.meta-alerta`) — cada indicador é um cartão com o
+  valor em pílula (vermelho=penalidade, verde=bônus, neutro=faixa), tokens de tema (claro/escuro).
+- Gate sequencial da trilha passou a **ignorar itens de subcategoria** (`v2.subcategoria is null`), pra
+  série/bancada não travar (e vice-versa).
+
+### Soft Skill (trilha `sequencial=false`) — 3 submódulos
+- Agrupada por `subcategoria`: **Inteligência Emocional**, **Missão dos Desbravadores**, **DISC**.
+  4 placeholders vazios de IE removidos.
+- **Inteligência Emocional montado (12/16)**: intro, O que é IE (PNG inline + vídeos), Autoconsciência
+  (história + vídeos + prova 6), Comunicação Assertiva, Autocontrole, **Comunicação Emocional (prova 10)**,
+  Empatia (vídeos + 2 PDFs), **Relacionamentos (vídeos INTERCALADOS com os tópicos** — YouTube embutido
+  como `<div class="video"><iframe .../></div>` no `conteudo_html`, na ordem vídeo→tópicos→vídeo→…),
+  Automotivação, exercícios 2/5/6 (ações).
+- **Pendentes (4) — precisam da mecânica "formulário/texto livre"** (ainda vazios): Autocontrole
+  (Atividade Prática) = formulário de 4 campos; Automotivação exercícios 1/3/4 = reflexão em texto.
+  Simplificação atual: no Autoconsciência a enquete Sim/Não e a reflexão viraram TEXTO (sem captura).
+
+### Análise de perfil (planejado, ainda não criado)
+- **Desbravadores = MBTI** (16 tipos), **DISC = 4 dimensões**. Decisão: **uma tabela genérica**
+  `perfil_colaborador(matricula, instrumento, perfil, pontuacoes jsonb, respostas jsonb, concluido_em)`
+  — `pontuacoes` jsonb se molda a cada modelo (sem coluna por modelo). Fluxo: questionário guardado no
+  desafio (opção→dimensão) → RPC no servidor calcula o perfil (MBTI = letra vencedora por eixo; DISC =
+  dominante) e grava respostas + perfil + pontos. Histórico guardado; "perfil atual" = último por instrumento.
+  Consumo depois (consulta/exportação ou painel RH cruzando com unidade/departamento/cargo).
+
+### Decisões abertas
+- **Formulário/texto livre**: auto-conclui no envio (reflexão pessoal) **ou** moderado pelo RH? RH lê as
+  respostas? → define a tabela de respostas + a feature (coluna `formulario` jsonb + componente + RPC).
+- Rótulo da caixinha de Metas usa o mês de **início** do período (trocar p/ mês de fim se preferir).
