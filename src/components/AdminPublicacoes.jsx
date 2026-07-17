@@ -12,6 +12,8 @@ import {
   Bell,
   Eye,
   Megaphone,
+  Archive,
+  ArchiveRestore,
 } from 'lucide-react'
 import { Section } from './Section.jsx'
 import { Card } from './Card.jsx'
@@ -36,6 +38,8 @@ export function AdminPublicacoes() {
 
   const [itens, setItens] = useState([])
   const [carregando, setCarregando] = useState(true)
+  const [filtroTipo, setFiltroTipo] = useState('todos')
+  const [verArquivados, setVerArquivados] = useState(false)
   const [opcoes, setOpcoes] = useState({ unidades: [], departamentos: [] })
 
   const [form, setForm] = useState(false)
@@ -188,7 +192,23 @@ export function AdminPublicacoes() {
     if (!error) setItens((prev) => prev.filter((i) => i.id !== item.id))
   }
 
+  async function alternarArquivo(item) {
+    tapHaptic()
+    const novo = !item.arquivado
+    setItens((prev) => prev.map((i) => (i.id === item.id ? { ...i, arquivado: novo } : i)))
+    const { error } = await supabase.from('publicacoes').update({ arquivado: novo }).eq('id', item.id)
+    if (error) {
+      setItens((prev) => prev.map((i) => (i.id === item.id ? { ...i, arquivado: item.arquivado } : i)))
+    }
+  }
+
   const podePublicar = titulo.trim() && corpo.trim() && !publicando
+
+  const lista = itens.filter(
+    (p) =>
+      (verArquivados ? p.arquivado : !p.arquivado) &&
+      (filtroTipo === 'todos' || p.tipo === filtroTipo),
+  )
 
   return (
     <>
@@ -198,20 +218,47 @@ export function AdminPublicacoes() {
         </button>
       </div>
 
+      {/* Filtros */}
+      <div className="hstack gap-2 px-5 pt-3">
+        <select
+          value={filtroTipo}
+          onChange={(e) => setFiltroTipo(e.target.value)}
+          className="flex-1 rounded-card border border-line bg-surface px-3 py-2 text-xs text-text outline-none"
+        >
+          <option value="todos">Todos os tipos</option>
+          <option value="comunicado">Comunicados</option>
+          <option value="noticia">Notícias</option>
+          <option value="aviso">Avisos</option>
+        </select>
+        <button
+          onClick={() => setVerArquivados((v) => !v)}
+          className={cn(
+            'hstack gap-1.5 rounded-card border px-3 py-2 text-xs font-semibold tap',
+            verArquivados ? 'border-accent bg-accent-soft text-accent' : 'border-line text-muted',
+          )}
+        >
+          <Archive size={14} /> Arquivados
+        </button>
+      </div>
+
       {carregando ? (
         <div className="hstack justify-center py-16 text-muted-2">
           <Loader2 size={22} className="animate-spin" />
         </div>
       ) : (
-        <Section className="mt-4" title={`Publicações (${itens.length})`}>
-          {itens.length === 0 ? (
+        <Section
+          className="mt-4"
+          title={`${verArquivados ? 'Arquivados' : 'Publicações'} (${lista.length})`}
+        >
+          {lista.length === 0 ? (
             <div className="card p-8 text-center text-sm text-muted">
-              Nenhuma publicação ainda. Toque em <span className="font-semibold">Novo comunicado</span>{' '}
-              pra criar.
+              {verArquivados
+                ? 'Nada arquivado aqui.'
+                : 'Nenhuma publicação. Toque em Novo comunicado pra criar.'}
             </div>
           ) : (
             <div className="flex flex-col gap-2.5">
-              {itens.map((p) => {
+              {lista.map((p) => {
                 const fim = p.data_fim ? new Date(p.data_fim + 'T23:59:59') : null
                 const encerrado = fim && fim < new Date()
                 return (
@@ -283,13 +330,22 @@ export function AdminPublicacoes() {
                             )}
                           />
                         </button>
-                        <button
-                          onClick={() => setExcluindo(p)}
-                          className="grid h-9 w-9 place-items-center rounded-full bg-surface-2 text-muted-2 tap"
-                          aria-label="Excluir"
-                        >
-                          <Trash2 size={15} />
-                        </button>
+                        <div className="hstack gap-2">
+                          <button
+                            onClick={() => alternarArquivo(p)}
+                            className="grid h-9 w-9 place-items-center rounded-full bg-surface-2 text-muted-2 tap"
+                            aria-label={p.arquivado ? 'Restaurar' : 'Arquivar'}
+                          >
+                            {p.arquivado ? <ArchiveRestore size={15} /> : <Archive size={15} />}
+                          </button>
+                          <button
+                            onClick={() => setExcluindo(p)}
+                            className="grid h-9 w-9 place-items-center rounded-full bg-surface-2 text-muted-2 tap"
+                            aria-label="Excluir"
+                          >
+                            <Trash2 size={15} />
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </Card>
