@@ -12,6 +12,7 @@ import {
   ShieldCheck,
   Ear,
   Pin,
+  Search,
 } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Section } from '../components/Section.jsx'
@@ -24,6 +25,7 @@ import { supabase } from '../lib/supabase.js'
 import { tapHaptic } from '../lib/haptics.js'
 
 const itens = [
+  { to: '/buscar', label: 'Buscar pessoas', icon: Search },
   { to: '/cardapio', label: 'Cardápio', icon: UtensilsCrossed },
   { to: '/comunicados', label: 'Comunicados', icon: Megaphone },
   { to: '/jornada', label: 'Minha jornada', icon: Trophy },

@@ -23,6 +23,7 @@ import { Organograma } from './routes/Organograma.jsx'
 import { GerenciarAtalhos } from './routes/GerenciarAtalhos.jsx'
 import { QuestionarioDisc } from './routes/QuestionarioDisc.jsx'
 import { PainelExterno } from './routes/PainelExterno.jsx'
+import { BuscarPessoas } from './routes/BuscarPessoas.jsx'
 
 function Splash() {
   return (
@@ -50,6 +51,7 @@ export function App() {
         <Route path="/mais" element={<Mais />} />
         <Route path="/jornada" element={<Jornada />} />
         <Route path="/perfil/:id" element={<Perfil />} />
+        <Route path="/buscar" element={<BuscarPessoas />} />
         <Route path="/recompensas" element={<Recompensas />} />
         <Route path="/admin" element={<AdminRecompensas />} />
         <Route path="/recompensas/admin" element={<AdminRecompensas />} />

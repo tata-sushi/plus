@@ -10,9 +10,12 @@ import { supabase } from '../lib/supabase.js'
 
 const fmt = (n) => Number(n || 0).toLocaleString('pt-BR')
 
+const LIMITE = 500
+
 const ERROS = {
   saldo_insuficiente: 'Saldo insuficiente para essa transferência.',
   valor_invalido: 'Informe um valor válido.',
+  acima_do_limite: `O limite é ${LIMITE} pts por transferência.`,
   destino_invalido: 'Não é possível transferir para você mesmo.',
   destino_inexistente: 'Colaborador não encontrado.',
   sem_acesso: 'Sessão expirada. Entre novamente.',
@@ -77,6 +80,10 @@ export function Perfil() {
     const n = Math.floor(Number(valor))
     if (!n || n <= 0) {
       setErro('Informe um valor válido.')
+      return
+    }
+    if (n > LIMITE) {
+      setErro(`O limite é ${LIMITE} pts por transferência.`)
       return
     }
     if (saldo != null && n > saldo) {
@@ -164,9 +171,10 @@ export function Perfil() {
               type="number"
               inputMode="numeric"
               min="1"
+              max={LIMITE}
               value={valor}
               onChange={(e) => setValor(e.target.value)}
-              placeholder="Quantos pontos?"
+              placeholder={`Quantos pontos? (máx. ${LIMITE})`}
               className="mt-2 w-full rounded-card border border-line bg-surface px-3.5 py-3 text-sm outline-none focus:border-accent"
             />
             {erro && <p className="mt-2 text-xs font-medium text-danger">{erro}</p>}
@@ -189,7 +197,8 @@ export function Perfil() {
               </button>
             </div>
             <p className="mt-2 text-[11px] text-muted-2">
-              A transferência entra na carteira do colega e não conta no ranking.
+              Máx. {LIMITE} pts por transferência. Entra na carteira do colega e não conta no
+              ranking.
             </p>
           </Card>
         ) : (
