@@ -37,6 +37,21 @@ import {
   BadgeCheck,
   MessageSquare,
   Handshake,
+  CalendarClock,
+  Banknote,
+  ShoppingCart,
+  UserX,
+  Clock,
+  HandCoins,
+  Shirt,
+  Smile,
+  CalendarDays,
+  UserPlus,
+  Inbox,
+  Umbrella,
+  Stethoscope,
+  Target,
+  BookOpen,
 } from 'lucide-react'
 
 export const iconMap = {
@@ -77,6 +92,21 @@ export const iconMap = {
   BadgeCheck,
   MessageSquare,
   Handshake,
+  CalendarClock,
+  Banknote,
+  ShoppingCart,
+  UserX,
+  Clock,
+  HandCoins,
+  Shirt,
+  Smile,
+  CalendarDays,
+  UserPlus,
+  Inbox,
+  Umbrella,
+  Stethoscope,
+  Target,
+  BookOpen,
 }
 
 export function resolveIcon(name) {

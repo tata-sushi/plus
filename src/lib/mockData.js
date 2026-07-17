@@ -281,19 +281,28 @@ export const governancaPortal = {
   descricao: 'Gestão e acompanhamento dos processos internos.',
 }
 
-// Lista de exemplo — será substituída pela lista real de páginas liberadas.
-// Cada líder pode fixar até MAX_PAGINAS_FIXADAS destas no seu acesso rápido.
+// Páginas oficiais do portal de líderes (KPIs) que podem virar atalho.
+// Cada líder pode fixar até MAX_PAGINAS_FIXADAS destas no seu acesso rápido; o
+// atalho abre a página num visualizador in-app (rota /painel/:id).
 export const MAX_PAGINAS_FIXADAS = 10
 
 export const governancaCatalogo = [
-  { id: 'gov_fluxo', label: 'Fluxo de aprovações', icon: 'GitBranch' },
-  { id: 'gov_indicadores', label: 'Indicadores de processo', icon: 'LineChart' },
-  { id: 'gov_documentos', label: 'Documentos normativos', icon: 'FileText' },
-  { id: 'gov_mapa', label: 'Mapa de processos', icon: 'Map' },
-  { id: 'gov_auditorias', label: 'Auditorias', icon: 'ShieldCheck' },
-  { id: 'gov_riscos', label: 'Matriz de riscos', icon: 'TriangleAlert' },
-  { id: 'gov_pops', label: 'POPs', icon: 'ClipboardList' },
-  { id: 'gov_treinamentos', label: 'Treinamentos de processo', icon: 'GraduationCap' },
+  { id: 'gov_escala', label: 'Controle de Escala', icon: 'CalendarClock', url: 'https://escalas.tatasushi.tech/index.html' },
+  { id: 'gov_caixa', label: 'Caixa', icon: 'Banknote', url: 'https://lideres.tatasushi.tech/compliance/kpis/caixa/index.html' },
+  { id: 'gov_compras', label: 'Compras', icon: 'ShoppingCart', url: 'https://lideres.tatasushi.tech/compliance/kpis/compras/abastecimento.html' },
+  { id: 'gov_manutencao', label: 'Manutenção', icon: 'Wrench', url: 'https://lideres.tatasushi.tech/compliance/kpis/manutencao/index.html' },
+  { id: 'gov_absenteismo', label: 'Absenteísmo', icon: 'UserX', url: 'https://lideres.tatasushi.tech/compliance/kpis/rh/absenteismo.html' },
+  { id: 'gov_bancohoras', label: 'Banco de Horas', icon: 'Clock', url: 'https://lideres.tatasushi.tech/compliance/kpis/rh/bancodehoras.html' },
+  { id: 'gov_beneficios', label: 'Benefícios', icon: 'HandCoins', url: 'https://lideres.tatasushi.tech/compliance/kpis/rh/beneficios.html' },
+  { id: 'gov_uniformes', label: 'Uniformes', icon: 'Shirt', url: 'https://lideres.tatasushi.tech/compliance/kpis/rh/entregasuniforme.html' },
+  { id: 'gov_experiencia', label: 'Experiência', icon: 'Smile', url: 'https://lideres.tatasushi.tech/compliance/kpis/rh/experiencias.html' },
+  { id: 'gov_feriados', label: 'Feriados', icon: 'CalendarDays', url: 'https://lideres.tatasushi.tech/compliance/kpis/rh/feriados.html' },
+  { id: 'gov_recrutamento', label: 'Recrutamento', icon: 'UserPlus', url: 'https://lideres.tatasushi.tech/compliance/kpis/rh/recrutamento.html' },
+  { id: 'gov_solicitacoes', label: 'Solicitações', icon: 'Inbox', url: 'https://lideres.tatasushi.tech/compliance/kpis/rh/solicitacoes.html' },
+  { id: 'gov_ferias', label: 'Férias', icon: 'Umbrella', url: 'https://lideres.tatasushi.tech/compliance/kpis/rh/ferias.html' },
+  { id: 'gov_medicina', label: 'Medicina Ocupacional', icon: 'Stethoscope', url: 'https://lideres.tatasushi.tech/compliance/kpis/rh/medicina.html' },
+  { id: 'gov_performance', label: 'Performance', icon: 'Target', url: 'https://lideres.tatasushi.tech/compliance/kpis/rh/performance.html' },
+  { id: 'gov_cardapio', label: 'Elaboração de Cardápio', icon: 'BookOpen', url: 'https://lideres.tatasushi.tech/compliance/kpis/tatahouse/cardapio.html' },
 ]
 
 export const comunicados = [
