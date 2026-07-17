@@ -12,7 +12,8 @@ const SEM_NAV = ['/organograma', '/perfil-disc']
 // routes/Organograma.jsx), então aqui não é preciso mexer em orientação.
 export function AppShell() {
   const location = useLocation()
-  const semNav = SEM_NAV.includes(location.pathname)
+  // Rotas fixas + o visualizador de páginas externas (/painel/:id) ficam em tela cheia.
+  const semNav = SEM_NAV.includes(location.pathname) || location.pathname.startsWith('/painel/')
 
   // Primeiro acesso: sobe o pop-up NATIVO de permissão de notificação uma vez.
   // Se a pessoa não ativar aqui, o toggle continua no Painel de manutenção.

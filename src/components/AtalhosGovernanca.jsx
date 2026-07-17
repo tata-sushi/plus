@@ -34,7 +34,7 @@ export function AtalhosGovernanca() {
             return (
               <Link
                 key={p.id}
-                to={p.to || '/governanca'}
+                to={`/painel/${p.id}`}
                 onClick={tapHaptic}
                 className="hstack gap-2 rounded-pill border border-line bg-fill px-3.5 py-2.5 tap"
               >

@@ -82,8 +82,7 @@ export function GerenciarAtalhos() {
             )
           })}
           <p className="px-4 py-2.5 text-[11px] text-muted-2">
-            Lista de exemplo — as páginas oficiais entram quando os links chegarem. Sua seleção fica
-            salva neste aparelho.
+            As páginas abrem dentro do app. Sua seleção fica salva neste aparelho.
           </p>
         </div>
       </Section>
