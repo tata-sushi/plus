@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowLeft, Loader2, RotateCcw } from 'lucide-react'
+import { ArrowLeft, Loader2 } from 'lucide-react'
 import { supabase } from '../lib/supabase.js'
 import { tapHaptic } from '../lib/haptics.js'
 import { DISC, ORDEM, dominanteDe } from '../lib/disc.js'
@@ -127,22 +127,19 @@ export function QuestionarioDisc() {
       setErro('Não foi possível enviar agora. Tente de novo.')
       return
     }
-    // marca o desafio como concluído (pontos) — não bloqueia o resultado
-    await supabase.rpc('concluir_treinamento', { p_treino: DISC_TREINO_ID }).catch(() => {})
+    // mostra o resultado na hora; marcar o desafio (pontos) roda em segundo plano
+    supabase.rpc('concluir_treinamento', { p_treino: DISC_TREINO_ID }).catch(() => {})
     setEnviando(false)
     setResultado(data)
   }
 
+  // Seleciona a alternativa. NÃO avança sozinho — a pessoa usa o botão abaixo.
   function escolher(opcaoId) {
     tapHaptic()
-    const todas = { ...respostas, [q.ordem]: opcaoId }
-    setRespostas(todas)
-    if (idx + 1 < total) {
-      setTimeout(() => setIdx((i) => i + 1), 160)
-    } else {
-      enviar(todas)
-    }
+    setRespostas((r) => ({ ...r, [q.ordem]: opcaoId }))
   }
+
+  const ultima = idx + 1 >= total
 
   if (enviando) {
     return (
@@ -198,21 +195,20 @@ export function QuestionarioDisc() {
           ))}
         </div>
 
-        {erro && (
-          <div className="mt-4">
-            <p className="text-center text-xs font-medium text-danger">{erro}</p>
-            <button
-              onClick={() => enviar(respostas)}
-              className="btn-primary mt-2 w-full !py-3 text-sm"
-            >
-              <RotateCcw size={15} /> Tentar de novo
-            </button>
-          </div>
-        )}
+        {erro && <p className="mt-4 text-center text-xs font-medium text-danger">{erro}</p>}
 
-        <p className="mt-auto py-5 text-center text-[11px] text-muted-2">
-          Escolha a alternativa que mais combina com você. Não há resposta certa ou errada.
-        </p>
+        <div className="mt-auto pt-6 pb-5">
+          <button
+            onClick={() => (ultima ? enviar(respostas) : setIdx((i) => i + 1))}
+            disabled={!escolhida}
+            className="btn-primary w-full !py-3.5 text-sm disabled:pointer-events-none disabled:opacity-40"
+          >
+            {ultima ? 'Ver meu perfil' : 'Próxima'}
+          </button>
+          <p className="mt-3 text-center text-[11px] text-muted-2">
+            Escolha a alternativa que mais combina com você. Não há resposta certa ou errada.
+          </p>
+        </div>
       </div>
     </div>
   )
