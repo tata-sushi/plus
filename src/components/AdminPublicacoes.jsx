@@ -361,23 +361,20 @@ export function AdminPublicacoes() {
               />
 
               {/* Tipo */}
-              <div className="mt-3 flex gap-1.5">
+              <label className="mt-3 block text-[11px] font-semibold uppercase tracking-widest text-muted">
+                Tipo
+              </label>
+              <select
+                value={tipo}
+                onChange={(e) => setTipo(e.target.value)}
+                className="mt-1.5 w-full rounded-card border border-line bg-surface px-4 py-3 text-sm text-text outline-none"
+              >
                 {TIPOS.map((o) => (
-                  <button
-                    key={o.v}
-                    type="button"
-                    onClick={() => setTipo(o.v)}
-                    className={cn(
-                      'flex-1 rounded-card border px-2 py-2 text-xs font-semibold tap',
-                      tipo === o.v
-                        ? 'border-accent bg-accent-soft text-accent'
-                        : 'border-line text-muted',
-                    )}
-                  >
+                  <option key={o.v} value={o.v}>
                     {o.label}
-                  </button>
+                  </option>
                 ))}
-              </div>
+              </select>
 
               {/* Canais */}
               <div className="mt-2 grid grid-cols-3 gap-1.5">
@@ -435,67 +432,90 @@ export function AdminPublicacoes() {
               </div>
 
               {/* Público */}
-              <div className="mt-2 flex gap-1.5">
-                {[
-                  { v: 'todos', label: 'Todos' },
-                  { v: 'segmentar', label: 'Segmentar' },
-                ].map((o) => (
-                  <button
-                    key={o.v}
-                    type="button"
-                    onClick={() => setAlvoModo(o.v)}
-                    className={cn(
-                      'flex-1 rounded-card border px-2 py-2 text-xs font-semibold tap',
-                      alvoModo === o.v
-                        ? 'border-accent bg-accent-soft text-accent'
-                        : 'border-line text-muted',
-                    )}
-                  >
-                    {o.label}
-                  </button>
-                ))}
-              </div>
+              <label className="mt-3 block text-[11px] font-semibold uppercase tracking-widest text-muted">
+                Público
+              </label>
+              <select
+                value={alvoModo}
+                onChange={(e) => setAlvoModo(e.target.value)}
+                className="mt-1.5 w-full rounded-card border border-line bg-surface px-4 py-3 text-sm text-text outline-none"
+              >
+                <option value="todos">Todos</option>
+                <option value="segmentar">Segmentar por unidade/departamento</option>
+              </select>
 
               {alvoModo === 'segmentar' && (
                 <div className="mt-2 rounded-card border border-line bg-surface p-3">
-                  <div className="text-[11px] font-semibold text-muted">Unidades</div>
-                  <div className="mt-1.5 flex flex-wrap gap-1.5">
-                    {opcoes.unidades.map((u) => (
-                      <button
-                        key={u}
-                        type="button"
-                        onClick={() => alternarLista(setUnidadesSel, u)}
-                        className={cn(
-                          'rounded-pill border px-2.5 py-1 text-[11px] font-semibold tap',
-                          unidadesSel.includes(u)
-                            ? 'border-accent bg-accent text-black'
-                            : 'border-line text-muted',
-                        )}
-                      >
-                        {u}
-                      </button>
-                    ))}
-                  </div>
-                  <div className="mt-3 text-[11px] font-semibold text-muted">Departamentos</div>
-                  <div className="mt-1.5 flex flex-wrap gap-1.5">
-                    {opcoes.departamentos.map((d) => (
-                      <button
-                        key={d}
-                        type="button"
-                        onClick={() => alternarLista(setDepartamentosSel, d)}
-                        className={cn(
-                          'rounded-pill border px-2.5 py-1 text-[11px] font-semibold tap',
-                          departamentosSel.includes(d)
-                            ? 'border-accent bg-accent text-black'
-                            : 'border-line text-muted',
-                        )}
-                      >
-                        {d}
-                      </button>
-                    ))}
-                  </div>
+                  {/* Unidades */}
+                  <label className="block text-[11px] font-semibold uppercase tracking-widest text-muted">
+                    Unidades
+                  </label>
+                  <select
+                    value=""
+                    onChange={(e) => e.target.value && alternarLista(setUnidadesSel, e.target.value)}
+                    className="mt-1.5 w-full rounded-card border border-line bg-surface px-3 py-2.5 text-sm text-text outline-none"
+                  >
+                    <option value="">Adicionar unidade…</option>
+                    {opcoes.unidades
+                      .filter((u) => !unidadesSel.includes(u))
+                      .map((u) => (
+                        <option key={u} value={u}>
+                          {u}
+                        </option>
+                      ))}
+                  </select>
+                  {unidadesSel.length > 0 && (
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                      {unidadesSel.map((u) => (
+                        <button
+                          key={u}
+                          type="button"
+                          onClick={() => alternarLista(setUnidadesSel, u)}
+                          className="hstack gap-1 rounded-pill bg-accent px-2.5 py-1 text-[11px] font-semibold text-black tap"
+                        >
+                          {u} <X size={11} />
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Departamentos */}
+                  <label className="mt-3 block text-[11px] font-semibold uppercase tracking-widest text-muted">
+                    Departamentos
+                  </label>
+                  <select
+                    value=""
+                    onChange={(e) =>
+                      e.target.value && alternarLista(setDepartamentosSel, e.target.value)
+                    }
+                    className="mt-1.5 w-full rounded-card border border-line bg-surface px-3 py-2.5 text-sm text-text outline-none"
+                  >
+                    <option value="">Adicionar departamento…</option>
+                    {opcoes.departamentos
+                      .filter((d) => !departamentosSel.includes(d))
+                      .map((d) => (
+                        <option key={d} value={d}>
+                          {d}
+                        </option>
+                      ))}
+                  </select>
+                  {departamentosSel.length > 0 && (
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                      {departamentosSel.map((d) => (
+                        <button
+                          key={d}
+                          type="button"
+                          onClick={() => alternarLista(setDepartamentosSel, d)}
+                          className="hstack gap-1 rounded-pill bg-accent px-2.5 py-1 text-[11px] font-semibold text-black tap"
+                        >
+                          {d} <X size={11} />
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
                   <div className="mt-2.5 text-[10px] leading-snug text-muted-2">
-                    Aparece para quem está em qualquer unidade <b>ou</b> departamento marcado.
+                    Aparece para quem está em qualquer unidade <b>ou</b> departamento escolhido.
                   </div>
                 </div>
               )}
