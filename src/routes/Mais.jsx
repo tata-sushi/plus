@@ -18,6 +18,7 @@ import {
   Moon,
   ShieldCheck,
   Ear,
+  Pin,
 } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Section } from '../components/Section.jsx'
@@ -59,7 +60,11 @@ export function Mais() {
   // quem vê Governança na barra reveza com a Ouvidoria — então a Ouvidoria
   // entra aqui no menu, para essa pessoa não perder o acesso ao canal.
   const navItens = usuario?.governanca?.tem
-    ? [...itens, { to: '/ouvidoria', label: 'Ouvidoria', icon: Ear }]
+    ? [
+        ...itens,
+        { to: '/ouvidoria', label: 'Ouvidoria', icon: Ear },
+        { to: '/atalhos-governanca', label: 'Gerenciar atalhos', icon: Pin },
+      ]
     : itens
 
   const inputFoto = useRef(null)
