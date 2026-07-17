@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Section } from './Section.jsx'
 import { supabase } from '../lib/supabase.js'
 import { signoDe } from '../lib/signo.js'
-import { QuadrosPerfil } from './QuadrosPerfil.jsx'
+import { AnalisesPerfil } from './AnalisesPerfil.jsx'
 
 // "Meu perfil" da Minha jornada: DISC · MBTI · Big Five · Signo (interativo).
 export function MeuPerfil() {
@@ -29,11 +29,11 @@ export function MeuPerfil() {
 
   return (
     <Section className="reveal reveal-3 mt-5" title="Meu perfil">
-      <QuadrosPerfil
+      <AnalisesPerfil
         disc={disc}
         signo={signo}
-        onDiscFeito={() => navigate('/perfil-disc')}
-        onDiscFazer={() => navigate('/treinamentos')}
+        onDisc={() => navigate('/perfil-disc')}
+        onFazer={() => navigate('/treinamentos')}
       />
     </Section>
   )
