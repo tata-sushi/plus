@@ -5,7 +5,7 @@ import { cn } from '../lib/cn'
 import { estadoPush, ativarPush } from '../lib/push.js'
 
 // Rotas em tela cheia, sem a barra de navegação (ex.: organograma em paisagem).
-const SEM_NAV = ['/organograma']
+const SEM_NAV = ['/organograma', '/perfil-disc']
 
 // Orientação: o app fica travado em RETRATO pelo manifesto do PWA. O organograma
 // vai para PAISAGEM por conta própria (tela cheia + orientation.lock — ver

@@ -4,15 +4,7 @@ import { Sparkles, ChevronRight } from 'lucide-react'
 import { Section } from './Section.jsx'
 import { Card } from './Card.jsx'
 import { supabase } from '../lib/supabase.js'
-
-// As 4 dimensões do DISC (rótulo + descrição curta + cor da barra).
-const DISC = {
-  D: { nome: 'Dominante', desc: 'Foco em resultado, decisão e ação direta.', cor: '#EF4444' },
-  I: { nome: 'Influente', desc: 'Comunicação, pessoas e entusiasmo.', cor: '#F59E0B' },
-  S: { nome: 'Estável', desc: 'Constância, paciência e cooperação.', cor: '#22C55E' },
-  C: { nome: 'Conforme', desc: 'Precisão, regras e análise.', cor: '#3B82F6' },
-}
-const ORDEM = ['D', 'I', 'S', 'C']
+import { DISC, ORDEM, dominanteDe } from '../lib/disc.js'
 
 export function PerfilDisc() {
   // undefined = carregando · null = sem perfil · objeto = perfil atual
@@ -51,10 +43,12 @@ export function PerfilDisc() {
 
   const pont = perfil.pontuacoes || {}
   const total = ORDEM.reduce((s, k) => s + (Number(pont[k]) || 0), 0) || 1
-  const dominante =
-    (perfil.perfil && perfil.perfil[0]) ||
-    ORDEM.reduce((a, b) => (Number(pont[b] || 0) > Number(pont[a] || 0) ? b : a), 'D')
-  const d = DISC[dominante] || DISC.D
+  const dominante = dominanteDe(pont)
+  const d = DISC[dominante]
+  // rótulo salvo: 'D', 'DI' (combinado) ou 'Equilibrado'
+  const rotulo = perfil.perfil
+  const combinado = rotulo && rotulo.length === 2 && DISC[rotulo[1]]
+  const equilibrado = rotulo === 'Equilibrado'
 
   return (
     <Section className="reveal reveal-3 mt-5" title="Meu perfil">
@@ -68,10 +62,18 @@ export function PerfilDisc() {
           </span>
           <div className="min-w-0">
             <div className="text-xs text-muted">Seu perfil é</div>
-            <div className="font-display text-base font-bold">{d.nome}</div>
+            <div className="font-display text-base font-bold">
+              {equilibrado
+                ? 'Equilibrado'
+                : combinado
+                  ? `${DISC[rotulo[0]].nome} + ${DISC[rotulo[1]].nome}`
+                  : d.nome}
+            </div>
           </div>
         </div>
-        <p className="mt-2 text-xs text-muted">{d.desc}</p>
+        <p className="mt-2 text-xs text-muted">
+          {equilibrado ? 'Suas quatro tendências aparecem de forma bem próxima.' : d.desc}
+        </p>
 
         <div className="mt-3 flex flex-col gap-2">
           {ORDEM.map((k) => {

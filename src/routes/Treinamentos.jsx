@@ -100,7 +100,8 @@ function Detalhe({
   const ehPdf = !!data?.arquivo_url && !ehVideo
   // PDF + prova → leitura obrigatória e depois a prova numa 2ª página (Cartilha Amarela)
   const ehLeituraProva = ehPdf && ehProva
-  const ehAvaliacao = !!data?.avaliacao // desafio de nota/NPS (ex.: avalie a playlist)
+  const ehPerfilDisc = data?.avaliacao?.perfil === 'disc' // questionário DISC (Soft Skill)
+  const ehAvaliacao = !!data?.avaliacao && !ehPerfilDisc // desafio de nota/NPS (ex.: avalie a playlist)
   // conteúdo "rico" = texto e/ou prova (pode ter vídeo junto) → rola numa tela só
   const ehRico = temHtml || ehProva
   const ehSoVideos = ehVideos && !ehRico
@@ -409,7 +410,31 @@ function Detalhe({
         </div>
       )}
 
-      {!ehCodigo && !ehEnvio && !ehReconhecimento && !ehLeituraProva && !ehAvaliacao && (
+      {ehPerfilDisc && (
+        <div className="safe-bottom border-t border-line px-5 py-3">
+          {treino.concluido ? (
+            <button
+              onClick={() => navigate('/perfil-disc')}
+              className="btn-primary w-full !py-3.5 text-sm"
+            >
+              Refazer / ver meu perfil
+            </button>
+          ) : !liberado ? (
+            <div className="hstack justify-center gap-2 rounded-card bg-surface py-3 text-sm font-semibold text-muted-2">
+              <ArrowDown size={16} className="animate-bounce" /> Role para ler a introdução
+            </div>
+          ) : (
+            <button
+              onClick={() => navigate('/perfil-disc')}
+              className="btn-primary w-full !py-3.5 text-sm"
+            >
+              Fazer o teste DISC
+            </button>
+          )}
+        </div>
+      )}
+
+      {!ehCodigo && !ehEnvio && !ehReconhecimento && !ehLeituraProva && !ehAvaliacao && !ehPerfilDisc && (
       <div className="safe-bottom border-t border-line px-5 py-3">
         {treino.concluido ? (
           <div className="hstack justify-center gap-2 rounded-card bg-accent-soft py-3 text-sm font-semibold text-accent">
