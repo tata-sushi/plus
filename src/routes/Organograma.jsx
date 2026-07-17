@@ -1,97 +1,71 @@
 import { useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Network, ExternalLink } from 'lucide-react'
 import { tapHaptic } from '../lib/haptics.js'
 
-// Organograma (HTML no portal Líderes). Abre DIRETO em tela cheia + paisagem —
-// sem tela de aviso e sem UI extra além do botão "App".
+// Organograma (HTML no portal Líderes). Abre no NAVEGADOR do celular, por cima
+// do app (nova aba / custom tab), em vez de embutir num iframe em tela cheia.
 //
-// O app é travado em RETRATO pelo manifesto do PWA e a página do organograma só
-// renderiza bem em PAISAGEM/tela cheia. Um `screen.orientation.lock` "pelado"
-// não funciona nesse cenário no Android; o que funciona é o par clássico:
-// entrar em TELA CHEIA (requestFullscreen) e então travar em 'landscape'.
-// Ao voltar pelo botão "App", saímos da tela cheia (volta ao retrato do app).
+// Por quê: o app é travado em RETRATO pelo manifesto e a única forma de girar
+// um iframe embutido era entrar em tela cheia — o que dispara aquele alerta do
+// Android ("arraste para sair da tela cheia") impossível de esconder. No
+// navegador não há tela cheia: a página gira sozinha com o aparelho (auto-girar)
+// e o zoom é nativo, sem alerta nenhum.
 const ORGANOGRAMA_URL = 'https://lideres.tatasushi.tech/compliance/areas/organograma2.html'
 
-function pedirTelaCheia(el) {
-  const req = el.requestFullscreen || el.webkitRequestFullscreen || el.webkitEnterFullscreen
-  if (!req) return Promise.reject(new Error('sem fullscreen'))
-  return Promise.resolve(req.call(el))
-}
-
-function emTelaCheia() {
-  return !!(document.fullscreenElement || document.webkitFullscreenElement)
-}
-
-function sairTelaCheia() {
-  try {
-    window.screen?.orientation?.unlock?.()
-  } catch {
-    /* ignore */
-  }
-  if (!emTelaCheia()) return
-  const ex = document.exitFullscreen || document.webkitExitFullscreen
-  try {
-    ex?.call(document)
-  } catch {
-    /* ignore */
-  }
-}
-
-// entra em tela cheia e trava em paisagem (best-effort e à prova de erro)
-function entrarPaisagem(el) {
-  return pedirTelaCheia(el)
-    .then(() => {
-      try {
-        const p = window.screen?.orientation?.lock?.('landscape')
-        if (p?.catch) p.catch(() => {})
-      } catch {
-        /* device sem lock de orientação */
-      }
-    })
-    .catch(() => {})
+function abrirNoNavegador() {
+  // sem 'noopener' aqui de propósito: com noopener o window.open retorna null e
+  // não dá para saber se abriu. É uma URL da própria empresa (confiável).
+  const w = window.open(ORGANOGRAMA_URL, '_blank')
+  return !!w
 }
 
 export function Organograma() {
   const navigate = useNavigate()
-  const boxRef = useRef(null)
+  const tentou = useRef(false)
 
   useEffect(() => {
-    // a navegação até aqui é um toque recente: entra direto em paisagem.
-    if (boxRef.current) entrarPaisagem(boxRef.current)
-    return () => sairTelaCheia()
-  }, [])
+    // a navegação até aqui foi um toque recente: tenta abrir direto no navegador
+    // e volta para a tela anterior (o organograma fica por cima, no navegador).
+    if (tentou.current) return
+    tentou.current = true
+    if (abrirNoNavegador()) navigate(-1)
+    // se o pop-up foi bloqueado, fica nesta tela com o botão manual abaixo.
+  }, [navigate])
+
+  function abrir() {
+    tapHaptic()
+    abrirNoNavegador()
+    navigate(-1)
+  }
 
   function voltar() {
     tapHaptic()
-    sairTelaCheia()
-    navigate('/')
+    navigate(-1)
   }
 
   return (
-    <div ref={boxRef} className="fixed inset-0 bg-white">
-      <iframe
-        src={ORGANOGRAMA_URL}
-        title="Organograma"
-        allow="clipboard-write; fullscreen"
-        className="h-full w-full border-0 bg-white"
-      />
-
-      {/* Único elemento de UI do app: botão "App" (padrão do aviso do portal). */}
+    <div className="fixed inset-0 z-40 flex flex-col items-center justify-center gap-6 bg-bg px-10 text-center">
+      <div className="grid h-16 w-16 place-items-center rounded-2xl bg-accent-soft text-accent">
+        <Network size={30} />
+      </div>
+      <div>
+        <div className="font-display text-lg font-bold">Organograma</div>
+        <p className="mt-1.5 text-sm text-muted">
+          Abre no navegador do celular. Gire o aparelho para ver na horizontal.
+        </p>
+      </div>
+      <button
+        onClick={abrir}
+        className="flex items-center gap-2 rounded-pill bg-accent px-6 py-3.5 text-sm font-semibold text-black shadow-lg tap"
+      >
+        <ExternalLink size={16} /> Abrir organograma
+      </button>
       <button
         onClick={voltar}
-        aria-label="Voltar ao aplicativo"
-        className="fixed z-50 flex items-center gap-1.5 rounded-pill text-[11.5px] font-semibold text-white tap"
-        style={{
-          top: 'calc(env(safe-area-inset-top, 0px) + 12px)',
-          left: 'calc(env(safe-area-inset-left, 0px) + 14px)',
-          height: '36px',
-          padding: '0 14px',
-          background: '#35383F',
-          boxShadow: '0 4px 16px rgba(0,0,0,0.18)',
-        }}
+        className="flex items-center gap-1.5 text-sm font-semibold text-muted tap"
       >
-        <ArrowLeft size={16} strokeWidth={2.2} color="#CFFF00" /> App
+        <ArrowLeft size={16} /> Voltar
       </button>
     </div>
   )
