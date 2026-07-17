@@ -170,6 +170,40 @@
   background: rgb(var(--surface-2));
   font-weight: 700;
 }
+/* Metas & Prêmio (desafios mensais de Gorjeta & Prêmio): cartão + pílula de valor */
+.conteudo .meta-item {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.7rem 0.85rem;
+  margin-bottom: 0.5rem;
+  border: 1px solid rgb(var(--line));
+  border-radius: 0.85rem;
+  background: rgb(var(--surface-2));
+}
+.conteudo .meta-item > div { flex: 1; min-width: 0; }
+.conteudo .meta-item b { display: block; font-weight: 700; }
+.conteudo .meta-item small { display: block; margin-top: 0.12rem; font-size: 0.82em; color: rgb(var(--muted)); }
+.conteudo .meta-val {
+  flex-shrink: 0;
+  white-space: nowrap;
+  font-weight: 700;
+  font-size: 0.8rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: 9999px;
+}
+.conteudo .meta-val.pen { background: rgb(var(--danger) / 0.13); color: rgb(var(--danger)); }
+.conteudo .meta-val.bonus { background: rgb(var(--accent) / 0.16); color: rgb(var(--accent-dim)); }
+.conteudo .meta-val.neutro { background: var(--fill); color: rgb(var(--muted)); }
+.conteudo .meta-alerta {
+  padding: 0.7rem 0.85rem;
+  margin: 0.2rem 0 1.2rem;
+  border: 1px solid rgb(var(--danger) / 0.3);
+  border-radius: 0.85rem;
+  background: rgb(var(--danger) / 0.08);
+  font-size: 0.9em;
+}
+.conteudo .meta-alerta b { color: rgb(var(--danger)); font-weight: 700; }
 /* vídeo embutido (iframe responsivo, ex.: Bunny/mediadelivery) */
 .conteudo .video {
   position: relative;
