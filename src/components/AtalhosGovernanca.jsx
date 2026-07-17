@@ -11,7 +11,12 @@ export const ATALHOS_KEY = 'tata_gov_pinned'
 export function loadPinned() {
   try {
     const raw = localStorage.getItem(ATALHOS_KEY)
-    return raw ? JSON.parse(raw) : []
+    const ids = raw ? JSON.parse(raw) : []
+    if (!Array.isArray(ids)) return []
+    // Descarta ids que não existem mais no catálogo (ex.: catálogo de exemplo
+    // antigo) — senão ocupam vaga no limite sem aparecer em lugar nenhum.
+    const validos = new Set(governancaCatalogo.map((c) => c.id))
+    return ids.filter((id) => validos.has(id))
   } catch {
     return []
   }
