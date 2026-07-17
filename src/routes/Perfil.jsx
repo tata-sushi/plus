@@ -7,7 +7,7 @@ import { Card } from '../components/Card.jsx'
 import { Avatar } from '../components/Avatar.jsx'
 import { ProgressBar } from '../components/ProgressBar.jsx'
 import { GradeEmblemas, contarEmblemas } from '../components/GradeEmblemas.jsx'
-import { QuadrosPerfil } from '../components/QuadrosPerfil.jsx'
+import { AnalisesPerfil } from '../components/AnalisesPerfil.jsx'
 import { CATALOGO_EMBLEMAS } from '../lib/emblemas.js'
 import { signoDe } from '../lib/signo.js'
 import { useAuth } from '../lib/AuthContext.jsx'
@@ -224,7 +224,7 @@ export function Perfil() {
 
       {/* Perfil comportamental */}
       <Section className="reveal reveal-3 mt-5" title="Perfil comportamental">
-        <QuadrosPerfil disc={perfil.disc} signo={signo} />
+        <AnalisesPerfil disc={perfil.disc} signo={signo} />
       </Section>
     </>
   )
