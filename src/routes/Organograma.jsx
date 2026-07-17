@@ -17,20 +17,22 @@ export function Organograma() {
         className="w-full flex-1 border-0 bg-white"
         allow="clipboard-write; fullscreen"
       />
-      {/* Botão "App" no mesmo padrão do botão do portal (organograma2.html):
-          grafite #35383F, seta citric #CFFF00, pílula 100px, DM Mono 10px. */}
+      {/* Botão "App" no mesmo padrão do aviso do portal (organograma2.html, .hint-bar):
+          grafite #35383F, seta citric #CFFF00, pílula 100px, altura 36px,
+          fonte sans 11.5px peso 600, no topo a 8px (offset mobile do portal). */}
       <button
         onClick={() => {
           tapHaptic()
           navigate('/')
         }}
         aria-label="Voltar ao aplicativo"
-        className="fixed z-50 flex items-center gap-1.5 rounded-pill font-mono text-[10px] font-medium text-white tap"
+        className="fixed z-50 flex items-center gap-1.5 rounded-pill text-[11.5px] font-semibold text-white tap"
         style={{
           top: 'calc(env(safe-area-inset-top) + 8px)',
           left: 'calc(env(safe-area-inset-left) + 12px)',
+          height: '36px',
+          padding: '0 14px',
           background: '#35383F',
-          padding: '9px 12px',
           boxShadow: '0 4px 16px rgba(0,0,0,0.18)',
         }}
       >
