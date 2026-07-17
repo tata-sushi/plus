@@ -5,11 +5,15 @@ import { Header } from '../components/Header.jsx'
 import { Section } from '../components/Section.jsx'
 import { Card } from '../components/Card.jsx'
 import { Avatar } from '../components/Avatar.jsx'
+import { ProgressBar } from '../components/ProgressBar.jsx'
+import { GradeEmblemas, contarEmblemas } from '../components/GradeEmblemas.jsx'
+import { QuadrosPerfil } from '../components/QuadrosPerfil.jsx'
+import { CATALOGO_EMBLEMAS } from '../lib/emblemas.js'
+import { signoDe } from '../lib/signo.js'
 import { useAuth } from '../lib/AuthContext.jsx'
 import { supabase } from '../lib/supabase.js'
 
 const fmt = (n) => Number(n || 0).toLocaleString('pt-BR')
-
 const LIMITE = 500
 
 const ERROS = {
@@ -75,6 +79,10 @@ export function Perfil() {
   }
 
   const primeiro = (perfil.nome || '').split(' ')[0]
+  const proximo = perfil.proximo_pontos
+  const progresso = proximo ? Math.min(1, Number(perfil.pontos) / Number(proximo)) : 1
+  const falta = proximo ? Number(proximo) - Number(perfil.pontos) : 0
+  const signo = signoDe(perfil.data_nascimento)
 
   async function transferir() {
     const n = Math.floor(Number(valor))
@@ -92,10 +100,7 @@ export function Perfil() {
     }
     setEnviando(true)
     setErro('')
-    const { data, error } = await supabase.rpc('transferir_pontos', {
-      p_destino: id,
-      p_pontos: n,
-    })
+    const { data, error } = await supabase.rpc('transferir_pontos', { p_destino: id, p_pontos: n })
     setEnviando(false)
     if (error || !data?.ok) {
       setErro(ERROS[data?.erro] || 'Não foi possível transferir agora. Tente de novo.')
@@ -125,35 +130,29 @@ export function Perfil() {
             <div className="min-w-0 flex-1">
               <div className="font-display text-base font-bold">{perfil.nome}</div>
               <div className="text-xs text-muted">
-                {perfil.cargo}
-                {perfil.cargo && perfil.unidade ? ' · ' : ''}
+                {perfil.departamento}
+                {perfil.departamento && perfil.unidade ? ' · ' : ''}
                 {perfil.unidade}
               </div>
             </div>
           </div>
+
+          {/* Progresso no ranking */}
+          <div className="mt-4 hstack justify-between text-xs">
+            <span className="font-semibold text-accent">{fmt(perfil.pontos)} pts</span>
+            <span className="font-semibold text-muted">#{perfil.posicao} no ranking</span>
+          </div>
+          <div className="mt-2">
+            <ProgressBar value={progresso} />
+          </div>
+          <div className="mt-1 text-[11px] text-muted">
+            {proximo ? `Faltam ${fmt(falta)} pts para o #${perfil.posicao - 1}` : 'Líder do ranking 🏆'}
+          </div>
         </div>
       </div>
 
-      {/* Ranking */}
-      <Section className="reveal reveal-1 mt-5" title="Ranking">
-        <Card>
-          <div className="hstack justify-between">
-            <div>
-              <div className="text-xs text-muted">Pontos</div>
-              <div className="font-display text-2xl font-bold text-accent">
-                {fmt(perfil.pontos)} pts
-              </div>
-            </div>
-            <div className="text-right">
-              <div className="text-xs text-muted">Posição</div>
-              <div className="font-display text-xl font-bold">#{perfil.posicao}</div>
-            </div>
-          </div>
-        </Card>
-      </Section>
-
-      {/* Transferência de saldo */}
-      <Section className="reveal reveal-2 mt-5" title="Carteira">
+      {/* Transferir saldo */}
+      <Section className="reveal reveal-1 mt-5" title="Carteira">
         {feito ? (
           <Card>
             <div className="hstack gap-2 text-sm font-semibold text-accent">
@@ -206,6 +205,26 @@ export function Perfil() {
             <Send size={16} /> Transferir saldo
           </button>
         )}
+      </Section>
+
+      {/* Conquistas */}
+      <Section
+        className="reveal reveal-2 mt-5"
+        title="Conquistas"
+        action={
+          <span className="text-xs font-semibold text-muted">
+            {contarEmblemas(perfil)}/{CATALOGO_EMBLEMAS.length}
+          </span>
+        }
+      >
+        <Card>
+          <GradeEmblemas dados={perfil} />
+        </Card>
+      </Section>
+
+      {/* Perfil comportamental */}
+      <Section className="reveal reveal-3 mt-5" title="Perfil comportamental">
+        <QuadrosPerfil disc={perfil.disc} signo={signo} />
       </Section>
     </>
   )
