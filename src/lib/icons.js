@@ -52,6 +52,8 @@ import {
   Stethoscope,
   Target,
   BookOpen,
+  Award,
+  Crown,
 } from 'lucide-react'
 
 export const iconMap = {
@@ -107,6 +109,8 @@ export const iconMap = {
   Stethoscope,
   Target,
   BookOpen,
+  Award,
+  Crown,
 }
 
 export function resolveIcon(name) {

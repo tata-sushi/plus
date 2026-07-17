@@ -6,6 +6,7 @@ import { Card } from './Card.jsx'
 import { Avatar } from './Avatar.jsx'
 import { ProgressBar } from './ProgressBar.jsx'
 import { MeuPerfil } from './MeuPerfil.jsx'
+import { JornadaExtra } from './JornadaExtra.jsx'
 import { useCountUp } from '../lib/useCountUp.js'
 import { minhasAcoes } from '../lib/mockData.js'
 
@@ -76,6 +77,9 @@ export function ProfileView({ colaborador, isSelf }) {
 
       {/* Meu perfil (DISC) — só no próprio perfil */}
       {isSelf && <MeuPerfil />}
+
+      {/* Emblemas + signo — só no próprio perfil */}
+      {isSelf && <JornadaExtra />}
 
       {/* Ações — só para o próprio perfil */}
       {isSelf && (
