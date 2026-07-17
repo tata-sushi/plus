@@ -72,13 +72,13 @@ function Resultado({ resultado, onVoltar, disponivelEm }) {
             return (
               <div key={k}>
                 <div className="hstack justify-between text-xs font-semibold">
-                  <span style={{ color: DISC[k].cor }}>{DISC[k].nome}</span>
+                  <span className="text-text">{DISC[k].nome}</span>
                   <span className="text-muted">{pct}%</span>
                 </div>
                 <div className="mt-1 h-2 overflow-hidden rounded-full bg-surface-2">
                   <div
-                    className="h-full rounded-full transition-all"
-                    style={{ width: `${pct}%`, background: DISC[k].cor }}
+                    className="h-full rounded-full bg-accent transition-all"
+                    style={{ width: `${pct}%` }}
                   />
                 </div>
               </div>
