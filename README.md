@@ -72,6 +72,37 @@ séries de envio sequenciais, governança embutida, decisões e pendências — 
 **`docs/CONTEXTO.md`**. É o documento de handoff, atualizado a cada bloco de trabalho (a §13
 traz o histórico da sessão mais recente).
 
+## Otimização e arquitetura (prioridade)
+
+**Princípio do projeto: otimização, eficiência e o sistema o mais _clean_ possível.**
+Toda mudança deve puxar nessa direção — e "clean" aqui **não** é "menos tabelas a qualquer
+custo", é **responsabilidade única + zero duplicação + zero órfão**. Espremer tudo numa
+tabela só (ou em blocos de JSON gigantes) deixa mais lento e mais bagunçado, não mais limpo.
+
+Regras práticas antes de criar/alterar schema:
+
+- **Antes de criar tabela nova**, verificar se o dado cabe numa existente (coluna ou `jsonb`
+  quando a lista é pequena e "propriedade da linha", ex.: público-alvo de uma publicação) ou
+  se **repete um padrão** já existente — nesse caso, **unificar** em vez de duplicar.
+- **Config/singleton** pequeno (chaves, textos-modelo) não vira uma tabela por assunto: agrupa
+  numa tabela de configuração única quando fizer sentido.
+- **Remover o legado assim que migrado** (nada de tabela morta encostada).
+- **RPCs enxutos**; índice só onde há filtro real; nada de coluna/tabela "por precaução".
+
+Otimizações mapeadas (a fazer, com cuidado por mexerem no que já roda):
+
+- [ ] Fundir `publicacao_atribuicoes` em `publicacoes.alvos` (`jsonb`) — o alvo é propriedade da
+      publicação. Remove 1 tabela.
+- [ ] **Unificar o padrão de "atribuição/alvo"** entre `treinamentos` e `publicacoes` (hoje há
+      duas tabelas paralelas com a mesma forma) — essa é a duplicação real a atacar.
+- [ ] Remover o legado `comunicados` / `comunicado_leituras` / `comunicados_feed` (já migrados
+      para `publicacoes`).
+- [ ] Avaliar unir configs de singleton (`push_config`, mensagens de aniversário) numa tabela de
+      configuração única.
+
+> As tabelas que **têm** de existir por natureza (relação N‑para‑N como leituras, ou 1‑por‑aparelho
+> como `push_subscriptions`) permanecem separadas — é o modelo correto e mais rápido.
+
 ## Conteúdo das trilhas (estado)
 
 Detalhe por sessão em `docs/CONTEXTO.md` (§13–§14). Resumo:
