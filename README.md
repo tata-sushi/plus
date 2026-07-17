@@ -89,14 +89,15 @@ Regras práticas antes de criar/alterar schema:
 - **Remover o legado assim que migrado** (nada de tabela morta encostada).
 - **RPCs enxutos**; índice só onde há filtro real; nada de coluna/tabela "por precaução".
 
-Otimizações mapeadas (a fazer, com cuidado por mexerem no que já roda):
+Otimizações:
 
-- [ ] Fundir `publicacao_atribuicoes` em `publicacoes.alvos` (`jsonb`) — o alvo é propriedade da
-      publicação. Remove 1 tabela.
-- [ ] **Unificar o padrão de "atribuição/alvo"** entre `treinamentos` e `publicacoes` (hoje há
-      duas tabelas paralelas com a mesma forma) — essa é a duplicação real a atacar.
-- [ ] Remover o legado `comunicados` / `comunicado_leituras` / `comunicados_feed` (já migrados
-      para `publicacoes`).
+- [x] Fundir `publicacao_atribuicoes` em `publicacoes.alvos` (`jsonb`) — feito; o alvo é
+      propriedade da publicação (‑1 tabela).
+- [x] Remover o legado `comunicados` / `comunicado_leituras` / `comunicados_feed` (migrados para
+      `publicacoes`) — feito (‑3 objetos).
+- [ ] **Unificar o padrão de "atribuição/alvo"** entre `treinamentos` e `publicacoes` (hoje
+      `treinamento_atribuicoes` ainda é tabela; publicações já usam `jsonb`) — a duplicação real
+      a atacar quando for mexer nos desafios.
 - [ ] Avaliar unir configs de singleton (`push_config`, mensagens de aniversário) numa tabela de
       configuração única.
 
