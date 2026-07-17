@@ -39,6 +39,12 @@ export function Comunicados() {
   const [naPagina, setNaPagina] = useState(true)
   const [notificar, setNotificar] = useState(true)
   const [dataEvento, setDataEvento] = useState('')
+  const [validoDe, setValidoDe] = useState('')
+  const [validoAte, setValidoAte] = useState('')
+  const [alvoModo, setAlvoModo] = useState('todos')
+  const [unidadesSel, setUnidadesSel] = useState([])
+  const [departamentosSel, setDepartamentosSel] = useState([])
+  const [opcoes, setOpcoes] = useState({ unidades: [], departamentos: [] })
   const [imgFile, setImgFile] = useState(null)
   const [imgPreview, setImgPreview] = useState('')
   const [publicando, setPublicando] = useState(false)
@@ -59,6 +65,17 @@ export function Comunicados() {
   useEffect(() => {
     carregar()
   }, [carregar])
+
+  useEffect(() => {
+    if (!admin) return
+    supabase.rpc('segmentacao_opcoes').then(({ data }) => {
+      if (data) setOpcoes({ unidades: data.unidades || [], departamentos: data.departamentos || [] })
+    })
+  }, [admin])
+
+  function alternarLista(setter, valor) {
+    setter((arr) => (arr.includes(valor) ? arr.filter((x) => x !== valor) : [...arr, valor]))
+  }
 
   function escolherImagem(e) {
     const f = e.target.files?.[0]
@@ -93,6 +110,11 @@ export function Comunicados() {
     setNaPagina(true)
     setNotificar(true)
     setDataEvento('')
+    setValidoDe('')
+    setValidoAte('')
+    setAlvoModo('todos')
+    setUnidadesSel([])
+    setDepartamentosSel([])
     removerImagem()
   }
 
@@ -119,6 +141,15 @@ export function Comunicados() {
       imagem_url = supabase.storage.from('comunicados').getPublicUrl(caminho).data.publicUrl
     }
 
+    let p_alvos = null
+    if (alvoModo === 'segmentar') {
+      const arr = [
+        ...unidadesSel.map((v) => ({ tipo: 'unidade', valor: v })),
+        ...departamentosSel.map((v) => ({ tipo: 'departamento', valor: v })),
+      ]
+      if (arr.length) p_alvos = arr
+    }
+
     const { error } = await supabase.rpc('publicar_conteudo', {
       p_titulo: t,
       p_corpo: c,
@@ -129,6 +160,9 @@ export function Comunicados() {
       p_notificar: notificar,
       p_prioridade: tipo === 'comunicado' ? 110 : 100,
       p_data_evento: dataEvento || null,
+      p_data_inicio: validoDe || null,
+      p_data_fim: validoAte || null,
+      p_alvos,
     })
     setPublicando(false)
     if (error) {
@@ -270,6 +304,95 @@ export function Comunicados() {
                   </button>
                 ))}
               </div>
+
+              {/* Período de validade (opcional) */}
+              <div className="mt-2 grid grid-cols-2 gap-1.5">
+                <label className="hstack gap-2 rounded-card border border-line bg-surface px-3 py-2.5">
+                  <span className="text-[11px] text-muted">Válido de</span>
+                  <input
+                    type="date"
+                    value={validoDe}
+                    onChange={(e) => setValidoDe(e.target.value)}
+                    className="ml-auto bg-transparent text-xs text-text outline-none"
+                  />
+                </label>
+                <label className="hstack gap-2 rounded-card border border-line bg-surface px-3 py-2.5">
+                  <span className="text-[11px] text-muted">até</span>
+                  <input
+                    type="date"
+                    value={validoAte}
+                    onChange={(e) => setValidoAte(e.target.value)}
+                    className="ml-auto bg-transparent text-xs text-text outline-none"
+                  />
+                </label>
+              </div>
+
+              {/* Público-alvo */}
+              <div className="mt-2 flex gap-1.5">
+                {[
+                  { v: 'todos', label: 'Todos' },
+                  { v: 'segmentar', label: 'Segmentar' },
+                ].map((o) => (
+                  <button
+                    key={o.v}
+                    type="button"
+                    onClick={() => setAlvoModo(o.v)}
+                    className={cn(
+                      'flex-1 rounded-card border px-2 py-2 text-xs font-semibold tap',
+                      alvoModo === o.v
+                        ? 'border-accent bg-accent-soft text-accent'
+                        : 'border-line text-muted',
+                    )}
+                  >
+                    {o.label}
+                  </button>
+                ))}
+              </div>
+
+              {alvoModo === 'segmentar' && (
+                <div className="mt-2 rounded-card border border-line bg-surface p-3">
+                  <div className="text-[11px] font-semibold text-muted">Unidades</div>
+                  <div className="mt-1.5 flex flex-wrap gap-1.5">
+                    {opcoes.unidades.map((u) => (
+                      <button
+                        key={u}
+                        type="button"
+                        onClick={() => alternarLista(setUnidadesSel, u)}
+                        className={cn(
+                          'rounded-pill border px-2.5 py-1 text-[11px] font-semibold tap',
+                          unidadesSel.includes(u)
+                            ? 'border-accent bg-accent text-black'
+                            : 'border-line text-muted',
+                        )}
+                      >
+                        {u}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="mt-3 text-[11px] font-semibold text-muted">Departamentos</div>
+                  <div className="mt-1.5 flex flex-wrap gap-1.5">
+                    {opcoes.departamentos.map((d) => (
+                      <button
+                        key={d}
+                        type="button"
+                        onClick={() => alternarLista(setDepartamentosSel, d)}
+                        className={cn(
+                          'rounded-pill border px-2.5 py-1 text-[11px] font-semibold tap',
+                          departamentosSel.includes(d)
+                            ? 'border-accent bg-accent text-black'
+                            : 'border-line text-muted',
+                        )}
+                      >
+                        {d}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="mt-2.5 text-[10px] leading-snug text-muted-2">
+                    Aparece para quem está em qualquer unidade <b>ou</b> departamento marcado. Sem
+                    nada marcado, vai para todos.
+                  </div>
+                </div>
+              )}
 
               <button
                 onClick={publicar}
