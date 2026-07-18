@@ -86,7 +86,7 @@ export function Manutencao() {
 
   return (
     <>
-      <Header title="Painel de Gerenciamento" />
+      <Header title="Painel de Ajustes" />
       <Voltar />
 
       <Section className="mt-2" title="Notificações">

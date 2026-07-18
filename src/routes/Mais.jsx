@@ -31,7 +31,7 @@ const itens = [
   { to: '/comunicados', label: 'Comunicados', icon: Megaphone },
   { to: '/ouvidoria', label: 'Ouvidoria', icon: MessageSquareWarning, gov: true },
   { to: '/cardapio', label: 'Cardápio', icon: UtensilsCrossed },
-  { to: '/manutencao', label: 'Painel de Gerenciamento', icon: Wrench },
+  { to: '/manutencao', label: 'Painel de Ajustes', icon: Wrench },
   { to: '/atalhos-governanca', label: 'Atalhos', icon: Pin, gov: true },
 ]
 
