@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
-import { Gift, Clock } from 'lucide-react'
+import { Clock } from 'lucide-react'
 import { Header } from './Header.jsx'
 import { Voltar } from './Voltar.jsx'
 import { Section } from './Section.jsx'
@@ -9,7 +8,6 @@ import { Avatar } from './Avatar.jsx'
 import { ProgressRing } from './ProgressRing.jsx'
 import { MeuPerfil } from './MeuPerfil.jsx'
 import { Conquistas } from './Conquistas.jsx'
-import { useCountUp } from '../lib/useCountUp.js'
 import { supabase } from '../lib/supabase.js'
 
 export function ProfileView({ colaborador, isSelf }) {
@@ -30,7 +28,6 @@ export function ProfileView({ colaborador, isSelf }) {
   const feitos = resumo?.desafios_feitos ?? 0
   const total = resumo?.desafios_total ?? 0
   const pct = total > 0 ? Math.round((feitos / total) * 100) : 0
-  const saldoAnimado = useCountUp(resumo?.saldo ?? 0)
 
   return (
     <>
@@ -67,25 +64,6 @@ export function ProfileView({ colaborador, isSelf }) {
 
       {/* Meu perfil (Signo · DISC · em breve) */}
       {isSelf && <MeuPerfil />}
-
-      {/* Carteira */}
-      <Section className="reveal reveal-2 mt-5" title="Carteira de pontos">
-        <Card>
-          <div className="hstack justify-between">
-            <div>
-              <div className="text-xs text-muted">Saldo atual</div>
-              <div className="font-display text-2xl font-bold text-accent">
-                {saldoAnimado.toLocaleString('pt-BR')} pts
-              </div>
-            </div>
-            {isSelf && (
-              <Link to="/recompensas" className="btn-primary">
-                <Gift size={16} /> Resgatar
-              </Link>
-            )}
-          </div>
-        </Card>
-      </Section>
 
       {/* Indicadores — formato tabela */}
       <Section className="reveal reveal-2 mt-5" title="Indicadores">
