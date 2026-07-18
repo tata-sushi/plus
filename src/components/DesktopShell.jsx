@@ -4,10 +4,8 @@ import {
   Home,
   Trophy,
   Newspaper,
-  Gift,
   Ear,
   Menu,
-  ShieldCheck,
   LayoutDashboard,
   PanelLeftClose,
   PanelLeftOpen,
@@ -25,13 +23,14 @@ const CANVAS = {
 
 // Shell de desktop: navegação dupla.
 // [ rail de ícones ] [ painel do app (retrátil) ] [ área principal ]
-// Área principal: portal (padrão, p/ Governança) ou organograma (aberto pelo
-// atalho da Home); para quem não tem Governança, o logo grande do Tatá.
+// Rail = mesmos itens da barra de baixo do app (Início, Ranking, Feed,
+// Portal/Ouvidoria, Mais). Recompensas e Admin ficam nos lugares de sempre
+// (Home e dentro do Mais). Área principal: portal (padrão, p/ Governança) ou
+// organograma (aberto pelo atalho da Home); para os demais, o logo grande.
 export function DesktopShell() {
   const location = useLocation()
   const { usuario } = useAuth()
   const gov = !!usuario?.governanca?.tem
-  const podePublicar = !!usuario?.podePublicar
 
   const [aberto, setAberto] = useState(() => localStorage.getItem('tp_painel') !== '0')
   // null = padrão (portal p/ gov, logo p/ demais); 'organograma' = organograma
@@ -44,14 +43,16 @@ export function DesktopShell() {
     })
   }
 
+  // Espelha a barra de baixo do app. O 4º slot é o Portal (Governança) ou a
+  // Ouvidoria, como no celular.
   const itens = [
     { to: '/', label: 'Início', Icon: Home, end: true },
     { to: '/ranking', label: 'Ranking', Icon: Trophy },
     { to: '/comunidade', label: 'Feed', Icon: Newspaper },
-    { to: '/recompensas', label: 'Recompensas', Icon: Gift },
-    ...(gov ? [] : [{ to: '/ouvidoria', label: 'Ouvidoria', Icon: Ear }]),
+    gov
+      ? { tipo: 'portal', label: 'Portal', Icon: LayoutDashboard }
+      : { to: '/ouvidoria', label: 'Ouvidoria', Icon: Ear },
     { to: '/mais', label: 'Mais', Icon: Menu },
-    ...(podePublicar ? [{ to: '/admin', label: 'Admin', Icon: ShieldCheck }] : []),
   ]
 
   const railBtn = 'grid h-11 w-11 place-items-center rounded-2xl tap'
@@ -64,42 +65,7 @@ export function DesktopShell() {
           className="flex w-[56px] shrink-0 flex-col items-center gap-1.5 border-r border-line bg-bg py-3"
           aria-label="Navegação principal"
         >
-          <div className="flex flex-1 flex-col items-center gap-1.5">
-            {itens.map(({ to, label, Icon, end }) => (
-              <NavLink
-                key={to}
-                to={to}
-                end={end}
-                title={label}
-                aria-label={label}
-                onClick={() => !aberto && setAberto(true)}
-                className={({ isActive }) =>
-                  cn(railBtn, isActive ? 'bg-accent-soft text-accent' : 'text-carbon hover:text-text')
-                }
-              >
-                {({ isActive }) => <Icon size={21} strokeWidth={isActive ? 2.4 : 2} />}
-              </NavLink>
-            ))}
-
-            {/* Portal — controla a área principal (só p/ Governança) */}
-            {gov && (
-              <>
-                <span className="my-1 h-px w-6 bg-line" />
-                <button
-                  onClick={() => setCanvas(null)}
-                  title="Portal"
-                  aria-label="Portal de Governança"
-                  className={cn(
-                    railBtn,
-                    canvas !== 'organograma' ? 'bg-accent-soft text-accent' : 'text-carbon hover:text-text',
-                  )}
-                >
-                  <LayoutDashboard size={21} strokeWidth={canvas !== 'organograma' ? 2.4 : 2} />
-                </button>
-              </>
-            )}
-          </div>
-
+          {/* Recolher/expandir o painel — no topo */}
           <button
             onClick={alternarPainel}
             className={cn(railBtn, 'text-carbon hover:text-text')}
@@ -108,6 +74,42 @@ export function DesktopShell() {
           >
             {aberto ? <PanelLeftClose size={20} /> : <PanelLeftOpen size={20} />}
           </button>
+          <span className="my-0.5 h-px w-6 bg-line" />
+
+          <div className="flex flex-1 flex-col items-center gap-1.5">
+            {itens.map((it) => {
+              const Icon = it.Icon
+              if (it.tipo === 'portal') {
+                const ativo = canvas !== 'organograma'
+                return (
+                  <button
+                    key="portal"
+                    onClick={() => setCanvas(null)}
+                    title="Portal"
+                    aria-label="Portal de Governança"
+                    className={cn(railBtn, ativo ? 'bg-accent-soft text-accent' : 'text-carbon hover:text-text')}
+                  >
+                    <Icon size={21} strokeWidth={ativo ? 2.4 : 2} />
+                  </button>
+                )
+              }
+              return (
+                <NavLink
+                  key={it.to}
+                  to={it.to}
+                  end={it.end}
+                  title={it.label}
+                  aria-label={it.label}
+                  onClick={() => !aberto && setAberto(true)}
+                  className={({ isActive }) =>
+                    cn(railBtn, isActive ? 'bg-accent-soft text-accent' : 'text-carbon hover:text-text')
+                  }
+                >
+                  {({ isActive }) => <Icon size={21} strokeWidth={isActive ? 2.4 : 2} />}
+                </NavLink>
+              )
+            })}
+          </div>
         </nav>
 
         {/* Painel do app (retrátil) — conteúdo montado para preservar estado */}
@@ -163,11 +165,8 @@ export function DesktopShell() {
             <div className="flex flex-1 flex-col items-center justify-center gap-5 px-8 text-center">
               <img src="/icons/logo-mark.png" alt="Tatá Plus" className="logo-dark h-24 w-auto opacity-90" />
               <img src="/icons/logo-mark-light.png" alt="Tatá Plus" className="logo-light h-24 w-auto opacity-90" />
-              <div>
-                <div className="font-display text-3xl font-bold tracking-tight">
-                  TATÁ<span className="text-accent"> PLUS</span>
-                </div>
-                <div className="mt-1 text-sm text-muted">Portal do colaborador</div>
+              <div className="font-display text-3xl font-bold tracking-tight">
+                TATÁ<span className="text-accent"> PLUS</span>
               </div>
             </div>
           )}
