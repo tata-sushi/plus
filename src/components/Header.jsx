@@ -7,11 +7,11 @@ export function Header({ right }) {
       <div className="flex items-center justify-between px-5 py-3">
         <Link to="/" className="hstack gap-2">
           <img
-            src="/icons/icon-192.png"
+            src="/icons/logo-mark.png"
             alt="Tatá"
-            className="h-[38px] w-[38px] rounded-lg"
-            width={38}
-            height={38}
+            className="h-9 w-auto"
+            width={114}
+            height={128}
           />
           <span className="font-display text-[16px] font-semibold tracking-tight">
             TATÁ<span className="text-accent"> PLUS</span>
