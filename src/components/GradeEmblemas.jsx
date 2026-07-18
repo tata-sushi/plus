@@ -1,5 +1,5 @@
 import { resolveIcon } from '../lib/icons.js'
-import { CATEGORIAS_EMBLEMAS, avaliarEmblemas } from '../lib/emblemas.js'
+import { montarCategorias, avaliarEmblemas } from '../lib/emblemas.js'
 import { cn } from '../lib/cn'
 
 // Nº de emblemas conquistados dado o resumo do RPC minha_jornada_extra.
@@ -11,9 +11,10 @@ export function contarEmblemas(dados) {
 // leadership, influencers). Presentacional — recebe o resumo por prop.
 export function GradeEmblemas({ dados }) {
   const { ganhos } = avaliarEmblemas(dados)
+  const categorias = montarCategorias(dados).filter((c) => c.emblemas.length > 0)
   return (
     <div className="flex flex-col gap-5">
-      {CATEGORIAS_EMBLEMAS.map((cat) => (
+      {categorias.map((cat) => (
         <div key={cat.chave}>
           <div className="mb-2.5 text-[11px] font-semibold uppercase tracking-widest text-muted">
             {cat.titulo}
