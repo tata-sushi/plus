@@ -16,6 +16,7 @@ import {
   ArchiveRestore,
   ArrowLeft,
   ChevronRight,
+  ChevronDown,
   Cake,
   Target,
   Trophy,
@@ -29,12 +30,92 @@ import { tapHaptic } from '../lib/haptics.js'
 import { useAuth } from '../lib/AuthContext.jsx'
 import { supabase } from '../lib/supabase.js'
 
-// Destaques automáticos com liga/desliga simples (aniversário tem tela própria).
-const AUTO_TOGGLES = [
-  { chave: 'desafio', label: 'Desafios', desc: 'Desafio liberado hoje e desafios pendentes', Icon: Target },
-  { chave: 'ranking', label: 'Ranking', desc: 'Posição da pessoa no ranking', Icon: Trophy },
-  { chave: 'saldo', label: 'Saldo de pontos', desc: 'Saldo da carteira de recompensas', Icon: Star },
+// Destaques automáticos com liga/desliga + mensagem editável (aniversário tem
+// tela própria). {chaves} são substituídas pelos valores reais no carrossel.
+const AUTO = [
+  { chave: 'desafio_hoje', label: 'Desafio liberado hoje', Icon: Target, vars: '{titulo} = nome do desafio · {pontos}' },
+  { chave: 'desafios_pendentes', label: 'Desafios pendentes', Icon: Target, vars: '{qtd} = quantidade de desafios' },
+  { chave: 'ranking', label: 'Ranking', Icon: Trophy, vars: '{posicao} = posição no ranking' },
+  { chave: 'saldo', label: 'Saldo de pontos', Icon: Star, vars: '{saldo} = pontos na carteira' },
 ]
+
+// Linha de um destaque automático: liga/desliga + editor de título/texto.
+function AutoLinha({ meta, estado, onToggle, onSalvar }) {
+  const { Icon } = meta
+  const on = estado?.ativo ?? true
+  const [aberto, setAberto] = useState(false)
+  const [titulo, setTitulo] = useState(estado?.titulo || '')
+  const [texto, setTexto] = useState(estado?.texto || '')
+  // Sincroniza quando o valor do servidor muda (carga inicial / após salvar).
+  useEffect(() => {
+    setTitulo(estado?.titulo || '')
+    setTexto(estado?.texto || '')
+  }, [estado?.titulo, estado?.texto])
+  const mudou =
+    titulo.trim() !== (estado?.titulo || '').trim() || texto.trim() !== (estado?.texto || '').trim()
+  return (
+    <div>
+      <div className="hstack items-center gap-3 px-4 py-3">
+        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-accent-soft text-accent">
+          <Icon size={18} />
+        </span>
+        <button onClick={() => setAberto((v) => !v)} className="min-w-0 flex-1 text-left tap">
+          <span className="hstack gap-1 text-sm font-semibold">
+            {meta.label}
+            <ChevronDown
+              size={14}
+              className={cn('text-muted-2 transition-transform', aberto && 'rotate-180')}
+            />
+          </span>
+          <span className="block truncate text-[11px] text-muted-2">{estado?.titulo || '—'}</span>
+        </button>
+        <button
+          onClick={() => onToggle(meta.chave)}
+          className={cn(
+            'relative h-6 w-10 shrink-0 rounded-full transition-colors tap',
+            on ? 'bg-accent' : 'bg-surface-2',
+          )}
+          aria-label={on ? 'Desativar' : 'Ativar'}
+        >
+          <span
+            className={cn(
+              'absolute top-0.5 h-5 w-5 rounded-full bg-white transition-all',
+              on ? 'left-[18px]' : 'left-0.5',
+            )}
+          />
+        </button>
+      </div>
+      {aberto && (
+        <div className="space-y-2 px-4 pb-3">
+          <input
+            value={titulo}
+            onChange={(e) => setTitulo(e.target.value)}
+            placeholder="Título"
+            className="w-full rounded-card border border-line bg-surface px-3 py-2 text-sm font-semibold outline-none placeholder:text-muted-2"
+          />
+          <textarea
+            value={texto}
+            onChange={(e) => setTexto(e.target.value)}
+            rows={2}
+            placeholder="Texto"
+            className="w-full resize-none rounded-card border border-line bg-surface px-3 py-2 text-sm outline-none placeholder:text-muted-2"
+          />
+          <div className="hstack justify-between gap-2">
+            <span className="text-[10px] leading-tight text-muted-2">Variáveis: {meta.vars}</span>
+            {mudou && titulo.trim() && (
+              <button
+                onClick={() => onSalvar(meta.chave, titulo, texto)}
+                className="btn-primary shrink-0 !px-3 !py-1.5 text-xs"
+              >
+                Salvar
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
 
 const TAM_MAX = 15 * 1024 * 1024 // 15 MB
 
@@ -104,6 +185,14 @@ export function AdminPublicacoes() {
     )
     const { error } = await supabase.rpc('admin_destaque_toggle', { p_chave: chave, p_ativo: novo })
     if (error) setAuto((prev) => prev.map((a) => (a.chave === chave ? { ...a, ativo: !novo } : a)))
+  }
+
+  async function salvarMsgAuto(chave, titulo, texto) {
+    tapHaptic()
+    const t = titulo.trim()
+    const c = texto.trim()
+    setAuto((prev) => prev.map((a) => (a.chave === chave ? { ...a, titulo: t, texto: c } : a)))
+    await supabase.rpc('admin_destaque_msg_salvar', { p_chave: chave, p_titulo: t, p_texto: c })
   }
 
   function alternarLista(setter, valor) {
@@ -284,35 +373,15 @@ export function AdminPublicacoes() {
             <ChevronRight size={18} className="shrink-0 text-muted-2" />
           </button>
 
-          {AUTO_TOGGLES.map(({ chave, label, desc, Icon }) => {
-            const on = ativoAuto(chave)
-            return (
-              <div key={chave} className="hstack items-center gap-3 px-4 py-3">
-                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-accent-soft text-accent">
-                  <Icon size={18} />
-                </span>
-                <span className="min-w-0 flex-1">
-                  <span className="block text-sm font-semibold">{label}</span>
-                  <span className="block text-[11px] text-muted-2">{desc}</span>
-                </span>
-                <button
-                  onClick={() => alternarAuto(chave)}
-                  className={cn(
-                    'relative h-6 w-10 shrink-0 rounded-full transition-colors tap',
-                    on ? 'bg-accent' : 'bg-surface-2',
-                  )}
-                  aria-label={on ? 'Desativar' : 'Ativar'}
-                >
-                  <span
-                    className={cn(
-                      'absolute top-0.5 h-5 w-5 rounded-full bg-white transition-all',
-                      on ? 'left-[18px]' : 'left-0.5',
-                    )}
-                  />
-                </button>
-              </div>
-            )
-          })}
+          {AUTO.map((meta) => (
+            <AutoLinha
+              key={meta.chave}
+              meta={meta}
+              estado={auto.find((a) => a.chave === meta.chave)}
+              onToggle={alternarAuto}
+              onSalvar={salvarMsgAuto}
+            />
+          ))}
         </div>
       </div>
 
