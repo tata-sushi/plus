@@ -154,11 +154,6 @@ export function Recompensas() {
                         )}
                       </div>
                       <div className="mt-2 text-sm font-semibold leading-tight">{r.titulo}</div>
-                      {r.descricao && (
-                        <div className="mt-0.5 line-clamp-2 text-[11px] text-muted">
-                          {r.descricao}
-                        </div>
-                      )}
                       <div className="mt-1 hstack justify-between gap-1">
                         <span className="text-xs font-semibold text-accent">{fmt(r.custo)} pts</span>
                         {r.estoque != null && r.estoque > 0 && (
@@ -214,12 +209,12 @@ export function Recompensas() {
       {/* Janelinha de detalhes + resgate */}
       {aberto && (
         <div
-          className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 sm:items-center sm:p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
           onClick={fechar}
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="flex max-h-[92dvh] w-full max-w-md flex-col rounded-t-card border border-line bg-surface sm:rounded-card"
+            className="flex max-h-[85dvh] w-full max-w-md flex-col rounded-card border border-line bg-surface"
           >
             <div className="hstack justify-between border-b border-line px-5 py-3.5">
               <div className="min-w-0 font-display text-base font-bold leading-tight">

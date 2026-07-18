@@ -93,7 +93,7 @@ export function Ranking() {
   return (
     <>
       <Header title="Ranking" />
-      <Tabs tabs={tipos} value={tipo} onChange={setTipo} />
+      <Tabs tabs={tipos} value={tipo} onChange={setTipo} className="pt-3" />
 
       <div className="hstack gap-2 px-5 pb-1 pt-2">
         <select value={uni} onChange={(e) => setUni(e.target.value)} className={selectCls}>
