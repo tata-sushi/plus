@@ -150,16 +150,21 @@ export function DesktopShell() {
             </div>
           )}
 
-          {/* Aberto no centro por cima: organograma / ouvidoria / admin */}
+          {/* Aberto no centro por cima: organograma / ouvidoria / admin / atalho de KPI */}
           {canvas && (
             <div className="absolute inset-0 z-20 flex flex-col bg-bg">
-              <div className="flex shrink-0 items-center border-b border-line px-3 py-2">
+              <div className="flex shrink-0 items-center gap-3 border-b border-line px-3 py-2">
                 <button
                   onClick={() => setCanvas(null)}
-                  className="hstack gap-1.5 rounded-full bg-surface px-3.5 py-2 text-xs font-semibold tap"
+                  className="hstack shrink-0 gap-1.5 rounded-full bg-surface px-3.5 py-2 text-xs font-semibold tap"
                 >
                   <ArrowLeft size={15} /> Voltar
                 </button>
+                {canvas.titulo && (
+                  <span className="min-w-0 flex-1 truncate text-xs font-medium text-muted">
+                    {canvas.titulo}
+                  </span>
+                )}
               </div>
               <div className="min-h-0 flex-1">
                 {canvas === 'organograma' && (
@@ -179,6 +184,14 @@ export function DesktopShell() {
                   <div className="h-full overflow-y-auto">
                     <AdminRecompensas />
                   </div>
+                )}
+                {canvas.tipo === 'painel' && (
+                  <iframe
+                    src={canvas.url}
+                    title={canvas.titulo || 'Painel'}
+                    className="h-full w-full border-0 bg-white"
+                    allow="clipboard-write; fullscreen"
+                  />
                 )}
               </div>
             </div>
