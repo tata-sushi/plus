@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Eye, Loader2, Calendar } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
+import { Voltar } from '../components/Voltar.jsx'
 import { Card } from '../components/Card.jsx'
 import { cn } from '../lib/cn'
 import { dataCurta, dataBR, ehHoje, eventoVigente } from '../lib/tempo.js'
@@ -32,6 +33,7 @@ export function Comunicados() {
   return (
     <>
       <Header />
+      <Voltar />
 
       <div className="mt-3 flex flex-col gap-3 px-5">
         {carregando && (

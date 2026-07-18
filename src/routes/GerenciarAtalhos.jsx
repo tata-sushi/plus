@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { ArrowLeft, Plus, Check } from 'lucide-react'
+import { Plus, Check } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
+import { Voltar } from '../components/Voltar.jsx'
 import { Section } from '../components/Section.jsx'
 import { resolveIcon } from '../lib/icons.js'
 import { tapHaptic } from '../lib/haptics.js'
@@ -13,7 +13,6 @@ import { cn } from '../lib/cn'
 // Fixa/desafixa até MAX_PAGINAS_FIXADAS páginas do portal; a seleção fica salva
 // neste aparelho (localStorage) e aparece na seção "Atalhos" da Início.
 export function GerenciarAtalhos() {
-  const navigate = useNavigate()
   const [pinned, setPinned] = useState(loadPinned)
 
   useEffect(() => {
@@ -38,12 +37,7 @@ export function GerenciarAtalhos() {
   return (
     <>
       <Header />
-
-      <div className="hstack gap-2 px-5 pt-1 text-sm">
-        <button onClick={() => navigate('/mais')} className="hstack gap-1 text-muted tap">
-          <ArrowLeft size={16} /> Mais
-        </button>
-      </div>
+      <Voltar />
 
       <Section className="mt-3">
         <p className="mb-3 text-sm text-muted">
