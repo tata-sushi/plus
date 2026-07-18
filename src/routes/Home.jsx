@@ -11,6 +11,8 @@ import { Avatar } from '../components/Avatar.jsx'
 import { Carrossel } from '../components/Carrossel.jsx'
 import { resolveIcon } from '../lib/icons.js'
 import { useAuth } from '../lib/AuthContext.jsx'
+import { useDesktop } from '../lib/useDesktop.js'
+import { useDesktopCanvas } from '../lib/desktopCanvas.js'
 import { supabase } from '../lib/supabase.js'
 import { menuDoDia } from '../lib/mockData.js'
 
@@ -49,6 +51,8 @@ export function Home() {
   const loja = usuario?.loja || ''
 
   const cards = sugestoesCards
+  const desktop = useDesktop()
+  const { setCanvas } = useDesktopCanvas()
 
   // Progresso real de desafios (para o anel do card de identificação)
   const [progresso, setProgresso] = useState(null)
@@ -133,20 +137,26 @@ export function Home() {
       {/* Sugestões — grid de 2 colunas (sem scroll lateral) */}
       <Section className="mt-4 hsm:mt-3" title="Sugestões">
         <div className="grid grid-cols-2 gap-3">
-          {cards.map((c, i) => (
-            <PromoCard
-              key={c.title}
-              to={c.to}
-              badgeIcon={c.badgeIcon}
-              title={c.title}
-              subtitle={c.subtitle}
-              emBreve={c.emBreve}
-              bgClassName={c.bgClassName}
-              badgeClassName={c.badgeClassName}
-              textClassName={c.textClassName}
-              className={`reveal-${i + 1}`}
-            />
-          ))}
+          {cards.map((c, i) => {
+            // No desktop, o organograma abre na área principal (dentro do app),
+            // não em tela cheia.
+            const orgNoDesktop = desktop && c.to === '/organograma'
+            return (
+              <PromoCard
+                key={c.title}
+                to={orgNoDesktop ? undefined : c.to}
+                onClick={orgNoDesktop ? () => setCanvas('organograma') : undefined}
+                badgeIcon={c.badgeIcon}
+                title={c.title}
+                subtitle={c.subtitle}
+                emBreve={c.emBreve}
+                bgClassName={c.bgClassName}
+                badgeClassName={c.badgeClassName}
+                textClassName={c.textClassName}
+                className={`reveal-${i + 1}`}
+              />
+            )
+          })}
         </div>
       </Section>
 

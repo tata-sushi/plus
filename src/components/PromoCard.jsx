@@ -6,6 +6,7 @@ import { cn } from '../lib/cn'
 // desativado (sem link) e ganha a pílula "Em breve".
 export function PromoCard({
   to,
+  onClick,
   badgeIcon: BadgeIcon,
   title,
   subtitle,
@@ -52,6 +53,14 @@ export function PromoCard({
         </span>
         {conteudo}
       </div>
+    )
+  }
+
+  if (onClick) {
+    return (
+      <button type="button" onClick={onClick} className={cn(base, 'tap w-full text-left')}>
+        {conteudo}
+      </button>
     )
   }
 

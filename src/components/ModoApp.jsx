@@ -31,8 +31,13 @@ export function ModoApp({ children }) {
   const [prompt, setPrompt] = useState(null)
   // Já instalado, mas aberto no navegador: não dá para forçar a abertura do app
   // (nenhuma plataforma permite), então o portão troca "instale" por "abra pelo
-  // ícone". Só detectável no Android/Chrome via getInstalledRelatedApps.
+  // aplicativo". Detectado por getInstalledRelatedApps (Android/Chrome) ou, no
+  // desktop, pela heurística abaixo.
   const [jaInstalado, setJaInstalado] = useState(false)
+  // No desktop o getInstalledRelatedApps é fraco. Heurística: se depois de um
+  // tempo o navegador NÃO ofereceu "instalar" (beforeinstallprompt), é porque o
+  // PWA já está instalado (o Chrome não oferece instalar app já instalado).
+  const [esperou, setEsperou] = useState(false)
 
   useEffect(() => {
     if (instalado) return
@@ -55,8 +60,12 @@ export function ModoApp({ children }) {
       if (vivo && apps?.some((a) => a.platform === 'webapp')) setJaInstalado(true)
     }).catch(() => {})
 
+    // Janela para o beforeinstallprompt aparecer; passou disso sem prompt = instalado.
+    const t = setTimeout(() => setEsperou(true), 2000)
+
     return () => {
       vivo = false
+      clearTimeout(t)
       mq.removeEventListener?.('change', recheca)
       window.removeEventListener('beforeinstallprompt', aoPrompt)
       window.removeEventListener('appinstalled', recheca)
@@ -66,6 +75,10 @@ export function ModoApp({ children }) {
   if (instalado) return children
 
   const ios = ehIOS()
+  const ehDesktop = window.matchMedia('(min-width: 640px)').matches
+  // Mostra "Abrir aplicativo" quando: detectou instalado, ou é desktop e o
+  // navegador não ofereceu instalar (logo, já está instalado).
+  const mostrarAbrir = jaInstalado || (ehDesktop && esperou && !prompt && !ios)
 
   async function instalar() {
     if (!prompt) return
@@ -93,13 +106,12 @@ export function ModoApp({ children }) {
         </div>
       </div>
 
-      {jaInstalado ? (
+      {mostrarAbrir ? (
         <>
           <div className="max-w-sm">
             <h1 className="font-display text-lg font-bold">Abra pelo aplicativo</h1>
             <p className="mt-2 text-sm text-muted">
-              O Tatá Plus já está instalado neste aparelho. Toque abaixo para abrir — ou use o
-              ícone do app na tela inicial.
+              O Tatá Plus já está instalado. Clique em Abrir para usar o aplicativo.
             </p>
           </div>
 
@@ -108,7 +120,7 @@ export function ModoApp({ children }) {
           </a>
 
           <p className="text-[11px] text-muted-2">
-            Se não abrir automaticamente, toque no ícone do Tatá Plus na tela inicial.
+            Se não abrir, procure o app Tatá Plus no seu aparelho (tela inicial ou barra de tarefas).
           </p>
         </>
       ) : (
