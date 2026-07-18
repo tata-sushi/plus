@@ -45,6 +45,12 @@
   --meta-color: #F5F4F1;
 }
 
+/* Modo claro: o brilho verde (shadow-glow) fica pesado — troca por uma
+   sombra neutra suave. No escuro o glow verde continua. */
+:root[data-theme='light'] .shadow-glow {
+  box-shadow: 0 6px 18px rgba(20, 28, 24, 0.10);
+}
+
 @layer base {
   html, body, #root {
     height: 100%;
