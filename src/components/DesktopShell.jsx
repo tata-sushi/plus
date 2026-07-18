@@ -9,7 +9,6 @@ import {
   ShieldCheck,
   PanelLeftClose,
   PanelLeftOpen,
-  ArrowLeft,
 } from 'lucide-react'
 import { cn } from '../lib/cn'
 import { useAuth } from '../lib/AuthContext.jsx'
@@ -149,61 +148,53 @@ export function DesktopShell() {
                 </p>
                 <p>Este é o aplicativo do Tatá Sushi.</p>
                 <p>
-                  Aqui você tem treinamentos, recompensas, comunicados e ferramentas do dia a dia
-                  em um só lugar.
+                  Aqui você encontra treinamentos, recompensas, comunicados e ferramentas para o
+                  dia a dia, em um único lugar.
                 </p>
                 <p className="italic text-muted-2">Use o menu lateral para navegação.</p>
               </div>
             </div>
           </div>
 
-          {/* Aberto no centro por cima: organograma / ouvidoria / admin / atalho de KPI */}
+          {/* Aberto no centro por cima: portal / organograma / ouvidoria / admin /
+              atalho de KPI — ocupa a área toda. Trocar de abertura é pelo rail /
+              Home / Mais. */}
           {canvas && (
-            <div className="absolute inset-0 z-20 flex flex-col bg-bg">
-              <div className="flex shrink-0 items-center border-b border-line px-3 py-2">
-                <button
-                  onClick={() => setCanvas(null)}
-                  className="hstack shrink-0 gap-1.5 rounded-full bg-surface px-3.5 py-2 text-xs font-semibold tap"
-                >
-                  <ArrowLeft size={15} /> Voltar
-                </button>
-              </div>
-              <div className="min-h-0 flex-1">
-                {canvas === 'portal' && (
-                  <iframe
-                    src={CANVAS.portal}
-                    title="Portal de Governança"
-                    className="h-full w-full border-0 bg-white"
-                    allow="clipboard-write; camera; microphone; geolocation; fullscreen"
-                  />
-                )}
-                {canvas === 'organograma' && (
-                  <iframe
-                    src={CANVAS.organograma}
-                    title="Organograma"
-                    className="h-full w-full border-0 bg-white"
-                    allow="clipboard-write; fullscreen"
-                  />
-                )}
-                {canvas === 'ouvidoria' && (
-                  <div className="h-full overflow-y-auto">
-                    <Ouvidoria />
-                  </div>
-                )}
-                {canvas === 'admin' && (
-                  <div className="h-full overflow-y-auto">
-                    <AdminRecompensas />
-                  </div>
-                )}
-                {canvas.tipo === 'painel' && (
-                  <iframe
-                    src={canvas.url}
-                    title={canvas.titulo || 'Painel'}
-                    className="h-full w-full border-0 bg-white"
-                    allow="clipboard-write; fullscreen"
-                  />
-                )}
-              </div>
+            <div className="absolute inset-0 z-20 bg-bg">
+              {canvas === 'portal' && (
+                <iframe
+                  src={CANVAS.portal}
+                  title="Portal de Governança"
+                  className="h-full w-full border-0 bg-white"
+                  allow="clipboard-write; camera; microphone; geolocation; fullscreen"
+                />
+              )}
+              {canvas === 'organograma' && (
+                <iframe
+                  src={CANVAS.organograma}
+                  title="Organograma"
+                  className="h-full w-full border-0 bg-white"
+                  allow="clipboard-write; fullscreen"
+                />
+              )}
+              {canvas === 'ouvidoria' && (
+                <div className="h-full overflow-y-auto">
+                  <Ouvidoria />
+                </div>
+              )}
+              {canvas === 'admin' && (
+                <div className="h-full overflow-y-auto">
+                  <AdminRecompensas />
+                </div>
+              )}
+              {canvas.tipo === 'painel' && (
+                <iframe
+                  src={canvas.url}
+                  title={canvas.titulo || 'Painel'}
+                  className="h-full w-full border-0 bg-white"
+                  allow="clipboard-write; fullscreen"
+                />
+              )}
             </div>
           )}
         </section>
