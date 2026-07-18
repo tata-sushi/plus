@@ -25,11 +25,15 @@ const TEMPLATES = {
 }
 
 export function DestaqueBanner({ d }) {
-  const tpl = TEMPLATES[d.template] || TEMPLATES.comunicado
+  // Aniversário pode vir com o alinhamento embutido no template: 'aniversario-cd'
+  // = mensagem centralizada à direita (para imagens com espaço livre à direita).
+  const centroDireita = d.template === 'aniversario-cd'
+  const tplKey = centroDireita ? 'aniversario' : d.template
+  const tpl = TEMPLATES[tplKey] || TEMPLATES.comunicado
   const Icon = tpl.Icon
   // No card de aniversário a mensagem é o conteúdo principal, então ela vem
   // maior e com mais linhas; nos demais é só um subtítulo compacto.
-  const ehAniver = d.template === 'aniversario'
+  const ehAniver = tplKey === 'aniversario'
 
   return (
     <Link
@@ -50,8 +54,14 @@ export function DestaqueBanner({ d }) {
         className={`pointer-events-none absolute -right-6 -top-6 opacity-[0.08] ${tpl.tint}`}
       />
 
-      {/* scrim para legibilidade do texto */}
-      <span className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/10 to-transparent" />
+      {/* scrim para legibilidade do texto (segue o alinhamento do conteúdo) */}
+      <span
+        className={
+          centroDireita
+            ? 'absolute inset-0 bg-gradient-to-l from-black/60 via-black/20 to-transparent'
+            : 'absolute inset-0 bg-gradient-to-t from-black/55 via-black/10 to-transparent'
+        }
+      />
 
       {/* pílula da categoria — canto superior direito */}
       <div className="absolute right-3 top-3 z-10">
@@ -73,14 +83,20 @@ export function DestaqueBanner({ d }) {
       </div>
 
       {/* conteúdo */}
-      <div className="absolute inset-0 flex flex-col justify-end gap-2.5 p-5">
-        <div>
+      <div
+        className={
+          centroDireita
+            ? 'absolute inset-0 flex flex-col items-end justify-center gap-2.5 p-5 text-right'
+            : 'absolute inset-0 flex flex-col justify-end gap-2.5 p-5'
+        }
+      >
+        <div className={centroDireita ? 'max-w-[85%]' : undefined}>
           <div className="font-display text-lg font-bold leading-snug text-white">{d.titulo}</div>
           {d.texto && (
             <div
               className={
                 ehAniver
-                  ? 'mt-1.5 line-clamp-5 text-base leading-snug text-white/90'
+                  ? 'mt-1.5 line-clamp-5 whitespace-pre-line text-base leading-snug text-white/90'
                   : 'mt-1 line-clamp-2 text-xs text-white/75'
               }
             >
