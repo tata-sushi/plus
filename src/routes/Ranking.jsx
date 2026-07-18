@@ -8,13 +8,15 @@ import {
   Wine,
   ChefHat,
   Soup,
-  UtensilsCrossed,
+  ConciergeBell,
+  Banknote,
   Bike,
   ShoppingCart,
   Boxes,
   SprayCan,
   BadgeCheck,
   Cog,
+  Activity,
   Megaphone,
   Wallet,
   Briefcase,
@@ -42,17 +44,19 @@ function iconeArea(nome) {
     .normalize('NFD')
     .replace(/[̀-ͯ]/g, '')
     .toLowerCase()
-  if (n.includes('sushi')) return Fish
+  if (n.includes('sushi') || n.includes('peix')) return Fish
   if (n.includes('refeit')) return Soup
   if (n.includes('cozinha')) return ChefHat
   if (n.includes('bar')) return Wine
-  if (n.includes('salao') || n.includes('atend') || n.includes('garcom')) return UtensilsCrossed
+  if (n.includes('salao') || n.includes('atend') || n.includes('garcom')) return ConciergeBell
+  if (n.includes('caixa')) return Banknote
   if (n.includes('deliver') || n.includes('entrega')) return Bike
   if (n.includes('compra')) return ShoppingCart
   if (n.includes('estoque') || n.includes('almox')) return Boxes
   if (n.includes('limpez')) return SprayCan
   if (n.includes('qualidad')) return BadgeCheck
-  if (n.includes('opera')) return Cog
+  if (n.includes('manuten')) return Cog
+  if (n.includes('opera')) return Activity
   if (n.includes('market')) return Megaphone
   if (n.includes('financ')) return Wallet
   if (n.includes('admin') || n.includes('escrit')) return Briefcase
@@ -213,7 +217,9 @@ export function Ranking() {
                         {fmt(e.pontos)}
                         <span className="ml-0.5 text-[10px] font-medium text-muted">pts</span>
                       </div>
-                      <div className="text-[10px] text-muted-2">média {fmt(media)}</div>
+                      <div className="text-[10px] font-medium text-accent">
+                        {fmt(media)} med/pessoa
+                      </div>
                     </div>
                   </div>
                 )
