@@ -51,6 +51,17 @@
   box-shadow: 0 6px 18px rgba(20, 28, 24, 0.10);
 }
 
+/* Logo por contraste: escuro mostra a marca clara; claro mostra a fechada. */
+.logo-light {
+  display: none;
+}
+:root[data-theme='light'] .logo-dark {
+  display: none;
+}
+:root[data-theme='light'] .logo-light {
+  display: block;
+}
+
 @layer base {
   html, body, #root {
     height: 100%;
