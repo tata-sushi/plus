@@ -6,7 +6,6 @@ import {
   Newspaper,
   Ear,
   Menu,
-  LayoutDashboard,
   PanelLeftClose,
   PanelLeftOpen,
   ArrowLeft,
@@ -43,15 +42,14 @@ export function DesktopShell() {
     })
   }
 
-  // Espelha a barra de baixo do app. O 4º slot é o Portal (Governança) ou a
-  // Ouvidoria, como no celular.
+  // Espelha a barra de baixo do app. Para quem tem Governança o portal já é o
+  // padrão da área principal (e o "Voltar" do organograma retorna a ele), então
+  // não há botão de portal no rail. Quem não tem Governança vê a Ouvidoria.
   const itens = [
     { to: '/', label: 'Início', Icon: Home, end: true },
     { to: '/ranking', label: 'Ranking', Icon: Trophy },
     { to: '/comunidade', label: 'Feed', Icon: Newspaper },
-    gov
-      ? { tipo: 'portal', label: 'Portal', Icon: LayoutDashboard }
-      : { to: '/ouvidoria', label: 'Ouvidoria', Icon: Ear },
+    ...(gov ? [] : [{ to: '/ouvidoria', label: 'Ouvidoria', Icon: Ear }]),
     { to: '/mais', label: 'Mais', Icon: Menu },
   ]
 
@@ -79,20 +77,6 @@ export function DesktopShell() {
           <div className="flex flex-1 flex-col items-center gap-1.5">
             {itens.map((it) => {
               const Icon = it.Icon
-              if (it.tipo === 'portal') {
-                const ativo = canvas !== 'organograma'
-                return (
-                  <button
-                    key="portal"
-                    onClick={() => setCanvas(null)}
-                    title="Portal"
-                    aria-label="Portal de Governança"
-                    className={cn(railBtn, ativo ? 'bg-accent-soft text-accent' : 'text-carbon hover:text-text')}
-                  >
-                    <Icon size={21} strokeWidth={ativo ? 2.4 : 2} />
-                  </button>
-                )
-              }
               return (
                 <NavLink
                   key={it.to}
