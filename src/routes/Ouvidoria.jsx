@@ -58,6 +58,27 @@ function RadioGroup({ label, value, onChange, options }) {
   )
 }
 
+// Hero no padrão do HTML: faixa carbon com o título "Ouvidoria" grande,
+// centralizado e citric (com brilho). Citric só lê sobre fundo escuro.
+function HeroTitulo() {
+  return (
+    <div className="px-6 py-9 text-center" style={{ background: CARBON }}>
+      <h1
+        className="font-display font-bold"
+        style={{
+          color: CITRIC,
+          fontSize: 'clamp(44px, 14vw, 60px)',
+          letterSpacing: '-1.5px',
+          lineHeight: 0.9,
+          textShadow: '0 0 22px rgba(207,255,0,0.35)',
+        }}
+      >
+        Ouvidoria
+      </h1>
+    </div>
+  )
+}
+
 export function Ouvidoria() {
   const [identificacao, setIdentificacao] = useState('')
   const [nome, setNome] = useState('')
@@ -115,8 +136,8 @@ export function Ouvidoria() {
     return (
       <>
         <Header title="Ouvidoria" />
-        <div className="px-5 pt-3">
-          <h1 className="mb-3 font-display text-xl font-bold">Ouvidoria</h1>
+        <HeroTitulo />
+        <div className="px-5 pt-4">
           <div className="rounded-card border border-[#E2E2E2] bg-white p-8 text-center">
             <span
               className="mx-auto grid h-14 w-14 place-items-center rounded-full text-[#1A5C2A]"
@@ -141,9 +162,9 @@ export function Ouvidoria() {
   return (
     <>
       <Header title="Ouvidoria" />
+      <HeroTitulo />
 
-      <div className="px-5 pt-3">
-        <h1 className="mb-3 font-display text-xl font-bold">Ouvidoria</h1>
+      <div className="px-5 pt-4">
         <div className="rounded-card border border-[#E2E2E2] bg-white p-6">
           <h2 className="text-center font-display text-lg font-bold text-[#111111]">
             Sigiloso e seguro
