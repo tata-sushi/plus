@@ -21,8 +21,13 @@ import { ProgressRing } from '../components/ProgressRing.jsx'
 import { SocialLinks } from '../components/SocialLinks.jsx'
 import { redesSociais } from '../lib/mockData.js'
 import { useAuth } from '../lib/AuthContext.jsx'
+import { useDesktop } from '../lib/useDesktop.js'
+import { useDesktopCanvas } from '../lib/desktopCanvas.js'
 import { supabase } from '../lib/supabase.js'
 import { tapHaptic } from '../lib/haptics.js'
+
+// No desktop estas rotas abrem no quadrante central em vez de navegar no painel.
+const ROTA_CANVAS = { '/ouvidoria': 'ouvidoria' }
 
 // gov: true → só aparece para quem tem acesso à Governança.
 const itens = [
@@ -40,6 +45,8 @@ const TAM_MAX = 8 * 1024 * 1024 // 8 MB
 export function Mais() {
   const navigate = useNavigate()
   const { usuario, signOut, definirAvatar } = useAuth()
+  const desktop = useDesktop()
+  const { setCanvas } = useDesktopCanvas()
   const nome = usuario?.nome || 'Colaborador'
   const cargo = usuario?.cargo || ''
   const loja = usuario?.loja || ''
@@ -153,19 +160,24 @@ export function Mais() {
         <div className="card overflow-hidden">
           {navItens.map((i, idx) => {
             const Icon = i.icon
-            return (
-              <Link
-                key={i.to}
-                to={i.to}
-                className={`hstack gap-3 px-4 py-3.5 tap ${
-                  idx > 0 ? 'border-t border-line' : ''
-                }`}
-              >
+            const centro = desktop && ROTA_CANVAS[i.to]
+            const cls = `hstack gap-3 px-4 py-3.5 tap ${idx > 0 ? 'border-t border-line' : ''}`
+            const inner = (
+              <>
                 <div className="grid h-9 w-9 place-items-center rounded-full bg-accent-soft text-accent">
                   <Icon size={18} />
                 </div>
                 <span className="flex-1 text-sm font-semibold">{i.label}</span>
                 <ChevronRight size={16} className="text-carbon" />
+              </>
+            )
+            return centro ? (
+              <button key={i.to} onClick={() => setCanvas(centro)} className={`w-full text-left ${cls}`}>
+                {inner}
+              </button>
+            ) : (
+              <Link key={i.to} to={i.to} className={cls}>
+                {inner}
               </Link>
             )
           })}
@@ -174,13 +186,26 @@ export function Mais() {
 
       {usuario?.podePublicar && (
         <Section className="mt-5" title="Administração">
-          <Link to="/admin" className="card hstack gap-3 px-4 py-3.5 tap">
-            <div className="grid h-9 w-9 place-items-center rounded-full bg-accent-soft text-accent">
-              <ShieldCheck size={18} />
-            </div>
-            <span className="flex-1 text-sm font-semibold">Painel de administração</span>
-            <ChevronRight size={16} className="text-carbon" />
-          </Link>
+          {desktop ? (
+            <button
+              onClick={() => setCanvas('admin')}
+              className="card hstack w-full gap-3 px-4 py-3.5 text-left tap"
+            >
+              <div className="grid h-9 w-9 place-items-center rounded-full bg-accent-soft text-accent">
+                <ShieldCheck size={18} />
+              </div>
+              <span className="flex-1 text-sm font-semibold">Painel de administração</span>
+              <ChevronRight size={16} className="text-carbon" />
+            </button>
+          ) : (
+            <Link to="/admin" className="card hstack gap-3 px-4 py-3.5 tap">
+              <div className="grid h-9 w-9 place-items-center rounded-full bg-accent-soft text-accent">
+                <ShieldCheck size={18} />
+              </div>
+              <span className="flex-1 text-sm font-semibold">Painel de administração</span>
+              <ChevronRight size={16} className="text-carbon" />
+            </Link>
+          )}
         </Section>
       )}
 
