@@ -32,8 +32,8 @@
   --border: 224 222 216;
   --line: rgba(0, 0, 0, 0.10);
   --fill: rgba(0, 0, 0, 0.05);
-  --carbon: 71 77 86;
-  --carbon-soft: rgba(71, 77, 86, 0.18);
+  --carbon: 52 58 68;        /* ícones cinza mais escuros, puxando p/ preto */
+  --carbon-soft: rgba(52, 58, 68, 0.18);
   --accent: 38 156 50;       /* verde mais fechado, legível no claro */
   --accent-dim: 30 128 40;
   --accent-soft: rgba(42, 170, 55, 0.14);

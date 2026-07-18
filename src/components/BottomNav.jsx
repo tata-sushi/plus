@@ -42,7 +42,11 @@ export function BottomNav() {
                   {isActive && (
                     <span className="absolute top-0 h-0.5 w-6 rounded-pill bg-accent shadow-glow" />
                   )}
-                  <Icon size={20} strokeWidth={isActive ? 2.5 : 2} className="shrink-0" />
+                  <Icon
+                    size={20}
+                    strokeWidth={isActive ? 2.5 : 2}
+                    className={cn('shrink-0', !isActive && 'text-carbon')}
+                  />
                   <span className="max-w-full overflow-hidden text-ellipsis whitespace-nowrap">
                     {label}
                   </span>
