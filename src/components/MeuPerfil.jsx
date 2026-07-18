@@ -5,7 +5,7 @@ import { supabase } from '../lib/supabase.js'
 import { signoDe } from '../lib/signo.js'
 import { AnalisesPerfil } from './AnalisesPerfil.jsx'
 
-// "Meu perfil" da Minha jornada: DISC · MBTI · Big Five · Signo (interativo).
+// "Meu perfil" da Minha jornada: DISC · Signo (interativo).
 export function MeuPerfil() {
   const navigate = useNavigate()
   const [disc, setDisc] = useState(undefined) // undefined = carregando · null = sem DISC

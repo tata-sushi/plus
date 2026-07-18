@@ -78,7 +78,7 @@ export function ProfileView({ colaborador, isSelf }) {
         </div>
       </Section>
 
-      {/* Meu perfil (DISC · MBTI · Big Five · Signo) — só no próprio perfil */}
+      {/* Meu perfil (DISC · Signo) — só no próprio perfil */}
       {isSelf && <MeuPerfil />}
 
       {/* Ações — só para o próprio perfil */}
