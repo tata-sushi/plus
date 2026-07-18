@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Section } from './Section.jsx'
 import { Card } from './Card.jsx'
 import { supabase } from '../lib/supabase.js'
-import { CATALOGO_EMBLEMAS } from '../lib/emblemas.js'
+import { totalEmblemas } from '../lib/emblemas.js'
 import { GradeEmblemas, contarEmblemas } from './GradeEmblemas.jsx'
 
 // Conquistas (emblemas) da Minha jornada — busca o resumo próprio e desenha a grade.
@@ -29,7 +29,7 @@ export function Conquistas() {
       title="Conquistas"
       action={
         <span className="text-xs font-semibold text-muted">
-          {contarEmblemas(dados)}/{CATALOGO_EMBLEMAS.length}
+          {contarEmblemas(dados)}/{totalEmblemas(dados)}
         </span>
       }
     >

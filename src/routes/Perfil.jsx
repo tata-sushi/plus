@@ -8,7 +8,7 @@ import { Avatar } from '../components/Avatar.jsx'
 import { ProgressBar } from '../components/ProgressBar.jsx'
 import { GradeEmblemas, contarEmblemas } from '../components/GradeEmblemas.jsx'
 import { AnalisesPerfil } from '../components/AnalisesPerfil.jsx'
-import { CATALOGO_EMBLEMAS } from '../lib/emblemas.js'
+import { totalEmblemas } from '../lib/emblemas.js'
 import { signoDe } from '../lib/signo.js'
 import { useAuth } from '../lib/AuthContext.jsx'
 import { supabase } from '../lib/supabase.js'
@@ -228,7 +228,7 @@ export function Perfil() {
         title="Conquistas"
         action={
           <span className="text-xs font-semibold text-muted">
-            {contarEmblemas(perfil)}/{CATALOGO_EMBLEMAS.length}
+            {contarEmblemas(perfil)}/{totalEmblemas(perfil)}
           </span>
         }
       >
