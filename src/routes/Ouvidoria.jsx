@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { Check } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
-import { Voltar } from '../components/Voltar.jsx'
 import { cn } from '../lib/cn'
 import { tapHaptic } from '../lib/haptics.js'
 
@@ -141,7 +140,6 @@ export function Ouvidoria() {
   return (
     <>
       <Header title="Ouvidoria" />
-      <Voltar />
 
       <div className="px-5 pt-2">
         <div className="rounded-card border border-[#E2E2E2] bg-white p-6">
