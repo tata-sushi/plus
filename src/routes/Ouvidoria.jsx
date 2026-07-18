@@ -58,19 +58,18 @@ function RadioGroup({ label, value, onChange, options }) {
   )
 }
 
-// Hero no padrão do HTML: faixa carbon com o título "Ouvidoria" grande,
-// centralizado e citric (com brilho). Citric só lê sobre fundo escuro.
+// Título "Ouvidoria" grande e centralizado (padrão do HTML), sem faixa de
+// fundo. Usa o verde do tema (legível no claro e no escuro) com um brilho.
 function HeroTitulo() {
   return (
-    <div className="px-6 py-9 text-center" style={{ background: CARBON }}>
+    <div className="px-6 pb-2 pt-6 text-center">
       <h1
-        className="font-display font-bold"
+        className="font-display font-bold text-accent"
         style={{
-          color: CITRIC,
           fontSize: 'clamp(44px, 14vw, 60px)',
           letterSpacing: '-1.5px',
           lineHeight: 0.9,
-          textShadow: '0 0 22px rgba(207,255,0,0.35)',
+          textShadow: '0 0 22px rgb(var(--accent) / 0.4)',
         }}
       >
         Ouvidoria
