@@ -115,7 +115,8 @@ export function Ouvidoria() {
     return (
       <>
         <Header title="Ouvidoria" />
-        <div className="px-5 pt-2">
+        <div className="px-5 pt-3">
+          <h1 className="mb-3 font-display text-xl font-bold">Ouvidoria</h1>
           <div className="rounded-card border border-[#E2E2E2] bg-white p-8 text-center">
             <span
               className="mx-auto grid h-14 w-14 place-items-center rounded-full text-[#1A5C2A]"
@@ -141,7 +142,8 @@ export function Ouvidoria() {
     <>
       <Header title="Ouvidoria" />
 
-      <div className="px-5 pt-2">
+      <div className="px-5 pt-3">
+        <h1 className="mb-3 font-display text-xl font-bold">Ouvidoria</h1>
         <div className="rounded-card border border-[#E2E2E2] bg-white p-6">
           <h2 className="text-center font-display text-lg font-bold text-[#111111]">
             Sigiloso e seguro
