@@ -9,7 +9,7 @@ import { useAuth } from '../lib/AuthContext.jsx'
 import { supabase } from '../lib/supabase.js'
 
 const tipos = [
-  { value: 'geral', label: 'Geral' },
+  { value: 'geral', label: 'Colaboradores' },
   { value: 'lideres', label: 'Líderes' },
 ]
 
@@ -76,12 +76,12 @@ export function Ranking() {
     [dados],
   )
 
-  // já vem ordenado por pontos; filtra por tipo + unidade + departamento
+  // já vem ordenado por pontos; Colaboradores = não-líderes · Líderes = líderes
   const lista = useMemo(
     () =>
       dados.filter(
         (c) =>
-          (tipo === 'geral' || c.lider) &&
+          (tipo === 'lideres' ? c.lider : !c.lider) &&
           (!uni || c.unidade === uni) &&
           (!dep || c.departamento === dep),
       ),

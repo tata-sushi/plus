@@ -5,7 +5,7 @@ const ICONS = { instagram: Instagram, youtube: Youtube, linkedin: Linkedin }
 
 export function SocialLinks({ items }) {
   return (
-    <div className="flex gap-3">
+    <div className="flex justify-center gap-3">
       {items.map((s) => {
         const Icon = ICONS[s.id] ?? Instagram
         return (
