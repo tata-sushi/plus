@@ -206,14 +206,22 @@ export function Ranking() {
           ))}
         </select>
         {emEquipes ? (
-          <select
-            value={metricaEquipe}
-            onChange={(e) => setMetricaEquipe(e.target.value)}
-            className={selectCls}
-          >
-            <option value="total">Por total</option>
-            <option value="media">Por média</option>
-          </select>
+          <div className="hstack shrink-0 gap-1 rounded-pill border border-line bg-surface p-1">
+            {[
+              { v: 'total', label: 'Total' },
+              { v: 'media', label: 'Média' },
+            ].map((m) => (
+              <button
+                key={m.v}
+                onClick={() => setMetricaEquipe(m.v)}
+                className={`rounded-pill px-3.5 py-1.5 text-xs font-semibold tap ${
+                  metricaEquipe === m.v ? 'bg-accent text-black' : 'text-muted'
+                }`}
+              >
+                {m.label}
+              </button>
+            ))}
+          </div>
         ) : (
           <select value={dep} onChange={(e) => setDep(e.target.value)} className={selectCls}>
             <option value="">Todos os departamentos</option>
