@@ -80,7 +80,7 @@ export function DestaqueBanner({ d }) {
             <div
               className={
                 ehAniver
-                  ? 'mt-1.5 line-clamp-5 text-sm leading-snug text-white/90'
+                  ? 'mt-1.5 line-clamp-5 text-lg leading-snug text-white/90'
                   : 'mt-1 line-clamp-2 text-xs text-white/75'
               }
             >
