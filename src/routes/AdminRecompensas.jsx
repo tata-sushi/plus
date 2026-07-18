@@ -25,6 +25,7 @@ import { RecompensaFoto } from '../components/RecompensaFoto.jsx'
 import { PhotoCropper } from '../components/PhotoCropper.jsx'
 import { AdminPublicacoes } from '../components/AdminPublicacoes.jsx'
 import { AdminConquistas } from '../components/AdminConquistas.jsx'
+import { AdminAniversarios } from '../components/AdminAniversarios.jsx'
 import { cn } from '../lib/cn'
 import { tapHaptic } from '../lib/haptics.js'
 import { useAuth } from '../lib/AuthContext.jsx'
@@ -398,11 +399,11 @@ export function AdminRecompensas() {
 
       {/* Abas */}
       <div className="px-5 pt-3">
-        <div className="card grid grid-cols-5 gap-1 p-1.5">
+        <div className="card flex gap-1 overflow-x-auto p-1.5 no-scrollbar">
           <button
             onClick={() => setAba('comunicados')}
             className={cn(
-              'rounded-2xl py-2.5 text-xs font-semibold tap',
+              'shrink-0 rounded-2xl px-4 py-2.5 text-xs font-semibold tap',
               aba === 'comunicados' ? 'bg-accent text-black' : 'text-muted',
             )}
           >
@@ -411,7 +412,7 @@ export function AdminRecompensas() {
           <button
             onClick={() => setAba('catalogo')}
             className={cn(
-              'rounded-2xl py-2.5 text-xs font-semibold tap',
+              'shrink-0 rounded-2xl px-4 py-2.5 text-xs font-semibold tap',
               aba === 'catalogo' ? 'bg-accent text-black' : 'text-muted',
             )}
           >
@@ -420,7 +421,7 @@ export function AdminRecompensas() {
           <button
             onClick={() => setAba('pedidos')}
             className={cn(
-              'hstack justify-center gap-1 rounded-2xl py-2.5 text-xs font-semibold tap',
+              'hstack shrink-0 justify-center gap-1 rounded-2xl px-4 py-2.5 text-xs font-semibold tap',
               aba === 'pedidos' ? 'bg-accent text-black' : 'text-muted',
             )}
           >
@@ -439,7 +440,7 @@ export function AdminRecompensas() {
           <button
             onClick={() => setAba('envios')}
             className={cn(
-              'hstack justify-center gap-1 rounded-2xl py-2.5 text-xs font-semibold tap',
+              'hstack shrink-0 justify-center gap-1 rounded-2xl px-4 py-2.5 text-xs font-semibold tap',
               aba === 'envios' ? 'bg-accent text-black' : 'text-muted',
             )}
           >
@@ -458,16 +459,27 @@ export function AdminRecompensas() {
           <button
             onClick={() => setAba('conquistas')}
             className={cn(
-              'rounded-2xl py-2.5 text-xs font-semibold tap',
+              'shrink-0 rounded-2xl px-4 py-2.5 text-xs font-semibold tap',
               aba === 'conquistas' ? 'bg-accent text-black' : 'text-muted',
             )}
           >
             Conquistas
           </button>
+          <button
+            onClick={() => setAba('aniversario')}
+            className={cn(
+              'shrink-0 rounded-2xl px-4 py-2.5 text-xs font-semibold tap',
+              aba === 'aniversario' ? 'bg-accent text-black' : 'text-muted',
+            )}
+          >
+            Aniversário
+          </button>
         </div>
       </div>
 
-      {aba === 'conquistas' ? (
+      {aba === 'aniversario' ? (
+        <AdminAniversarios />
+      ) : aba === 'conquistas' ? (
         <AdminConquistas />
       ) : aba === 'comunicados' ? (
         <AdminPublicacoes />
