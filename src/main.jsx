@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import { registerSW } from 'virtual:pwa-register'
 import { AuthProvider } from './lib/AuthContext.jsx'
+import { ModoApp } from './components/ModoApp.jsx'
 import { App } from './App.jsx'
 import './index.css'
 
@@ -10,10 +11,12 @@ registerSW({ immediate: true })
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <BrowserRouter>
-      <AuthProvider>
-        <App />
-      </AuthProvider>
-    </BrowserRouter>
+    <ModoApp>
+      <BrowserRouter>
+        <AuthProvider>
+          <App />
+        </AuthProvider>
+      </BrowserRouter>
+    </ModoApp>
   </React.StrictMode>,
 )
