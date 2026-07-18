@@ -5,7 +5,7 @@ import { cn } from '../lib/cn'
 
 const TAM_MAX = 8 * 1024 * 1024 // 8 MB
 const TIPOS = [
-  { tipo: 'nascimento', label: 'Aniversário' },
+  { tipo: 'nascimento', label: 'Aniversário de vida' },
   { tipo: 'empresa', label: 'Aniversário de empresa' },
 ]
 
@@ -48,8 +48,9 @@ function MensagemLinha({ m, onSalvar, onExcluir }) {
 export function AdminAniversarios() {
   const [estado, setEstado] = useState(null)
   const [carregando, setCarregando] = useState(true)
-  const [enviandoFoto, setEnviandoFoto] = useState(false)
+  const [enviando, setEnviando] = useState(null) // tipo em upload, ou null
   const inputFoto = useRef(null)
+  const tipoUpload = useRef('nascimento')
 
   async function carregar() {
     const { data } = await supabase.rpc('admin_aniversario_estado')
@@ -93,11 +94,17 @@ export function AdminAniversarios() {
     await supabase.rpc('admin_aniversario_img_excluir', { p_id: id })
     carregar()
   }
+
+  function pedirFoto(tipo) {
+    tipoUpload.current = tipo
+    inputFoto.current?.click()
+  }
   async function subirFoto(e) {
     const f = e.target.files?.[0]
     e.target.value = ''
     if (!f || !f.type.startsWith('image/') || f.size > TAM_MAX) return
-    setEnviandoFoto(true)
+    const tipo = tipoUpload.current
+    setEnviando(tipo)
     const ext = (f.name.split('.').pop() || 'png').toLowerCase()
     const caminho = `aniversarios/${crypto.randomUUID()}.${ext}`
     const { error } = await supabase.storage
@@ -105,9 +112,14 @@ export function AdminAniversarios() {
       .upload(caminho, f, { contentType: f.type, cacheControl: '3600' })
     if (!error) {
       const url = supabase.storage.from('comunicados').getPublicUrl(caminho).data.publicUrl
-      await supabase.rpc('admin_aniversario_img_salvar', { p_id: null, p_url: url, p_ativo: true })
+      await supabase.rpc('admin_aniversario_img_salvar', {
+        p_id: null,
+        p_url: url,
+        p_ativo: true,
+        p_tipo: tipo,
+      })
     }
-    setEnviandoFoto(false)
+    setEnviando(null)
     carregar()
   }
 
@@ -123,100 +135,110 @@ export function AdminAniversarios() {
   const msgs = estado?.mensagens || []
 
   return (
-    <div className="space-y-6 px-5 py-4">
+    <div className="space-y-8 px-5 py-4">
       <p className="text-xs leading-relaxed text-muted">
-        No dia do aniversário de cada colaborador, aparece um card no carrossel de Notícias com uma
-        imagem e uma mensagem escolhidas ao acaso desta lista.
+        No dia do aniversário de cada colaborador, aparece um card no carrossel com uma imagem e uma
+        mensagem escolhidas ao acaso — de cada tipo, separadamente.
       </p>
 
-      {/* Liga/desliga */}
-      <div className="card space-y-3 p-4">
-        {TIPOS.map(({ tipo, label }) => (
-          <div key={tipo} className="hstack justify-between">
-            <span className="text-sm font-semibold">{label}</span>
-            <button
-              onClick={() => alternarTipo(tipo)}
-              className={cn(
-                'relative h-6 w-11 shrink-0 rounded-full transition-colors',
-                ativoTipo(tipo) ? 'bg-accent' : 'bg-surface-3',
-              )}
-              aria-label={ativoTipo(tipo) ? 'Desativar' : 'Ativar'}
-            >
-              <span
-                className={cn(
-                  'absolute top-0.5 block h-5 w-5 rounded-full bg-white transition-transform',
-                  ativoTipo(tipo) ? 'translate-x-[22px]' : 'translate-x-0.5',
-                )}
-              />
-            </button>
-          </div>
-        ))}
-      </div>
-
-      {/* Imagens (pool aleatória) */}
-      <div>
-        <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-2">Imagens</div>
-        <div className="grid grid-cols-3 gap-2">
-          {imagens.map((img) => (
-            <div key={img.id} className="relative aspect-square overflow-hidden rounded-xl border border-line">
-              <img
-                src={img.url}
-                alt=""
-                className={cn('h-full w-full object-cover', !img.ativo && 'opacity-30')}
-              />
-              <button
-                onClick={() => excluirImg(img.id)}
-                className="absolute right-1 top-1 grid h-6 w-6 place-items-center rounded-full bg-black/60 text-white tap"
-                aria-label="Remover"
-              >
-                <Trash2 size={12} />
-              </button>
-              <button
-                onClick={() => toggleImg(img)}
-                className="absolute bottom-1 left-1 rounded-pill bg-black/60 px-2 py-0.5 text-[10px] font-semibold text-white tap"
-              >
-                {img.ativo ? 'Ativa' : 'Off'}
-              </button>
-            </div>
-          ))}
-          <button
-            onClick={() => inputFoto.current?.click()}
-            className="grid aspect-square place-items-center rounded-xl border border-dashed border-line text-muted tap"
-            aria-label="Adicionar imagem"
-          >
-            {enviandoFoto ? <Loader2 size={20} className="animate-spin" /> : <ImagePlus size={22} />}
-          </button>
-        </div>
-        <input ref={inputFoto} type="file" accept="image/*" onChange={subirFoto} className="hidden" />
-      </div>
-
-      {/* Mensagens por tipo */}
       {TIPOS.map(({ tipo, label }) => {
-        const doTipo = msgs.filter((m) => m.tipo === tipo)
+        const imgsTipo = imagens.filter((i) => i.tipo === tipo)
+        const msgsTipo = msgs.filter((m) => m.tipo === tipo)
+        const on = ativoTipo(tipo)
         return (
-          <div key={tipo}>
-            <div className="mb-2 hstack justify-between">
-              <span className="text-xs font-semibold uppercase tracking-wide text-muted-2">
-                Mensagens · {label}
-              </span>
+          <div key={tipo} className="space-y-4">
+            {/* Cabeçalho + liga/desliga */}
+            <div className="hstack justify-between border-b border-line pb-2">
+              <span className="font-display text-base font-bold">{label}</span>
               <button
-                onClick={() => salvarMsg({ id: null, tipo, texto: 'Nova mensagem', ativo: true })}
-                className="hstack gap-1 text-xs font-semibold text-accent tap"
+                onClick={() => alternarTipo(tipo)}
+                className={cn(
+                  'relative h-6 w-11 shrink-0 rounded-full transition-colors',
+                  on ? 'bg-accent' : 'bg-surface-3',
+                )}
+                aria-label={on ? 'Desativar' : 'Ativar'}
               >
-                <Plus size={14} /> Nova
+                <span
+                  className={cn(
+                    'absolute top-0.5 block h-5 w-5 rounded-full bg-white transition-transform',
+                    on ? 'translate-x-[22px]' : 'translate-x-0.5',
+                  )}
+                />
               </button>
             </div>
-            <div className="space-y-2">
-              {doTipo.length === 0 && (
-                <div className="text-xs text-muted-2">Nenhuma mensagem.</div>
-              )}
-              {doTipo.map((m) => (
-                <MensagemLinha key={m.id} m={m} onSalvar={salvarMsg} onExcluir={excluirMsg} />
-              ))}
+
+            {/* Imagens (pool aleatória do tipo) */}
+            <div>
+              <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-2">
+                Imagens
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                {imgsTipo.map((img) => (
+                  <div
+                    key={img.id}
+                    className="relative aspect-square overflow-hidden rounded-xl border border-line"
+                  >
+                    <img
+                      src={img.url}
+                      alt=""
+                      className={cn('h-full w-full object-cover', !img.ativo && 'opacity-30')}
+                    />
+                    <button
+                      onClick={() => excluirImg(img.id)}
+                      className="absolute right-1 top-1 grid h-6 w-6 place-items-center rounded-full bg-black/60 text-white tap"
+                      aria-label="Remover"
+                    >
+                      <Trash2 size={12} />
+                    </button>
+                    <button
+                      onClick={() => toggleImg(img)}
+                      className="absolute bottom-1 left-1 rounded-pill bg-black/60 px-2 py-0.5 text-[10px] font-semibold text-white tap"
+                    >
+                      {img.ativo ? 'Ativa' : 'Off'}
+                    </button>
+                  </div>
+                ))}
+                <button
+                  onClick={() => pedirFoto(tipo)}
+                  className="grid aspect-square place-items-center rounded-xl border border-dashed border-line text-muted tap"
+                  aria-label="Adicionar imagem"
+                >
+                  {enviando === tipo ? (
+                    <Loader2 size={20} className="animate-spin" />
+                  ) : (
+                    <ImagePlus size={22} />
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {/* Mensagens do tipo */}
+            <div>
+              <div className="mb-2 hstack justify-between">
+                <span className="text-xs font-semibold uppercase tracking-wide text-muted-2">
+                  Mensagens
+                </span>
+                <button
+                  onClick={() => salvarMsg({ id: null, tipo, texto: 'Nova mensagem', ativo: true })}
+                  className="hstack gap-1 text-xs font-semibold text-accent tap"
+                >
+                  <Plus size={14} /> Nova
+                </button>
+              </div>
+              <div className="space-y-2">
+                {msgsTipo.length === 0 && (
+                  <div className="text-xs text-muted-2">Nenhuma mensagem.</div>
+                )}
+                {msgsTipo.map((m) => (
+                  <MensagemLinha key={m.id} m={m} onSalvar={salvarMsg} onExcluir={excluirMsg} />
+                ))}
+              </div>
             </div>
           </div>
         )
       })}
+
+      <input ref={inputFoto} type="file" accept="image/*" onChange={subirFoto} className="hidden" />
     </div>
   )
 }
