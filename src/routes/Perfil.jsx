@@ -6,9 +6,9 @@ import { Section } from '../components/Section.jsx'
 import { Card } from '../components/Card.jsx'
 import { Avatar } from '../components/Avatar.jsx'
 import { ProgressBar } from '../components/ProgressBar.jsx'
-import { GradeEmblemas, contarEmblemas } from '../components/GradeEmblemas.jsx'
+import { GradeEmblemas } from '../components/GradeEmblemas.jsx'
 import { AnalisesPerfil } from '../components/AnalisesPerfil.jsx'
-import { totalEmblemas } from '../lib/emblemas.js'
+import { avaliarCatalogo } from '../lib/emblemas.js'
 import { signoDe } from '../lib/signo.js'
 import { useAuth } from '../lib/AuthContext.jsx'
 import { supabase } from '../lib/supabase.js'
@@ -32,6 +32,7 @@ export function Perfil() {
   const ehEu = !!usuario?.matricula && id === usuario.matricula
 
   const [perfil, setPerfil] = useState(undefined) // undefined = carregando · null = não encontrado
+  const [catalogo, setCatalogo] = useState([])
   const [saldo, setSaldo] = useState(null)
   const [aberto, setAberto] = useState(false)
   const [valor, setValor] = useState('')
@@ -47,6 +48,9 @@ export function Perfil() {
     })
     supabase.rpc('meu_saldo').then(({ data }) => {
       if (ativo) setSaldo(Number(data || 0))
+    })
+    supabase.rpc('catalogo_emblemas').then(({ data }) => {
+      if (ativo) setCatalogo(data || [])
     })
     return () => {
       ativo = false
@@ -83,6 +87,7 @@ export function Perfil() {
   const progresso = proximo ? Math.min(1, Number(perfil.pontos) / Number(proximo)) : 1
   const falta = proximo ? Number(proximo) - Number(perfil.pontos) : 0
   const signo = signoDe(perfil.data_nascimento)
+  const emb = avaliarCatalogo(catalogo, perfil)
   const aniversario = perfil.data_nascimento
     ? new Date(perfil.data_nascimento + 'T00:00:00').toLocaleDateString('pt-BR', {
         day: '2-digit',
@@ -228,12 +233,12 @@ export function Perfil() {
         title="Conquistas"
         action={
           <span className="text-xs font-semibold text-muted">
-            {contarEmblemas(perfil)}/{totalEmblemas(perfil)}
+            {emb.total}/{emb.existentes}
           </span>
         }
       >
         <Card>
-          <GradeEmblemas dados={perfil} />
+          <GradeEmblemas catalogo={catalogo} dados={perfil} />
         </Card>
       </Section>
 

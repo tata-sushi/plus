@@ -24,6 +24,7 @@ import { Avatar } from '../components/Avatar.jsx'
 import { RecompensaFoto } from '../components/RecompensaFoto.jsx'
 import { PhotoCropper } from '../components/PhotoCropper.jsx'
 import { AdminPublicacoes } from '../components/AdminPublicacoes.jsx'
+import { AdminConquistas } from '../components/AdminConquistas.jsx'
 import { cn } from '../lib/cn'
 import { tapHaptic } from '../lib/haptics.js'
 import { useAuth } from '../lib/AuthContext.jsx'
@@ -397,7 +398,7 @@ export function AdminRecompensas() {
 
       {/* Abas */}
       <div className="px-5 pt-3">
-        <div className="card grid grid-cols-4 gap-1 p-1.5">
+        <div className="card grid grid-cols-5 gap-1 p-1.5">
           <button
             onClick={() => setAba('comunicados')}
             className={cn(
@@ -454,10 +455,21 @@ export function AdminRecompensas() {
               </span>
             )}
           </button>
+          <button
+            onClick={() => setAba('conquistas')}
+            className={cn(
+              'rounded-2xl py-2.5 text-xs font-semibold tap',
+              aba === 'conquistas' ? 'bg-accent text-black' : 'text-muted',
+            )}
+          >
+            Conquistas
+          </button>
         </div>
       </div>
 
-      {aba === 'comunicados' ? (
+      {aba === 'conquistas' ? (
+        <AdminConquistas />
+      ) : aba === 'comunicados' ? (
         <AdminPublicacoes />
       ) : aba === 'envios' ? (
         <>
