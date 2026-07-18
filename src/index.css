@@ -30,18 +30,18 @@
   --surface-2: 244 243 239;
   --surface-3: 233 231 225;
   --border: 224 222 216;
-  --line: rgba(0, 0, 0, 0.08);
-  --fill: rgba(0, 0, 0, 0.045);
-  --carbon: 83 88 95;
-  --carbon-soft: rgba(83, 88, 95, 0.18);
-  --accent: 42 170 55;       /* verde mais fechado, legível no claro */
-  --accent-dim: 33 140 44;
+  --line: rgba(0, 0, 0, 0.10);
+  --fill: rgba(0, 0, 0, 0.05);
+  --carbon: 71 77 86;
+  --carbon-soft: rgba(71, 77, 86, 0.18);
+  --accent: 38 156 50;       /* verde mais fechado, legível no claro */
+  --accent-dim: 30 128 40;
   --accent-soft: rgba(42, 170, 55, 0.14);
-  --danger: 220 38 38;
-  --warn: 202 138 4;
-  --text: 24 24 24;
-  --muted: 100 108 120;
-  --muted-2: 148 156 168;
+  --danger: 205 34 34;
+  --warn: 180 122 3;
+  --text: 22 22 22;
+  --muted: 82 90 102;        /* mais escuro p/ contraste AA no claro */
+  --muted-2: 104 112 124;
   --meta-color: #F5F4F1;
 }
 
