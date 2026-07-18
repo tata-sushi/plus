@@ -5,24 +5,25 @@ import { Voltar } from '../components/Voltar.jsx'
 import { cn } from '../lib/cn'
 import { tapHaptic } from '../lib/haptics.js'
 
-// Ouvidoria nativa — mesmo formulário/design da página externa
-// (ouvidoria.tatasushi.tech), adaptado aos temas claro/escuro. Envia um POST
-// (no-cors) ao mesmo Web App do Apps Script, que grava na planilha "Ouvidoria".
+// Ouvidoria nativa — replica o formulário/design da página externa
+// (ouvidoria.tatasushi.tech). As cores são as MESMAS do HTML original, fixas
+// nos dois temas (claro/escuro): card branco, texto escuro, botão carbon+citric.
+// Envia um POST (no-cors) ao mesmo Web App do Apps Script (planilha "Ouvidoria").
 const OUVIDORIA_URL =
   'https://script.google.com/macros/s/AKfycbwVPDROxvIfl4yaIZqNPlRdl5-UTtVSUeUMd5H9GdPn0wXnyaMKtwaLSvn1TdvTMw3Xnw/exec'
 
-// cores de marca fixas (funcionam nos dois temas), como no HTML original
+// paleta do HTML original
 const CARBON = '#35383F'
 const CITRIC = '#CFFF00'
 
 const inputCls =
-  'w-full rounded-card border border-line bg-surface px-3 py-2.5 text-[13px] text-text outline-none focus:border-accent'
+  'w-full rounded-card border border-[#E2E2E2] bg-white px-3 py-2.5 text-[13px] text-[#111111] outline-none placeholder:text-[#9a9a9a] focus:border-[#35383F]'
 
 function Label({ children }) {
   return (
-    <label className="mb-2 block text-[13px] font-semibold text-text">
+    <label className="mb-2 block text-[13px] font-semibold text-[#111111]">
       {children}
-      <span className="ml-0.5 text-danger">*</span>
+      <span className="ml-0.5 text-[#D32F2F]">*</span>
     </label>
   )
 }
@@ -44,12 +45,12 @@ function RadioGroup({ label, value, onChange, options }) {
               <span
                 className={cn(
                   'grid h-[18px] w-[18px] shrink-0 place-items-center rounded-full border-2',
-                  on ? 'border-accent' : 'border-muted-2',
+                  on ? 'border-[#35383F]' : 'border-[#bcbcbc]',
                 )}
               >
-                {on && <span className="h-2.5 w-2.5 rounded-full bg-accent" />}
+                {on && <span className="h-2.5 w-2.5 rounded-full bg-[#35383F]" />}
               </span>
-              <span className="text-[13px] text-muted">{o.label}</span>
+              <span className="text-[13px] text-[#555555]">{o.label}</span>
             </button>
           )
         })}
@@ -116,16 +117,19 @@ export function Ouvidoria() {
       <>
         <Header title="Ouvidoria" />
         <div className="px-5 pt-2">
-          <div className="rounded-card border border-line bg-surface p-8 text-center">
-            <span className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-accent-soft text-accent">
+          <div className="rounded-card border border-[#E2E2E2] bg-white p-8 text-center">
+            <span
+              className="mx-auto grid h-14 w-14 place-items-center rounded-full text-[#1A5C2A]"
+              style={{ background: '#EAF4ED' }}
+            >
               <Check size={28} strokeWidth={2.5} />
             </span>
-            <div className="mt-4 font-display text-lg font-bold">Relato enviado!</div>
-            <p className="mt-2 text-[13px] leading-relaxed text-muted">
+            <div className="mt-4 font-display text-lg font-bold text-[#111111]">Relato enviado!</div>
+            <p className="mt-2 text-[13px] leading-relaxed text-[#555555]">
               Recebemos seu relato. Ele será analisado com sigilo e, se solicitado, você receberá
               uma devolutiva em breve.
             </p>
-            <p className="mt-3 text-[13px] leading-relaxed text-muted">
+            <p className="mt-3 text-[13px] leading-relaxed text-[#555555]">
               Obrigado pelo seu relato e contribuição para um TATÁ melhor.
             </p>
           </div>
@@ -140,9 +144,11 @@ export function Ouvidoria() {
       <Voltar />
 
       <div className="px-5 pt-2">
-        <div className="rounded-card border border-line bg-surface p-6">
-          <h2 className="text-center font-display text-lg font-bold text-text">Sigiloso e seguro</h2>
-          <p className="mt-2 border-b border-line pb-5 text-justify text-[13px] leading-relaxed text-muted">
+        <div className="rounded-card border border-[#E2E2E2] bg-white p-6">
+          <h2 className="text-center font-display text-lg font-bold text-[#111111]">
+            Sigiloso e seguro
+          </h2>
+          <p className="mt-2 border-b border-[#E2E2E2] pb-5 text-justify text-[13px] leading-relaxed text-[#555555]">
             Use este canal para relatar feedbacks, sugestões, denúncias ou qualquer ocorrência. Você
             pode se identificar ou permanecer anônimo. Todas as manifestações são tratadas com
             sigilo.
@@ -150,12 +156,12 @@ export function Ouvidoria() {
 
           {/* Info box citric */}
           <div
-            className="mt-5 rounded-r-card px-3.5 py-3 text-[12.5px] leading-relaxed text-muted"
-            style={{ borderLeft: `3px solid ${CITRIC}`, background: 'rgba(207,255,0,0.08)' }}
+            className="mt-5 rounded-r-card px-3.5 py-3 text-[12.5px] leading-relaxed text-[#555555]"
+            style={{ borderLeft: `3px solid ${CITRIC}`, background: 'rgba(207,255,0,0.10)' }}
           >
-            <strong className="font-semibold text-text">Sigilo garantido.</strong> Suas informações
-            serão tratadas com total confidencialidade. A identidade de quem se identifica nunca será
-            revelada sem sua autorização.
+            <strong className="font-semibold text-[#111111]">Sigilo garantido.</strong> Suas
+            informações serão tratadas com total confidencialidade. A identidade de quem se
+            identifica nunca será revelada sem sua autorização.
           </div>
 
           <form onSubmit={enviar} className="mt-5 flex flex-col gap-5">
