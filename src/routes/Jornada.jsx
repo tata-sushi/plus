@@ -1,17 +1,14 @@
 import { ProfileView } from '../components/ProfileView.jsx'
 import { useAuth } from '../lib/AuthContext.jsx'
-import { currentUser, getColaborador } from '../lib/mockData.js'
 
+// Minha jornada — identidade real do colaborador logado (profiles).
 export function Jornada() {
   const { usuario } = useAuth()
-  const base = getColaborador(currentUser.id)
-  // Identidade real do profiles; gamificação segue mock por enquanto
   const colaborador = {
-    ...base,
-    nome: usuario?.nome || base.nome,
-    cargo: usuario?.cargo || base.cargo,
-    loja: usuario?.loja || base.loja,
-    avatar: usuario?.avatarUrl || base.avatar,
+    nome: usuario?.nome || 'Colaborador',
+    cargo: usuario?.cargo || '',
+    loja: usuario?.loja || '',
+    avatar: usuario?.avatarUrl || null,
   }
   return <ProfileView colaborador={colaborador} isSelf />
 }

@@ -12,7 +12,7 @@ import { Carrossel } from '../components/Carrossel.jsx'
 import { resolveIcon } from '../lib/icons.js'
 import { useAuth } from '../lib/AuthContext.jsx'
 import { supabase } from '../lib/supabase.js'
-import { currentUser, menuDoDia } from '../lib/mockData.js'
+import { menuDoDia } from '../lib/mockData.js'
 
 const sugestoesCards = [
   {
@@ -43,10 +43,10 @@ const sugestoesCards = [
 
 export function Home() {
   const { usuario } = useAuth()
-  const nome = usuario?.nome || currentUser.nome
-  const primeiroNome = usuario?.primeiroNome || currentUser.primeiroNome
-  const cargo = usuario?.cargo || currentUser.cargo
-  const loja = usuario?.loja || currentUser.loja
+  const nome = usuario?.nome || 'Colaborador'
+  const primeiroNome = usuario?.primeiroNome || (usuario?.nome || 'Colaborador').split(' ')[0]
+  const cargo = usuario?.cargo || ''
+  const loja = usuario?.loja || ''
 
   const cards = sugestoesCards
 
