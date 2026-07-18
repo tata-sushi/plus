@@ -108,7 +108,7 @@ export function ModoApp({ children }) {
 
       <div className="max-w-xs">
         <h1 className="font-display text-lg font-bold">Disponível pelo aplicativo</h1>
-        <p className="mt-2 text-sm text-muted">Instale e navegue!!!</p>
+        <p className="mt-2 text-sm text-muted">Acesse e navegue</p>
       </div>
 
       {mostrarAbrir ? (
