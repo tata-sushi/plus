@@ -14,6 +14,8 @@ import {
   Clock,
   RotateCcw,
   FileText,
+  Archive,
+  ArchiveRestore,
 } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Section } from '../components/Section.jsx'
@@ -85,6 +87,7 @@ export function AdminRecompensas() {
   const [filtroCat, setFiltroCat] = useState('todas') // todas | ativas | inativas
   const [filtroPed, setFiltroPed] = useState('todos') // todos | solicitado | entregue | cancelado
   const [filtroEnv, setFiltroEnv] = useState('todos') // todos | pendente | aprovado | reprovado
+  const [verArquivados, setVerArquivados] = useState(false)
   const [itens, setItens] = useState([])
   const [carregando, setCarregando] = useState(true)
   const [editando, setEditando] = useState(null) // objeto do formulário ou null
@@ -186,12 +189,55 @@ export function AdminRecompensas() {
 
   const pendentes = pedidos.filter((p) => p.status === 'solicitado').length
 
-  // listas filtradas pela lista suspensa de cada aba
+  // listas filtradas pela lista suspensa + arquivados de cada aba
   const itensView = itens.filter(
-    (i) => filtroCat === 'todas' || (filtroCat === 'ativas' ? i.ativo : !i.ativo),
+    (i) =>
+      (verArquivados ? i.arquivado : !i.arquivado) &&
+      (filtroCat === 'todas' || (filtroCat === 'ativas' ? i.ativo : !i.ativo)),
   )
-  const pedidosView = pedidos.filter((p) => filtroPed === 'todos' || p.status === filtroPed)
-  const enviosView = envios.filter((e) => filtroEnv === 'todos' || e.status === filtroEnv)
+  const pedidosView = pedidos.filter(
+    (p) =>
+      (verArquivados ? p.arquivado : !p.arquivado) &&
+      (filtroPed === 'todos' || p.status === filtroPed),
+  )
+  const enviosView = envios.filter(
+    (e) =>
+      (verArquivados ? e.arquivado : !e.arquivado) &&
+      (filtroEnv === 'todos' || e.status === filtroEnv),
+  )
+
+  async function arquivarRecompensa(item, arquivar) {
+    tapHaptic()
+    setItens((prev) => prev.map((i) => (i.id === item.id ? { ...i, arquivado: arquivar } : i)))
+    const { error } = await supabase.rpc('admin_arquivar_recompensa', {
+      p_id: item.id,
+      p_arquivado: arquivar,
+    })
+    if (error)
+      setItens((prev) => prev.map((i) => (i.id === item.id ? { ...i, arquivado: !arquivar } : i)))
+  }
+
+  async function arquivarPedido(pd, arquivar) {
+    tapHaptic()
+    setPedidos((prev) => prev.map((p) => (p.id === pd.id ? { ...p, arquivado: arquivar } : p)))
+    const { error } = await supabase.rpc('admin_arquivar_pedido', {
+      p_id: pd.id,
+      p_arquivado: arquivar,
+    })
+    if (error)
+      setPedidos((prev) => prev.map((p) => (p.id === pd.id ? { ...p, arquivado: !arquivar } : p)))
+  }
+
+  async function arquivarEnvio(env, arquivar) {
+    tapHaptic()
+    setEnvios((prev) => prev.map((e) => (e.id === env.id ? { ...e, arquivado: arquivar } : e)))
+    const { error } = await supabase.rpc('admin_arquivar_envio', {
+      p_id: env.id,
+      p_arquivado: arquivar,
+    })
+    if (error)
+      setEnvios((prev) => prev.map((e) => (e.id === env.id ? { ...e, arquivado: !arquivar } : e)))
+  }
 
   function limparFoto() {
     if (previewUrl) URL.revokeObjectURL(previewUrl)
@@ -426,13 +472,28 @@ export function AdminRecompensas() {
               <option value="aprovado">Aprovados</option>
               <option value="reprovado">Reprovados</option>
             </select>
+            <button
+              onClick={() => setVerArquivados((v) => !v)}
+              aria-label={verArquivados ? 'Ver ativos' : 'Ver arquivados'}
+              className={cn(
+                'shrink-0 rounded-card border px-2.5 py-2 tap',
+                verArquivados
+                  ? 'border-accent bg-accent-soft text-accent'
+                  : 'border-line text-muted',
+              )}
+            >
+              <Archive size={16} />
+            </button>
           </div>
           {carregandoEnvios ? (
           <div className="hstack justify-center py-16 text-muted-2">
             <Loader2 size={22} className="animate-spin" />
           </div>
         ) : (
-          <Section className="mt-4" title={`Envios (${enviosView.length})`}>
+          <Section
+            className="mt-4"
+            title={`${verArquivados ? 'Arquivados' : 'Envios'} (${enviosView.length})`}
+          >
             {enviosView.length === 0 ? (
               <div className="card p-8 text-center text-sm text-muted">
                 Nenhum envio ainda. Quando alguém anexar um arquivo num desafio de envio,
@@ -470,19 +531,28 @@ export function AdminRecompensas() {
                       )}
 
                       <div className="mt-3 hstack justify-between gap-2 border-t border-line pt-3">
-                        <button
-                          onClick={() => verAnexo(env)}
-                          disabled={anexoBusy === env.id}
-                          className="btn-ghost !py-2 text-xs text-muted"
-                        >
-                          {anexoBusy === env.id ? (
-                            <Loader2 size={14} className="animate-spin" />
-                          ) : (
-                            <>
-                              <FileText size={14} /> Ver anexo
-                            </>
-                          )}
-                        </button>
+                        <div className="hstack gap-2">
+                          <button
+                            onClick={() => verAnexo(env)}
+                            disabled={anexoBusy === env.id}
+                            className="btn-ghost !py-2 text-xs text-muted"
+                          >
+                            {anexoBusy === env.id ? (
+                              <Loader2 size={14} className="animate-spin" />
+                            ) : (
+                              <>
+                                <FileText size={14} /> Ver anexo
+                              </>
+                            )}
+                          </button>
+                          <button
+                            onClick={() => arquivarEnvio(env, !env.arquivado)}
+                            aria-label={env.arquivado ? 'Restaurar' : 'Arquivar'}
+                            className="grid h-8 w-8 place-items-center rounded-full bg-surface-2 text-muted-2 tap"
+                          >
+                            {env.arquivado ? <ArchiveRestore size={14} /> : <Archive size={14} />}
+                          </button>
+                        </div>
                         {ocupado ? (
                           <Loader2 size={16} className="animate-spin text-muted-2" />
                         ) : (
@@ -527,13 +597,28 @@ export function AdminRecompensas() {
               <option value="entregue">Entregues</option>
               <option value="cancelado">Cancelados</option>
             </select>
+            <button
+              onClick={() => setVerArquivados((v) => !v)}
+              aria-label={verArquivados ? 'Ver ativos' : 'Ver arquivados'}
+              className={cn(
+                'shrink-0 rounded-card border px-2.5 py-2 tap',
+                verArquivados
+                  ? 'border-accent bg-accent-soft text-accent'
+                  : 'border-line text-muted',
+              )}
+            >
+              <Archive size={16} />
+            </button>
           </div>
           {carregandoPedidos ? (
           <div className="hstack justify-center py-16 text-muted-2">
             <Loader2 size={22} className="animate-spin" />
           </div>
         ) : (
-          <Section className="mt-4" title={`Pedidos (${pedidosView.length})`}>
+          <Section
+            className="mt-4"
+            title={`${verArquivados ? 'Arquivados' : 'Pedidos'} (${pedidosView.length})`}
+          >
             {pedidosView.length === 0 ? (
               <div className="card p-8 text-center text-sm text-muted">
                 Nenhum pedido ainda. Quando alguém resgatar uma recompensa, aparece aqui pra você
@@ -566,8 +651,16 @@ export function AdminRecompensas() {
                         </span>
                       </div>
 
-                      <div className="mt-3 hstack justify-end gap-2 border-t border-line pt-3">
-                        {ocupado ? (
+                      <div className="mt-3 hstack justify-between gap-2 border-t border-line pt-3">
+                        <button
+                          onClick={() => arquivarPedido(pd, !pd.arquivado)}
+                          aria-label={pd.arquivado ? 'Restaurar' : 'Arquivar'}
+                          className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-surface-2 text-muted-2 tap"
+                        >
+                          {pd.arquivado ? <ArchiveRestore size={14} /> : <Archive size={14} />}
+                        </button>
+                        <div className="hstack gap-2">
+                          {ocupado ? (
                           <Loader2 size={16} className="animate-spin text-muted-2" />
                         ) : pd.status === 'solicitado' ? (
                           <>
@@ -599,6 +692,7 @@ export function AdminRecompensas() {
                             <RotateCcw size={13} /> Reabrir
                           </button>
                         )}
+                        </div>
                       </div>
                     </Card>
                   )
@@ -626,13 +720,28 @@ export function AdminRecompensas() {
               <option value="ativas">Ativas</option>
               <option value="inativas">Inativas</option>
             </select>
+            <button
+              onClick={() => setVerArquivados((v) => !v)}
+              aria-label={verArquivados ? 'Ver ativos' : 'Ver arquivados'}
+              className={cn(
+                'shrink-0 rounded-card border px-2.5 py-2 tap',
+                verArquivados
+                  ? 'border-accent bg-accent-soft text-accent'
+                  : 'border-line text-muted',
+              )}
+            >
+              <Archive size={16} />
+            </button>
           </div>
           {carregando ? (
         <div className="hstack justify-center py-16 text-muted-2">
           <Loader2 size={22} className="animate-spin" />
         </div>
       ) : (
-        <Section className="mt-4" title={`Catálogo (${itensView.length})`}>
+        <Section
+          className="mt-4"
+          title={`${verArquivados ? 'Arquivados' : 'Catálogo'} (${itensView.length})`}
+        >
           {itensView.length === 0 ? (
             <div className="card p-8 text-center text-sm text-muted">
               Nenhuma recompensa cadastrada. Toque em <span className="font-semibold">Nova</span> pra
@@ -663,13 +772,22 @@ export function AdminRecompensas() {
                       </div>
                     </div>
                     <div className="flex shrink-0 flex-col items-end gap-2">
-                      <button
-                        onClick={() => abrir(item)}
-                        className="grid h-9 w-9 place-items-center rounded-full bg-surface-2 text-muted tap"
-                        aria-label="Editar"
-                      >
-                        <Pencil size={15} />
-                      </button>
+                      <div className="hstack gap-2">
+                        <button
+                          onClick={() => abrir(item)}
+                          className="grid h-9 w-9 place-items-center rounded-full bg-surface-2 text-muted tap"
+                          aria-label="Editar"
+                        >
+                          <Pencil size={15} />
+                        </button>
+                        <button
+                          onClick={() => arquivarRecompensa(item, !item.arquivado)}
+                          aria-label={item.arquivado ? 'Restaurar' : 'Arquivar'}
+                          className="grid h-9 w-9 place-items-center rounded-full bg-surface-2 text-muted-2 tap"
+                        >
+                          {item.arquivado ? <ArchiveRestore size={15} /> : <Archive size={15} />}
+                        </button>
+                      </div>
                       <button
                         onClick={() => alternarAtivo(item)}
                         className={cn(

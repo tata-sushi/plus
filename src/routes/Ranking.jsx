@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Crown, Loader2 } from 'lucide-react'
+import { Crown, Loader2, Users } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Tabs } from '../components/Tabs.jsx'
 import { Section } from '../components/Section.jsx'
@@ -11,6 +11,7 @@ import { supabase } from '../lib/supabase.js'
 const tipos = [
   { value: 'geral', label: 'Colaboradores' },
   { value: 'lideres', label: 'Líderes' },
+  { value: 'equipes', label: 'Equipes' },
 ]
 
 const fmt = (n) => Number(n || 0).toLocaleString('pt-BR')
@@ -76,6 +77,8 @@ export function Ranking() {
     [dados],
   )
 
+  const emEquipes = tipo === 'equipes'
+
   // já vem ordenado por pontos; Colaboradores = não-líderes · Líderes = líderes
   const lista = useMemo(
     () =>
@@ -87,6 +90,24 @@ export function Ranking() {
       ),
     [dados, tipo, uni, dep],
   )
+
+  // Equipes: soma dos pontos por departamento (respeita o filtro de unidade)
+  const equipes = useMemo(() => {
+    const mapa = new Map()
+    dados
+      .filter((c) => c.departamento && (!uni || c.unidade === uni))
+      .forEach((c) => {
+        const cur = mapa.get(c.departamento) || {
+          departamento: c.departamento,
+          pontos: 0,
+          membros: 0,
+        }
+        cur.pontos += Number(c.pontos) || 0
+        cur.membros += 1
+        mapa.set(c.departamento, cur)
+      })
+    return [...mapa.values()].sort((a, b) => b.pontos - a.pontos)
+  }, [dados, uni])
 
   const [p1, p2, p3] = lista
 
@@ -104,20 +125,54 @@ export function Ranking() {
             </option>
           ))}
         </select>
-        <select value={dep} onChange={(e) => setDep(e.target.value)} className={selectCls}>
-          <option value="">Todos os departamentos</option>
-          {departamentos.map((d) => (
-            <option key={d} value={d}>
-              {d}
-            </option>
-          ))}
-        </select>
+        {!emEquipes && (
+          <select value={dep} onChange={(e) => setDep(e.target.value)} className={selectCls}>
+            <option value="">Todos os departamentos</option>
+            {departamentos.map((d) => (
+              <option key={d} value={d}>
+                {d}
+              </option>
+            ))}
+          </select>
+        )}
       </div>
 
       {carregando ? (
         <div className="hstack justify-center py-16 text-muted-2">
           <Loader2 size={22} className="animate-spin" />
         </div>
+      ) : emEquipes ? (
+        equipes.length === 0 ? (
+          <div className="py-16 text-center text-sm text-muted">Sem equipes por aqui ainda.</div>
+        ) : (
+          <Section className="mt-5" title="Ranking por equipe">
+            <div className="card overflow-hidden">
+              {equipes.map((e, i) => (
+                <div
+                  key={e.departamento}
+                  className={`hstack gap-3 px-4 py-3 ${i > 0 ? 'border-t border-line' : ''}`}
+                >
+                  <span className="w-5 shrink-0 text-center text-sm font-bold text-muted">
+                    {i + 1}
+                  </span>
+                  <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-accent-soft text-accent">
+                    {i === 0 ? <Crown size={16} /> : <Users size={16} />}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <div className="truncate text-sm font-semibold">{e.departamento}</div>
+                    <div className="truncate text-[11px] text-muted">
+                      {e.membros} pessoa{e.membros === 1 ? '' : 's'}
+                    </div>
+                  </div>
+                  <span className="shrink-0 text-sm font-bold text-accent">
+                    {fmt(e.pontos)}
+                    <span className="ml-0.5 text-[10px] font-medium text-muted">pts</span>
+                  </span>
+                </div>
+              ))}
+            </div>
+          </Section>
+        )
       ) : lista.length === 0 ? (
         <div className="py-16 text-center text-sm text-muted">Ninguém por aqui ainda.</div>
       ) : (
