@@ -25,7 +25,7 @@ function visual(n) {
       ? { Icon: XCircle, cls: 'bg-danger/10 text-danger' }
       : { Icon: CheckCircle2, cls: 'bg-accent-soft text-accent' }
   }
-  return { Icon: Info, cls: 'bg-surface-2 text-muted' }
+  return { Icon: Info, cls: 'bg-surface-2 text-carbon' }
 }
 
 export function Notificacoes() {
@@ -90,7 +90,7 @@ export function Notificacoes() {
               <span className="font-display text-lg font-bold">Notificações</span>
               <button
                 onClick={fechar}
-                className="grid h-9 w-9 place-items-center rounded-full bg-surface-2 text-muted tap"
+                className="grid h-9 w-9 place-items-center rounded-full bg-surface-2 text-carbon tap"
                 aria-label="Fechar"
               >
                 <X size={18} />
