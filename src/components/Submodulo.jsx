@@ -476,10 +476,14 @@ export function Submodulo({ nome, itens, onAbrir, admin = false, personalizar = 
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-sm font-medium">{item.titulo}</span>
                 </span>
-                {item.pontos > 0 && (
-                  <span className="hstack shrink-0 gap-1 text-[11px] font-semibold text-muted">
-                    <Star size={11} /> {item.pontos}
-                  </span>
+                {item.janela_estado === 'em_breve' ? (
+                  <span className="shrink-0 text-[11px] font-semibold text-muted-2">Em breve</span>
+                ) : (
+                  item.pontos > 0 && (
+                    <span className="hstack shrink-0 gap-1 text-[11px] font-semibold text-muted">
+                      <Star size={11} /> {item.pontos}
+                    </span>
+                  )
                 )}
               </button>
             )
