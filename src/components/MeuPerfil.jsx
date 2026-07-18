@@ -29,12 +29,7 @@ export function MeuPerfil() {
 
   return (
     <Section className="reveal reveal-3 mt-5" title="Meu perfil">
-      <AnalisesPerfil
-        disc={disc}
-        signo={signo}
-        onDisc={() => navigate('/perfil-disc')}
-        onFazer={() => navigate('/treinamentos')}
-      />
+      <AnalisesPerfil disc={disc} signo={signo} onFazer={() => navigate('/treinamentos')} />
     </Section>
   )
 }

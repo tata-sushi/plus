@@ -20,11 +20,11 @@ export function GradeEmblemas({ dados }) {
           <div key={e.chave} className="flex flex-col items-center gap-1.5 text-center">
             <span
               className={cn(
-                'grid h-14 w-14 place-items-center rounded-2xl',
+                'grid h-8 w-8 place-items-center rounded-xl',
                 on ? 'bg-accent-soft text-accent' : 'bg-surface-2 text-muted-2',
               )}
             >
-              <Icon size={24} />
+              <Icon size={16} />
             </span>
             <span className={cn('text-[10px] leading-tight', on ? 'font-semibold' : 'text-muted-2')}>
               {e.titulo}
