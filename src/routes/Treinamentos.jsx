@@ -114,8 +114,7 @@ function Detalhe({
   // PDF + prova → leitura obrigatória e depois a prova numa 2ª página (Cartilha Amarela)
   const ehLeituraProva = ehPdf && ehProva
   const ehPerfilDisc = data?.avaliacao?.perfil === 'disc' // questionário DISC (Soft Skill)
-  const ehPerfilMbti = data?.avaliacao?.perfil === 'mbti' // 16 personalidades (história + escala)
-  const ehQuadrinho = data?.avaliacao?.formato === 'quadrinho' || ehPerfilMbti // história em quadrinho
+  const ehQuadrinho = data?.avaliacao?.formato === 'quadrinho' // história em quadrinho (tela cheia)
   const ehAvaliacao = !!data?.avaliacao && !ehPerfilDisc && !ehQuadrinho // desafio de nota/NPS
   // conteúdo "rico" = texto e/ou prova (pode ter vídeo junto) → rola numa tela só
   const ehRico = temHtml || ehProva
@@ -240,18 +239,6 @@ function Detalhe({
               draggable="false"
               className="pointer-events-none h-full w-full object-contain"
             />
-          )}
-          {/* MBTI: no último painel, começa o teste */}
-          {ehPerfilMbti && ultimo && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation()
-                navigate('/perfil-mbti')
-              }}
-              className="btn-primary absolute inset-x-0 bottom-6 z-10 mx-auto w-max !px-6 !py-3 text-sm shadow-glow"
-            >
-              Começar o teste
-            </button>
           )}
         </div>
         {/* espaço reservado pra barra de navegação do app */}

@@ -1,4 +1,4 @@
-import { Sparkles, Lock, ChevronRight } from 'lucide-react'
+import { Sparkles, ChevronRight } from 'lucide-react'
 import { Card } from './Card.jsx'
 import { DISC, ORDEM, dominanteDe } from '../lib/disc.js'
 import { cn } from '../lib/cn'
@@ -58,23 +58,7 @@ function DiscAberto({ disc, onDisc }) {
   )
 }
 
-function EmBreve() {
-  return (
-    <Card>
-      {['MBTI', 'Big Five'].map((n, i) => (
-        <div key={n} className={cn('hstack gap-3', i > 0 && 'mt-2 border-t border-line pt-2')}>
-          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-surface-2 text-muted-2">
-            <Lock size={15} />
-          </span>
-          <span className="flex-1 text-sm font-semibold">{n}</span>
-          <span className="text-[11px] font-medium text-muted-2">Em breve</span>
-        </div>
-      ))}
-    </Card>
-  )
-}
-
-// Análises de perfil abertas (DISC + Signo + Em breve). Presentacional:
+// Análises de perfil abertas (DISC + Signo). Presentacional:
 //  - disc: { perfil, pontuacoes } | null
 //  - signo: objeto do lib/signo | null
 //  - onDisc: abrir o resultado completo do DISC (perfil próprio) — opcional
@@ -123,8 +107,6 @@ export function AnalisesPerfil({ disc, signo, onDisc, onFazer }) {
           <p className="mt-3 text-sm text-muted">{signo.review}</p>
         </Card>
       )}
-
-      <EmBreve />
     </div>
   )
 }
