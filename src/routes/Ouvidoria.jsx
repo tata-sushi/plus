@@ -1,22 +1,56 @@
+import { useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowLeft } from 'lucide-react'
 import { tapHaptic } from '../lib/haptics.js'
 
+// Ouvidoria (form externo). Abre em tela cheia como o organograma, porém em
+// RETRATO (sem rotação): só o iframe + o botão "App" para voltar.
+//
+// Entramos em TELA CHEIA (requestFullscreen) como no organograma — sem isso o
+// container `fixed` fica preso ao <main> animado (que tem transform) e colapsa
+// para altura 0 (a "tela preta"). Aqui NÃO travamos a orientação.
 const OUVIDORIA_URL = 'https://ouvidoria.tatasushi.tech/'
 
-// Ouvidoria (form externo). Abre em tela cheia como o organograma, porém em
-// RETRATO (sem rotação): apenas o iframe + o botão "App" para voltar. A barra
-// de navegação some (rota listada em SEM_NAV no AppShell).
+function pedirTelaCheia(el) {
+  const req = el.requestFullscreen || el.webkitRequestFullscreen || el.webkitEnterFullscreen
+  if (!req) return Promise.reject(new Error('sem fullscreen'))
+  return Promise.resolve(req.call(el))
+}
+
+function emTelaCheia() {
+  return !!(document.fullscreenElement || document.webkitFullscreenElement)
+}
+
+function sairTelaCheia() {
+  if (!emTelaCheia()) return
+  const ex = document.exitFullscreen || document.webkitExitFullscreen
+  try {
+    ex?.call(document)
+  } catch {
+    /* ignore */
+  }
+}
+
 export function Ouvidoria() {
   const navigate = useNavigate()
+  const boxRef = useRef(null)
+
+  useEffect(() => {
+    // a navegação até aqui é um toque recente: entra direto em tela cheia.
+    if (boxRef.current) pedirTelaCheia(boxRef.current).catch(() => {})
+    return () => sairTelaCheia()
+  }, [])
 
   function voltar() {
     tapHaptic()
+    sairTelaCheia()
     navigate(-1)
   }
 
   return (
-    <div className="fixed inset-0 bg-white">
+    // Tamanho explícito em unidades de viewport: mesmo se a tela cheia falhar,
+    // o container não colapsa (evita a tela preta).
+    <div ref={boxRef} className="fixed left-0 top-0 z-40 h-[100dvh] w-screen bg-white">
       <iframe
         src={OUVIDORIA_URL}
         title="Ouvidoria Tatá"

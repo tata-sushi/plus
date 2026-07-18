@@ -184,11 +184,11 @@ export function Mais() {
         </Section>
       )}
 
-      <Section className="mt-5" title="Redes sociais da Tatá">
+      <Section className="mt-5">
         <SocialLinks items={redesSociais} />
       </Section>
 
-      <Section className="mt-5">
+      <Section className="mt-8">
         <button
           onClick={sair}
           className="hstack w-full justify-center gap-2 rounded-card bg-surface p-3.5 text-sm font-semibold text-danger tap"

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
-import { Lock, Eye, EyeOff, Check, Loader2, ShieldCheck, Sun, Moon, Bell } from 'lucide-react'
+import { Lock, Eye, EyeOff, Check, Loader2, ShieldCheck, Sun, Moon, Bell, BellOff } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
+import { Voltar } from '../components/Voltar.jsx'
 import { Section } from '../components/Section.jsx'
 import { cn } from '../lib/cn'
 import { tapHaptic } from '../lib/haptics.js'
@@ -86,6 +87,7 @@ export function Manutencao() {
   return (
     <>
       <Header title="Painel de Gerenciamento" />
+      <Voltar />
 
       <Section className="mt-2" title="Notificações">
         <div className="card p-4">
@@ -94,30 +96,41 @@ export function Manutencao() {
               <Bell size={20} />
             </span>
             <div className="min-w-0 flex-1">
-              <div className="font-display text-sm font-bold">Notificações no celular</div>
+              <div className="font-display text-sm font-bold">Ativar notificação</div>
               {!push.suportado && (
                 <div className="text-xs text-muted">
                   Instale o app na tela inicial para ativar as notificações.
                 </div>
               )}
             </div>
-            <button
-              onClick={alternarPush}
-              disabled={!push.suportado || pushBusy}
-              className={cn(
-                'shrink-0 rounded-pill px-4 py-2 text-xs font-bold tap',
-                push.ativo ? 'bg-surface text-danger' : 'btn-primary !py-2',
-                (!push.suportado || pushBusy) && 'opacity-50',
-              )}
-            >
-              {pushBusy ? (
-                <Loader2 size={14} className="animate-spin" />
-              ) : push.ativo ? (
-                'Desativar'
-              ) : (
-                'Ativar'
-              )}
-            </button>
+            {/* Seletor liga/desliga no mesmo padrão do Contraste. */}
+            <div className="hstack shrink-0 gap-1 rounded-pill bg-surface-2 p-1">
+              {[
+                { on: false, label: 'Desligar', Icon: BellOff },
+                { on: true, label: 'Ativar', Icon: Bell },
+              ].map(({ on, label, Icon }) => (
+                <button
+                  key={label}
+                  onClick={() => {
+                    if (on !== push.ativo) alternarPush()
+                  }}
+                  disabled={!push.suportado || pushBusy}
+                  aria-label={label}
+                  aria-pressed={push.ativo === on}
+                  className={cn(
+                    'grid h-8 w-8 place-items-center rounded-full tap',
+                    push.ativo === on ? 'bg-accent text-black' : 'text-muted',
+                    (!push.suportado || pushBusy) && 'opacity-50',
+                  )}
+                >
+                  {pushBusy && on === !push.ativo ? (
+                    <Loader2 size={14} className="animate-spin" />
+                  ) : (
+                    <Icon size={15} />
+                  )}
+                </button>
+              ))}
+            </div>
           </div>
           {pushErro && <div className="mt-2 text-[11px] font-medium text-danger">{pushErro}</div>}
         </div>
@@ -130,7 +143,7 @@ export function Manutencao() {
               {tema === 'dark' ? <Moon size={20} /> : <Sun size={20} />}
             </span>
             <div className="min-w-0 flex-1">
-              <div className="font-display text-sm font-bold">Tema do app</div>
+              <div className="font-display text-sm font-bold">Contraste</div>
             </div>
             <div className="hstack shrink-0 gap-1 rounded-pill bg-surface-2 p-1">
               {TEMAS.map(({ v, label, Icon }) => (

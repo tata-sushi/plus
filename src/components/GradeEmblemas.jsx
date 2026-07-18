@@ -12,7 +12,7 @@ export function contarEmblemas(dados) {
 export function GradeEmblemas({ dados }) {
   const d = dados || {}
   return (
-    <div className="grid grid-cols-4 gap-x-2 gap-y-4">
+    <div className="grid grid-cols-5 gap-x-2 gap-y-4">
       {CATALOGO_EMBLEMAS.map((e) => {
         const on = e.ganho(d)
         const Icon = resolveIcon(e.icone)
