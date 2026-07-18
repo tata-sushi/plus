@@ -19,7 +19,7 @@ const sugestoesCards = [
     to: '/treinamentos',
     badgeIcon: Flag,
     title: 'Desafios',
-    subtitle: 'Confira suas trilhas de aprendizados',
+    subtitle: 'Confira suas trilhas',
   },
   {
     to: '/recompensas',
