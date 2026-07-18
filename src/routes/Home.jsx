@@ -18,26 +18,26 @@ const sugestoesCards = [
   {
     to: '/treinamentos',
     badgeIcon: Flag,
-    title: 'Treinamentos',
+    title: 'Desafios',
     subtitle: 'Confira suas trilhas de aprendizados',
   },
   {
     to: '/recompensas',
     badgeIcon: Gift,
     title: 'Recompensas',
-    subtitle: 'Conheça nossas recompensas',
+    subtitle: 'Conheça nossas recompensas e resgate a sua',
   },
   {
     badgeIcon: Star,
-    title: 'Avaliação do cardápio',
-    subtitle: 'Avalie o cardápio do dia',
+    title: 'Tatá House',
+    subtitle: 'Avalie a refeição do dia',
     emBreve: true,
   },
   {
     to: '/organograma',
     badgeIcon: Network,
     title: 'Organograma',
-    subtitle: 'Veja a estrutura do time',
+    subtitle: 'Conheça nossos líderes',
   },
 ]
 

@@ -1,5 +1,14 @@
 import { Link } from 'react-router-dom'
-import { Target, Trophy, Megaphone, Star, ChevronRight, PartyPopper, Cake } from 'lucide-react'
+import {
+  Target,
+  Trophy,
+  Megaphone,
+  Star,
+  ChevronRight,
+  PartyPopper,
+  Cake,
+  Newspaper,
+} from 'lucide-react'
 
 // Cada categoria tem um "template" de fundo (placeholder até chegarem as artes).
 // Quando houver imagem real, d.imagem_url entra por cima do gradiente.
@@ -41,22 +50,29 @@ export function DestaqueBanner({ d }) {
       {/* scrim para legibilidade do texto */}
       <span className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/10 to-transparent" />
 
+      {/* pílula da categoria — canto superior direito */}
+      <div className="absolute right-3 top-3 z-10">
+        {d.categoria === 'comunicado' && (
+          <span className="pill bg-accent text-black text-[10px] uppercase tracking-wide">
+            <Megaphone size={12} /> Comunicado
+          </span>
+        )}
+        {d.categoria === 'noticia' && (
+          <span className="pill bg-accent text-black text-[10px] uppercase tracking-wide">
+            <Newspaper size={12} /> Notícia
+          </span>
+        )}
+        {d.categoria === 'aniversario' && (
+          <span className="pill bg-pink-500 text-white text-[10px] uppercase tracking-wide">
+            <Cake size={12} /> Aniversário
+          </span>
+        )}
+      </div>
+
       {/* conteúdo */}
       <div className="absolute inset-0 flex flex-col justify-end gap-2.5 p-5">
         <div>
-          {d.categoria === 'comunicado' && (
-            <span className="pill w-fit bg-accent text-black text-[10px] uppercase tracking-wide">
-              <Megaphone size={12} /> Comunicado
-            </span>
-          )}
-          {d.categoria === 'aniversario' && (
-            <span className="pill w-fit bg-pink-500 text-white text-[10px] uppercase tracking-wide">
-              <Cake size={12} /> Aniversário
-            </span>
-          )}
-          <div className="mt-1.5 font-display text-lg font-bold leading-snug text-white">
-            {d.titulo}
-          </div>
+          <div className="font-display text-lg font-bold leading-snug text-white">{d.titulo}</div>
           {d.texto && <div className="mt-1 line-clamp-2 text-xs text-white/75">{d.texto}</div>}
         </div>
         {d.cta_label && (
