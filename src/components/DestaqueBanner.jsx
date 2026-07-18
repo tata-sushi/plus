@@ -27,6 +27,9 @@ const TEMPLATES = {
 export function DestaqueBanner({ d }) {
   const tpl = TEMPLATES[d.template] || TEMPLATES.comunicado
   const Icon = tpl.Icon
+  // No card de aniversário a mensagem é o conteúdo principal, então ela vem
+  // maior e com mais linhas; nos demais é só um subtítulo compacto.
+  const ehAniver = d.template === 'aniversario'
 
   return (
     <Link
@@ -73,7 +76,17 @@ export function DestaqueBanner({ d }) {
       <div className="absolute inset-0 flex flex-col justify-end gap-2.5 p-5">
         <div>
           <div className="font-display text-lg font-bold leading-snug text-white">{d.titulo}</div>
-          {d.texto && <div className="mt-1 line-clamp-2 text-xs text-white/75">{d.texto}</div>}
+          {d.texto && (
+            <div
+              className={
+                ehAniver
+                  ? 'mt-1.5 line-clamp-5 text-sm leading-snug text-white/90'
+                  : 'mt-1 line-clamp-2 text-xs text-white/75'
+              }
+            >
+              {d.texto}
+            </div>
+          )}
         </div>
         {d.cta_label && (
           <span className="hstack w-fit gap-1.5 rounded-pill bg-white px-4 py-2 text-xs font-bold text-black">
