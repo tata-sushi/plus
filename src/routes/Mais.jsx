@@ -165,7 +165,7 @@ export function Mais() {
                   <Icon size={18} />
                 </div>
                 <span className="flex-1 text-sm font-semibold">{i.label}</span>
-                <ChevronRight size={16} className="text-muted" />
+                <ChevronRight size={16} className="text-carbon" />
               </Link>
             )
           })}
@@ -179,7 +179,7 @@ export function Mais() {
               <ShieldCheck size={18} />
             </div>
             <span className="flex-1 text-sm font-semibold">Painel de administração</span>
-            <ChevronRight size={16} className="text-muted" />
+            <ChevronRight size={16} className="text-carbon" />
           </Link>
         </Section>
       )}
