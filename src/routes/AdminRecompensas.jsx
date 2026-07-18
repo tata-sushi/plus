@@ -30,6 +30,10 @@ import { supabase } from '../lib/supabase.js'
 const fmt = (n) => Number(n || 0).toLocaleString('pt-BR')
 const TAM_MAX = 15 * 1024 * 1024 // 15 MB
 
+// filtro (lista suspensa) no padrão da aba Avisos
+const filtroCls =
+  'min-w-0 flex-1 rounded-card border border-line bg-surface px-3 py-2 text-xs text-text outline-none'
+
 const STATUS_PEDIDO = {
   solicitado: { label: 'Solicitado', Icon: Clock, cls: 'bg-warn/15 text-warn' },
   entregue: { label: 'Entregue', Icon: Check, cls: 'bg-accent-soft text-accent' },
@@ -78,6 +82,9 @@ export function AdminRecompensas() {
   const admin = usuario?.podePublicar
 
   const [aba, setAba] = useState('catalogo') // 'catalogo' | 'pedidos'
+  const [filtroCat, setFiltroCat] = useState('todas') // todas | ativas | inativas
+  const [filtroPed, setFiltroPed] = useState('todos') // todos | solicitado | entregue | cancelado
+  const [filtroEnv, setFiltroEnv] = useState('todos') // todos | pendente | aprovado | reprovado
   const [itens, setItens] = useState([])
   const [carregando, setCarregando] = useState(true)
   const [editando, setEditando] = useState(null) // objeto do formulário ou null
@@ -178,6 +185,13 @@ export function AdminRecompensas() {
   }
 
   const pendentes = pedidos.filter((p) => p.status === 'solicitado').length
+
+  // listas filtradas pela lista suspensa de cada aba
+  const itensView = itens.filter(
+    (i) => filtroCat === 'todas' || (filtroCat === 'ativas' ? i.ativo : !i.ativo),
+  )
+  const pedidosView = pedidos.filter((p) => filtroPed === 'todos' || p.status === filtroPed)
+  const enviosView = envios.filter((e) => filtroEnv === 'todos' || e.status === filtroEnv)
 
   function limparFoto() {
     if (previewUrl) URL.revokeObjectURL(previewUrl)
@@ -327,19 +341,7 @@ export function AdminRecompensas() {
 
   return (
     <>
-      <Header
-        title="Administração"
-        right={
-          aba === 'catalogo' ? (
-            <button
-              onClick={() => abrir(null)}
-              className="hstack gap-1.5 rounded-full bg-accent px-3.5 py-2 text-xs font-semibold text-black tap"
-            >
-              <Plus size={15} /> Nova
-            </button>
-          ) : null
-        }
-      />
+      <Header title="Administração" />
 
       <div className="hstack gap-2 px-5 pt-1 text-sm">
         <button onClick={() => navigate('/mais')} className="hstack gap-1 text-muted tap">
@@ -412,20 +414,33 @@ export function AdminRecompensas() {
       {aba === 'comunicados' ? (
         <AdminPublicacoes />
       ) : aba === 'envios' ? (
-        carregandoEnvios ? (
+        <>
+          <div className="hstack gap-2 px-5 pt-4">
+            <select
+              value={filtroEnv}
+              onChange={(e) => setFiltroEnv(e.target.value)}
+              className={filtroCls}
+            >
+              <option value="todos">Todos os status</option>
+              <option value="pendente">Pendentes</option>
+              <option value="aprovado">Aprovados</option>
+              <option value="reprovado">Reprovados</option>
+            </select>
+          </div>
+          {carregandoEnvios ? (
           <div className="hstack justify-center py-16 text-muted-2">
             <Loader2 size={22} className="animate-spin" />
           </div>
         ) : (
-          <Section className="mt-4" title={`Envios (${envios.length})`}>
-            {envios.length === 0 ? (
+          <Section className="mt-4" title={`Envios (${enviosView.length})`}>
+            {enviosView.length === 0 ? (
               <div className="card p-8 text-center text-sm text-muted">
                 Nenhum envio ainda. Quando alguém anexar um arquivo num desafio de envio,
                 aparece aqui pra você aprovar ou reprovar.
               </div>
             ) : (
               <div className="flex flex-col gap-2.5">
-                {envios.map((env) => {
+                {enviosView.map((env) => {
                   const st = STATUS_ENVIO[env.status] || STATUS_ENVIO.pendente
                   const StIcon = st.Icon
                   const ocupado = acaoEnvio === env.id
@@ -497,22 +512,36 @@ export function AdminRecompensas() {
               </div>
             )}
           </Section>
-        )
+          )}
+        </>
       ) : aba === 'pedidos' ? (
-        carregandoPedidos ? (
+        <>
+          <div className="hstack gap-2 px-5 pt-4">
+            <select
+              value={filtroPed}
+              onChange={(e) => setFiltroPed(e.target.value)}
+              className={filtroCls}
+            >
+              <option value="todos">Todos os status</option>
+              <option value="solicitado">Solicitados</option>
+              <option value="entregue">Entregues</option>
+              <option value="cancelado">Cancelados</option>
+            </select>
+          </div>
+          {carregandoPedidos ? (
           <div className="hstack justify-center py-16 text-muted-2">
             <Loader2 size={22} className="animate-spin" />
           </div>
         ) : (
-          <Section className="mt-4" title={`Pedidos (${pedidos.length})`}>
-            {pedidos.length === 0 ? (
+          <Section className="mt-4" title={`Pedidos (${pedidosView.length})`}>
+            {pedidosView.length === 0 ? (
               <div className="card p-8 text-center text-sm text-muted">
                 Nenhum pedido ainda. Quando alguém resgatar uma recompensa, aparece aqui pra você
                 entregar.
               </div>
             ) : (
               <div className="flex flex-col gap-2.5">
-                {pedidos.map((pd) => {
+                {pedidosView.map((pd) => {
                   const st = STATUS_PEDIDO[pd.status] || STATUS_PEDIDO.solicitado
                   const StIcon = st.Icon
                   const ocupado = acaoId === pd.id
@@ -577,21 +606,41 @@ export function AdminRecompensas() {
               </div>
             )}
           </Section>
-        )
-      ) : carregando ? (
+          )}
+        </>
+      ) : (
+        <>
+          <div className="hstack gap-2 px-5 pt-4">
+            <button
+              onClick={() => abrir(null)}
+              className="btn-primary shrink-0 !px-3 !py-2 text-xs"
+            >
+              <Plus size={15} /> Nova
+            </button>
+            <select
+              value={filtroCat}
+              onChange={(e) => setFiltroCat(e.target.value)}
+              className={filtroCls}
+            >
+              <option value="todas">Todas</option>
+              <option value="ativas">Ativas</option>
+              <option value="inativas">Inativas</option>
+            </select>
+          </div>
+          {carregando ? (
         <div className="hstack justify-center py-16 text-muted-2">
           <Loader2 size={22} className="animate-spin" />
         </div>
       ) : (
-        <Section className="mt-4" title={`Catálogo (${itens.length})`}>
-          {itens.length === 0 ? (
+        <Section className="mt-4" title={`Catálogo (${itensView.length})`}>
+          {itensView.length === 0 ? (
             <div className="card p-8 text-center text-sm text-muted">
               Nenhuma recompensa cadastrada. Toque em <span className="font-semibold">Nova</span> pra
               criar a primeira.
             </div>
           ) : (
             <div className="flex flex-col gap-2.5">
-              {itens.map((item) => (
+              {itensView.map((item) => (
                 <Card key={item.id} className={cn('!p-3', !item.ativo && 'opacity-60')}>
                   <div className="hstack gap-3">
                     <div className="grid h-14 w-14 shrink-0 place-items-center overflow-hidden rounded-2xl bg-accent-soft text-2xl">
@@ -643,6 +692,8 @@ export function AdminRecompensas() {
             </div>
           )}
         </Section>
+          )}
+        </>
       )}
 
       {/* Editor */}

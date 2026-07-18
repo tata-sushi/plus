@@ -40,7 +40,7 @@ export function GerenciarAtalhos() {
       <Voltar />
 
       <Section className="mt-3">
-        <p className="mb-3 text-sm text-muted">
+        <p className="mb-3 text-center text-sm text-muted">
           Fixe até {MAX_PAGINAS_FIXADAS} páginas do portal de governança para acesso rápido.
         </p>
         <div className="card overflow-hidden">

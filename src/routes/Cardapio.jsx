@@ -1,5 +1,6 @@
 import { CalendarDays } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
+import { Voltar } from '../components/Voltar.jsx'
 import { Section } from '../components/Section.jsx'
 import { Card } from '../components/Card.jsx'
 import { resolveIcon } from '../lib/icons.js'
@@ -66,6 +67,7 @@ export function Cardapio() {
   return (
     <>
       <Header />
+      <Voltar />
 
       <div className="mt-2 px-5">
         <div className="hstack justify-center gap-2 text-xs font-semibold text-muted">
