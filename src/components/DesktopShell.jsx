@@ -13,6 +13,8 @@ import {
 import { cn } from '../lib/cn'
 import { useAuth } from '../lib/AuthContext.jsx'
 import { DesktopCanvasContext } from '../lib/desktopCanvas.js'
+import { Ouvidoria } from '../routes/Ouvidoria.jsx'
+import { AdminRecompensas } from '../routes/AdminRecompensas.jsx'
 
 // Páginas que ocupam a área principal (só para quem tem Governança).
 const CANVAS = {
@@ -22,17 +24,16 @@ const CANVAS = {
 
 // Shell de desktop: navegação dupla.
 // [ rail de ícones ] [ painel do app (retrátil) ] [ área principal ]
-// Rail = mesmos itens da barra de baixo do app (Início, Ranking, Feed,
-// Portal/Ouvidoria, Mais). Recompensas e Admin ficam nos lugares de sempre
-// (Home e dentro do Mais). Área principal: portal (padrão, p/ Governança) ou
-// organograma (aberto pelo atalho da Home); para os demais, o logo grande.
+// Rail = itens da barra de baixo do app. Área principal: portal (padrão, p/
+// Governança) ou logo grande; e, por cima, o que for aberto no centro
+// (organograma pela Home, Ouvidoria e Admin pelo Mais/rail).
 export function DesktopShell() {
   const location = useLocation()
   const { usuario } = useAuth()
   const gov = !!usuario?.governanca?.tem
 
   const [aberto, setAberto] = useState(() => localStorage.getItem('tp_painel') !== '0')
-  // null = padrão (portal p/ gov, logo p/ demais); 'organograma' = organograma
+  // null = padrão (portal p/ gov, logo p/ demais); senão 'organograma' | 'ouvidoria' | 'admin'
   const [canvas, setCanvas] = useState(null)
   // Nó da área central — páginas de conteúdo (ex.: desafio aberto) podem abrir
   // aqui via portal, em vez de tomar a tela toda.
@@ -45,14 +46,13 @@ export function DesktopShell() {
     })
   }
 
-  // Espelha a barra de baixo do app. Para quem tem Governança o portal já é o
-  // padrão da área principal (e o "Voltar" do organograma retorna a ele), então
-  // não há botão de portal no rail. Quem não tem Governança vê a Ouvidoria.
+  // Espelha a barra de baixo do app. Quem não tem Governança abre a Ouvidoria no
+  // centro (canvasKey); os demais itens navegam no painel.
   const itens = [
     { to: '/', label: 'Início', Icon: Home, end: true },
     { to: '/ranking', label: 'Ranking', Icon: Trophy },
     { to: '/comunidade', label: 'Feed', Icon: Newspaper },
-    ...(gov ? [] : [{ to: '/ouvidoria', label: 'Ouvidoria', Icon: Ear }]),
+    ...(gov ? [] : [{ canvasKey: 'ouvidoria', label: 'Ouvidoria', Icon: Ear }]),
     { to: '/mais', label: 'Mais', Icon: Menu },
   ]
 
@@ -80,6 +80,20 @@ export function DesktopShell() {
           <div className="flex flex-1 flex-col items-center gap-1.5">
             {itens.map((it) => {
               const Icon = it.Icon
+              if (it.canvasKey) {
+                const ativo = canvas === it.canvasKey
+                return (
+                  <button
+                    key={it.canvasKey}
+                    onClick={() => setCanvas(it.canvasKey)}
+                    title={it.label}
+                    aria-label={it.label}
+                    className={cn(railBtn, ativo ? 'bg-accent-soft text-accent' : 'text-carbon hover:text-text')}
+                  >
+                    <Icon size={21} strokeWidth={ativo ? 2.4 : 2} />
+                  </button>
+                )
+              }
               return (
                 <NavLink
                   key={it.to}
@@ -115,40 +129,15 @@ export function DesktopShell() {
 
         {/* Área principal */}
         <section ref={setCanvasEl} className="relative flex flex-1 flex-col bg-bg">
-          {/* Portal — fica montado (p/ gov) e some quando o organograma abre */}
-          {gov && (
+          {/* Base: portal (gov) ou logo grande (demais) */}
+          {gov ? (
             <iframe
               src={CANVAS.portal}
               title="Portal de Governança"
-              className={cn(
-                'absolute inset-0 h-full w-full border-0 bg-white',
-                canvas === 'organograma' && 'hidden',
-              )}
+              className="absolute inset-0 h-full w-full border-0 bg-white"
               allow="clipboard-write; camera; microphone; geolocation; fullscreen"
             />
-          )}
-
-          {/* Organograma — aberto pelo atalho da Home, dentro do app */}
-          {canvas === 'organograma' && (
-            <>
-              <iframe
-                src={CANVAS.organograma}
-                title="Organograma"
-                className="absolute inset-0 h-full w-full border-0 bg-white"
-                allow="clipboard-write; fullscreen"
-              />
-              <button
-                onClick={() => setCanvas(null)}
-                className="absolute left-3 top-3 z-10 hstack gap-1.5 rounded-pill px-3 py-1.5 text-xs font-semibold text-white tap"
-                style={{ background: '#35383F', boxShadow: '0 4px 16px rgba(0,0,0,0.18)' }}
-              >
-                <ArrowLeft size={14} color="#CFFF00" /> Voltar
-              </button>
-            </>
-          )}
-
-          {/* Sem Governança e sem organograma: logo grande */}
-          {!gov && canvas !== 'organograma' && (
+          ) : (
             <div className="flex flex-1 flex-col items-center justify-center gap-5 px-8 text-center">
               <img src="/icons/logo-mark.png" alt="Tatá Plus" className="logo-dark h-24 w-auto opacity-90" />
               <img src="/icons/logo-mark-light.png" alt="Tatá Plus" className="logo-light h-24 w-auto opacity-90" />
@@ -157,6 +146,40 @@ export function DesktopShell() {
                   TATÁ<span className="text-accent"> PLUS</span>
                 </div>
                 <div className="mt-1 text-sm text-muted">Portal do colaborador</div>
+              </div>
+            </div>
+          )}
+
+          {/* Aberto no centro por cima: organograma / ouvidoria / admin */}
+          {canvas && (
+            <div className="absolute inset-0 z-20 flex flex-col bg-bg">
+              <div className="flex shrink-0 items-center border-b border-line px-3 py-2">
+                <button
+                  onClick={() => setCanvas(null)}
+                  className="hstack gap-1.5 rounded-full bg-surface px-3.5 py-2 text-xs font-semibold tap"
+                >
+                  <ArrowLeft size={15} /> Voltar
+                </button>
+              </div>
+              <div className="min-h-0 flex-1">
+                {canvas === 'organograma' && (
+                  <iframe
+                    src={CANVAS.organograma}
+                    title="Organograma"
+                    className="h-full w-full border-0 bg-white"
+                    allow="clipboard-write; fullscreen"
+                  />
+                )}
+                {canvas === 'ouvidoria' && (
+                  <div className="h-full overflow-y-auto">
+                    <Ouvidoria />
+                  </div>
+                )}
+                {canvas === 'admin' && (
+                  <div className="h-full overflow-y-auto">
+                    <AdminRecompensas />
+                  </div>
+                )}
               </div>
             </div>
           )}
