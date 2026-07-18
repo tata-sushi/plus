@@ -1,7 +1,8 @@
 import { useEffect } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 import { BottomNav } from './BottomNav'
-import { cn } from '../lib/cn'
+import { DesktopShell } from './DesktopShell.jsx'
+import { useDesktop } from '../lib/useDesktop.js'
 import { estadoPush, ativarPush } from '../lib/push.js'
 
 // Rotas em tela cheia, sem a barra de navegação (ex.: organograma em paisagem).
@@ -12,6 +13,7 @@ const SEM_NAV = ['/organograma', '/governanca', '/perfil-disc']
 // routes/Organograma.jsx), então aqui não é preciso mexer em orientação.
 export function AppShell() {
   const location = useLocation()
+  const desktop = useDesktop()
   // Rotas fixas ficam em tela cheia (sem a barra de navegação).
   const semNav = SEM_NAV.includes(location.pathname)
 
@@ -27,12 +29,27 @@ export function AppShell() {
     })
   }, [])
 
+  // Telas cheias (organograma, governança, DISC) ocupam tudo em qualquer tamanho.
+  if (semNav) {
+    return (
+      <div className="min-h-[100dvh] bg-bg">
+        <main key={location.pathname} className="animate-page">
+          <Outlet />
+        </main>
+      </div>
+    )
+  }
+
+  // Desktop: navegação dupla (painel do app + portal/organograma na área grande).
+  if (desktop) return <DesktopShell />
+
+  // Celular: coluna única com a barra de navegação embaixo.
   return (
     <div className="min-h-[100dvh] bg-bg">
-      <main key={location.pathname} className={cn('animate-page', !semNav && 'pb-24')}>
+      <main key={location.pathname} className="animate-page pb-24">
         <Outlet />
       </main>
-      {!semNav && <BottomNav />}
+      <BottomNav />
     </div>
   )
 }

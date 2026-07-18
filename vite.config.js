@@ -43,6 +43,11 @@ export default defineConfig({
         related_applications: [
           { platform: 'webapp', url: 'https://plus.tatasushi.tech/manifest.webmanifest' },
         ],
+        // Esquema próprio para "abrir o app": quando o PWA está instalado, o
+        // navegador (Android/Chromium e desktop) registra este handler, e um
+        // link web+tataplus:// abre o aplicativo. Base do botão "Abrir aplicativo"
+        // na tela de já-instalado. Sem efeito no iOS.
+        protocol_handlers: [{ protocol: 'web+tataplus', url: '/?abrir=%s' }],
         icons: [
           { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
           { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
