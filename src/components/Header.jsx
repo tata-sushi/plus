@@ -6,10 +6,19 @@ export function Header({ right }) {
     <header className="safe-top sticky top-0 z-30 bg-bg/90 backdrop-blur border-b border-line">
       <div className="flex items-center justify-between px-5 py-3">
         <Link to="/" className="hstack gap-2">
+          {/* Logo por contraste: marca clara (verde vivo) no escuro,
+              marca fechada (verde escuro) no claro. */}
           <img
             src="/icons/logo-mark.png"
             alt="Tatá"
-            className="h-9 w-auto"
+            className="logo-dark h-9 w-auto"
+            width={114}
+            height={128}
+          />
+          <img
+            src="/icons/logo-mark-light.png"
+            alt="Tatá"
+            className="logo-light h-9 w-auto"
             width={114}
             height={128}
           />
