@@ -247,13 +247,13 @@ export function AdminPublicacoes() {
       ) : (
         <Section
           className="mt-4"
-          title={`${verArquivados ? 'Arquivados' : 'Publicações'} (${lista.length})`}
+          title={`${verArquivados ? 'Arquivados' : 'Anúncios'} (${lista.length})`}
         >
           {lista.length === 0 ? (
             <div className="card p-8 text-center text-sm text-muted">
               {verArquivados
                 ? 'Nada arquivado aqui.'
-                : 'Nenhuma publicação. Toque em Novo comunicado pra criar.'}
+                : 'Nenhum anúncio ainda. Toque em Novo pra criar.'}
             </div>
           ) : (
             <div className="flex flex-col gap-2.5">
@@ -362,7 +362,7 @@ export function AdminPublicacoes() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
           <div className="flex max-h-[85dvh] w-full max-w-md flex-col rounded-card border border-line bg-surface">
             <div className="hstack justify-between border-b border-line px-5 py-3.5">
-              <div className="font-display text-base font-bold">Novo comunicado</div>
+              <div className="font-display text-base font-bold">Novo anúncio</div>
               <button onClick={fecharForm} className="text-muted tap" aria-label="Fechar">
                 <X size={20} />
               </button>
