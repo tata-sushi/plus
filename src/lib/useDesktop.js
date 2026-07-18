@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 
-// True quando a tela é larga (desktop). Usado para trocar o layout de coluna
-// única (celular) pelo shell de duas colunas (painel do app + portal).
-const CONSULTA = '(min-width: 1024px)'
+// True quando a tela é larga o bastante para o shell de duas colunas (painel do
+// app + portal). Abaixo disso fica o layout vertical (celular, barra de baixo).
+const CONSULTA = '(min-width: 640px)'
 
 export function useDesktop() {
   const [desktop, setDesktop] = useState(

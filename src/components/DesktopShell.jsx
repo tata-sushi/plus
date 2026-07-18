@@ -102,10 +102,10 @@ export function DesktopShell() {
       <div
         className={cn(
           'shrink-0 overflow-y-auto bg-bg transition-[width] duration-200 ease-out',
-          aberto ? 'w-[400px] border-r border-line' : 'w-0',
+          aberto ? 'w-[340px] border-r border-line lg:w-[400px]' : 'w-0',
         )}
       >
-        <div className="w-[400px]">
+        <div className="w-[340px] lg:w-[400px]">
           <main key={location.pathname} className="animate-page pb-8">
             <Outlet />
           </main>
