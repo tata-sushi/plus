@@ -25,7 +25,6 @@ import { RecompensaFoto } from '../components/RecompensaFoto.jsx'
 import { PhotoCropper } from '../components/PhotoCropper.jsx'
 import { AdminPublicacoes } from '../components/AdminPublicacoes.jsx'
 import { AdminConquistas } from '../components/AdminConquistas.jsx'
-import { AdminAniversarios } from '../components/AdminAniversarios.jsx'
 import { cn } from '../lib/cn'
 import { tapHaptic } from '../lib/haptics.js'
 import { useAuth } from '../lib/AuthContext.jsx'
@@ -465,21 +464,10 @@ export function AdminRecompensas() {
           >
             Conquistas
           </button>
-          <button
-            onClick={() => setAba('aniversario')}
-            className={cn(
-              'shrink-0 rounded-2xl px-4 py-2.5 text-xs font-semibold tap',
-              aba === 'aniversario' ? 'bg-accent text-black' : 'text-muted',
-            )}
-          >
-            Aniversário
-          </button>
         </div>
       </div>
 
-      {aba === 'aniversario' ? (
-        <AdminAniversarios />
-      ) : aba === 'conquistas' ? (
+      {aba === 'conquistas' ? (
         <AdminConquistas />
       ) : aba === 'comunicados' ? (
         <AdminPublicacoes />

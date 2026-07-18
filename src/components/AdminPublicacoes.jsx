@@ -14,13 +14,27 @@ import {
   Megaphone,
   Archive,
   ArchiveRestore,
+  ArrowLeft,
+  ChevronRight,
+  Cake,
+  Target,
+  Trophy,
+  Star,
 } from 'lucide-react'
 import { Section } from './Section.jsx'
 import { Card } from './Card.jsx'
+import { AdminAniversarios } from './AdminAniversarios.jsx'
 import { cn } from '../lib/cn'
 import { tapHaptic } from '../lib/haptics.js'
 import { useAuth } from '../lib/AuthContext.jsx'
 import { supabase } from '../lib/supabase.js'
+
+// Destaques automáticos com liga/desliga simples (aniversário tem tela própria).
+const AUTO_TOGGLES = [
+  { chave: 'desafio', label: 'Desafios', desc: 'Desafio liberado hoje e desafios pendentes', Icon: Target },
+  { chave: 'ranking', label: 'Ranking', desc: 'Posição da pessoa no ranking', Icon: Trophy },
+  { chave: 'saldo', label: 'Saldo de pontos', desc: 'Saldo da carteira de recompensas', Icon: Star },
+]
 
 const TAM_MAX = 15 * 1024 * 1024 // 15 MB
 
@@ -41,6 +55,8 @@ export function AdminPublicacoes() {
   const [filtroTipo, setFiltroTipo] = useState('todos')
   const [verArquivados, setVerArquivados] = useState(false)
   const [opcoes, setOpcoes] = useState({ unidades: [], departamentos: [] })
+  const [auto, setAuto] = useState([]) // liga/desliga dos destaques automáticos
+  const [verAniver, setVerAniver] = useState(false) // sub-tela de aniversário
 
   const [form, setForm] = useState(false)
   const [titulo, setTitulo] = useState('')
@@ -71,7 +87,24 @@ export function AdminPublicacoes() {
     supabase.rpc('segmentacao_opcoes').then(({ data }) => {
       if (data) setOpcoes({ unidades: data.unidades || [], departamentos: data.departamentos || [] })
     })
+    supabase.rpc('admin_destaque_estado').then(({ data }) => {
+      if (data) setAuto(data)
+    })
   }, [carregar])
+
+  const ativoAuto = (chave) => auto.find((a) => a.chave === chave)?.ativo ?? true
+
+  async function alternarAuto(chave) {
+    tapHaptic()
+    const novo = !ativoAuto(chave)
+    setAuto((prev) =>
+      prev.some((a) => a.chave === chave)
+        ? prev.map((a) => (a.chave === chave ? { ...a, ativo: novo } : a))
+        : [...prev, { chave, ativo: novo }],
+    )
+    const { error } = await supabase.rpc('admin_destaque_toggle', { p_chave: chave, p_ativo: novo })
+    if (error) setAuto((prev) => prev.map((a) => (a.chave === chave ? { ...a, ativo: !novo } : a)))
+  }
 
   function alternarLista(setter, valor) {
     setter((arr) => (arr.includes(valor) ? arr.filter((x) => x !== valor) : [...arr, valor]))
@@ -211,8 +244,78 @@ export function AdminPublicacoes() {
       (filtroTipo === 'todos' || p.tipo === filtroTipo),
   )
 
+  // Sub-tela: gestão do aniversário (imagens + mensagens + liga/desliga)
+  if (verAniver) {
+    return (
+      <>
+        <div className="px-5 pt-4">
+          <button
+            onClick={() => setVerAniver(false)}
+            className="hstack gap-1 text-sm text-muted tap"
+          >
+            <ArrowLeft size={16} /> Anúncios
+          </button>
+        </div>
+        <AdminAniversarios />
+      </>
+    )
+  }
+
   return (
     <>
+      {/* Automáticos — aparecem sozinhos por condição; aqui só o liga/desliga */}
+      <div className="px-5 pt-4">
+        <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-2">
+          Automáticos
+        </div>
+        <div className="card divide-y divide-line p-0">
+          {/* Aniversário tem tela própria (imagens + mensagens) */}
+          <button
+            onClick={() => setVerAniver(true)}
+            className="hstack w-full items-center gap-3 px-4 py-3 text-left tap"
+          >
+            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-pink-500/15 text-pink-400">
+              <Cake size={18} />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-sm font-semibold">Aniversário</span>
+              <span className="block text-[11px] text-muted-2">Imagens, mensagens e liga/desliga</span>
+            </span>
+            <ChevronRight size={18} className="shrink-0 text-muted-2" />
+          </button>
+
+          {AUTO_TOGGLES.map(({ chave, label, desc, Icon }) => {
+            const on = ativoAuto(chave)
+            return (
+              <div key={chave} className="hstack items-center gap-3 px-4 py-3">
+                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-accent-soft text-accent">
+                  <Icon size={18} />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block text-sm font-semibold">{label}</span>
+                  <span className="block text-[11px] text-muted-2">{desc}</span>
+                </span>
+                <button
+                  onClick={() => alternarAuto(chave)}
+                  className={cn(
+                    'relative h-6 w-10 shrink-0 rounded-full transition-colors tap',
+                    on ? 'bg-accent' : 'bg-surface-2',
+                  )}
+                  aria-label={on ? 'Desativar' : 'Ativar'}
+                >
+                  <span
+                    className={cn(
+                      'absolute top-0.5 h-5 w-5 rounded-full bg-white transition-all',
+                      on ? 'left-[18px]' : 'left-0.5',
+                    )}
+                  />
+                </button>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+
       {/* Ações + filtro numa linha: Novo · tipo · arquivar */}
       <div className="hstack gap-2 px-5 pt-4">
         <button onClick={abrirForm} className="btn-primary shrink-0 !px-3 !py-2 text-xs">
@@ -247,7 +350,7 @@ export function AdminPublicacoes() {
       ) : (
         <Section
           className="mt-4"
-          title={`${verArquivados ? 'Arquivados' : 'Anúncios'} (${lista.length})`}
+          title={`${verArquivados ? 'Arquivados' : 'Manuais'} (${lista.length})`}
         >
           {lista.length === 0 ? (
             <div className="card p-8 text-center text-sm text-muted">
