@@ -23,14 +23,6 @@ const CANVAS = {
   organograma: 'https://lideres.tatasushi.tech/compliance/areas/organograma2.html',
 }
 
-// Título mostrado na barra "Voltar" para cada abertura do centro.
-const TITULO_CANVAS = {
-  portal: 'Governança',
-  organograma: 'Organograma',
-  ouvidoria: 'Ouvidoria',
-  admin: 'Painel de administração',
-}
-
 // Shell de desktop: navegação dupla.
 // [ rail de ícones ] [ painel do app (retrátil) ] [ área principal ]
 // Rail = itens da barra de baixo do app. Área principal: portal (padrão, p/
@@ -40,6 +32,7 @@ export function DesktopShell() {
   const location = useLocation()
   const { usuario } = useAuth()
   const gov = !!usuario?.governanca?.tem
+  const primeiroNome = usuario?.primeiroNome || (usuario?.nome || '').trim().split(/\s+/)[0] || ''
 
   const [aberto, setAberto] = useState(() => localStorage.getItem('tp_painel') !== '0')
   // null = padrão (portal p/ gov, logo p/ demais); senão 'organograma' | 'ouvidoria' | 'admin'
@@ -150,28 +143,30 @@ export function DesktopShell() {
                 TATÁ<span className="text-accent"> PLUS</span>
               </div>
               <div className="mt-1 text-sm text-muted">Portal do colaborador</div>
-              <p className="mt-4 text-sm leading-relaxed text-muted-2">
-                Bem-vindo(a)! Este é o aplicativo dos colaboradores Tatá — reconhecimento,
-                desafios, recompensas e comunicação num lugar só. Use o menu ao lado para navegar.
-              </p>
+              <div className="mt-5 space-y-3 text-sm leading-relaxed text-muted">
+                <p className="text-base font-semibold text-text">
+                  Bem-vindo(a){primeiroNome ? `, ${primeiroNome}` : ''}!
+                </p>
+                <p>Este é o aplicativo do Tatá Sushi.</p>
+                <p>
+                  Aqui você tem treinamentos, recompensas, comunicados e ferramentas do dia a dia
+                  em um só lugar.
+                </p>
+                <p className="italic text-muted-2">Use o menu lateral para navegação.</p>
+              </div>
             </div>
           </div>
 
           {/* Aberto no centro por cima: organograma / ouvidoria / admin / atalho de KPI */}
           {canvas && (
             <div className="absolute inset-0 z-20 flex flex-col bg-bg">
-              <div className="flex shrink-0 items-center gap-3 border-b border-line px-3 py-2">
+              <div className="flex shrink-0 items-center border-b border-line px-3 py-2">
                 <button
                   onClick={() => setCanvas(null)}
                   className="hstack shrink-0 gap-1.5 rounded-full bg-surface px-3.5 py-2 text-xs font-semibold tap"
                 >
                   <ArrowLeft size={15} /> Voltar
                 </button>
-                {(canvas.titulo || TITULO_CANVAS[canvas]) && (
-                  <span className="min-w-0 flex-1 truncate text-xs font-medium text-muted">
-                    {canvas.titulo || TITULO_CANVAS[canvas]}
-                  </span>
-                )}
               </div>
               <div className="min-h-0 flex-1">
                 {canvas === 'portal' && (
