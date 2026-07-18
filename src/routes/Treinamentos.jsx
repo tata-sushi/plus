@@ -60,6 +60,8 @@ function Detalhe({
   const [enviandoAvaliacao, setEnviandoAvaliacao] = useState(false)
   const [painelIdx, setPainelIdx] = useState(0) // painel atual no modo quadrinho
   const conteudoRef = useRef(null)
+  const toqueXRef = useRef(null) // início do toque (swipe no quadrinho)
+  const swipeRef = useRef(false) // houve swipe? (evita o clique duplicar a navegação)
 
   const nomeCompleto = (usuario?.nome || '').trim()
   const primeiroNome = usuario?.primeiroNome || nomeCompleto.split(/\s+/)[0] || ''
@@ -82,6 +84,16 @@ function Detalhe({
       ativo = false
     }
   }, [treino.id])
+
+  // Pré-carrega os painéis do quadrinho pra a navegação ficar fluida (sem esperar o load).
+  useEffect(() => {
+    const paineis = data?.avaliacao?.paineis
+    if (!Array.isArray(paineis)) return
+    paineis.forEach((url) => {
+      const im = new Image()
+      im.src = url
+    })
+  }, [data])
 
   // recarrega só os dados (ex.: depois de enviar o anexo, pra atualizar o status)
   const recarregar = useCallback(() => {
@@ -188,34 +200,54 @@ function Detalhe({
     // clicável, e é por ela que a pessoa sai. O rodapé reserva o espaço dela.
     return createPortal(
       <div className="fixed inset-0 z-20 flex select-none flex-col bg-black">
-        <div className="relative min-h-0 flex-1">
+        <div
+          className="relative min-h-0 flex-1"
+          onClick={(e) => {
+            if (swipeRef.current) {
+              swipeRef.current = false
+              return
+            }
+            const r = e.currentTarget.getBoundingClientRect()
+            const rel = (e.clientX - r.left) / r.width
+            if (rel < 0.4) {
+              if (!primeiro) setPainelIdx((i) => Math.max(0, i - 1))
+            } else if (!ultimo) {
+              setPainelIdx((i) => Math.min(paineis.length - 1, i + 1))
+            }
+          }}
+          onTouchStart={(e) => {
+            toqueXRef.current = e.touches[0].clientX
+            swipeRef.current = false
+          }}
+          onTouchEnd={(e) => {
+            const inicio = toqueXRef.current
+            toqueXRef.current = null
+            if (inicio == null) return
+            const dx = e.changedTouches[0].clientX - inicio
+            if (Math.abs(dx) < 40) return // foi toque, não swipe
+            swipeRef.current = true
+            if (dx < 0) {
+              if (!ultimo) setPainelIdx((i) => Math.min(paineis.length - 1, i + 1))
+            } else if (!primeiro) {
+              setPainelIdx((i) => Math.max(0, i - 1))
+            }
+          }}
+        >
           {paineis[idx] && (
             <img
               src={paineis[idx]}
               alt=""
               draggable="false"
-              className="h-full w-full object-contain"
-            />
-          )}
-          {/* zonas invisíveis de toque: esquerda volta, direita avança */}
-          {!primeiro && (
-            <button
-              onClick={() => setPainelIdx((i) => Math.max(0, i - 1))}
-              aria-label="Anterior"
-              className="absolute inset-y-0 left-0 w-2/5"
-            />
-          )}
-          {!ultimo && (
-            <button
-              onClick={() => setPainelIdx((i) => Math.min(paineis.length - 1, i + 1))}
-              aria-label="Próximo"
-              className="absolute inset-y-0 right-0 w-3/5"
+              className="pointer-events-none h-full w-full object-contain"
             />
           )}
           {/* MBTI: no último painel, começa o teste */}
           {ehPerfilMbti && ultimo && (
             <button
-              onClick={() => navigate('/perfil-mbti')}
+              onClick={(e) => {
+                e.stopPropagation()
+                navigate('/perfil-mbti')
+              }}
               className="btn-primary absolute inset-x-0 bottom-6 z-10 mx-auto w-max !px-6 !py-3 text-sm shadow-glow"
             >
               Começar o teste
