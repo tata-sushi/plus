@@ -155,7 +155,9 @@ export function Recompensas() {
                       </div>
                       <div className="mt-2 text-sm font-semibold leading-tight">{r.titulo}</div>
                       <div className="mt-1 hstack justify-between gap-1">
-                        <span className="text-xs font-semibold text-accent">{fmt(r.custo)} pts</span>
+                        <span className="text-xs font-semibold text-accent">
+                          {r.custo > 0 ? `${fmt(r.custo)} pts` : 'Grátis'}
+                        </span>
                         {r.estoque != null && r.estoque > 0 && (
                           <span className="text-[10px] text-muted-2">
                             {fmt(r.estoque)} restante{r.estoque === 1 ? '' : 's'}
@@ -168,7 +170,13 @@ export function Recompensas() {
                           r.pode ? 'bg-accent text-black' : 'bg-surface-2 text-muted',
                         )}
                       >
-                        {r.esgotado ? 'Esgotado' : r.pode ? 'Resgatar' : `Faltam ${fmt(falta)} pts`}
+                        {r.esgotado
+                          ? 'Esgotado'
+                          : r.pode
+                            ? 'Resgatar'
+                            : r.requer_desafio
+                              ? 'Conclua o desafio'
+                              : `Faltam ${fmt(falta)} pts`}
                       </div>
                     </Card>
                   )
@@ -236,7 +244,7 @@ export function Recompensas() {
 
               <div className="mt-3 hstack justify-between">
                 <span className="font-display text-lg font-bold text-accent">
-                  {fmt(aberto.custo)} pts
+                  {aberto.custo > 0 ? `${fmt(aberto.custo)} pts` : 'Grátis'}
                 </span>
                 <span className="text-xs font-medium text-muted">
                   {aberto.estoque == null
@@ -303,8 +311,12 @@ export function Recompensas() {
                   {aberto.esgotado
                     ? 'Esgotado'
                     : aberto.pode
-                      ? `Resgatar por ${fmt(aberto.custo)} pts`
-                      : `Faltam ${fmt(Math.max(0, aberto.custo - (saldo ?? 0)))} pts`}
+                      ? aberto.custo > 0
+                        ? `Resgatar por ${fmt(aberto.custo)} pts`
+                        : 'Resgatar'
+                      : aberto.requer_desafio
+                        ? 'Conclua o desafio'
+                        : `Faltam ${fmt(Math.max(0, aberto.custo - (saldo ?? 0)))} pts`}
                 </button>
               )}
             </div>

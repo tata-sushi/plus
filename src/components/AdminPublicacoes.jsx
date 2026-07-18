@@ -356,8 +356,8 @@ export function AdminPublicacoes() {
 
       {/* Editor de novo comunicado */}
       {form && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 sm:items-center">
-          <div className="flex max-h-[92dvh] w-full max-w-md flex-col rounded-t-card border border-line bg-surface sm:rounded-card">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+          <div className="flex max-h-[85dvh] w-full max-w-md flex-col rounded-card border border-line bg-surface">
             <div className="hstack justify-between border-b border-line px-5 py-3.5">
               <div className="font-display text-base font-bold">Novo comunicado</div>
               <button onClick={fecharForm} className="text-muted tap" aria-label="Fechar">

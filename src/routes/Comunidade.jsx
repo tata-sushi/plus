@@ -30,7 +30,6 @@ function ResgateCard({ post }) {
           <span className="font-semibold">{soPrimeiro(post.autor_nome)}</span>
           <span className="text-muted"> resgatou </span>
           <span className="font-semibold">{post.texto}</span>
-          <div className="text-[10px] text-muted-2">{tempoRelativo(post.created_at)}</div>
         </div>
         <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-accent-soft text-accent">
           <Gift size={14} />
@@ -94,6 +93,14 @@ function PostCard({ post, matricula, admin, meuNome, meuAvatar, onCurtir, onExcl
     ])
     setTotal((n) => n + 1)
     setNovo('')
+  }
+
+  async function excluirComentario(c) {
+    tapHaptic()
+    const { error } = await supabase.from('post_comentarios').delete().eq('id', c.id)
+    if (error) return
+    setComentarios((prev) => prev.filter((x) => x.id !== c.id))
+    setTotal((n) => Math.max(0, n - 1))
   }
 
   return (
@@ -161,18 +168,30 @@ function PostCard({ post, matricula, admin, meuNome, meuAvatar, onCurtir, onExcl
             </div>
           )}
           <div className="flex flex-col gap-3">
-            {comentarios.map((c) => (
-              <div key={c.id} className="hstack items-start gap-2">
-                <Avatar name={c.autor_nome || '—'} src={c.autor_avatar} size={28} />
-                <div className="min-w-0 flex-1 rounded-2xl bg-surface px-3 py-2">
-                  <div className="hstack gap-2">
-                    <span className="text-xs font-semibold">{soPrimeiro(c.autor_nome)}</span>
-                    <span className="text-[10px] text-muted-2">{tempoRelativo(c.created_at)}</span>
+            {comentarios.map((c) => {
+              const podeApagar = admin || c.autor_matricula === matricula
+              return (
+                <div key={c.id} className="hstack items-start gap-2">
+                  <Avatar name={c.autor_nome || '—'} src={c.autor_avatar} size={28} />
+                  <div className="min-w-0 flex-1 rounded-2xl bg-surface px-3 py-2">
+                    <div className="hstack gap-2">
+                      <span className="text-xs font-semibold">{soPrimeiro(c.autor_nome)}</span>
+                      <span className="text-[10px] text-muted-2">{tempoRelativo(c.created_at)}</span>
+                      {podeApagar && (
+                        <button
+                          onClick={() => excluirComentario(c)}
+                          className="ml-auto shrink-0 text-muted-2 tap"
+                          aria-label="Excluir comentário"
+                        >
+                          <Trash2 size={12} />
+                        </button>
+                      )}
+                    </div>
+                    <p className="mt-0.5 whitespace-pre-wrap text-sm">{c.texto}</p>
                   </div>
-                  <p className="mt-0.5 whitespace-pre-wrap text-sm">{c.texto}</p>
                 </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
 
           <form onSubmit={enviar} className="mt-3 hstack gap-2">
