@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { cn } from '../lib/cn'
 import { tapHaptic } from '../lib/haptics.js'
 
-export function Tabs({ tabs, value, onChange, defaultValue }) {
+export function Tabs({ tabs, value, onChange, defaultValue, className }) {
   const [internal, setInternal] = useState(defaultValue ?? tabs[0]?.value)
   const active = value ?? internal
 
@@ -13,7 +13,7 @@ export function Tabs({ tabs, value, onChange, defaultValue }) {
   }
 
   return (
-    <div className="px-5">
+    <div className={cn('px-5', className)}>
       <div className="flex items-center justify-center gap-2 overflow-x-auto pb-3 no-scrollbar">
         {tabs.map((t) => {
           const isActive = t.value === active

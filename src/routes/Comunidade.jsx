@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Heart, MessageCircle, Image as ImageIcon, Send, Loader2, Trash2, X } from 'lucide-react'
+import { Heart, MessageCircle, Image as ImageIcon, Send, Loader2, Trash2, X, Gift } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Card } from '../components/Card.jsx'
 import { Avatar } from '../components/Avatar.jsx'
@@ -15,6 +15,30 @@ const TAM_MAX = 15 * 1024 * 1024 // 15 MB
 
 // só o primeiro nome (nas postagens e comentários)
 const soPrimeiro = (n) => (n || 'Colaborador').split(/\s+/)[0]
+
+// Post automático de resgate — card compacto (metade do tamanho), sem ações.
+function ResgateCard({ post }) {
+  const navigate = useNavigate()
+  return (
+    <Card className="reveal !p-3">
+      <button
+        onClick={() => post.autor_matricula && navigate(`/perfil/${post.autor_matricula}`)}
+        className="hstack w-full gap-2.5 text-left tap"
+      >
+        <Avatar name={post.autor_nome || '—'} src={post.autor_avatar} size={30} />
+        <div className="min-w-0 flex-1 text-xs leading-snug">
+          <span className="font-semibold">{soPrimeiro(post.autor_nome)}</span>
+          <span className="text-muted"> resgatou </span>
+          <span className="font-semibold">{post.texto}</span>
+          <div className="text-[10px] text-muted-2">{tempoRelativo(post.created_at)}</div>
+        </div>
+        <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-accent-soft text-accent">
+          <Gift size={14} />
+        </span>
+      </button>
+    </Card>
+  )
+}
 
 function PostCard({ post, matricula, meuNome, meuAvatar, onCurtir, onExcluir }) {
   const navigate = useNavigate()
@@ -412,17 +436,21 @@ export function Comunidade() {
           </div>
         )}
 
-        {posts.map((post) => (
-          <PostCard
-            key={post.id}
-            post={post}
-            matricula={matricula}
-            meuNome={meuNome}
-            meuAvatar={meuAvatar}
-            onCurtir={curtir}
-            onExcluir={excluir}
-          />
-        ))}
+        {posts.map((post) =>
+          post.tipo === 'resgate' ? (
+            <ResgateCard key={post.id} post={post} />
+          ) : (
+            <PostCard
+              key={post.id}
+              post={post}
+              matricula={matricula}
+              meuNome={meuNome}
+              meuAvatar={meuAvatar}
+              onCurtir={curtir}
+              onExcluir={excluir}
+            />
+          ),
+        )}
       </div>
     </>
   )
