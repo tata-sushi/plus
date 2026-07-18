@@ -4,6 +4,8 @@ import { Plus, Pin } from 'lucide-react'
 import { Section } from './Section.jsx'
 import { resolveIcon } from '../lib/icons.js'
 import { tapHaptic } from '../lib/haptics.js'
+import { useDesktop } from '../lib/useDesktop.js'
+import { useDesktopCanvas } from '../lib/desktopCanvas.js'
 import { governancaCatalogo, MAX_PAGINAS_FIXADAS } from '../lib/mockData.js'
 
 export const ATALHOS_KEY = 'tata_gov_pinned'
@@ -29,6 +31,8 @@ export function loadPinned() {
 export function AtalhosGovernanca() {
   const [pinned] = useState(loadPinned)
   const fixadas = pinned.map((id) => governancaCatalogo.find((c) => c.id === id)).filter(Boolean)
+  const desktop = useDesktop()
+  const { setCanvas } = useDesktopCanvas()
 
   return (
     <Section className="mt-5" title="Atalhos">
@@ -36,15 +40,28 @@ export function AtalhosGovernanca() {
         <div className="grid grid-cols-1 gap-2">
           {fixadas.map((p) => {
             const Icon = resolveIcon(p.icon)
-            return (
-              <Link
-                key={p.id}
-                to={`/painel/${p.id}`}
-                onClick={tapHaptic}
-                className="hstack gap-2 rounded-pill border border-line bg-fill px-3.5 py-2.5 tap"
-              >
+            const cls = 'hstack gap-2 rounded-pill border border-line bg-fill px-3.5 py-2.5 tap'
+            const inner = (
+              <>
                 <Icon size={14} className="shrink-0 text-accent" />
                 <span className="min-w-0 flex-1 truncate text-xs font-semibold">{p.label}</span>
+              </>
+            )
+            // No desktop o atalho abre no quadrante central; no celular navega.
+            return desktop ? (
+              <button
+                key={p.id}
+                onClick={() => {
+                  tapHaptic()
+                  setCanvas({ tipo: 'painel', url: p.url, titulo: p.label })
+                }}
+                className={`w-full text-left ${cls}`}
+              >
+                {inner}
+              </button>
+            ) : (
+              <Link key={p.id} to={`/painel/${p.id}`} onClick={tapHaptic} className={cls}>
+                {inner}
               </Link>
             )
           })}
