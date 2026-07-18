@@ -37,33 +37,66 @@ src/
 ├── App.jsx                  # rotas
 ├── main.jsx                 # entry + registro do SW (BrowserRouter, sem basename)
 ├── index.css                # Tailwind + tokens + estilos do .conteudo (HTML dos desafios)
-├── components/              # design system + desafios
-│   ├── AppShell.jsx         # layout + bottom nav + trava de orientação por rota
+├── components/              # design system + desafios + admin
+│   ├── AppShell.jsx         # layout + bottom nav (rotas em tela cheia ficam sem nav)
 │   ├── BottomNav.jsx        # tabs: Início · Ranking · Feed · Governança|Ouvidoria · Mais
-│   ├── Header.jsx / Card.jsx / ProgressBar.jsx / ProgressRing.jsx / PromoCard.jsx
+│   ├── Header.jsx / Section.jsx / Card.jsx / Badge.jsx / Tabs.jsx / Voltar.jsx
+│   ├── ProgressBar.jsx / ProgressRing.jsx / PromoCard.jsx / Carrossel.jsx / Avatar.jsx
+│   ├── ProfileView.jsx / MeuPerfil.jsx / Conquistas.jsx / GradeEmblemas.jsx  # perfil + emblemas
+│   ├── AnalisesPerfil.jsx / SocialLinks.jsx / Notificacoes.jsx (sino + lista)
 │   ├── Submodulo.jsx        # bancadas: presença (mês), série sequencial, reconhecimento,
 │   │                        #   Metas & Prêmio (série de conteúdo mensal) e lista simples
 │   ├── IntroDesafio.jsx     # capa do desafio (título + frase)
 │   ├── ProvaDesafio.jsx     # quiz (correção no servidor)
-│   ├── EnvioDesafio.jsx     # upload moderado
+│   ├── EnvioDesafio.jsx     # upload moderado (bucket privado)
 │   ├── CodigoEtica.jsx      # leitura em blocos + prova/aceite/assinatura
-│   ├── LeituraProva.jsx / Avaliacao.jsx
-│   ├── VideosYouTube.jsx / VideoPlayer.jsx / PdfViewer.jsx
-│   └── AtalhosGovernanca.jsx
+│   ├── LeituraProva.jsx / Avaliacao.jsx / AssinaturaPad.jsx
+│   ├── VideosYouTube.jsx / VideoPlayer.jsx / PdfViewer.jsx / PhotoCropper.jsx
+│   ├── AtalhosGovernanca.jsx / DestaqueBanner.jsx / RecompensaFoto.jsx
+│   └── AdminPublicacoes.jsx / AdminConquistas.jsx  # componentes CRUD do painel admin
 ├── routes/
-│   ├── Home.jsx             # Início (grid Sugestões + Atalhos gov)
-│   ├── Comunicados.jsx / Treinamentos.jsx / Procedimentos.jsx / Jornada.jsx
-│   ├── Recompensas.jsx      # catálogo + painel admin
-│   ├── Mais.jsx
-│   ├── Governanca.jsx       # iframe do portal Líderes
+│   ├── Home.jsx             # Início (identificação + menu do dia + notícias + sugestões)
+│   ├── Ranking.jsx          # Colaboradores · Equipes · Líderes (filtros por unidade)
+│   ├── Comunidade.jsx       # Feed (posts, curtidas, comentários; moderação p/ admin)
+│   ├── Comunicados.jsx / Treinamentos.jsx
+│   ├── Jornada.jsx          # Meu perfil (ProfileView do usuário logado)
+│   ├── Perfil.jsx           # perfil público de outro colaborador
+│   ├── BuscarPessoas.jsx    # busca de colaboradores
+│   ├── Recompensas.jsx      # catálogo + resgate
+│   ├── AdminRecompensas.jsx # painel admin (Recompensas · Pedidos · Envios · Avisos · Conquistas)
+│   ├── Ouvidoria.jsx        # formulário nativo (replica ouvidoria.tatasushi.tech)
+│   ├── Manutencao.jsx       # Painel de Ajustes (notificações · contraste · senha)
+│   ├── GerenciarAtalhos.jsx # Atalhos de Governança (fixar páginas de KPI)
+│   ├── Cardapio.jsx         # cardápio da semana (conteúdo placeholder)
+│   ├── QuestionarioDisc.jsx # questionário DISC (tela cheia)
+│   ├── Mais.jsx / Login.jsx
+│   ├── Governanca.jsx       # iframe do portal Líderes (tela cheia)
 │   ├── Organograma.jsx      # iframe tela cheia (landscape) + botão flutuante
-│   └── RhFacil / AssistenteIa / Manutencao (placeholders)
+│   └── PainelExterno.jsx    # visualizador in-app das páginas de Governança
 └── lib/
-    ├── cn.js / haptics.js / icons.js (iconMap das trilhas)
+    ├── cn.js / haptics.js / tempo.js / signo.js / useCountUp.js
+    ├── icons.js             # iconMap (trilhas, áreas, emblemas)
+    ├── theme.js             # tema claro/escuro (data-theme no <html>)
+    ├── emblemas.js          # regras + avaliação client-side do catálogo de emblemas (DB-driven)
+    ├── disc.js              # apuração do perfil DISC
+    ├── push.js              # Web Push (VAPID)
     ├── supabase.js          # client
-    ├── AuthContext.jsx      # sessão + perfil do usuário
-    └── mockData.js          # dados ainda mockados (cardápio, catálogo gov, etc.)
+    ├── AuthContext.jsx      # sessão + perfil do usuário (pode_publicar, acesso_governanca)
+    └── mockData.js          # só config real (redes sociais, catálogo gov) + placeholders
+                             #   sem backend próprio (menu do dia, cardápio da semana)
 ```
+
+## Estado do backend (dados reais vs. placeholder)
+
+Todo dado de usuário/negócio vem do Supabase (schema `tata_plus`) — não há mais mock de
+usuário, ranking, feed, comunicados, recompensas, emblemas, notificações ou desafios. As
+telas e seus RPCs foram auditados: **toda chamada `supabase.rpc/from/storage/functions` do
+front resolve para um objeto existente no banco** (nenhuma referência quebrada).
+
+Restam como **conteúdo placeholder** (ainda sem backend próprio, a migrar quando a Tatá House
+tiver API): o **menu do dia** (Início) e o **cardápio da semana** (`/cardapio`), ambos em
+`src/lib/mockData.js`. As rotas mortas de placeholder (Procedimentos, RH Fácil, Assistente IA)
+foram removidas nesta limpeza pré-campo.
 
 ## Documentação
 
@@ -118,13 +151,17 @@ Detalhe por sessão em `docs/CONTEXTO.md` (§13–§14). Resumo:
 
 ## Próximos passos
 
-Roadmap e pendências vivas em `docs/CONTEXTO.md` (§11, §14). Em aberto no momento:
+App em **estado de teste em campo** — o núcleo (perfil, ranking, feed, recompensas, desafios,
+conquistas, comunicados, notificações, ouvidoria) está ligado ao backend e sem mock. Polimentos
+combinados para a reta final, antes/junto do piloto:
 
-- [ ] **Mecânica de formulário / texto livre** (desafio com campos de texto + escolha) — fecha os
-      4 itens de IE pendentes e as reflexões
-- [ ] **Análise de perfil** — tabela `perfil_colaborador` (genérica, jsonb) + questionários DISC e
-      MBTI (Desbravadores) com cálculo do perfil no servidor
-- [ ] Ponte de sessão da Governança (login único do app → portal Líderes) + servir o portal na mesma origem
-- [ ] Fase 2 RH nas Notícias (absenteísmo, sanções, banco de horas, gorjeta)
-- [ ] Painel admin: CRUD de treinamentos/atribuições/grupos
+- [ ] **Desafios por categoria** — organizar as trilhas em Gente & Gestão, Soft Skill, Feedback e
+      Especiais (fechar a mecânica de formulário / texto livre que falta em IE)
+- [ ] **Comunicados / Notícias** — afinar a gestão e a exibição (fluxo de publicação + destaques)
+- [ ] **Cardápio** — dar backend próprio ao menu do dia e ao cardápio da semana (hoje placeholder)
+- [ ] **Configuração para desktop** — layout/experiência quando aberto fora do celular
+- [ ] **Bloqueio de acesso só pelo app** — travar o uso à PWA instalada
+- [ ] Ponte de sessão da Governança (login único do app → portal Líderes) na mesma origem
 - [ ] Afinar cores do tema claro
+
+Roadmap e pendências detalhadas em `docs/CONTEXTO.md` (§11, §14).

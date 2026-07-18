@@ -19,7 +19,7 @@ import { Section } from '../components/Section.jsx'
 import { Avatar } from '../components/Avatar.jsx'
 import { ProgressRing } from '../components/ProgressRing.jsx'
 import { SocialLinks } from '../components/SocialLinks.jsx'
-import { currentUser, redesSociais } from '../lib/mockData.js'
+import { redesSociais } from '../lib/mockData.js'
 import { useAuth } from '../lib/AuthContext.jsx'
 import { supabase } from '../lib/supabase.js'
 import { tapHaptic } from '../lib/haptics.js'
@@ -40,9 +40,9 @@ const TAM_MAX = 8 * 1024 * 1024 // 8 MB
 export function Mais() {
   const navigate = useNavigate()
   const { usuario, signOut, definirAvatar } = useAuth()
-  const nome = usuario?.nome || currentUser.nome
-  const cargo = usuario?.cargo || currentUser.cargo
-  const loja = usuario?.loja || currentUser.loja
+  const nome = usuario?.nome || 'Colaborador'
+  const cargo = usuario?.cargo || ''
+  const loja = usuario?.loja || ''
   // Ouvidoria e Gerenciar atalhos só para quem tem acesso à Governança.
   const navItens = itens.filter((i) => !i.gov || usuario?.governanca?.tem)
 
