@@ -58,6 +58,7 @@ function Detalhe({
   const [provaResultado, setProvaResultado] = useState(null) // resposta do responder_prova
   const [enviandoProva, setEnviandoProva] = useState(false)
   const [enviandoAvaliacao, setEnviandoAvaliacao] = useState(false)
+  const [painelIdx, setPainelIdx] = useState(0) // painel atual no modo quadrinho
   const conteudoRef = useRef(null)
 
   const nomeCompleto = (usuario?.nome || '').trim()
@@ -173,18 +174,65 @@ function Detalhe({
   // rodapé. Um "Voltar" discreto flutua no canto. (Painéis + tocar na lateral pra
   // avançar entram depois — os painéis já vêm como array.)
   if (ehQuadrinho) {
-    const paineis = Array.isArray(data.avaliacao?.paineis) ? data.avaliacao.paineis : []
-    const img = paineis[0] || data.avaliacao?.imagem
+    const paineis =
+      Array.isArray(data.avaliacao?.paineis) && data.avaliacao.paineis.length
+        ? data.avaliacao.paineis
+        : data.avaliacao?.imagem
+          ? [data.avaliacao.imagem]
+          : []
+    const idx = Math.min(painelIdx, Math.max(0, paineis.length - 1))
+    const primeiro = idx <= 0
+    const ultimo = idx >= paineis.length - 1
     return createPortal(
-      <div className="fixed inset-0 z-50 bg-black">
-        {img && <img src={img} alt="" className="h-full w-full object-contain" />}
+      <div className="fixed inset-0 z-50 select-none bg-black">
+        {paineis[idx] && (
+          <img
+            src={paineis[idx]}
+            alt=""
+            draggable="false"
+            className="h-full w-full object-contain"
+          />
+        )}
+
+        {/* zonas invisíveis de toque: esquerda volta, direita avança */}
+        {!primeiro && (
+          <button
+            onClick={() => setPainelIdx((i) => Math.max(0, i - 1))}
+            aria-label="Anterior"
+            className="absolute inset-y-0 left-0 w-2/5"
+          />
+        )}
+        {!ultimo && (
+          <button
+            onClick={() => setPainelIdx((i) => Math.min(paineis.length - 1, i + 1))}
+            aria-label="Próximo"
+            className="absolute inset-y-0 right-0 w-3/5"
+          />
+        )}
+
+        {/* voltar (sair) */}
         <button
           onClick={onFechar}
           aria-label="Voltar"
-          className="safe-top absolute left-3 top-3 grid h-9 w-9 place-items-center rounded-full bg-black/40 text-white backdrop-blur tap"
+          className="safe-top absolute left-3 top-3 z-10 grid h-9 w-9 place-items-center rounded-full bg-black/40 text-white backdrop-blur tap"
         >
           <ArrowLeft size={18} />
         </button>
+
+        {/* indicador de páginas */}
+        {paineis.length > 1 && (
+          <div className="safe-bottom pointer-events-none absolute inset-x-0 bottom-4 z-10 flex justify-center gap-1.5">
+            {paineis.map((_, i) => (
+              <span
+                key={i}
+                className={
+                  'h-1.5 rounded-full transition-all ' +
+                  (i === idx ? 'w-5 bg-white' : 'w-1.5 bg-white/40')
+                }
+              />
+            ))}
+          </div>
+        )}
       </div>,
       document.body,
     )
