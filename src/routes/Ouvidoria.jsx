@@ -1,34 +1,37 @@
 import { useState } from 'react'
-import { Loader2, Check } from 'lucide-react'
+import { Check } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Voltar } from '../components/Voltar.jsx'
-import { Card } from '../components/Card.jsx'
 import { cn } from '../lib/cn'
 import { tapHaptic } from '../lib/haptics.js'
 
-// Ouvidoria nativa — mesmo formulário/envio da página externa (ouvidoria.tatasushi.tech),
-// mas rodando dentro do app. Envia um POST (no-cors) para o Web App do Apps Script,
-// que grava na planilha "Ouvidoria". Resposta é opaca (no-cors) → seguimos p/ sucesso.
+// Ouvidoria nativa — mesmo formulário/design da página externa
+// (ouvidoria.tatasushi.tech), adaptado aos temas claro/escuro. Envia um POST
+// (no-cors) ao mesmo Web App do Apps Script, que grava na planilha "Ouvidoria".
 const OUVIDORIA_URL =
   'https://script.google.com/macros/s/AKfycbwVPDROxvIfl4yaIZqNPlRdl5-UTtVSUeUMd5H9GdPn0wXnyaMKtwaLSvn1TdvTMw3Xnw/exec'
 
-const inputCls =
-  'w-full rounded-card border border-line bg-surface px-4 py-3 text-sm outline-none placeholder:text-muted-2 focus:border-accent'
+// cores de marca fixas (funcionam nos dois temas), como no HTML original
+const CARBON = '#35383F'
+const CITRIC = '#CFFF00'
 
-function Campo({ label, children }) {
+const inputCls =
+  'w-full rounded-card border border-line bg-surface px-3 py-2.5 text-[13px] text-text outline-none focus:border-accent'
+
+function Label({ children }) {
   return (
-    <div>
-      <label className="mb-1.5 block text-sm font-semibold">{label}</label>
+    <label className="mb-2 block text-[13px] font-semibold text-text">
       {children}
-    </div>
+      <span className="ml-0.5 text-danger">*</span>
+    </label>
   )
 }
 
 function RadioGroup({ label, value, onChange, options }) {
   return (
     <div>
-      <label className="mb-1.5 block text-sm font-semibold">{label}</label>
-      <div className="flex flex-col gap-2">
+      <Label>{label}</Label>
+      <div className="flex flex-col gap-2.5">
         {options.map((o) => {
           const on = value === o.v
           return (
@@ -36,20 +39,17 @@ function RadioGroup({ label, value, onChange, options }) {
               type="button"
               key={o.v}
               onClick={() => onChange(o.v)}
-              className={cn(
-                'hstack gap-2.5 rounded-card border px-4 py-3 text-left text-sm tap',
-                on ? 'border-accent bg-accent-soft font-semibold' : 'border-line',
-              )}
+              className="hstack items-center gap-2.5 text-left tap"
             >
               <span
                 className={cn(
-                  'grid h-4 w-4 shrink-0 place-items-center rounded-full border-2',
-                  on ? 'border-accent' : 'border-line',
+                  'grid h-[18px] w-[18px] shrink-0 place-items-center rounded-full border-2',
+                  on ? 'border-accent' : 'border-muted-2',
                 )}
               >
-                {on && <span className="h-2 w-2 rounded-full bg-accent" />}
+                {on && <span className="h-2.5 w-2.5 rounded-full bg-accent" />}
               </span>
-              {o.label}
+              <span className="text-[13px] text-muted">{o.label}</span>
             </button>
           )
         })}
@@ -115,18 +115,20 @@ export function Ouvidoria() {
     return (
       <>
         <Header title="Ouvidoria" />
-        <div className="grid place-items-center px-8 py-16 text-center">
-          <span className="grid h-16 w-16 place-items-center rounded-full bg-accent-soft text-accent">
-            <Check size={30} />
-          </span>
-          <div className="mt-4 font-display text-lg font-bold">Relato enviado!</div>
-          <p className="mt-2 max-w-sm text-sm text-muted">
-            Recebemos seu relato. Ele será analisado com sigilo e, se solicitado, você receberá uma
-            devolutiva em breve.
-          </p>
-          <p className="mt-3 max-w-sm text-sm text-muted">
-            Obrigado pelo seu relato e contribuição para um TATÁ melhor.
-          </p>
+        <div className="px-5 pt-2">
+          <div className="rounded-card border border-line bg-surface p-8 text-center">
+            <span className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-accent-soft text-accent">
+              <Check size={28} strokeWidth={2.5} />
+            </span>
+            <div className="mt-4 font-display text-lg font-bold">Relato enviado!</div>
+            <p className="mt-2 text-[13px] leading-relaxed text-muted">
+              Recebemos seu relato. Ele será analisado com sigilo e, se solicitado, você receberá
+              uma devolutiva em breve.
+            </p>
+            <p className="mt-3 text-[13px] leading-relaxed text-muted">
+              Obrigado pelo seu relato e contribuição para um TATÁ melhor.
+            </p>
+          </div>
         </div>
       </>
     )
@@ -138,20 +140,25 @@ export function Ouvidoria() {
       <Voltar />
 
       <div className="px-5 pt-2">
-        <Card>
-          <h2 className="text-center font-display text-base font-bold">Sigiloso e seguro</h2>
-          <p className="mt-2 text-justify text-sm text-muted">
+        <div className="rounded-card border border-line bg-surface p-6">
+          <h2 className="text-center font-display text-lg font-bold text-text">Sigiloso e seguro</h2>
+          <p className="mt-2 border-b border-line pb-5 text-justify text-[13px] leading-relaxed text-muted">
             Use este canal para relatar feedbacks, sugestões, denúncias ou qualquer ocorrência. Você
             pode se identificar ou permanecer anônimo. Todas as manifestações são tratadas com
             sigilo.
           </p>
-          <div className="mt-3 rounded-card border-l-2 border-accent bg-accent-soft px-3 py-2.5 text-[13px] text-muted">
-            <strong className="text-text">Sigilo garantido.</strong> Suas informações serão tratadas
-            com total confidencialidade. A identidade de quem se identifica nunca será revelada sem
-            sua autorização.
+
+          {/* Info box citric */}
+          <div
+            className="mt-5 rounded-r-card px-3.5 py-3 text-[12.5px] leading-relaxed text-muted"
+            style={{ borderLeft: `3px solid ${CITRIC}`, background: 'rgba(207,255,0,0.08)' }}
+          >
+            <strong className="font-semibold text-text">Sigilo garantido.</strong> Suas informações
+            serão tratadas com total confidencialidade. A identidade de quem se identifica nunca será
+            revelada sem sua autorização.
           </div>
 
-          <form onSubmit={enviar} className="mt-4 flex flex-col gap-4">
+          <form onSubmit={enviar} className="mt-5 flex flex-col gap-5">
             <RadioGroup
               label="Você deseja identificar-se?"
               value={identificacao}
@@ -163,34 +170,37 @@ export function Ouvidoria() {
             />
 
             {mostraNome && (
-              <Campo label="Qual seu nome?">
+              <div>
+                <Label>Qual seu nome?</Label>
                 <input
                   value={nome}
                   onChange={(e) => setNome(e.target.value)}
                   placeholder="Seu nome completo"
                   className={inputCls}
                 />
-              </Campo>
+              </div>
             )}
 
-            <Campo label="Informe a data do ocorrido">
+            <div>
+              <Label>Informe a data do ocorrido</Label>
               <input
                 type="date"
                 value={data}
                 onChange={(e) => setData(e.target.value)}
                 className={inputCls}
               />
-            </Campo>
+            </div>
 
-            <Campo label="Descreva seu feedback ou ocorrência">
+            <div>
+              <Label>Descreva seu feedback ou ocorrência</Label>
               <textarea
                 value={descricao}
                 onChange={(e) => setDescricao(e.target.value)}
-                rows={4}
+                rows={5}
                 placeholder="Descreva detalhadamente o que aconteceu, quando, onde e quem estava envolvido..."
-                className={cn(inputCls, 'resize-none')}
+                className={cn(inputCls, 'resize-none leading-relaxed')}
               />
-            </Campo>
+            </div>
 
             <RadioGroup
               label="Você gostaria de uma devolutiva?"
@@ -203,7 +213,8 @@ export function Ouvidoria() {
             />
 
             {mostraForma && (
-              <Campo label="De qual forma gostaria de ter a devolutiva?">
+              <div>
+                <Label>De qual forma gostaria de ter a devolutiva?</Label>
                 <select
                   value={forma}
                   onChange={(e) => setForma(e.target.value)}
@@ -216,29 +227,34 @@ export function Ouvidoria() {
                   <option value="E-mail">E-mail</option>
                   <option value="Pessoalmente">Pessoalmente</option>
                 </select>
-              </Campo>
+              </div>
             )}
 
             {mostraContato && (
-              <Campo label="Informe os dados da opção escolhida acima">
+              <div>
+                <Label>Informe os dados da opção escolhida acima</Label>
                 <input
                   value={contato}
                   onChange={(e) => setContato(e.target.value)}
                   placeholder="Ex: número de WhatsApp, e-mail ou nome para contato pessoal"
                   className={inputCls}
                 />
-              </Campo>
+              </div>
             )}
 
             <button
               type="submit"
               disabled={!podeEnviar}
-              className={cn('btn-primary mt-1 w-full !py-3.5', !podeEnviar && 'opacity-50')}
+              className={cn(
+                'mt-1 w-full rounded-pill py-3.5 font-mono text-xs font-semibold uppercase tracking-[0.12em] transition-opacity tap',
+                !podeEnviar && 'opacity-50',
+              )}
+              style={{ background: CARBON, color: CITRIC }}
             >
-              {enviando ? <Loader2 size={18} className="animate-spin" /> : 'Enviar relato'}
+              {enviando ? 'Enviando...' : 'Enviar relato'}
             </button>
           </form>
-        </Card>
+        </div>
       </div>
     </>
   )
