@@ -119,7 +119,8 @@ export function AdminPublicacoes() {
   async function publicar() {
     const t = titulo.trim()
     const c = corpo.trim()
-    if (!t || !c || publicando || !matricula) return
+    // basta ter imagem OU algum texto (título/corpo são opcionais)
+    if ((!t && !c && !imgFile) || publicando || !matricula) return
     tapHaptic()
     setPublicando(true)
     setErro('')
@@ -149,8 +150,8 @@ export function AdminPublicacoes() {
     }
 
     const { data: novoId, error } = await supabase.rpc('publicar_conteudo', {
-      p_titulo: t,
-      p_corpo: c,
+      p_titulo: t || null,
+      p_corpo: c || null,
       p_tipo: tipo,
       p_imagem_url: imagem_url,
       p_data_evento: dataEvento || null,
@@ -202,7 +203,7 @@ export function AdminPublicacoes() {
     }
   }
 
-  const podePublicar = titulo.trim() && corpo.trim() && !publicando
+  const podePublicar = (titulo.trim() || corpo.trim() || imgFile) && !publicando
 
   const lista = itens.filter(
     (p) =>
@@ -285,7 +286,9 @@ export function AdminPublicacoes() {
                             <span className="pill bg-surface-2 text-[10px] text-muted-2">Encerrado</span>
                           )}
                         </div>
-                        <div className="mt-1 truncate text-sm font-semibold">{p.titulo}</div>
+                        <div className="mt-1 truncate text-sm font-semibold">
+                          {p.titulo || <span className="italic text-muted-2">Só imagem</span>}
+                        </div>
                         <div className="mt-1 hstack flex-wrap gap-x-2 gap-y-0.5 text-[11px] text-muted-2">
                           {p.no_carrossel && (
                             <span className="hstack gap-0.5">
@@ -369,16 +372,19 @@ export function AdminPublicacoes() {
               <input
                 value={titulo}
                 onChange={(e) => setTitulo(e.target.value)}
-                placeholder="Título"
+                placeholder="Título (opcional)"
                 className="w-full rounded-card border border-line bg-surface px-4 py-3 text-sm font-semibold outline-none placeholder:text-muted-2"
               />
               <textarea
                 value={corpo}
                 onChange={(e) => setCorpo(e.target.value)}
-                placeholder="Escreva o comunicado…"
+                placeholder="Escreva o comunicado… (opcional)"
                 rows={4}
                 className="mt-2 w-full resize-none rounded-card border border-line bg-surface px-4 py-3 text-sm outline-none placeholder:text-muted-2"
               />
+              <p className="mt-1.5 text-[11px] text-muted-2">
+                Pode publicar só a imagem — título e texto são opcionais.
+              </p>
 
               {/* Imagem */}
               {imgPreview ? (
@@ -618,8 +624,8 @@ export function AdminPublicacoes() {
           <div className="w-full max-w-sm rounded-card border border-line bg-surface p-5">
             <div className="font-display text-base font-bold leading-tight">Excluir publicação?</div>
             <p className="mt-2 text-sm text-muted">
-              <span className="font-semibold text-text">{excluindo.titulo}</span> será removida de
-              vez (carrossel, página e histórico).
+              <span className="font-semibold text-text">{excluindo.titulo || 'Esta publicação'}</span>{' '}
+              será removida de vez (carrossel, página e histórico).
             </p>
             <div className="mt-4 hstack gap-2">
               <button

@@ -34,6 +34,9 @@ export function DestaqueBanner({ d }) {
   // No card de aniversário a mensagem é o conteúdo principal, então ela vem
   // maior e com mais linhas; nos demais é só um subtítulo compacto.
   const ehAniver = tplKey === 'aniversario'
+  // Publicação só com imagem (sem título/texto): mostra a arte limpa, sem
+  // escurecido, ícone decorativo ou bloco de texto por cima.
+  const soImagem = !!d.imagem_url && !d.titulo && !d.texto
 
   return (
     <Link
@@ -47,21 +50,25 @@ export function DestaqueBanner({ d }) {
         <span className={`absolute inset-0 bg-gradient-to-tr ${tpl.grad} to-transparent`} />
       )}
 
-      {/* ícone decorativo grande, bem sutil */}
-      <Icon
-        size={200}
-        strokeWidth={1.25}
-        className={`pointer-events-none absolute -right-6 -top-6 opacity-[0.08] ${tpl.tint}`}
-      />
+      {/* ícone decorativo grande, bem sutil (não em publicação só de imagem) */}
+      {!soImagem && (
+        <Icon
+          size={200}
+          strokeWidth={1.25}
+          className={`pointer-events-none absolute -right-6 -top-6 opacity-[0.08] ${tpl.tint}`}
+        />
+      )}
 
       {/* scrim para legibilidade do texto (segue o alinhamento do conteúdo) */}
-      <span
-        className={
-          centroDireita
-            ? 'absolute inset-0 bg-gradient-to-l from-black/60 via-black/20 to-transparent'
-            : 'absolute inset-0 bg-gradient-to-t from-black/55 via-black/10 to-transparent'
-        }
-      />
+      {!soImagem && (
+        <span
+          className={
+            centroDireita
+              ? 'absolute inset-0 bg-gradient-to-l from-black/60 via-black/20 to-transparent'
+              : 'absolute inset-0 bg-gradient-to-t from-black/55 via-black/10 to-transparent'
+          }
+        />
+      )}
 
       {/* pílula da categoria — canto superior direito */}
       <div className="absolute right-3 top-3 z-10">
@@ -82,34 +89,38 @@ export function DestaqueBanner({ d }) {
         )}
       </div>
 
-      {/* conteúdo */}
-      <div
-        className={
-          centroDireita
-            ? 'absolute inset-0 flex flex-col items-end justify-center gap-2.5 p-5 text-right'
-            : 'absolute inset-0 flex flex-col justify-end gap-2.5 p-5'
-        }
-      >
-        <div className={centroDireita ? 'max-w-[85%]' : undefined}>
-          <div className="font-display text-lg font-bold leading-snug text-white">{d.titulo}</div>
-          {d.texto && (
-            <div
-              className={
-                ehAniver
-                  ? 'mt-1.5 line-clamp-5 whitespace-pre-line text-base leading-snug text-white/90'
-                  : 'mt-1 line-clamp-2 text-xs text-white/75'
-              }
-            >
-              {d.texto}
-            </div>
+      {/* conteúdo (nada por cima quando é só imagem) */}
+      {!soImagem && (
+        <div
+          className={
+            centroDireita
+              ? 'absolute inset-0 flex flex-col items-end justify-center gap-2.5 p-5 text-right'
+              : 'absolute inset-0 flex flex-col justify-end gap-2.5 p-5'
+          }
+        >
+          <div className={centroDireita ? 'max-w-[85%]' : undefined}>
+            {d.titulo && (
+              <div className="font-display text-lg font-bold leading-snug text-white">{d.titulo}</div>
+            )}
+            {d.texto && (
+              <div
+                className={
+                  ehAniver
+                    ? 'mt-1.5 line-clamp-5 whitespace-pre-line text-base leading-snug text-white/90'
+                    : 'mt-1 line-clamp-2 text-xs text-white/75'
+                }
+              >
+                {d.texto}
+              </div>
+            )}
+          </div>
+          {d.cta_label && (
+            <span className="hstack w-fit gap-1.5 rounded-pill bg-white px-4 py-2 text-xs font-bold text-black">
+              {d.cta_label} <ChevronRight size={14} />
+            </span>
           )}
         </div>
-        {d.cta_label && (
-          <span className="hstack w-fit gap-1.5 rounded-pill bg-white px-4 py-2 text-xs font-bold text-black">
-            {d.cta_label} <ChevronRight size={14} />
-          </span>
-        )}
-      </div>
+      )}
     </Link>
   )
 }

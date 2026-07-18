@@ -56,14 +56,18 @@ export function Comunicados() {
           const vigente = ehHoje(c.created_at) || eventoVigente(c.data_evento)
           return (
             <Card key={c.id} className={cn('reveal', vigente && 'ring-2 ring-accent/70 shadow-glow')}>
-              <h3 className="font-display text-base font-bold leading-snug">{c.titulo}</h3>
-              <p className="mt-1 whitespace-pre-wrap text-sm text-muted">{c.corpo}</p>
+              {c.titulo && (
+                <h3 className="font-display text-base font-bold leading-snug">{c.titulo}</h3>
+              )}
+              {c.corpo && (
+                <p className="mt-1 whitespace-pre-wrap text-sm text-muted">{c.corpo}</p>
+              )}
 
               {c.imagem_url && (
                 <img
                   src={c.imagem_url}
                   alt=""
-                  className="mt-3 w-full rounded-2xl object-cover"
+                  className={cn('w-full rounded-2xl object-cover', (c.titulo || c.corpo) && 'mt-3')}
                   loading="lazy"
                 />
               )}
