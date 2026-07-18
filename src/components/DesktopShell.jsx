@@ -34,6 +34,9 @@ export function DesktopShell() {
   const [aberto, setAberto] = useState(() => localStorage.getItem('tp_painel') !== '0')
   // null = padrão (portal p/ gov, logo p/ demais); 'organograma' = organograma
   const [canvas, setCanvas] = useState(null)
+  // Nó da área central — páginas de conteúdo (ex.: desafio aberto) podem abrir
+  // aqui via portal, em vez de tomar a tela toda.
+  const [canvasEl, setCanvasEl] = useState(null)
 
   function alternarPainel() {
     setAberto((v) => {
@@ -56,7 +59,7 @@ export function DesktopShell() {
   const railBtn = 'grid h-11 w-11 place-items-center rounded-2xl tap'
 
   return (
-    <DesktopCanvasContext.Provider value={{ canvas, setCanvas }}>
+    <DesktopCanvasContext.Provider value={{ canvas, setCanvas, canvasEl }}>
       <div className="flex h-[100dvh] overflow-hidden bg-bg">
         {/* Rail de navegação — só ícones */}
         <nav
@@ -111,7 +114,7 @@ export function DesktopShell() {
         </div>
 
         {/* Área principal */}
-        <section className="relative flex flex-1 flex-col bg-bg">
+        <section ref={setCanvasEl} className="relative flex flex-1 flex-col bg-bg">
           {/* Portal — fica montado (p/ gov) e some quando o organograma abre */}
           {gov && (
             <iframe
@@ -149,8 +152,11 @@ export function DesktopShell() {
             <div className="flex flex-1 flex-col items-center justify-center gap-5 px-8 text-center">
               <img src="/icons/logo-mark.png" alt="Tatá Plus" className="logo-dark h-24 w-auto opacity-90" />
               <img src="/icons/logo-mark-light.png" alt="Tatá Plus" className="logo-light h-24 w-auto opacity-90" />
-              <div className="font-display text-3xl font-bold tracking-tight">
-                TATÁ<span className="text-accent"> PLUS</span>
+              <div>
+                <div className="font-display text-3xl font-bold tracking-tight">
+                  TATÁ<span className="text-accent"> PLUS</span>
+                </div>
+                <div className="mt-1 text-sm text-muted">Portal do colaborador</div>
               </div>
             </div>
           )}
