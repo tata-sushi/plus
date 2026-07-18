@@ -27,7 +27,7 @@ import { tapHaptic } from '../lib/haptics.js'
 // gov: true → só aparece para quem tem acesso à Governança.
 const itens = [
   { to: '/jornada', label: 'Meu perfil', icon: UserRound },
-  { to: '/buscar', label: 'Busca colegas', icon: Search },
+  { to: '/buscar', label: 'Buscar colaborador', icon: Search },
   { to: '/comunicados', label: 'Comunicados', icon: Megaphone },
   { to: '/ouvidoria', label: 'Ouvidoria', icon: MessageSquareWarning, gov: true },
   { to: '/cardapio', label: 'Cardápio', icon: UtensilsCrossed },
