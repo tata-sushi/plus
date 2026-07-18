@@ -16,7 +16,6 @@ import {
   SprayCan,
   BadgeCheck,
   Cog,
-  Activity,
   Megaphone,
   Wallet,
   Briefcase,
@@ -55,8 +54,7 @@ function iconeArea(nome) {
   if (n.includes('estoque') || n.includes('almox')) return Boxes
   if (n.includes('limpez')) return SprayCan
   if (n.includes('qualidad')) return BadgeCheck
-  if (n.includes('manuten')) return Cog
-  if (n.includes('opera')) return Activity
+  if (n.includes('manuten') || n.includes('opera')) return Cog
   if (n.includes('market')) return Megaphone
   if (n.includes('financ')) return Wallet
   if (n.includes('admin') || n.includes('escrit')) return Briefcase
