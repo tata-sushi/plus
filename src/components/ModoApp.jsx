@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Share, SquarePlus, MoreVertical, Download, ExternalLink } from 'lucide-react'
+import { Download, ExternalLink } from 'lucide-react'
 
 // Acesso somente pelo aplicativo: o portal só libera quando está rodando como
 // PWA instalado (standalone). Aberto num navegador comum, mostra a tela de
@@ -106,85 +106,25 @@ export function ModoApp({ children }) {
         </div>
       </div>
 
+      <div className="max-w-xs">
+        <h1 className="font-display text-lg font-bold">Disponível pelo aplicativo</h1>
+        <p className="mt-2 text-sm text-muted">Instale e navegue!!!</p>
+      </div>
+
       {mostrarAbrir ? (
-        <>
-          <div className="max-w-sm">
-            <h1 className="font-display text-lg font-bold">Abra pelo aplicativo</h1>
-            <p className="mt-2 text-sm text-muted">
-              O Tatá Plus já está instalado. Clique em Abrir para usar o aplicativo.
-            </p>
-          </div>
-
-          <a href="web+tataplus://abrir" className="btn-primary w-full max-w-sm !py-3.5">
-            <ExternalLink size={18} /> Abrir aplicativo
-          </a>
-
-          <p className="text-[11px] text-muted-2">
-            Se não abrir, procure o app Tatá Plus no seu aparelho (tela inicial ou barra de tarefas).
-          </p>
-        </>
+        <a href="web+tataplus://abrir" className="btn-primary w-full max-w-xs !py-3.5">
+          <ExternalLink size={18} /> Abrir aplicativo
+        </a>
       ) : (
-        <>
-          <div className="max-w-sm">
-            <h1 className="font-display text-lg font-bold">Disponível pelo aplicativo</h1>
-            <p className="mt-2 text-sm text-muted">
-              Para usar o Tatá Plus, instale o app na tela inicial do seu celular. Leva alguns
-              segundos e ele passa a abrir como um aplicativo de verdade.
-            </p>
-          </div>
+        <button onClick={instalar} className="btn-primary w-full max-w-xs !py-3.5">
+          <Download size={18} /> Instalar aplicativo
+        </button>
+      )}
 
-          <div className="w-full max-w-sm rounded-card border border-line bg-surface p-4 text-left">
-            {ios ? (
-              <ol className="flex flex-col gap-3 text-sm">
-                <li className="hstack gap-3">
-                  <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-accent-soft text-accent">
-                    <Share size={16} />
-                  </span>
-                  <span>
-                    Toque em <b>Compartilhar</b> na barra do Safari.
-                  </span>
-                </li>
-                <li className="hstack gap-3">
-                  <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-accent-soft text-accent">
-                    <SquarePlus size={16} />
-                  </span>
-                  <span>
-                    Escolha <b>Adicionar à Tela de Início</b>.
-                  </span>
-                </li>
-              </ol>
-            ) : (
-              <ol className="flex flex-col gap-3 text-sm">
-                <li className="hstack gap-3">
-                  <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-accent-soft text-accent">
-                    <MoreVertical size={16} />
-                  </span>
-                  <span>
-                    Abra o menu do navegador (<b>⋮</b>).
-                  </span>
-                </li>
-                <li className="hstack gap-3">
-                  <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-accent-soft text-accent">
-                    <Download size={16} />
-                  </span>
-                  <span>
-                    Escolha <b>Instalar aplicativo</b> ou <b>Adicionar à tela inicial</b>.
-                  </span>
-                </li>
-              </ol>
-            )}
-          </div>
-
-          {prompt && !ios && (
-            <button onClick={instalar} className="btn-primary w-full max-w-sm !py-3.5">
-              <Download size={18} /> Instalar aplicativo
-            </button>
-          )}
-
-          <p className="text-[11px] text-muted-2">
-            Depois de instalar, abra o Tatá Plus pelo ícone na tela inicial.
-          </p>
-        </>
+      {ios && !mostrarAbrir && (
+        <p className="max-w-xs text-[11px] text-muted-2">
+          No iPhone: toque em Compartilhar e depois em “Adicionar à Tela de Início”.
+        </p>
       )}
     </div>
   )
