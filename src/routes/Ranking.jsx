@@ -8,13 +8,14 @@ import { Avatar } from '../components/Avatar.jsx'
 import { useAuth } from '../lib/AuthContext.jsx'
 import { supabase } from '../lib/supabase.js'
 
-const abas = [
+const tipos = [
   { value: 'geral', label: 'Geral' },
-  { value: 'unidade', label: 'Unidade' },
-  { value: 'departamento', label: 'Departamento' },
+  { value: 'lideres', label: 'Líderes' },
 ]
 
 const fmt = (n) => Number(n || 0).toLocaleString('pt-BR')
+const selectCls =
+  'min-w-0 flex-1 rounded-pill border border-line bg-surface px-3.5 py-2 text-xs font-medium text-text outline-none focus:border-accent'
 
 function PodiumItem({ pos, c, onClick }) {
   const isFirst = pos === 1
@@ -50,7 +51,9 @@ function PodiumItem({ pos, c, onClick }) {
 export function Ranking() {
   const { usuario } = useAuth()
   const navigate = useNavigate()
-  const [tab, setTab] = useState('geral')
+  const [tipo, setTipo] = useState('geral') // geral | lideres
+  const [uni, setUni] = useState('')
+  const [dep, setDep] = useState('')
   const [dados, setDados] = useState([])
   const [carregando, setCarregando] = useState(true)
 
@@ -64,42 +67,63 @@ export function Ranking() {
     carregar()
   }, [carregar])
 
-  const lista = useMemo(() => {
-    const l = dados.filter((c) => {
-      if (tab === 'unidade') return c.unidade === usuario?.unidade
-      if (tab === 'departamento') return c.departamento === usuario?.departamento
-      return true
-    })
-    // já vem ordenado por pontos; reindexa a posição no filtro
-    return l
-  }, [dados, tab, usuario])
+  const unidades = useMemo(
+    () => [...new Set(dados.map((c) => c.unidade).filter(Boolean))].sort(),
+    [dados],
+  )
+  const departamentos = useMemo(
+    () => [...new Set(dados.map((c) => c.departamento).filter(Boolean))].sort(),
+    [dados],
+  )
 
-  const subtitulo =
-    tab === 'unidade'
-      ? usuario?.unidade || 'Sua unidade'
-      : tab === 'departamento'
-        ? `Departamento · ${usuario?.departamento || '—'}`
-        : 'Todas as unidades'
+  // já vem ordenado por pontos; filtra por tipo + unidade + departamento
+  const lista = useMemo(
+    () =>
+      dados.filter(
+        (c) =>
+          (tipo === 'geral' || c.lider) &&
+          (!uni || c.unidade === uni) &&
+          (!dep || c.departamento === dep),
+      ),
+    [dados, tipo, uni, dep],
+  )
 
   const [p1, p2, p3] = lista
 
   return (
     <>
       <Header title="Ranking" />
-      <Tabs tabs={abas} value={tab} onChange={setTab} />
+      <Tabs tabs={tipos} value={tipo} onChange={setTipo} />
 
-      <div className="px-5 pb-3 -mt-1 text-xs font-medium text-muted">{subtitulo}</div>
+      <div className="hstack gap-2 px-5 pb-1 pt-2">
+        <select value={uni} onChange={(e) => setUni(e.target.value)} className={selectCls}>
+          <option value="">Todas as unidades</option>
+          {unidades.map((u) => (
+            <option key={u} value={u}>
+              {u}
+            </option>
+          ))}
+        </select>
+        <select value={dep} onChange={(e) => setDep(e.target.value)} className={selectCls}>
+          <option value="">Todos os departamentos</option>
+          {departamentos.map((d) => (
+            <option key={d} value={d}>
+              {d}
+            </option>
+          ))}
+        </select>
+      </div>
 
       {carregando ? (
         <div className="hstack justify-center py-16 text-muted-2">
           <Loader2 size={22} className="animate-spin" />
         </div>
       ) : lista.length === 0 ? (
-        <div className="py-16 text-center text-sm text-muted">Sem pontuação por aqui ainda.</div>
+        <div className="py-16 text-center text-sm text-muted">Ninguém por aqui ainda.</div>
       ) : (
         <>
           {/* Pódio */}
-          <div className="px-5">
+          <div className="px-5 pt-3">
             <div className="hero-card flex items-end justify-center gap-3 px-4 pb-4 pt-6">
               {p2 && <PodiumItem pos={2} c={p2} onClick={() => navigate(`/perfil/${p2.matricula}`)} />}
               {p1 && <PodiumItem pos={1} c={p1} onClick={() => navigate(`/perfil/${p1.matricula}`)} />}
