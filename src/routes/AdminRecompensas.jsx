@@ -407,7 +407,7 @@ export function AdminRecompensas() {
               aba === 'comunicados' ? 'bg-accent text-black' : 'text-muted',
             )}
           >
-            Avisos
+            Anúncios
           </button>
           <button
             onClick={() => setAba('catalogo')}
