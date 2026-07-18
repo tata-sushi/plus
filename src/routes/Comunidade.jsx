@@ -40,7 +40,7 @@ function ResgateCard({ post }) {
   )
 }
 
-function PostCard({ post, matricula, meuNome, meuAvatar, onCurtir, onExcluir }) {
+function PostCard({ post, matricula, admin, meuNome, meuAvatar, onCurtir, onExcluir }) {
   const navigate = useNavigate()
   const [abrir, setAbrir] = useState(false)
   const [comentarios, setComentarios] = useState([])
@@ -50,6 +50,7 @@ function PostCard({ post, matricula, meuNome, meuAvatar, onCurtir, onExcluir }) 
   const [total, setTotal] = useState(post.comentarios)
 
   const meuPost = post.autor_matricula === matricula
+  const podeExcluir = meuPost || admin
 
   async function alternar() {
     tapHaptic()
@@ -113,7 +114,7 @@ function PostCard({ post, matricula, meuNome, meuAvatar, onCurtir, onExcluir }) 
             </div>
           </div>
         </button>
-        {meuPost && (
+        {podeExcluir && (
           <button
             onClick={() => onExcluir(post)}
             className="shrink-0 text-muted-2 tap"
@@ -202,6 +203,7 @@ function PostCard({ post, matricula, meuNome, meuAvatar, onCurtir, onExcluir }) 
 export function Comunidade() {
   const { usuario } = useAuth()
   const matricula = usuario?.matricula
+  const admin = usuario?.podePublicar
   const meuNome = usuario?.nome || 'Você'
   const meuAvatar = usuario?.avatarUrl
 
@@ -444,6 +446,7 @@ export function Comunidade() {
               key={post.id}
               post={post}
               matricula={matricula}
+              admin={admin}
               meuNome={meuNome}
               meuAvatar={meuAvatar}
               onCurtir={curtir}
