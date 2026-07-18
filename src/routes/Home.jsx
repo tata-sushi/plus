@@ -25,7 +25,7 @@ const sugestoesCards = [
     to: '/recompensas',
     badgeIcon: Gift,
     title: 'Recompensas',
-    subtitle: 'Conheça nossas recompensas e resgate a sua',
+    subtitle: 'Conheça as recompensas e resgate a sua',
   },
   {
     badgeIcon: Star,
