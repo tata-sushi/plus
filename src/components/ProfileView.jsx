@@ -8,9 +8,21 @@ import { Avatar } from './Avatar.jsx'
 import { ProgressRing } from './ProgressRing.jsx'
 import { MeuPerfil } from './MeuPerfil.jsx'
 import { Conquistas } from './Conquistas.jsx'
+import { RadarChart } from './RadarChart.jsx'
+import { useAuth } from '../lib/AuthContext.jsx'
 import { supabase } from '../lib/supabase.js'
 
+// DEMO (dados fake) — radar de feedback líder × liderado. Temporário, só p/ visual.
+const RADAR_EIXOS = ['Comunicação', 'Colaboração', 'Proatividade', 'Organização', 'Técnica', 'Liderança']
+const RADAR_SERIES = [
+  { label: 'Feedback do líder', color: '#4ade80', values: [4, 5, 3, 4, 4, 5] },
+  { label: 'Autoavaliação (liderado)', color: '#a78bfa', values: [5, 4, 4, 3, 5, 4] },
+]
+
 export function ProfileView({ colaborador, isSelf }) {
+  const { usuario } = useAuth()
+  // Demo do radar só no meu usuário (matrícula 7), sem afetar os outros.
+  const demoRadar = isSelf && usuario?.matricula === '7'
   // Resumo real: saldo, resgates e progresso de desafios.
   const [resumo, setResumo] = useState(null)
 
@@ -64,6 +76,18 @@ export function ProfileView({ colaborador, isSelf }) {
 
       {/* Meu perfil (Signo · DISC · em breve) */}
       {isSelf && <MeuPerfil />}
+
+      {/* DEMO — radar de feedback (dados fake, só no meu usuário) */}
+      {demoRadar && (
+        <Section className="reveal reveal-2 mt-5" title="Feedback 360º (demo)">
+          <Card className="p-4">
+            <RadarChart axes={RADAR_EIXOS} series={RADAR_SERIES} max={5} size={280} />
+            <p className="mt-3 text-center text-[11px] text-muted-2">
+              Dados de exemplo — visualização do gráfico.
+            </p>
+          </Card>
+        </Section>
+      )}
 
       {/* Indicadores — formato tabela */}
       <Section className="reveal reveal-2 mt-5" title="Indicadores">
