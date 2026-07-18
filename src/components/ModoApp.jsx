@@ -120,12 +120,6 @@ export function ModoApp({ children }) {
           <Download size={18} /> Instalar aplicativo
         </button>
       )}
-
-      {ios && !mostrarAbrir && (
-        <p className="max-w-xs text-[11px] text-muted-2">
-          No iPhone: toque em Compartilhar e depois em “Adicionar à Tela de Início”.
-        </p>
-      )}
     </div>
   )
 }
