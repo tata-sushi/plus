@@ -84,7 +84,11 @@ export function montarCategorias(dados) {
       ganho: (x) => (x.trilhas_100 || []).includes(nome),
     })),
   }
-  return [PONTOS, BIRTHDAYS, school, LEADERSHIP, INFLUENCERS]
+  // Emblemas de liderança só valem para líderes.
+  const cats = [PONTOS, BIRTHDAYS, school]
+  if (dados?.lider) cats.push(LEADERSHIP)
+  cats.push(INFLUENCERS)
+  return cats
 }
 
 // Avalia todos os emblemas (2 passos: leadership depende da contagem dos demais).
