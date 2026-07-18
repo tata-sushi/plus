@@ -31,8 +31,8 @@ const itens = [
   { to: '/comunicados', label: 'Comunicados', icon: Megaphone },
   { to: '/ouvidoria', label: 'Ouvidoria', icon: MessageSquareWarning, gov: true },
   { to: '/cardapio', label: 'Cardápio', icon: UtensilsCrossed },
-  { to: '/manutencao', label: 'Painel de manutenção', icon: Wrench },
-  { to: '/atalhos-governanca', label: 'Gerenciar atalhos', icon: Pin, gov: true },
+  { to: '/manutencao', label: 'Painel de Gerenciamento', icon: Wrench },
+  { to: '/atalhos-governanca', label: 'Atalhos', icon: Pin, gov: true },
 ]
 
 const TAM_MAX = 8 * 1024 * 1024 // 8 MB

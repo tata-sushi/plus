@@ -45,9 +45,9 @@ export function GerenciarAtalhos() {
         </button>
       </div>
 
-      <Section className="mt-3" title="Gerenciar atalhos">
+      <Section className="mt-3">
         <p className="mb-3 text-sm text-muted">
-          Fixe até {MAX_PAGINAS_FIXADAS} páginas do portal de governança para acesso rápido na Início.
+          Fixe até {MAX_PAGINAS_FIXADAS} páginas do portal de governança para acesso rápido.
         </p>
         <div className="card overflow-hidden">
           <div className="border-b border-line px-4 py-2.5 text-[11px] font-semibold text-muted-2">
@@ -81,9 +81,6 @@ export function GerenciarAtalhos() {
               </button>
             )
           })}
-          <p className="px-4 py-2.5 text-[11px] text-muted-2">
-            As páginas abrem dentro do app. Sua seleção fica salva neste aparelho.
-          </p>
         </div>
       </Section>
     </>

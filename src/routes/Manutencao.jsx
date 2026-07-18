@@ -85,9 +85,74 @@ export function Manutencao() {
 
   return (
     <>
-      <Header title="Painel de manutenção" />
+      <Header title="Painel de Gerenciamento" />
 
-      <Section className="mt-2" title="Segurança">
+      <Section className="mt-2" title="Notificações">
+        <div className="card p-4">
+          <div className="hstack gap-3">
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-accent-soft text-accent">
+              <Bell size={20} />
+            </span>
+            <div className="min-w-0 flex-1">
+              <div className="font-display text-sm font-bold">Notificações no celular</div>
+              {!push.suportado && (
+                <div className="text-xs text-muted">
+                  Instale o app na tela inicial para ativar as notificações.
+                </div>
+              )}
+            </div>
+            <button
+              onClick={alternarPush}
+              disabled={!push.suportado || pushBusy}
+              className={cn(
+                'shrink-0 rounded-pill px-4 py-2 text-xs font-bold tap',
+                push.ativo ? 'bg-surface text-danger' : 'btn-primary !py-2',
+                (!push.suportado || pushBusy) && 'opacity-50',
+              )}
+            >
+              {pushBusy ? (
+                <Loader2 size={14} className="animate-spin" />
+              ) : push.ativo ? (
+                'Desativar'
+              ) : (
+                'Ativar'
+              )}
+            </button>
+          </div>
+          {pushErro && <div className="mt-2 text-[11px] font-medium text-danger">{pushErro}</div>}
+        </div>
+      </Section>
+
+      <Section className="mt-5" title="Aparência">
+        <div className="card p-4">
+          <div className="hstack gap-3">
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-accent-soft text-accent">
+              {tema === 'dark' ? <Moon size={20} /> : <Sun size={20} />}
+            </span>
+            <div className="min-w-0 flex-1">
+              <div className="font-display text-sm font-bold">Tema do app</div>
+            </div>
+            <div className="hstack shrink-0 gap-1 rounded-pill bg-surface-2 p-1">
+              {TEMAS.map(({ v, label, Icon }) => (
+                <button
+                  key={v}
+                  onClick={() => trocarTema(v)}
+                  aria-label={label}
+                  aria-pressed={tema === v}
+                  className={cn(
+                    'grid h-8 w-8 place-items-center rounded-full tap',
+                    tema === v ? 'bg-accent text-black' : 'text-muted',
+                  )}
+                >
+                  <Icon size={15} />
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </Section>
+
+      <Section className="mt-5" title="Segurança">
         <div className="card p-4">
           <div className="hstack gap-3">
             <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-accent-soft text-accent">
@@ -170,59 +235,6 @@ export function Manutencao() {
               {enviando ? <Loader2 size={18} className="animate-spin" /> : 'Salvar nova senha'}
             </button>
           </form>
-        </div>
-      </Section>
-
-      <Section className="mt-5" title="Aparência">
-        <div className="card grid grid-cols-2 gap-1.5 p-1.5">
-          {TEMAS.map(({ v, label, Icon }) => (
-            <button
-              key={v}
-              onClick={() => trocarTema(v)}
-              className={cn(
-                'hstack justify-center gap-2 rounded-2xl py-2.5 text-sm font-semibold tap',
-                tema === v ? 'bg-accent text-black' : 'text-muted',
-              )}
-            >
-              <Icon size={16} /> {label}
-            </button>
-          ))}
-        </div>
-      </Section>
-
-      <Section className="mt-5" title="Notificações">
-        <div className="card p-4">
-          <div className="hstack gap-3">
-            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-accent-soft text-accent">
-              <Bell size={20} />
-            </span>
-            <div className="min-w-0 flex-1">
-              <div className="font-display text-sm font-bold">Notificações no celular</div>
-              <div className="text-xs text-muted">
-                {push.suportado
-                  ? 'Receba avisos e comunicados mesmo com o app fechado.'
-                  : 'Instale o app na tela inicial para ativar as notificações.'}
-              </div>
-            </div>
-            <button
-              onClick={alternarPush}
-              disabled={!push.suportado || pushBusy}
-              className={cn(
-                'shrink-0 rounded-pill px-4 py-2 text-xs font-bold tap',
-                push.ativo ? 'bg-surface text-danger' : 'btn-primary !py-2',
-                (!push.suportado || pushBusy) && 'opacity-50',
-              )}
-            >
-              {pushBusy ? (
-                <Loader2 size={14} className="animate-spin" />
-              ) : push.ativo ? (
-                'Desativar'
-              ) : (
-                'Ativar'
-              )}
-            </button>
-          </div>
-          {pushErro && <div className="mt-2 text-[11px] font-medium text-danger">{pushErro}</div>}
         </div>
       </Section>
     </>
