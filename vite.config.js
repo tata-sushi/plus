@@ -31,6 +31,18 @@ export default defineConfig({
         lang: 'pt-BR',
         start_url: '/',
         scope: '/',
+        // Ao abrir um link capturado, reaproveita a janela já aberta do app em
+        // vez de criar outra (link capturing no Android — "abrir links neste app").
+        launch_handler: { client_mode: 'navigate-existing' },
+        // Declara o próprio PWA como app relacionado para que
+        // navigator.getInstalledRelatedApps() consiga detectar se já está
+        // instalado (Android/Chrome) e o portão troque para "abra pelo ícone".
+        // prefer_related_applications fica false: o prompt de instalação do PWA
+        // continua aparecendo normalmente.
+        prefer_related_applications: false,
+        related_applications: [
+          { platform: 'webapp', url: 'https://plus.tatasushi.tech/manifest.webmanifest' },
+        ],
         icons: [
           { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
           { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
