@@ -1,5 +1,6 @@
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ChevronRight, Gift } from 'lucide-react'
+import { Gift, Clock } from 'lucide-react'
 import { Header } from './Header.jsx'
 import { Section } from './Section.jsx'
 import { Card } from './Card.jsx'
@@ -8,16 +9,33 @@ import { ProgressBar } from './ProgressBar.jsx'
 import { MeuPerfil } from './MeuPerfil.jsx'
 import { Conquistas } from './Conquistas.jsx'
 import { useCountUp } from '../lib/useCountUp.js'
-import { minhasAcoes } from '../lib/mockData.js'
+import { supabase } from '../lib/supabase.js'
 
 export function ProfileView({ colaborador, isSelf }) {
-  const saldoAnimado = useCountUp(colaborador.pontosCarteira)
+  // Resumo real: saldo, resgates e progresso de desafios.
+  const [resumo, setResumo] = useState(null)
+
+  useEffect(() => {
+    if (!isSelf) return
+    let ativo = true
+    supabase.rpc('meu_resumo').then(({ data }) => {
+      if (ativo) setResumo(data || null)
+    })
+    return () => {
+      ativo = false
+    }
+  }, [isSelf])
+
+  const feitos = resumo?.desafios_feitos ?? 0
+  const total = resumo?.desafios_total ?? 0
+  const pct = total > 0 ? Math.round((feitos / total) * 100) : 0
+  const saldoAnimado = useCountUp(resumo?.saldo ?? 0)
 
   return (
     <>
       <Header title={isSelf ? 'Minha Jornada' : colaborador.nome} />
 
-      {/* Perfil + rank */}
+      {/* Identificação + progresso real dos desafios (sem níveis) */}
       <div className="px-5">
         <div className="hero-card reveal p-4">
           <div className="hstack gap-3">
@@ -30,16 +48,11 @@ export function ProfileView({ colaborador, isSelf }) {
             </div>
           </div>
           <div className="mt-4 hstack justify-between text-xs">
-            <span className="font-semibold text-muted">{colaborador.rank}</span>
-            <span className="hstack gap-1 font-semibold text-accent">
-              Próximo: {colaborador.proximoRank}
-            </span>
+            <span className="font-semibold text-muted">Progresso nos desafios</span>
+            <span className="font-semibold text-accent">{pct}%</span>
           </div>
           <div className="mt-2">
-            <ProgressBar value={colaborador.progressoRank} />
-          </div>
-          <div className="mt-1 text-right text-[11px] text-muted">
-            {Math.round(colaborador.progressoRank * 100)}%
+            <ProgressBar value={pct / 100} />
           </div>
         </div>
       </div>
@@ -47,12 +60,15 @@ export function ProfileView({ colaborador, isSelf }) {
       {/* Conquistas — logo abaixo da identificação */}
       {isSelf && <Conquistas />}
 
+      {/* Meu perfil (Signo · DISC · em breve) */}
+      {isSelf && <MeuPerfil />}
+
       {/* Carteira */}
       <Section className="reveal reveal-2 mt-5" title="Carteira de pontos">
         <Card>
           <div className="hstack justify-between">
             <div>
-              <div className="text-xs text-muted">{isSelf ? 'Saldo atual' : 'Saldo'}</div>
+              <div className="text-xs text-muted">Saldo atual</div>
               <div className="font-display text-2xl font-bold text-accent">
                 {saldoAnimado.toLocaleString('pt-BR')} pts
               </div>
@@ -66,39 +82,38 @@ export function ProfileView({ colaborador, isSelf }) {
         </Card>
       </Section>
 
-      {/* Stats */}
+      {/* Indicadores — desafios realizados · recompensas resgatadas */}
       <Section className="reveal reveal-2 mt-5" title="Indicadores">
         <div className="grid grid-cols-2 gap-2">
-          {colaborador.stats.map((s) => (
-            <Card key={s.label} className="!p-3">
-              <div className="text-[11px] uppercase tracking-wide text-muted">{s.label}</div>
-              <div className="mt-1 font-display text-base font-bold">{s.valor}</div>
-            </Card>
-          ))}
+          <Card className="!p-3">
+            <div className="text-[11px] uppercase tracking-wide text-muted">
+              Desafios realizados
+            </div>
+            <div className="mt-1 font-display text-base font-bold">
+              {feitos}/{total}
+            </div>
+          </Card>
+          <Card className="!p-3">
+            <div className="text-[11px] uppercase tracking-wide text-muted">
+              Recompensas resgatadas
+            </div>
+            <div className="mt-1 font-display text-base font-bold">{resumo?.resgates ?? 0}</div>
+          </Card>
         </div>
       </Section>
 
-      {/* Meu perfil (DISC · Signo) — só no próprio perfil */}
-      {isSelf && <MeuPerfil />}
-
-      {/* Ações — só para o próprio perfil */}
+      {/* Minhas ações — em breve */}
       {isSelf && (
         <Section className="reveal reveal-3 mt-5" title="Minhas ações">
-          <div className="card overflow-hidden">
-            {minhasAcoes.map((a, idx) => (
-              <button
-                key={a.id}
-                className={`hstack w-full justify-between px-4 py-3.5 tap ${
-                  idx > 0 ? 'border-t border-line' : ''
-                }`}
-              >
-                <span className="text-sm font-semibold">{a.label}</span>
-                <span className="hstack gap-1 text-xs text-muted">
-                  {a.hint} <ChevronRight size={14} />
-                </span>
-              </button>
-            ))}
-          </div>
+          <Card className="hstack gap-3">
+            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-surface-2 text-muted-2">
+              <Clock size={16} />
+            </span>
+            <div className="min-w-0 flex-1">
+              <div className="text-sm font-semibold">Em breve</div>
+              <div className="text-xs text-muted">Novas ações chegando por aqui.</div>
+            </div>
+          </Card>
         </Section>
       )}
     </>
