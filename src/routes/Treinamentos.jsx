@@ -101,7 +101,8 @@ function Detalhe({
   // PDF + prova → leitura obrigatória e depois a prova numa 2ª página (Cartilha Amarela)
   const ehLeituraProva = ehPdf && ehProva
   const ehPerfilDisc = data?.avaliacao?.perfil === 'disc' // questionário DISC (Soft Skill)
-  const ehAvaliacao = !!data?.avaliacao && !ehPerfilDisc // desafio de nota/NPS (ex.: avalie a playlist)
+  const ehQuadrinho = data?.avaliacao?.formato === 'quadrinho' // história em quadrinho (tela cheia)
+  const ehAvaliacao = !!data?.avaliacao && !ehPerfilDisc && !ehQuadrinho // desafio de nota/NPS
   // conteúdo "rico" = texto e/ou prova (pode ter vídeo junto) → rola numa tela só
   const ehRico = temHtml || ehProva
   const ehSoVideos = ehVideos && !ehRico
@@ -166,6 +167,27 @@ function Detalhe({
       onFechar()
       navigate(href)
     }
+  }
+
+  // Modo quadrinho/história: só a imagem em tela cheia, sem cabeçalho, texto ou
+  // rodapé. Um "Voltar" discreto flutua no canto. (Painéis + tocar na lateral pra
+  // avançar entram depois — os painéis já vêm como array.)
+  if (ehQuadrinho) {
+    const paineis = Array.isArray(data.avaliacao?.paineis) ? data.avaliacao.paineis : []
+    const img = paineis[0] || data.avaliacao?.imagem
+    return createPortal(
+      <div className="fixed inset-0 z-50 bg-black">
+        {img && <img src={img} alt="" className="h-full w-full object-contain" />}
+        <button
+          onClick={onFechar}
+          aria-label="Voltar"
+          className="safe-top absolute left-3 top-3 grid h-9 w-9 place-items-center rounded-full bg-black/40 text-white backdrop-blur tap"
+        >
+          <ArrowLeft size={18} />
+        </button>
+      </div>,
+      document.body,
+    )
   }
 
   // portal no <body>: escapa de qualquer transform/stacking do <main>
