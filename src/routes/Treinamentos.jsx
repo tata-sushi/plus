@@ -36,6 +36,7 @@ import { tapHaptic } from '../lib/haptics.js'
 import { resolveIcon } from '../lib/icons.js'
 import { supabase } from '../lib/supabase.js'
 import { useAuth } from '../lib/AuthContext.jsx'
+import { useDesktopCanvas } from '../lib/desktopCanvas.js'
 
 const TIPO_LABEL = { prova: 'Prova' }
 
@@ -51,6 +52,11 @@ function Detalhe({
 }) {
   const { usuario } = useAuth()
   const navigate = useNavigate()
+  // No desktop, o desafio abre no quadrante central (via portal) em vez de tomar
+  // a tela toda; no celular, segue em tela cheia (portal no <body>).
+  const { canvasEl } = useDesktopCanvas()
+  const noCentro = !!canvasEl
+  const alvoPortal = noCentro ? canvasEl : document.body
   const [data, setData] = useState(null)
   const [rolou, setRolou] = useState(false) // rolou o conteúdo até o fim?
   const [videosOk, setVideosOk] = useState(false) // assistiu todos os vídeos?
@@ -198,7 +204,12 @@ function Detalhe({
     // z-20 fica ABAIXO da barra de navegação (z-30): a barra continua visível e
     // clicável, e é por ela que a pessoa sai. O rodapé reserva o espaço dela.
     return createPortal(
-      <div className="fixed inset-0 z-20 flex select-none flex-col bg-black">
+      <div
+        className={cn(
+          noCentro ? 'absolute inset-0 z-30' : 'fixed inset-0 z-20',
+          'flex select-none flex-col bg-black',
+        )}
+      >
         <div
           className="relative min-h-0 flex-1"
           onClick={(e) => {
@@ -241,16 +252,31 @@ function Detalhe({
             />
           )}
         </div>
-        {/* espaço reservado pra barra de navegação do app */}
-        <div className="safe-bottom h-14 shrink-0" />
+        {noCentro ? (
+          // no desktop não há barra de baixo: um "Voltar" flutuante pra sair
+          <button
+            onClick={onFechar}
+            className="absolute left-3 top-3 z-10 hstack gap-1.5 rounded-full bg-surface px-3.5 py-2 text-xs font-semibold text-text tap"
+          >
+            <ArrowLeft size={15} /> Voltar
+          </button>
+        ) : (
+          // espaço reservado pra barra de navegação do app (celular)
+          <div className="safe-bottom h-14 shrink-0" />
+        )}
       </div>,
-      document.body,
+      alvoPortal,
     )
   }
 
-  // portal no <body>: escapa de qualquer transform/stacking do <main>
+  // portal no <body> (celular) ou no quadrante central (desktop)
   return createPortal(
-    <div className="fixed inset-0 z-50 flex flex-col bg-bg">
+    <div
+      className={cn(
+        noCentro ? 'absolute inset-0 z-30' : 'fixed inset-0 z-50',
+        'flex flex-col bg-bg',
+      )}
+    >
       <div className="safe-top hstack gap-3 border-b border-line px-4 py-2.5">
         <button
           onClick={onFechar}
@@ -574,7 +600,7 @@ function Detalhe({
       </div>
       )}
     </div>,
-    document.body,
+    alvoPortal,
   )
 }
 
