@@ -94,12 +94,45 @@ function PodiumItem({ pos, c, onClick }) {
   )
 }
 
+// Pódio de equipe — mesmo formato do PodiumItem, mas com ícone da área.
+function PodiumEquipe({ pos, e, metrica }) {
+  const isFirst = pos === 1
+  const Icon = iconeArea(e.departamento)
+  const size = isFirst ? 72 : 56
+  const valor = metrica === 'media' ? e.media : e.pontos
+  return (
+    <div className={`flex min-w-0 flex-1 flex-col items-center ${isFirst ? '' : 'mt-5'}`}>
+      {isFirst && <Crown size={20} className="mb-1 text-accent" />}
+      <div className="relative">
+        <span
+          className={`grid place-items-center rounded-full bg-accent-soft text-accent ${
+            isFirst ? 'ring-2 ring-accent shadow-glow' : 'ring-1 ring-line'
+          }`}
+          style={{ width: size, height: size }}
+        >
+          <Icon size={isFirst ? 30 : 24} />
+        </span>
+        <span
+          className={`absolute -bottom-2 left-1/2 grid h-6 w-6 -translate-x-1/2 place-items-center rounded-full text-[11px] font-bold ${
+            isFirst ? 'bg-accent text-black' : 'border border-line bg-surface-2 text-text'
+          }`}
+        >
+          {pos}
+        </span>
+      </div>
+      <div className="mt-3 w-full truncate text-center text-xs font-semibold">{e.departamento}</div>
+      <div className="text-[11px] font-bold text-accent">{fmt(valor)}</div>
+    </div>
+  )
+}
+
 export function Ranking() {
   const { usuario } = useAuth()
   const navigate = useNavigate()
-  const [tipo, setTipo] = useState('geral') // geral | lideres
+  const [tipo, setTipo] = useState('geral') // geral | lideres | equipes
   const [uni, setUni] = useState('')
   const [dep, setDep] = useState('')
+  const [metricaEquipe, setMetricaEquipe] = useState('total') // total | media
   const [dados, setDados] = useState([])
   const [carregando, setCarregando] = useState(true)
 
@@ -136,7 +169,8 @@ export function Ranking() {
     [dados, tipo, uni, dep],
   )
 
-  // Equipes: soma dos pontos por departamento (respeita o filtro de unidade)
+  // Equipes: soma dos pontos por departamento (respeita o filtro de unidade),
+  // ordenado por total ou por média conforme a lista suspensa.
   const equipes = useMemo(() => {
     const mapa = new Map()
     dados
@@ -151,10 +185,13 @@ export function Ranking() {
         cur.membros += 1
         mapa.set(c.departamento, cur)
       })
-    return [...mapa.values()].sort((a, b) => b.pontos - a.pontos)
-  }, [dados, uni])
+    return [...mapa.values()]
+      .map((e) => ({ ...e, media: e.membros ? Math.round(e.pontos / e.membros) : 0 }))
+      .sort((a, b) => (metricaEquipe === 'media' ? b.media - a.media : b.pontos - a.pontos))
+  }, [dados, uni, metricaEquipe])
 
   const [p1, p2, p3] = lista
+  const [e1, e2, e3] = equipes
 
   return (
     <>
@@ -170,7 +207,16 @@ export function Ranking() {
             </option>
           ))}
         </select>
-        {!emEquipes && (
+        {emEquipes ? (
+          <select
+            value={metricaEquipe}
+            onChange={(e) => setMetricaEquipe(e.target.value)}
+            className={selectCls}
+          >
+            <option value="total">Por total</option>
+            <option value="media">Por média</option>
+          </select>
+        ) : (
           <select value={dep} onChange={(e) => setDep(e.target.value)} className={selectCls}>
             <option value="">Todos os departamentos</option>
             {departamentos.map((d) => (
@@ -190,42 +236,54 @@ export function Ranking() {
         equipes.length === 0 ? (
           <div className="py-16 text-center text-sm text-muted">Sem equipes por aqui ainda.</div>
         ) : (
-          <Section className="mt-5" title="Ranking por equipe">
-            <div className="card overflow-hidden">
-              {equipes.map((e, i) => {
-                const AreaIcon = iconeArea(e.departamento)
-                const media = e.membros ? Math.round(e.pontos / e.membros) : 0
-                return (
-                  <div
-                    key={e.departamento}
-                    className={`hstack gap-3 px-4 py-3 ${i > 0 ? 'border-t border-line' : ''}`}
-                  >
-                    <span className="w-5 shrink-0 text-center text-sm font-bold text-muted">
-                      {i + 1}
-                    </span>
-                    <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-accent-soft text-accent">
-                      <AreaIcon size={16} />
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <div className="truncate text-sm font-semibold">{e.departamento}</div>
-                      <div className="truncate text-[11px] text-muted">
-                        {e.membros} pessoa{e.membros === 1 ? '' : 's'}
-                      </div>
-                    </div>
-                    <div className="shrink-0 text-right">
-                      <div className="text-sm font-bold text-accent">
-                        {fmt(e.pontos)}
-                        <span className="ml-0.5 text-[10px] font-medium text-muted">pts</span>
-                      </div>
-                      <div className="text-[10px] font-medium text-accent">
-                        {fmt(media)} med/pessoa
-                      </div>
-                    </div>
-                  </div>
-                )
-              })}
+          <>
+            {/* Pódio */}
+            <div className="px-5 pt-3">
+              <div className="hero-card flex items-end justify-center gap-3 px-4 pb-4 pt-6">
+                {e2 && <PodiumEquipe pos={2} e={e2} metrica={metricaEquipe} />}
+                {e1 && <PodiumEquipe pos={1} e={e1} metrica={metricaEquipe} />}
+                {e3 && <PodiumEquipe pos={3} e={e3} metrica={metricaEquipe} />}
+              </div>
             </div>
-          </Section>
+
+            {/* Classificação completa */}
+            <Section className="mt-5" title="Classificação">
+              <div className="card overflow-hidden">
+                {equipes.map((e, i) => {
+                  const AreaIcon = iconeArea(e.departamento)
+                  return (
+                    <div
+                      key={e.departamento}
+                      className={`hstack gap-3 px-4 py-3 ${i > 0 ? 'border-t border-line' : ''}`}
+                    >
+                      <span className="w-5 shrink-0 text-center text-sm font-bold text-muted">
+                        {i + 1}
+                      </span>
+                      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-accent-soft text-accent">
+                        <AreaIcon size={16} />
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <div className="truncate text-sm font-semibold">{e.departamento}</div>
+                        <div className="truncate text-[11px] text-muted">
+                          {e.membros} pessoa{e.membros === 1 ? '' : 's'}
+                        </div>
+                      </div>
+                      <div className="shrink-0 text-right">
+                        <div className="text-sm font-bold text-accent">
+                          {fmt(e.pontos)}
+                          <span className="ml-0.5 text-[10px] font-medium text-muted">pts</span>
+                        </div>
+                        <div className="text-[10px] font-medium text-accent">
+                          {fmt(e.media)}
+                          <span className="text-carbon"> med/pessoa</span>
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </Section>
+          </>
         )
       ) : lista.length === 0 ? (
         <div className="py-16 text-center text-sm text-muted">Ninguém por aqui ainda.</div>
