@@ -1,15 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import {
-  Heart,
-  MessageCircle,
-  Share2,
-  Image as ImageIcon,
-  Send,
-  Loader2,
-  Trash2,
-  X,
-} from 'lucide-react'
+import { Heart, MessageCircle, Image as ImageIcon, Send, Loader2, Trash2, X } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Card } from '../components/Card.jsx'
 import { Avatar } from '../components/Avatar.jsx'
@@ -21,6 +12,9 @@ import { useAuth } from '../lib/AuthContext.jsx'
 import { supabase } from '../lib/supabase.js'
 
 const TAM_MAX = 15 * 1024 * 1024 // 15 MB
+
+// só o primeiro nome (nas postagens e comentários)
+const soPrimeiro = (n) => (n || 'Colaborador').split(/\s+/)[0]
 
 function PostCard({ post, matricula, meuNome, meuAvatar, onCurtir, onExcluir }) {
   const navigate = useNavigate()
@@ -87,7 +81,7 @@ function PostCard({ post, matricula, meuNome, meuAvatar, onCurtir, onExcluir }) 
         >
           <Avatar name={post.autor_nome || '—'} src={post.autor_avatar} size={40} />
           <div className="min-w-0 flex-1">
-            <div className="text-sm font-semibold">{post.autor_nome || 'Colaborador'}</div>
+            <div className="text-sm font-semibold">{soPrimeiro(post.autor_nome)}</div>
             <div className="text-[11px] text-muted">
               {post.autor_cargo}
               {post.autor_cargo ? ' · ' : ''}
@@ -131,7 +125,6 @@ function PostCard({ post, matricula, meuNome, meuAvatar, onCurtir, onExcluir }) 
         <button onClick={alternar} className={cn('hstack gap-1.5 tap', abrir && 'text-text')}>
           <MessageCircle size={16} /> {total}
         </button>
-        <Share2 size={16} className="ml-auto" />
       </div>
 
       {/* Comentários */}
@@ -148,7 +141,7 @@ function PostCard({ post, matricula, meuNome, meuAvatar, onCurtir, onExcluir }) 
                 <Avatar name={c.autor_nome || '—'} src={c.autor_avatar} size={28} />
                 <div className="min-w-0 flex-1 rounded-2xl bg-surface px-3 py-2">
                   <div className="hstack gap-2">
-                    <span className="text-xs font-semibold">{c.autor_nome || 'Colaborador'}</span>
+                    <span className="text-xs font-semibold">{soPrimeiro(c.autor_nome)}</span>
                     <span className="text-[10px] text-muted-2">{tempoRelativo(c.created_at)}</span>
                   </div>
                   <p className="mt-0.5 whitespace-pre-wrap text-sm">{c.texto}</p>

@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom'
-import { Home, Trophy, UsersRound, Ear, Menu, ShieldCheck } from 'lucide-react'
+import { Home, Trophy, Newspaper, Ear, Menu, ShieldCheck } from 'lucide-react'
 import { cn } from '../lib/cn'
 import { tapHaptic } from '../lib/haptics.js'
 import { useAuth } from '../lib/AuthContext.jsx'
@@ -14,7 +14,7 @@ export function BottomNav() {
   const items = [
     { to: '/', label: 'Início', Icon: Home, end: true },
     { to: '/ranking', label: 'Ranking', Icon: Trophy },
-    { to: '/comunidade', label: 'Feed', Icon: UsersRound },
+    { to: '/comunidade', label: 'Feed', Icon: Newspaper },
     slotCanal,
     { to: '/mais', label: 'Mais', Icon: Menu },
   ]
