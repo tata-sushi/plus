@@ -6,6 +6,7 @@ import {
   Newspaper,
   Ear,
   Menu,
+  ShieldCheck,
   PanelLeftClose,
   PanelLeftOpen,
   ArrowLeft,
@@ -20,6 +21,14 @@ import { AdminRecompensas } from '../routes/AdminRecompensas.jsx'
 const CANVAS = {
   portal: 'https://lideres.tatasushi.tech/compliance/index2.html',
   organograma: 'https://lideres.tatasushi.tech/compliance/areas/organograma2.html',
+}
+
+// Título mostrado na barra "Voltar" para cada abertura do centro.
+const TITULO_CANVAS = {
+  portal: 'Governança',
+  organograma: 'Organograma',
+  ouvidoria: 'Ouvidoria',
+  admin: 'Painel de administração',
 }
 
 // Shell de desktop: navegação dupla.
@@ -46,13 +55,15 @@ export function DesktopShell() {
     })
   }
 
-  // Espelha a barra de baixo do app. Quem não tem Governança abre a Ouvidoria no
-  // centro (canvasKey); os demais itens navegam no painel.
+  // Espelha a barra de baixo do app. O 4º slot abre no centro (canvasKey):
+  // Governança (portal) para quem tem acesso, ou Ouvidoria para os demais.
   const itens = [
     { to: '/', label: 'Início', Icon: Home, end: true },
     { to: '/ranking', label: 'Ranking', Icon: Trophy },
     { to: '/comunidade', label: 'Feed', Icon: Newspaper },
-    ...(gov ? [] : [{ canvasKey: 'ouvidoria', label: 'Ouvidoria', Icon: Ear }]),
+    gov
+      ? { canvasKey: 'portal', label: 'Governança', Icon: ShieldCheck }
+      : { canvasKey: 'ouvidoria', label: 'Ouvidoria', Icon: Ear },
     { to: '/mais', label: 'Mais', Icon: Menu },
   ]
 
@@ -129,26 +140,22 @@ export function DesktopShell() {
 
         {/* Área principal */}
         <section ref={setCanvasEl} className="relative flex flex-1 flex-col bg-bg">
-          {/* Base: portal (gov) ou logo grande (demais) */}
-          {gov ? (
-            <iframe
-              src={CANVAS.portal}
-              title="Portal de Governança"
-              className="absolute inset-0 h-full w-full border-0 bg-white"
-              allow="clipboard-write; camera; microphone; geolocation; fullscreen"
-            />
-          ) : (
-            <div className="flex flex-1 flex-col items-center justify-center gap-5 px-8 text-center">
-              <img src="/icons/logo-mark.png" alt="Tatá Plus" className="logo-dark h-24 w-auto opacity-90" />
-              <img src="/icons/logo-mark-light.png" alt="Tatá Plus" className="logo-light h-24 w-auto opacity-90" />
-              <div>
-                <div className="font-display text-3xl font-bold tracking-tight">
-                  TATÁ<span className="text-accent"> PLUS</span>
-                </div>
-                <div className="mt-1 text-sm text-muted">Portal do colaborador</div>
+          {/* Base (para todos): boas-vindas com o logo grande. Portal, organograma,
+              ouvidoria, admin e atalhos abrem por cima. */}
+          <div className="flex flex-1 flex-col items-center justify-center gap-5 px-8 text-center">
+            <img src="/icons/logo-mark.png" alt="Tatá Plus" className="logo-dark h-24 w-auto opacity-90" />
+            <img src="/icons/logo-mark-light.png" alt="Tatá Plus" className="logo-light h-24 w-auto opacity-90" />
+            <div className="max-w-md">
+              <div className="font-display text-3xl font-bold tracking-tight">
+                TATÁ<span className="text-accent"> PLUS</span>
               </div>
+              <div className="mt-1 text-sm text-muted">Portal do colaborador</div>
+              <p className="mt-4 text-sm leading-relaxed text-muted-2">
+                Bem-vindo(a)! Este é o aplicativo dos colaboradores Tatá — reconhecimento,
+                desafios, recompensas e comunicação num lugar só. Use o menu ao lado para navegar.
+              </p>
             </div>
-          )}
+          </div>
 
           {/* Aberto no centro por cima: organograma / ouvidoria / admin / atalho de KPI */}
           {canvas && (
@@ -160,13 +167,21 @@ export function DesktopShell() {
                 >
                   <ArrowLeft size={15} /> Voltar
                 </button>
-                {canvas.titulo && (
+                {(canvas.titulo || TITULO_CANVAS[canvas]) && (
                   <span className="min-w-0 flex-1 truncate text-xs font-medium text-muted">
-                    {canvas.titulo}
+                    {canvas.titulo || TITULO_CANVAS[canvas]}
                   </span>
                 )}
               </div>
               <div className="min-h-0 flex-1">
+                {canvas === 'portal' && (
+                  <iframe
+                    src={CANVAS.portal}
+                    title="Portal de Governança"
+                    className="h-full w-full border-0 bg-white"
+                    allow="clipboard-write; camera; microphone; geolocation; fullscreen"
+                  />
+                )}
                 {canvas === 'organograma' && (
                   <iframe
                     src={CANVAS.organograma}
