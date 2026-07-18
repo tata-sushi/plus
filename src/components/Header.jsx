@@ -9,13 +9,13 @@ export function Header({ right }) {
           <img
             src="/icons/icon-192.png"
             alt="Tatá"
-            className="h-8 w-8 rounded-lg"
-            width={32}
-            height={32}
+            className="h-[38px] w-[38px] rounded-lg"
+            width={38}
+            height={38}
           />
-          <span className="font-display text-lg font-bold tracking-tight">
+          <span className="font-display text-[16px] font-semibold tracking-tight">
             TATÁ<span className="text-accent"> PLUS</span>
-            <span className="ml-1 align-baseline text-[10px] font-semibold text-muted">2.0</span>
+            <span className="ml-1 align-baseline text-[10px] font-medium text-muted">2.0</span>
           </span>
         </Link>
         <div className="hstack gap-2">

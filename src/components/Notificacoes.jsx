@@ -72,7 +72,7 @@ export function Notificacoes() {
     <>
       <button
         onClick={abrir}
-        className="relative grid h-9 w-9 place-items-center rounded-full bg-surface-2 text-muted tap"
+        className="relative grid h-9 w-9 place-items-center rounded-full text-text tap"
         aria-label="Notificações"
       >
         <Bell size={18} />
