@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate, Navigate } from 'react-router-dom'
-import { ArrowLeft, Loader2, Send, Check } from 'lucide-react'
+import { ArrowLeft, Loader2, Send, Check, Cake } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Section } from '../components/Section.jsx'
 import { Card } from '../components/Card.jsx'
@@ -83,6 +83,12 @@ export function Perfil() {
   const progresso = proximo ? Math.min(1, Number(perfil.pontos) / Number(proximo)) : 1
   const falta = proximo ? Number(proximo) - Number(perfil.pontos) : 0
   const signo = signoDe(perfil.data_nascimento)
+  const aniversario = perfil.data_nascimento
+    ? new Date(perfil.data_nascimento + 'T00:00:00').toLocaleDateString('pt-BR', {
+        day: '2-digit',
+        month: '2-digit',
+      })
+    : null
 
   async function transferir() {
     const n = Math.floor(Number(valor))
@@ -134,6 +140,11 @@ export function Perfil() {
                 {perfil.departamento && perfil.unidade ? ' · ' : ''}
                 {perfil.unidade}
               </div>
+              {aniversario && (
+                <div className="mt-0.5 hstack gap-1 text-[11px] text-muted-2">
+                  <Cake size={12} /> Aniversário · {aniversario}
+                </div>
+              )}
             </div>
           </div>
 
@@ -157,7 +168,7 @@ export function Perfil() {
           <Card>
             <div className="hstack gap-2 text-sm font-semibold text-accent">
               <Check size={18} className="shrink-0" />
-              {fmt(feito.pontos)} pts transferidos para {primeiro}.
+              {fmt(feito.pontos)} pts compartilhados com {primeiro}.
             </div>
             <div className="mt-1 text-xs text-muted">Seu novo saldo: {fmt(saldo)} pts.</div>
           </Card>
@@ -192,7 +203,11 @@ export function Perfil() {
                 disabled={enviando}
                 className="btn-primary flex-1 !py-3 text-sm disabled:opacity-60"
               >
-                {enviando ? <Loader2 size={16} className="animate-spin" /> : `Transferir para ${primeiro}`}
+                {enviando ? (
+                <Loader2 size={16} className="animate-spin" />
+              ) : (
+                `Compartilhar com ${primeiro}`
+              )}
               </button>
             </div>
             <p className="mt-2 text-[11px] text-muted-2">
@@ -202,7 +217,7 @@ export function Perfil() {
           </Card>
         ) : (
           <button onClick={() => setAberto(true)} className="btn-primary w-full !py-3.5 text-sm">
-            <Send size={16} /> Transferir saldo
+            <Send size={16} /> Compartilhar pontos
           </button>
         )}
       </Section>
@@ -222,8 +237,8 @@ export function Perfil() {
         </Card>
       </Section>
 
-      {/* Perfil comportamental */}
-      <Section className="reveal reveal-3 mt-5" title="Perfil comportamental">
+      {/* Características */}
+      <Section className="reveal reveal-3 mt-5" title="Características">
         <AnalisesPerfil disc={perfil.disc} signo={signo} />
       </Section>
     </>

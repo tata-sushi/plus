@@ -414,7 +414,7 @@ export function AdminRecompensas() {
               aba === 'catalogo' ? 'bg-accent text-black' : 'text-muted',
             )}
           >
-            Catálogo
+            Recompensas
           </button>
           <button
             onClick={() => setAba('pedidos')}
@@ -740,7 +740,7 @@ export function AdminRecompensas() {
       ) : (
         <Section
           className="mt-4"
-          title={`${verArquivados ? 'Arquivados' : 'Catálogo'} (${itensView.length})`}
+          title={`${verArquivados ? 'Arquivados' : 'Recompensas'} (${itensView.length})`}
         >
           {itensView.length === 0 ? (
             <div className="card p-8 text-center text-sm text-muted">

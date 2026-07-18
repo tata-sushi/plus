@@ -1,6 +1,24 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Crown, Loader2, Users } from 'lucide-react'
+import {
+  Crown,
+  Loader2,
+  Users,
+  Fish,
+  Wine,
+  ChefHat,
+  Soup,
+  UtensilsCrossed,
+  Bike,
+  ShoppingCart,
+  Boxes,
+  SprayCan,
+  BadgeCheck,
+  Cog,
+  Megaphone,
+  Wallet,
+  Briefcase,
+} from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Tabs } from '../components/Tabs.jsx'
 import { Section } from '../components/Section.jsx'
@@ -10,13 +28,36 @@ import { supabase } from '../lib/supabase.js'
 
 const tipos = [
   { value: 'geral', label: 'Colaboradores' },
-  { value: 'lideres', label: 'Líderes' },
   { value: 'equipes', label: 'Equipes' },
+  { value: 'lideres', label: 'Líderes' },
 ]
 
 const fmt = (n) => Number(n || 0).toLocaleString('pt-BR')
 const selectCls =
   'min-w-0 flex-1 rounded-pill border border-line bg-surface px-3.5 py-2 text-xs font-medium text-text outline-none focus:border-accent'
+
+// Ícone que combina com a área/departamento da equipe.
+function iconeArea(nome) {
+  const n = (nome || '')
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .toLowerCase()
+  if (n.includes('sushi')) return Fish
+  if (n.includes('refeit')) return Soup
+  if (n.includes('cozinha')) return ChefHat
+  if (n.includes('bar')) return Wine
+  if (n.includes('salao') || n.includes('atend') || n.includes('garcom')) return UtensilsCrossed
+  if (n.includes('deliver') || n.includes('entrega')) return Bike
+  if (n.includes('compra')) return ShoppingCart
+  if (n.includes('estoque') || n.includes('almox')) return Boxes
+  if (n.includes('limpez')) return SprayCan
+  if (n.includes('qualidad')) return BadgeCheck
+  if (n.includes('opera')) return Cog
+  if (n.includes('market')) return Megaphone
+  if (n.includes('financ')) return Wallet
+  if (n.includes('admin') || n.includes('escrit')) return Briefcase
+  return Users
+}
 
 function PodiumItem({ pos, c, onClick }) {
   const isFirst = pos === 1
@@ -147,29 +188,36 @@ export function Ranking() {
         ) : (
           <Section className="mt-5" title="Ranking por equipe">
             <div className="card overflow-hidden">
-              {equipes.map((e, i) => (
-                <div
-                  key={e.departamento}
-                  className={`hstack gap-3 px-4 py-3 ${i > 0 ? 'border-t border-line' : ''}`}
-                >
-                  <span className="w-5 shrink-0 text-center text-sm font-bold text-muted">
-                    {i + 1}
-                  </span>
-                  <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-accent-soft text-accent">
-                    {i === 0 ? <Crown size={16} /> : <Users size={16} />}
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <div className="truncate text-sm font-semibold">{e.departamento}</div>
-                    <div className="truncate text-[11px] text-muted">
-                      {e.membros} pessoa{e.membros === 1 ? '' : 's'}
+              {equipes.map((e, i) => {
+                const AreaIcon = iconeArea(e.departamento)
+                const media = e.membros ? Math.round(e.pontos / e.membros) : 0
+                return (
+                  <div
+                    key={e.departamento}
+                    className={`hstack gap-3 px-4 py-3 ${i > 0 ? 'border-t border-line' : ''}`}
+                  >
+                    <span className="w-5 shrink-0 text-center text-sm font-bold text-muted">
+                      {i + 1}
+                    </span>
+                    <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-accent-soft text-accent">
+                      <AreaIcon size={16} />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate text-sm font-semibold">{e.departamento}</div>
+                      <div className="truncate text-[11px] text-muted">
+                        {e.membros} pessoa{e.membros === 1 ? '' : 's'}
+                      </div>
+                    </div>
+                    <div className="shrink-0 text-right">
+                      <div className="text-sm font-bold text-accent">
+                        {fmt(e.pontos)}
+                        <span className="ml-0.5 text-[10px] font-medium text-muted">pts</span>
+                      </div>
+                      <div className="text-[10px] text-muted-2">média {fmt(media)}</div>
                     </div>
                   </div>
-                  <span className="shrink-0 text-sm font-bold text-accent">
-                    {fmt(e.pontos)}
-                    <span className="ml-0.5 text-[10px] font-medium text-muted">pts</span>
-                  </span>
-                </div>
-              ))}
+                )
+              })}
             </div>
           </Section>
         )

@@ -106,7 +106,7 @@ export function Mais() {
     <>
       <Header title="Mais" />
 
-      <div className="px-5">
+      <div className="px-5 pt-3">
         <div className="card p-4">
           <div className="hstack gap-3">
             <button
