@@ -58,26 +58,6 @@ function RadioGroup({ label, value, onChange, options }) {
   )
 }
 
-// Título "Ouvidoria" grande e centralizado (padrão do HTML), sem faixa de
-// fundo. Usa o verde do tema (legível no claro e no escuro) com um brilho.
-function HeroTitulo() {
-  return (
-    <div className="px-6 pb-2 pt-6 text-center">
-      <h1
-        className="font-display font-bold text-accent"
-        style={{
-          fontSize: 'clamp(44px, 14vw, 60px)',
-          letterSpacing: '-1.5px',
-          lineHeight: 0.9,
-          textShadow: '0 0 22px rgb(var(--accent) / 0.4)',
-        }}
-      >
-        Ouvidoria
-      </h1>
-    </div>
-  )
-}
-
 export function Ouvidoria() {
   const [identificacao, setIdentificacao] = useState('')
   const [nome, setNome] = useState('')
@@ -135,8 +115,7 @@ export function Ouvidoria() {
     return (
       <>
         <Header title="Ouvidoria" />
-        <HeroTitulo />
-        <div className="px-5 pt-4">
+        <div className="px-5 pt-3">
           <div className="rounded-card border border-[#E2E2E2] bg-white p-8 text-center">
             <span
               className="mx-auto grid h-14 w-14 place-items-center rounded-full text-[#1A5C2A]"
@@ -161,9 +140,8 @@ export function Ouvidoria() {
   return (
     <>
       <Header title="Ouvidoria" />
-      <HeroTitulo />
 
-      <div className="px-5 pt-4">
+      <div className="px-5 pt-3">
         <div className="rounded-card border border-[#E2E2E2] bg-white p-6">
           <h2 className="text-center font-display text-lg font-bold text-[#111111]">
             Sigiloso e seguro
