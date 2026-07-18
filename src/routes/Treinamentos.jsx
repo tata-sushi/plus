@@ -183,56 +183,37 @@ function Detalhe({
     const idx = Math.min(painelIdx, Math.max(0, paineis.length - 1))
     const primeiro = idx <= 0
     const ultimo = idx >= paineis.length - 1
+    // z-20 fica ABAIXO da barra de navegação (z-30): a barra continua visível e
+    // clicável, e é por ela que a pessoa sai. O rodapé reserva o espaço dela.
     return createPortal(
-      <div className="fixed inset-0 z-50 select-none bg-black">
-        {paineis[idx] && (
-          <img
-            src={paineis[idx]}
-            alt=""
-            draggable="false"
-            className="h-full w-full object-contain"
-          />
-        )}
-
-        {/* zonas invisíveis de toque: esquerda volta, direita avança */}
-        {!primeiro && (
-          <button
-            onClick={() => setPainelIdx((i) => Math.max(0, i - 1))}
-            aria-label="Anterior"
-            className="absolute inset-y-0 left-0 w-2/5"
-          />
-        )}
-        {!ultimo && (
-          <button
-            onClick={() => setPainelIdx((i) => Math.min(paineis.length - 1, i + 1))}
-            aria-label="Próximo"
-            className="absolute inset-y-0 right-0 w-3/5"
-          />
-        )}
-
-        {/* voltar (sair) */}
-        <button
-          onClick={onFechar}
-          aria-label="Voltar"
-          className="safe-top absolute left-3 top-3 z-10 grid h-9 w-9 place-items-center rounded-full bg-black/40 text-white backdrop-blur tap"
-        >
-          <ArrowLeft size={18} />
-        </button>
-
-        {/* indicador de páginas */}
-        {paineis.length > 1 && (
-          <div className="safe-bottom pointer-events-none absolute inset-x-0 bottom-4 z-10 flex justify-center gap-1.5">
-            {paineis.map((_, i) => (
-              <span
-                key={i}
-                className={
-                  'h-1.5 rounded-full transition-all ' +
-                  (i === idx ? 'w-5 bg-white' : 'w-1.5 bg-white/40')
-                }
-              />
-            ))}
-          </div>
-        )}
+      <div className="fixed inset-0 z-20 flex select-none flex-col bg-black">
+        <div className="relative min-h-0 flex-1">
+          {paineis[idx] && (
+            <img
+              src={paineis[idx]}
+              alt=""
+              draggable="false"
+              className="h-full w-full object-contain"
+            />
+          )}
+          {/* zonas invisíveis de toque: esquerda volta, direita avança */}
+          {!primeiro && (
+            <button
+              onClick={() => setPainelIdx((i) => Math.max(0, i - 1))}
+              aria-label="Anterior"
+              className="absolute inset-y-0 left-0 w-2/5"
+            />
+          )}
+          {!ultimo && (
+            <button
+              onClick={() => setPainelIdx((i) => Math.min(paineis.length - 1, i + 1))}
+              aria-label="Próximo"
+              className="absolute inset-y-0 right-0 w-3/5"
+            />
+          )}
+        </div>
+        {/* espaço reservado pra barra de navegação do app */}
+        <div className="safe-bottom h-14 shrink-0" />
       </div>,
       document.body,
     )
