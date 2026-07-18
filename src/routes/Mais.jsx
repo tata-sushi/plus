@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import {
-  Trophy,
+  UserRound,
   Wrench,
   LogOut,
   ChevronRight,
@@ -10,7 +10,7 @@ import {
   Megaphone,
   UtensilsCrossed,
   ShieldCheck,
-  Ear,
+  MessageSquareWarning,
   Pin,
   Search,
 } from 'lucide-react'
@@ -24,12 +24,15 @@ import { useAuth } from '../lib/AuthContext.jsx'
 import { supabase } from '../lib/supabase.js'
 import { tapHaptic } from '../lib/haptics.js'
 
+// gov: true → só aparece para quem tem acesso à Governança.
 const itens = [
-  { to: '/buscar', label: 'Buscar pessoas', icon: Search },
-  { to: '/cardapio', label: 'Cardápio', icon: UtensilsCrossed },
+  { to: '/jornada', label: 'Meu perfil', icon: UserRound },
+  { to: '/buscar', label: 'Busca colegas', icon: Search },
   { to: '/comunicados', label: 'Comunicados', icon: Megaphone },
-  { to: '/jornada', label: 'Minha jornada', icon: Trophy },
+  { to: '/ouvidoria', label: 'Ouvidoria', icon: MessageSquareWarning, gov: true },
+  { to: '/cardapio', label: 'Cardápio', icon: UtensilsCrossed },
   { to: '/manutencao', label: 'Painel de manutenção', icon: Wrench },
+  { to: '/atalhos-governanca', label: 'Gerenciar atalhos', icon: Pin, gov: true },
 ]
 
 const TAM_MAX = 8 * 1024 * 1024 // 8 MB
@@ -40,15 +43,8 @@ export function Mais() {
   const nome = usuario?.nome || currentUser.nome
   const cargo = usuario?.cargo || currentUser.cargo
   const loja = usuario?.loja || currentUser.loja
-  // quem vê Governança na barra reveza com a Ouvidoria — então a Ouvidoria
-  // entra aqui no menu, para essa pessoa não perder o acesso ao canal.
-  const navItens = usuario?.governanca?.tem
-    ? [
-        ...itens,
-        { to: '/ouvidoria', label: 'Ouvidoria', icon: Ear },
-        { to: '/atalhos-governanca', label: 'Gerenciar atalhos', icon: Pin },
-      ]
-    : itens
+  // Ouvidoria e Gerenciar atalhos só para quem tem acesso à Governança.
+  const navItens = itens.filter((i) => !i.gov || usuario?.governanca?.tem)
 
   const inputFoto = useRef(null)
   const [enviando, setEnviando] = useState(false)
@@ -202,8 +198,8 @@ export function Mais() {
       </Section>
 
       <footer className="mt-8 flex flex-col items-center gap-0.5 px-5 text-center text-[11px] text-muted-2">
-        <span className="font-semibold">TATÁ PLUS · versão 2.0</span>
-        <span>Desenvolvido por Victor Carvalho · Gestão e Inovação</span>
+        <span className="font-semibold">TATÁ PLUS · 2.0</span>
+        <span>Desenvolvido por Victor Carvalho</span>
       </footer>
     </>
   )
