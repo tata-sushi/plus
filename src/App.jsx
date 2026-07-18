@@ -22,6 +22,7 @@ import { Governanca } from './routes/Governanca.jsx'
 import { Organograma } from './routes/Organograma.jsx'
 import { GerenciarAtalhos } from './routes/GerenciarAtalhos.jsx'
 import { QuestionarioDisc } from './routes/QuestionarioDisc.jsx'
+import { QuestionarioMbti } from './routes/QuestionarioMbti.jsx'
 import { PainelExterno } from './routes/PainelExterno.jsx'
 import { BuscarPessoas } from './routes/BuscarPessoas.jsx'
 
@@ -66,6 +67,7 @@ export function App() {
         <Route path="/organograma" element={<Organograma />} />
         <Route path="/atalhos-governanca" element={<GerenciarAtalhos />} />
         <Route path="/perfil-disc" element={<QuestionarioDisc />} />
+        <Route path="/perfil-mbti" element={<QuestionarioMbti />} />
         <Route path="/painel/:id" element={<PainelExterno />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
