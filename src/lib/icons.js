@@ -54,6 +54,12 @@ import {
   BookOpen,
   Award,
   Crown,
+  Medal,
+  Cake,
+  TrendingUp,
+  Heart,
+  Flame,
+  Zap,
 } from 'lucide-react'
 
 export const iconMap = {
@@ -111,6 +117,12 @@ export const iconMap = {
   BookOpen,
   Award,
   Crown,
+  Medal,
+  Cake,
+  TrendingUp,
+  Heart,
+  Flame,
+  Zap,
 }
 
 export function resolveIcon(name) {
