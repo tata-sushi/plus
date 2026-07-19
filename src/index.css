@@ -76,6 +76,20 @@
 :root[data-theme='light'] .scrim-lateral {
   background-image: linear-gradient(to left, rgb(255 255 255 / 0.8), rgb(255 255 255 / 0.3), transparent);
 }
+/* Cards de aniversário com arte clara e texto no centro: véu branco radial no
+   miolo (igual nos dois temas — a arte é clara em ambos) pra o texto escuro
+   destacar sem escurecer a arte festiva. */
+.scrim-centro {
+  background-image: radial-gradient(
+    ellipse 72% 52% at 50% 50%,
+    rgb(255 255 255 / 0.72),
+    rgb(255 255 255 / 0.4) 55%,
+    transparent 80%
+  );
+}
+.aniver-ink {
+  text-shadow: 0 1px 2px rgb(255 255 255 / 0.55);
+}
 
 @layer base {
   html, body, #root {
