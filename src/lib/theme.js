@@ -3,9 +3,9 @@ const KEY = 'tp_theme'
 
 export function getTheme() {
   try {
-    return localStorage.getItem(KEY) === 'light' ? 'light' : 'dark'
+    return localStorage.getItem(KEY) === 'dark' ? 'dark' : 'light'
   } catch {
-    return 'dark'
+    return 'light'
   }
 }
 

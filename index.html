@@ -6,12 +6,12 @@
     <meta name="google" content="notranslate" />
     <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1" />
-    <meta name="theme-color" content="#0A0A0A" />
+    <meta name="theme-color" content="#F5F4F1" />
     <script>
       // aplica o tema antes da 1ª pintura (evita flash). Sempre seta o
-      // data-theme (default 'dark') pra habilitar o variante dark: do Tailwind.
+      // data-theme (default 'light') pra habilitar o variante dark: do Tailwind.
       try {
-        var t = localStorage.getItem('tp_theme') === 'light' ? 'light' : 'dark'
+        var t = localStorage.getItem('tp_theme') === 'dark' ? 'dark' : 'light'
         document.documentElement.setAttribute('data-theme', t)
         var m = document.querySelector('meta[name="theme-color"]')
         if (m) m.setAttribute('content', t === 'light' ? '#F5F4F1' : '#0A0A0A')

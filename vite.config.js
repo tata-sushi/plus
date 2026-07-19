@@ -34,8 +34,8 @@ export default defineConfig({
         name: 'Tatá Plus',
         short_name: 'Tatá Plus',
         description: 'Portal do colaborador Tatá Sushi — feed, treinamentos, procedimentos e jornada.',
-        theme_color: '#0A0A0A',
-        background_color: '#0A0A0A',
+        theme_color: '#F5F4F1',
+        background_color: '#F5F4F1',
         display: 'standalone',
         // Retrato é o padrão do app (garantido pelo manifesto, mesmo sem JS).
         // O organograma vai para paisagem via TELA CHEIA + orientation.lock
