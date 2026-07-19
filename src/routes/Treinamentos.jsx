@@ -604,6 +604,10 @@ function Detalhe({
   )
 }
 
+// Capa da página — mesma arte usada no card de desafios do carrossel.
+const CAPA_DESAFIOS =
+  'https://aoqsbusfrffapjglpqjk.supabase.co/storage/v1/object/public/comunicados/desafios1.png'
+
 export function Treinamentos() {
   const { usuario } = useAuth()
   const admin = usuario?.podePublicar
@@ -620,6 +624,7 @@ export function Treinamentos() {
   const [concluindo, setConcluindo] = useState(false)
   const [aviso, setAviso] = useState('')
   const [celebrando, setCelebrando] = useState(null) // {pontos} — overlay de conclusão
+  const [capaOk, setCapaOk] = useState(true) // esconde a capa se a arte faltar
 
   useEffect(() => {
     if (!celebrando) return
@@ -765,6 +770,27 @@ export function Treinamentos() {
   return (
     <>
       <Header title="Treinamentos" />
+
+      {/* Capa da página (arte dos desafios) */}
+      {capaOk && (
+        <div className="px-5 pt-2">
+          <div className="relative overflow-hidden rounded-3xl border border-line">
+            <img
+              src={CAPA_DESAFIOS}
+              alt=""
+              onError={() => setCapaOk(false)}
+              className="h-36 w-full object-cover"
+            />
+            <span className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
+            <div className="absolute bottom-3 left-4 right-4">
+              <div className="font-display text-lg font-bold leading-snug text-white">
+                Seus desafios 🎯
+              </div>
+              <div className="text-xs text-white/80">Conclua as trilhas e some pontos.</div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {aviso && (
         <div className="mx-5 mt-2 rounded-card border border-accent/30 bg-accent-soft px-4 py-2.5 text-center text-xs font-semibold text-accent">
