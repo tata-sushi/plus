@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import {
   Home,
@@ -15,10 +15,13 @@ import { useAuth } from '../lib/AuthContext.jsx'
 import { DesktopCanvasContext } from '../lib/desktopCanvas.js'
 import { Ouvidoria } from '../routes/Ouvidoria.jsx'
 import { AdminRecompensas } from '../routes/AdminRecompensas.jsx'
+import { ListaGovernanca, urlGovAbsoluta } from './ListaGovernanca.jsx'
+
+const LIDERES_ORIGIN = 'https://lideres.tatasushi.tech'
+const ESCALAS_ORIGIN = 'https://escalas.tatasushi.tech'
 
 // Páginas que ocupam a área principal (só para quem tem Governança).
 const CANVAS = {
-  portal: 'https://lideres.tatasushi.tech/compliance/index2.html',
   organograma: 'https://lideres.tatasushi.tech/compliance/areas/organograma2.html',
 }
 
@@ -29,7 +32,7 @@ const CANVAS = {
 // (organograma pela Home, Ouvidoria e Admin pelo Mais/rail).
 export function DesktopShell() {
   const location = useLocation()
-  const { usuario } = useAuth()
+  const { usuario, session } = useAuth()
   const gov = !!usuario?.governanca?.tem
   const primeiroNome = usuario?.primeiroNome || (usuario?.nome || '').trim().split(/\s+/)[0] || ''
 
@@ -46,6 +49,27 @@ export function DesktopShell() {
       return !v
     })
   }
+
+  // Entrega o token da sessão pro iframe de governança quando ele pedir (origem
+  // verificada) — mesmo contrato do PainelExterno no mobile.
+  useEffect(() => {
+    function onMsg(ev) {
+      if (ev.origin !== LIDERES_ORIGIN && ev.origin !== ESCALAS_ORIGIN) return
+      if (ev.data?.tp !== 'gov-ready' || !session) return
+      ev.source?.postMessage(
+        {
+          tp: 'gov-session',
+          access_token: session.access_token,
+          refresh_token: session.refresh_token,
+          nome: usuario?.nome || '',
+          perfil: usuario?.perfil || 'lider',
+        },
+        ev.origin,
+      )
+    }
+    window.addEventListener('message', onMsg)
+    return () => window.removeEventListener('message', onMsg)
+  }, [session, usuario])
 
   // Espelha a barra de baixo do app. O 4º slot abre no centro (canvasKey):
   // Governança (portal) para quem tem acesso, ou Ouvidoria para os demais.
@@ -162,12 +186,16 @@ export function DesktopShell() {
           {canvas && (
             <div className="absolute inset-0 z-20 bg-bg">
               {canvas === 'portal' && (
-                <iframe
-                  src={CANVAS.portal}
-                  title="Portal de Governança"
-                  className="h-full w-full border-0 bg-white"
-                  allow="clipboard-write; camera; microphone; geolocation; fullscreen"
-                />
+                <div className="h-full overflow-y-auto">
+                  <div className="mx-auto max-w-[720px] px-2 pb-10 pt-2">
+                    <h1 className="px-4 pt-4 font-display text-2xl font-bold">Governança de Processos</h1>
+                    <ListaGovernanca
+                      onAbrir={(p) =>
+                        setCanvas({ tipo: 'painel', url: urlGovAbsoluta(p.url), titulo: p.label })
+                      }
+                    />
+                  </div>
+                </div>
               )}
               {canvas === 'organograma' && (
                 <iframe
