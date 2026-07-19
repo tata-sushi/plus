@@ -5,6 +5,8 @@ const c = (v) => `rgb(var(${v}) / <alpha-value>)`
 
 export default {
   content: ['./index.html', './src/**/*.{js,jsx}'],
+  // tema é aplicado via <html data-theme="dark|light"> — habilita o variante dark:
+  darkMode: ['selector', '[data-theme="dark"]'],
   theme: {
     extend: {
       // Breakpoints por ALTURA da tela — compacta a home em telas mais curtas
