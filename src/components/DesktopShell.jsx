@@ -15,13 +15,12 @@ import { useAuth } from '../lib/AuthContext.jsx'
 import { DesktopCanvasContext } from '../lib/desktopCanvas.js'
 import { Ouvidoria } from '../routes/Ouvidoria.jsx'
 import { AdminRecompensas } from '../routes/AdminRecompensas.jsx'
-import { ListaGovernanca, urlGovAbsoluta } from './ListaGovernanca.jsx'
-
 const LIDERES_ORIGIN = 'https://lideres.tatasushi.tech'
 const ESCALAS_ORIGIN = 'https://escalas.tatasushi.tech'
 
 // Páginas que ocupam a área principal (só para quem tem Governança).
 const CANVAS = {
+  portal: 'https://lideres.tatasushi.tech/compliance/',
   organograma: 'https://lideres.tatasushi.tech/compliance/areas/organograma2.html',
 }
 
@@ -186,16 +185,12 @@ export function DesktopShell() {
           {canvas && (
             <div className="absolute inset-0 z-20 bg-bg">
               {canvas === 'portal' && (
-                <div className="h-full overflow-y-auto">
-                  <div className="mx-auto max-w-[720px] px-2 pb-10 pt-2">
-                    <h1 className="px-4 pt-4 font-display text-2xl font-bold">Governança de Processos</h1>
-                    <ListaGovernanca
-                      onAbrir={(p) =>
-                        setCanvas({ tipo: 'painel', url: urlGovAbsoluta(p.url), titulo: p.label })
-                      }
-                    />
-                  </div>
-                </div>
+                <iframe
+                  src={CANVAS.portal}
+                  title="Portal de Governança"
+                  className="h-full w-full border-0 bg-white"
+                  allow="clipboard-write; camera; microphone; geolocation; fullscreen"
+                />
               )}
               {canvas === 'organograma' && (
                 <iframe

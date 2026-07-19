@@ -1,16 +1,44 @@
-import { useNavigate } from 'react-router-dom'
-import { Header } from '../components/Header.jsx'
-import { ListaGovernanca } from '../components/ListaGovernanca.jsx'
+import { useEffect } from 'react'
+import { useAuth } from '../lib/AuthContext.jsx'
 
-// Governança de Processos (modelo novo, mobile): lista nativa das páginas
-// liberadas; cada uma abre no visualizador in-app (/painel/:id), que passa o
-// token da sessão pra página checar o acesso na hora.
+// Portal de Governança (capa /compliance/) embutido em tela cheia. O Plus passa
+// o token da sessão pro iframe (origem verificada); o portal e suas páginas
+// checam o acesso ao vivo (gate.js). A navegação/menu fica por conta do portal.
+const HOME = 'https://lideres.tatasushi.tech/compliance/'
+const LIDERES_ORIGIN = 'https://lideres.tatasushi.tech'
+const ESCALAS_ORIGIN = 'https://escalas.tatasushi.tech'
+
 export function Governanca() {
-  const navigate = useNavigate()
+  const { session, usuario } = useAuth()
+
+  useEffect(() => {
+    function onMsg(ev) {
+      if (ev.origin !== LIDERES_ORIGIN && ev.origin !== ESCALAS_ORIGIN) return
+      if (ev.data?.tp !== 'gov-ready' || !session) return
+      ev.source?.postMessage(
+        {
+          tp: 'gov-session',
+          access_token: session.access_token,
+          refresh_token: session.refresh_token,
+          nome: usuario?.nome || '',
+          perfil: usuario?.perfil || 'lider',
+        },
+        ev.origin,
+      )
+    }
+    window.addEventListener('message', onMsg)
+    return () => window.removeEventListener('message', onMsg)
+  }, [session, usuario])
+
   return (
-    <>
-      <Header title="Governança de Processos" />
-      <ListaGovernanca onAbrir={(p) => navigate(`/painel/${p.pagina_id}`)} />
-    </>
+    <div className="flex h-[100dvh] flex-col bg-white">
+      <div className="safe-top shrink-0 bg-bg" />
+      <iframe
+        src={HOME}
+        title="Governança de Processos"
+        className="w-full flex-1 border-0 bg-white"
+        allow="clipboard-write; camera; microphone; geolocation"
+      />
+    </div>
   )
 }
