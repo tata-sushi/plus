@@ -25,6 +25,7 @@ import { RecompensaFoto } from '../components/RecompensaFoto.jsx'
 import { PhotoCropper } from '../components/PhotoCropper.jsx'
 import { AdminPublicacoes } from '../components/AdminPublicacoes.jsx'
 import { AdminConquistas } from '../components/AdminConquistas.jsx'
+import { AdminGovernanca } from '../components/AdminGovernanca.jsx'
 import { cn } from '../lib/cn'
 import { tapHaptic } from '../lib/haptics.js'
 import { useAuth } from '../lib/AuthContext.jsx'
@@ -464,10 +465,21 @@ export function AdminRecompensas() {
           >
             Conquistas
           </button>
+          <button
+            onClick={() => setAba('governanca')}
+            className={cn(
+              'shrink-0 rounded-2xl px-4 py-2.5 text-xs font-semibold tap',
+              aba === 'governanca' ? 'bg-accent text-black' : 'text-muted',
+            )}
+          >
+            Governança
+          </button>
         </div>
       </div>
 
-      {aba === 'conquistas' ? (
+      {aba === 'governanca' ? (
+        <AdminGovernanca />
+      ) : aba === 'conquistas' ? (
         <AdminConquistas />
       ) : aba === 'comunicados' ? (
         <AdminPublicacoes />
