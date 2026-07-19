@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Target, Trophy, Megaphone, Star, PartyPopper, Cake, Newspaper } from 'lucide-react'
 
@@ -25,9 +26,13 @@ export function DestaqueBanner({ d }) {
   // No card de aniversário a mensagem é o conteúdo principal, então ela vem
   // maior e com mais linhas; nos demais é só um subtítulo compacto.
   const ehAniver = tplKey === 'aniversario'
+  // Se a imagem falhar ao carregar (ex.: arquivo ainda não subiu), cai no
+  // degradê do template em vez de mostrar imagem quebrada.
+  const [imgErro, setImgErro] = useState(false)
+  const temImagem = !!d.imagem_url && !imgErro
   // Publicação só com imagem (sem título/texto): mostra a arte limpa, sem
   // escurecido, ícone decorativo ou bloco de texto por cima.
-  const soImagem = !!d.imagem_url && !d.titulo && !d.texto
+  const soImagem = temImagem && !d.titulo && !d.texto
   // Comunicado/notícia/aniversário têm pílula de categoria no topo. Os demais
   // (desafio/ranking/pontos) usam a própria CTA como pílula no mesmo lugar.
   const temPilulaCategoria = ['comunicado', 'noticia', 'aniversario'].includes(d.categoria)
@@ -37,9 +42,14 @@ export function DestaqueBanner({ d }) {
       to={d.cta_to || '/'}
       className="relative block aspect-square overflow-hidden rounded-3xl border border-line bg-surface tap"
     >
-      {/* fundo: arte real (futuro) ou gradiente do template */}
-      {d.imagem_url ? (
-        <img src={d.imagem_url} alt="" className="absolute inset-0 h-full w-full object-cover" />
+      {/* fundo: arte real ou gradiente do template (fallback se a arte faltar) */}
+      {temImagem ? (
+        <img
+          src={d.imagem_url}
+          alt=""
+          onError={() => setImgErro(true)}
+          className="absolute inset-0 h-full w-full object-cover"
+        />
       ) : (
         <span className={`absolute inset-0 bg-gradient-to-tr ${tpl.grad} to-transparent`} />
       )}
