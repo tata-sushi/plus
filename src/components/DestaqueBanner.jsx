@@ -18,10 +18,13 @@ const TEMPLATES = {
 }
 
 export function DestaqueBanner({ d }) {
-  // Aniversário pode vir com o alinhamento embutido no template: 'aniversario-cd'
-  // = mensagem centralizada à direita (para imagens com espaço livre à direita).
+  // Aniversário pode vir com o alinhamento embutido no template:
+  //  'aniversario-cd' = texto centralizado à direita (arte com vão à direita);
+  //  'aniversario-cc' = texto no centro (arte clara com o miolo livre, ex.: as
+  //                     artes de aniversário de empresa).
   const centroDireita = d.template === 'aniversario-cd'
-  const tplKey = centroDireita ? 'aniversario' : d.template
+  const centroCentro = d.template === 'aniversario-cc'
+  const tplKey = centroDireita || centroCentro ? 'aniversario' : d.template
   const tpl = TEMPLATES[tplKey] || TEMPLATES.comunicado
   const Icon = tpl.Icon
   // No card de aniversário a mensagem é o conteúdo principal, então ela vem
@@ -68,7 +71,12 @@ export function DestaqueBanner({ d }) {
           Degradê preto no tema escuro e branco no claro — classe própria em
           index.css, controlada pelo data-theme. */}
       {!soImagem && (
-        <span className={cn('absolute inset-0', centroDireita ? 'scrim-lateral' : 'scrim-inferior')} />
+        <span
+          className={cn(
+            'absolute inset-0',
+            centroCentro ? 'scrim-centro' : centroDireita ? 'scrim-lateral' : 'scrim-inferior',
+          )}
+        />
       )}
 
       {/* pílula da categoria — canto superior direito */}
@@ -98,23 +106,38 @@ export function DestaqueBanner({ d }) {
       {/* conteúdo (nada por cima quando é só imagem) */}
       {!soImagem && (
         <div
-          className={
-            centroDireita
-              ? 'absolute inset-0 flex flex-col items-end justify-center gap-2.5 p-5 text-right'
-              : 'absolute inset-0 flex flex-col justify-end gap-2.5 p-5'
-          }
+          className={cn(
+            'absolute inset-0 flex flex-col gap-2.5',
+            centroCentro
+              ? 'items-center justify-center p-6 text-center'
+              : centroDireita
+                ? 'items-end justify-center p-5 text-right'
+                : 'justify-end p-5',
+          )}
         >
-          <div className={centroDireita ? 'max-w-[85%]' : undefined}>
+          <div className={centroCentro ? 'max-w-[88%]' : centroDireita ? 'max-w-[85%]' : undefined}>
             {d.titulo && (
-              <div className="font-display text-lg font-bold leading-snug text-text">{d.titulo}</div>
+              <div
+                className={cn(
+                  'font-display font-bold leading-snug',
+                  // Arte clara no centro → tinta escura fixa (não segue o tema).
+                  centroCentro ? 'text-[1.35rem] text-[#173a24] aniver-ink' : 'text-lg text-text',
+                )}
+              >
+                {d.titulo}
+              </div>
             )}
             {d.texto && (
               <div
-                className={
+                className={cn(
                   ehAniver
-                    ? 'mt-1.5 line-clamp-5 whitespace-pre-line text-base leading-snug text-text/90'
-                    : 'mt-1 line-clamp-2 text-xs text-text/75'
-                }
+                    ? 'whitespace-pre-line leading-snug'
+                    : 'mt-1 line-clamp-2 text-xs text-text/75',
+                  ehAniver &&
+                    (centroCentro
+                      ? 'mt-2 text-[15px] text-[#1f4a2e] aniver-ink'
+                      : 'mt-1.5 line-clamp-5 text-base text-text/90'),
+                )}
               >
                 {d.texto}
               </div>
