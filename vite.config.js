@@ -15,6 +15,20 @@ export default defineConfig({
         navigateFallbackDenylist: [/^\/api/],
         // handlers de push (notificação no celular) — ver public/push-sw.js
         importScripts: ['/push-sw.js'],
+        // Cache das imagens do storage (artes de destaque, recompensas, avatares).
+        // StaleWhileRevalidate: abre na hora do cache e revalida em segundo plano,
+        // então trocar uma arte no bucket reflete na próxima carga.
+        runtimeCaching: [
+          {
+            urlPattern: /^https:\/\/aoqsbusfrffapjglpqjk\.supabase\.co\/storage\/.*/i,
+            handler: 'StaleWhileRevalidate',
+            options: {
+              cacheName: 'tp-imagens-storage',
+              expiration: { maxEntries: 200, maxAgeSeconds: 60 * 60 * 24 * 30 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+        ],
       },
       manifest: {
         name: 'Tatá Plus',
