@@ -77,18 +77,6 @@ export function ProfileView({ colaborador, isSelf }) {
       {/* Meu perfil (Signo · DISC · em breve) */}
       {isSelf && <MeuPerfil />}
 
-      {/* DEMO — radar de feedback (dados fake, só no meu usuário) */}
-      {demoRadar && (
-        <Section className="reveal reveal-2 mt-5" title="Feedback 360º (demo)">
-          <Card className="p-4">
-            <RadarChart axes={RADAR_EIXOS} series={RADAR_SERIES} max={5} size={280} />
-            <p className="mt-3 text-center text-[11px] text-muted-2">
-              Dados de exemplo — visualização do gráfico.
-            </p>
-          </Card>
-        </Section>
-      )}
-
       {/* Indicadores — formato tabela */}
       <Section className="reveal reveal-2 mt-5" title="Indicadores">
         <div className="card overflow-hidden">
@@ -104,6 +92,18 @@ export function ProfileView({ colaborador, isSelf }) {
           </div>
         </div>
       </Section>
+
+      {/* DEMO — radar de feedback (dados fake, só no meu usuário) — abaixo dos Indicadores */}
+      {demoRadar && (
+        <Section className="reveal reveal-3 mt-5" title="Feedback 360º (demo)">
+          <Card className="p-4">
+            <RadarChart axes={RADAR_EIXOS} series={RADAR_SERIES} max={5} size={280} />
+            <p className="mt-3 text-center text-[11px] text-muted-2">
+              Dados de exemplo — visualização do gráfico.
+            </p>
+          </Card>
+        </Section>
+      )}
 
       {/* Ações — em breve */}
       {isSelf && (
