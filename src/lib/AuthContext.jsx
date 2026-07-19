@@ -156,11 +156,14 @@ export function AuthProvider({ children }) {
     : session?.user
       ? {
           id: session.user.id,
-          nome: session.user.email,
-          primeiroNome: primeiroNome(session.user.email),
+          email: session.user.email,
+          // perfil ainda carregando: não expõe o e-mail como nome
+          nome: '',
+          primeiroNome: '',
           cargo: '',
           loja: '',
           departamento: '',
+          perfilPendente: true,
         }
       : null
 

@@ -45,6 +45,7 @@ const sugestoesCards = [
 
 export function Home() {
   const { usuario } = useAuth()
+  const carregandoPerfil = !!usuario?.perfilPendente
   const nome = usuario?.nome || 'Colaborador'
   const primeiroNome = usuario?.primeiroNome || (usuario?.nome || 'Colaborador').split(' ')[0]
   const cargo = usuario?.cargo || ''
@@ -86,15 +87,32 @@ export function Home() {
       {/* Card de identificação — compacto, com anel de progresso dos desafios */}
       <div className="px-5 pt-2 hxs:pt-1">
         <div className="hero-card reveal hstack gap-3 p-4 hsm:p-3">
-          <Avatar name={nome} src={usuario?.avatarUrl} size={48} />
+          {carregandoPerfil ? (
+            <span className="h-12 w-12 shrink-0 animate-pulse rounded-full bg-fill" />
+          ) : (
+            <Avatar name={nome} src={usuario?.avatarUrl} size={48} />
+          )}
           <div className="min-w-0 flex-1">
-            <div className="font-display text-lg font-bold">Olá, {primeiroNome}!</div>
-            <div className="mt-0.5 truncate text-xs text-muted">
-              {cargo}
-              {loja ? ` · ${loja}` : ''}
-            </div>
+            {carregandoPerfil ? (
+              <>
+                <span className="block h-5 w-36 max-w-[70%] animate-pulse rounded bg-fill" />
+                <span className="mt-2 block h-3 w-24 max-w-[45%] animate-pulse rounded bg-fill" />
+              </>
+            ) : (
+              <>
+                <div className="font-display text-lg font-bold">Olá, {primeiroNome}!</div>
+                <div className="mt-0.5 truncate text-xs text-muted">
+                  {cargo}
+                  {loja ? ` · ${loja}` : ''}
+                </div>
+              </>
+            )}
           </div>
-          <ProgressRing value={(progresso?.pct ?? 0) / 100} size={54} stroke={5} />
+          {carregandoPerfil ? (
+            <span className="h-[54px] w-[54px] shrink-0 animate-pulse rounded-full bg-fill" />
+          ) : (
+            <ProgressRing value={(progresso?.pct ?? 0) / 100} size={54} stroke={5} />
+          )}
         </div>
       </div>
 
