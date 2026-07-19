@@ -770,7 +770,7 @@ export function Treinamentos() {
       <div className="px-5 pt-2">
         <IntroDesafio
           titulo="Seus desafios"
-          frase="Conclua as trilhas, ganhe pontos e troque por recompensas."
+          frase={'Conclua seus treinamentos, aprenda.\nGanhe pontos e resgate recompensas.'}
           variante={0}
         />
       </div>
