@@ -25,7 +25,6 @@ import {
 import { Section } from './Section.jsx'
 import { Card } from './Card.jsx'
 import { AdminAniversarios } from './AdminAniversarios.jsx'
-import { DestaqueBanner } from './DestaqueBanner.jsx'
 import { cn } from '../lib/cn'
 import { tapHaptic } from '../lib/haptics.js'
 import { useAuth } from '../lib/AuthContext.jsx'
@@ -40,23 +39,7 @@ const AUTO = [
   { chave: 'saldo', label: 'Saldo de pontos', Icon: Star, vars: '{saldo} = pontos na carteira' },
 ]
 
-// Template do card por chave (para a prévia usar o mesmo visual do carrossel).
-const TEMPLATE_POR_CHAVE = {
-  desafio_hoje: 'desafio',
-  desafios_pendentes: 'desafio',
-  ranking: 'ranking',
-  saldo: 'pontos',
-}
-// Troca as variáveis por valores de exemplo só para a prévia.
-const comAmostra = (s) =>
-  (s || '')
-    .replaceAll('{posicao}', '3')
-    .replaceAll('{saldo}', '1.200')
-    .replaceAll('{pontos}', '50')
-    .replaceAll('{qtd}', '4')
-    .replaceAll('{titulo}', 'Nome do desafio')
-
-// Linha de um destaque automático: prévia + liga/desliga + editor de título/texto.
+// Linha de um destaque automático: liga/desliga + editor de título/texto.
 function AutoLinha({ meta, estado, onToggle, onSalvar }) {
   const { Icon } = meta
   const on = estado?.ativo ?? true
@@ -103,24 +86,7 @@ function AutoLinha({ meta, estado, onToggle, onSalvar }) {
         </button>
       </div>
       {aberto && (
-        <div className="space-y-3 px-4 pb-3">
-          {/* Prévia de como o card sai no carrossel (valores de exemplo) */}
-          <div>
-            <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-muted-2">
-              Prévia
-            </div>
-            <div className="pointer-events-none mx-auto max-w-[220px]">
-              <DestaqueBanner
-                d={{
-                  template: TEMPLATE_POR_CHAVE[meta.chave] || 'comunicado',
-                  categoria: TEMPLATE_POR_CHAVE[meta.chave] || 'comunicado',
-                  titulo: comAmostra(titulo),
-                  texto: comAmostra(texto),
-                  imagem_url: estado?.imagem_url || null,
-                }}
-              />
-            </div>
-          </div>
+        <div className="space-y-2 px-4 pb-3">
           <input
             value={titulo}
             onChange={(e) => setTitulo(e.target.value)}
