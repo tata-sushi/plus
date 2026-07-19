@@ -82,7 +82,7 @@ export function DestaqueBanner({ d }) {
           </span>
         )}
         {!temPilulaCategoria && d.cta_label && (
-          <span className="pill bg-accent text-black text-[10px] uppercase tracking-wide">
+          <span className="pill bg-white text-black text-[10px] uppercase tracking-wide">
             <Icon size={12} /> {d.cta_label}
           </span>
         )}
