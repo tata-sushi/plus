@@ -1,14 +1,5 @@
 import { Link } from 'react-router-dom'
-import {
-  Target,
-  Trophy,
-  Megaphone,
-  Star,
-  ChevronRight,
-  PartyPopper,
-  Cake,
-  Newspaper,
-} from 'lucide-react'
+import { Target, Trophy, Megaphone, Star, PartyPopper, Cake, Newspaper } from 'lucide-react'
 
 // Cada categoria tem um "template" de fundo (placeholder até chegarem as artes).
 // Quando houver imagem real, d.imagem_url entra por cima do gradiente.
@@ -37,6 +28,9 @@ export function DestaqueBanner({ d }) {
   // Publicação só com imagem (sem título/texto): mostra a arte limpa, sem
   // escurecido, ícone decorativo ou bloco de texto por cima.
   const soImagem = !!d.imagem_url && !d.titulo && !d.texto
+  // Comunicado/notícia/aniversário têm pílula de categoria no topo. Os demais
+  // (desafio/ranking/pontos) usam a própria CTA como pílula no mesmo lugar.
+  const temPilulaCategoria = ['comunicado', 'noticia', 'aniversario'].includes(d.categoria)
 
   return (
     <Link
@@ -87,6 +81,11 @@ export function DestaqueBanner({ d }) {
             <Cake size={12} /> Aniversário
           </span>
         )}
+        {!temPilulaCategoria && d.cta_label && (
+          <span className="pill bg-accent text-black text-[10px] uppercase tracking-wide">
+            <Icon size={12} /> {d.cta_label}
+          </span>
+        )}
       </div>
 
       {/* conteúdo (nada por cima quando é só imagem) */}
@@ -114,11 +113,6 @@ export function DestaqueBanner({ d }) {
               </div>
             )}
           </div>
-          {d.cta_label && (
-            <span className="hstack w-fit gap-1.5 rounded-pill bg-white px-4 py-2 text-xs font-bold text-black">
-              {d.cta_label} <ChevronRight size={14} />
-            </span>
-          )}
         </div>
       )}
     </Link>
