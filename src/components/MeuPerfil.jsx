@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Section } from './Section.jsx'
 import { supabase } from '../lib/supabase.js'
 import { signoDe } from '../lib/signo.js'
+import { getSignoVisivel } from '../lib/prefs.js'
 import { AnalisesPerfil } from './AnalisesPerfil.jsx'
 
 // "Meu perfil" da Minha jornada: DISC · Signo (interativo).
@@ -27,9 +28,12 @@ export function MeuPerfil() {
 
   if (disc === undefined) return null
 
+  // Signo respeita a preferência do usuário (Ajustes → Meu perfil).
+  const signoMostrar = getSignoVisivel() ? signo : null
+
   return (
     <Section className="reveal reveal-3 mt-5" title="Meu perfil">
-      <AnalisesPerfil disc={disc} signo={signo} onFazer={() => navigate('/treinamentos')} />
+      <AnalisesPerfil disc={disc} signo={signoMostrar} onFazer={() => navigate('/treinamentos')} />
     </Section>
   )
 }
