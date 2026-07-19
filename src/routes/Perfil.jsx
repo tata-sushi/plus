@@ -10,6 +10,7 @@ import { GradeEmblemas } from '../components/GradeEmblemas.jsx'
 import { AnalisesPerfil } from '../components/AnalisesPerfil.jsx'
 import { avaliarCatalogo } from '../lib/emblemas.js'
 import { signoDe } from '../lib/signo.js'
+import { getSignoVisivel, getDiscVisivel } from '../lib/prefs.js'
 import { useAuth } from '../lib/AuthContext.jsx'
 import { supabase } from '../lib/supabase.js'
 
@@ -244,7 +245,11 @@ export function Perfil() {
 
       {/* Características */}
       <Section className="reveal reveal-3 mt-5" title="Características">
-        <AnalisesPerfil disc={perfil.disc} signo={signo} />
+        <AnalisesPerfil
+          disc={perfil.disc}
+          signo={getSignoVisivel() ? signo : null}
+          mostrarDisc={getDiscVisivel()}
+        />
       </Section>
     </>
   )
