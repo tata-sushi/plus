@@ -164,8 +164,8 @@ export function Ouvidoria() {
             <h2 className="font-display text-[1.7rem] font-bold leading-tight text-[#111111]">
               Ouvidoria
             </h2>
-            <p className="mx-auto mt-3 max-w-[22rem] text-sm font-semibold leading-relaxed text-[#35383F]">
-              Sigiloso e seguro. Sua voz constrói um TATÁ melhor.
+            <p className="mx-auto mt-3 max-w-[22rem] whitespace-pre-line text-sm font-semibold leading-relaxed text-[#35383F]">
+              {'Sigiloso e seguro.\nSua voz constrói um TATÁ melhor.'}
             </p>
           </div>
         </div>
