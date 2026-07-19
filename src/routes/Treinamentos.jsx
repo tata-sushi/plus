@@ -772,6 +772,7 @@ export function Treinamentos() {
           titulo="Seus desafios"
           frase={'Conclua seus treinamentos, aprenda.\nGanhe pontos e resgate recompensas.'}
           variante={0}
+          fraseEscuraNoClaro
         />
       </div>
 

@@ -62,6 +62,21 @@
   display: block;
 }
 
+/* Escurecido de leitura nos cards de destaque — preto no tema escuro, branco
+   no claro (evita a "sombra preta" pesada no contraste claro). */
+.scrim-inferior {
+  background-image: linear-gradient(to top, rgb(0 0 0 / 0.55), rgb(0 0 0 / 0.1), transparent);
+}
+.scrim-lateral {
+  background-image: linear-gradient(to left, rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.2), transparent);
+}
+:root[data-theme='light'] .scrim-inferior {
+  background-image: linear-gradient(to top, rgb(255 255 255 / 0.85), rgb(255 255 255 / 0.35), transparent);
+}
+:root[data-theme='light'] .scrim-lateral {
+  background-image: linear-gradient(to left, rgb(255 255 255 / 0.8), rgb(255 255 255 / 0.3), transparent);
+}
+
 @layer base {
   html, body, #root {
     height: 100%;

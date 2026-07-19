@@ -1,7 +1,11 @@
+import { cn } from '../lib/cn'
+
 // Capa de introdução do desafio: título grande + frase de destaque,
 // com elementos abstratos suaves no fundo (padrão único; o texto dá a
 // identidade de cada desafio). `variante` troca o arranjo dos elementos.
-export function IntroDesafio({ titulo, frase, variante = 0, Icone }) {
+// fraseEscuraNoClaro: no tema claro a frase vira preta (mais contraste);
+// no escuro segue no verde de destaque.
+export function IntroDesafio({ titulo, frase, variante = 0, Icone, fraseEscuraNoClaro = false }) {
   return (
     <div className="relative overflow-hidden rounded-2xl border border-line bg-surface px-6 py-12 text-center">
       <Fundo variante={variante} />
@@ -15,7 +19,12 @@ export function IntroDesafio({ titulo, frase, variante = 0, Icone }) {
           {titulo}
         </h2>
         {frase && (
-          <p className="mx-auto mt-3 max-w-[22rem] whitespace-pre-line text-sm font-semibold leading-relaxed text-accent">
+          <p
+            className={cn(
+              'mx-auto mt-3 max-w-[22rem] whitespace-pre-line text-sm font-semibold leading-relaxed',
+              fraseEscuraNoClaro ? 'text-text dark:text-accent' : 'text-accent',
+            )}
+          >
             {frase}
           </p>
         )}

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Target, Trophy, Megaphone, Star, PartyPopper, Cake, Newspaper } from 'lucide-react'
+import { cn } from '../lib/cn'
 
 // Cada categoria tem um "template" de fundo (placeholder até chegarem as artes).
 // Quando houver imagem real, d.imagem_url entra por cima do gradiente.
@@ -63,15 +64,11 @@ export function DestaqueBanner({ d }) {
         />
       )}
 
-      {/* scrim para legibilidade do texto (segue o alinhamento do conteúdo) */}
+      {/* scrim para legibilidade do texto (segue o alinhamento do conteúdo).
+          Degradê preto no tema escuro e branco no claro — classe própria em
+          index.css, controlada pelo data-theme. */}
       {!soImagem && (
-        <span
-          className={
-            centroDireita
-              ? 'absolute inset-0 bg-gradient-to-l from-black/60 via-black/20 to-transparent'
-              : 'absolute inset-0 bg-gradient-to-t from-black/55 via-black/10 to-transparent'
-          }
-        />
+        <span className={cn('absolute inset-0', centroDireita ? 'scrim-lateral' : 'scrim-inferior')} />
       )}
 
       {/* pílula da categoria — canto superior direito */}
@@ -109,14 +106,14 @@ export function DestaqueBanner({ d }) {
         >
           <div className={centroDireita ? 'max-w-[85%]' : undefined}>
             {d.titulo && (
-              <div className="font-display text-lg font-bold leading-snug text-white">{d.titulo}</div>
+              <div className="font-display text-lg font-bold leading-snug text-text">{d.titulo}</div>
             )}
             {d.texto && (
               <div
                 className={
                   ehAniver
-                    ? 'mt-1.5 line-clamp-5 whitespace-pre-line text-base leading-snug text-white/90'
-                    : 'mt-1 line-clamp-2 text-xs text-white/75'
+                    ? 'mt-1.5 line-clamp-5 whitespace-pre-line text-base leading-snug text-text/90'
+                    : 'mt-1 line-clamp-2 text-xs text-text/75'
                 }
               >
                 {d.texto}
