@@ -74,9 +74,10 @@ function EmBreve() {
 
 // Análises de perfil abertas, na ordem: Signo · DISC · MBTI/Big Five (em breve).
 //  - disc: { perfil, pontuacoes } | null
-//  - signo: objeto do lib/signo | null
+//  - signo: objeto do lib/signo | null   (null esconde o card do signo)
+//  - mostrarDisc: false esconde o bloco do DISC de vez
 //  - onFazer: ir aos desafios quando ainda não fez o DISC (perfil próprio) — opcional
-export function AnalisesPerfil({ disc, signo, onFazer }) {
+export function AnalisesPerfil({ disc, signo, onFazer, mostrarDisc = true }) {
   return (
     <div className="flex flex-col gap-2.5">
       {/* Signo */}
@@ -100,7 +101,7 @@ export function AnalisesPerfil({ disc, signo, onFazer }) {
       )}
 
       {/* DISC */}
-      {disc ? (
+      {mostrarDisc && (disc ? (
         <DiscAberto disc={disc} />
       ) : (
         <Card>
@@ -121,7 +122,7 @@ export function AnalisesPerfil({ disc, signo, onFazer }) {
             )}
           </div>
         </Card>
-      )}
+      ))}
 
       {/* MBTI · Big Five */}
       <EmBreve />
