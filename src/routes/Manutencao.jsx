@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
-import { Lock, Eye, EyeOff, Check, Loader2, ShieldCheck, Sun, Moon, Bell, BellOff } from 'lucide-react'
+import { Lock, Eye, EyeOff, Check, Loader2, ShieldCheck, Sun, Moon, Bell, BellOff, Sparkles } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Voltar } from '../components/Voltar.jsx'
 import { Section } from '../components/Section.jsx'
 import { cn } from '../lib/cn'
 import { tapHaptic } from '../lib/haptics.js'
 import { getTheme, applyTheme } from '../lib/theme.js'
+import { getSignoVisivel, setSignoVisivel } from '../lib/prefs.js'
 import { estadoPush, ativarPush, desativarPush } from '../lib/push.js'
 import { useAuth } from '../lib/AuthContext.jsx'
 
@@ -17,6 +18,7 @@ const TEMAS = [
 export function Manutencao() {
   const { updatePassword } = useAuth()
   const [tema, setTema] = useState(getTheme)
+  const [signoVis, setSignoVis] = useState(getSignoVisivel)
   const [push, setPush] = useState({ suportado: false, ativo: false, permissao: 'default' })
   const [pushBusy, setPushBusy] = useState(false)
   const [pushErro, setPushErro] = useState('')
@@ -35,6 +37,11 @@ export function Manutencao() {
   function trocarTema(t) {
     tapHaptic()
     setTema(applyTheme(t))
+  }
+
+  function trocarSigno(v) {
+    tapHaptic()
+    setSignoVis(setSignoVisivel(v))
   }
 
   useEffect(() => {
@@ -155,6 +162,39 @@ export function Manutencao() {
                   className={cn(
                     'grid h-8 w-8 place-items-center rounded-full tap',
                     tema === v ? 'bg-accent text-black' : 'text-muted',
+                  )}
+                >
+                  <Icon size={15} />
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </Section>
+
+      <Section className="mt-5" title="Meu perfil">
+        <div className="card p-4">
+          <div className="hstack gap-3">
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-accent-soft text-accent">
+              <Sparkles size={20} />
+            </span>
+            <div className="min-w-0 flex-1">
+              <div className="font-display text-sm font-bold">Mostrar meu signo</div>
+              <div className="text-xs text-muted">Exibe o signo em Minha jornada.</div>
+            </div>
+            <div className="hstack shrink-0 gap-1 rounded-pill bg-surface-2 p-1">
+              {[
+                { on: false, label: 'Ocultar', Icon: EyeOff },
+                { on: true, label: 'Mostrar', Icon: Eye },
+              ].map(({ on, label, Icon }) => (
+                <button
+                  key={label}
+                  onClick={() => trocarSigno(on)}
+                  aria-label={label}
+                  aria-pressed={signoVis === on}
+                  className={cn(
+                    'grid h-8 w-8 place-items-center rounded-full tap',
+                    signoVis === on ? 'bg-accent text-black' : 'text-muted',
                   )}
                 >
                   <Icon size={15} />
