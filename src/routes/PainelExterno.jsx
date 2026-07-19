@@ -1,9 +1,9 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useParams, Navigate } from 'react-router-dom'
 import { Loader2 } from 'lucide-react'
 import { supabase } from '../lib/supabase.js'
 import { governancaCatalogo } from '../lib/mockData.js'
-import { useAuth } from '../lib/AuthContext.jsx'
+import { GovFrame } from '../components/GovFrame.jsx'
 
 const LIDERES_ORIGIN = 'https://lideres.tatasushi.tech'
 const ESCALAS_ORIGIN = 'https://escalas.tatasushi.tech'
@@ -16,12 +16,11 @@ function urlAbsoluta(u) {
 }
 
 // Visualizador in-app das páginas de Governança. A página abre SÓ aqui dentro
-// (modelo novo): o Plus passa o token da sessão via postMessage (origem verificada)
-// e a página confere o acesso ao vivo (gov_tenho_acesso). Fora do Plus, ela nega.
+// (modelo novo): o GovFrame passa o token da sessão via postMessage (origem
+// verificada) e a página confere o acesso ao vivo (gov_meus_acessos). Fora do
+// Plus, ela nega.
 export function PainelExterno() {
   const { id } = useParams()
-  const { session, usuario } = useAuth()
-  const iframeRef = useRef(null)
   const [pagina, setPagina] = useState(undefined) // undefined=carregando · null=sem acesso
 
   // Procura a página no catálogo novo (tabela, ao vivo). Se não achar, cai no
@@ -40,26 +39,6 @@ export function PainelExterno() {
     }
   }, [id])
 
-  // Entrega o token da sessão do Plus quando o iframe pedir (só p/ origens conhecidas).
-  useEffect(() => {
-    function onMsg(ev) {
-      if (ev.origin !== LIDERES_ORIGIN && ev.origin !== ESCALAS_ORIGIN) return
-      if (ev.data?.tp !== 'gov-ready' || !session) return
-      ev.source?.postMessage(
-        {
-          tp: 'gov-session',
-          access_token: session.access_token,
-          refresh_token: session.refresh_token,
-          nome: usuario?.nome || '',
-          perfil: usuario?.perfil || 'lider',
-        },
-        ev.origin,
-      )
-    }
-    window.addEventListener('message', onMsg)
-    return () => window.removeEventListener('message', onMsg)
-  }, [session, usuario])
-
   if (pagina === undefined) {
     return (
       <div className="grid h-[60vh] place-items-center text-muted-2">
@@ -72,12 +51,11 @@ export function PainelExterno() {
   return (
     <div className="-mb-24 flex h-[calc(100dvh-3.5rem-env(safe-area-inset-bottom))] flex-col">
       <div className="safe-top shrink-0 bg-bg" />
-      <iframe
-        ref={iframeRef}
+      <GovFrame
         src={urlAbsoluta(pagina.url)}
         title={pagina.label}
-        className="w-full flex-1 border-0 bg-white"
         allow="clipboard-write; camera; microphone; geolocation"
+        className="flex-1"
       />
     </div>
   )

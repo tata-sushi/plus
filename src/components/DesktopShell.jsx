@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import {
   Home,
@@ -15,8 +15,7 @@ import { useAuth } from '../lib/AuthContext.jsx'
 import { DesktopCanvasContext } from '../lib/desktopCanvas.js'
 import { Ouvidoria } from '../routes/Ouvidoria.jsx'
 import { AdminRecompensas } from '../routes/AdminRecompensas.jsx'
-const LIDERES_ORIGIN = 'https://lideres.tatasushi.tech'
-const ESCALAS_ORIGIN = 'https://escalas.tatasushi.tech'
+import { GovFrame } from './GovFrame.jsx'
 
 // Páginas que ocupam a área principal (só para quem tem Governança).
 const CANVAS = {
@@ -31,7 +30,7 @@ const CANVAS = {
 // (organograma pela Home, Ouvidoria e Admin pelo Mais/rail).
 export function DesktopShell() {
   const location = useLocation()
-  const { usuario, session } = useAuth()
+  const { usuario } = useAuth()
   const gov = !!usuario?.governanca?.tem
   const primeiroNome = usuario?.primeiroNome || (usuario?.nome || '').trim().split(/\s+/)[0] || ''
 
@@ -48,27 +47,6 @@ export function DesktopShell() {
       return !v
     })
   }
-
-  // Entrega o token da sessão pro iframe de governança quando ele pedir (origem
-  // verificada) — mesmo contrato do PainelExterno no mobile.
-  useEffect(() => {
-    function onMsg(ev) {
-      if (ev.origin !== LIDERES_ORIGIN && ev.origin !== ESCALAS_ORIGIN) return
-      if (ev.data?.tp !== 'gov-ready' || !session) return
-      ev.source?.postMessage(
-        {
-          tp: 'gov-session',
-          access_token: session.access_token,
-          refresh_token: session.refresh_token,
-          nome: usuario?.nome || '',
-          perfil: usuario?.perfil || 'lider',
-        },
-        ev.origin,
-      )
-    }
-    window.addEventListener('message', onMsg)
-    return () => window.removeEventListener('message', onMsg)
-  }, [session, usuario])
 
   // Espelha a barra de baixo do app. O 4º slot abre no centro (canvasKey):
   // Governança (portal) para quem tem acesso, ou Ouvidoria para os demais.
@@ -185,11 +163,11 @@ export function DesktopShell() {
           {canvas && (
             <div className="absolute inset-0 z-20 bg-bg">
               {canvas === 'portal' && (
-                <iframe
+                <GovFrame
                   src={CANVAS.portal}
                   title="Portal de Governança"
-                  className="h-full w-full border-0 bg-white"
                   allow="clipboard-write; camera; microphone; geolocation; fullscreen"
+                  className="h-full w-full"
                 />
               )}
               {canvas === 'organograma' && (
@@ -211,11 +189,11 @@ export function DesktopShell() {
                 </div>
               )}
               {canvas.tipo === 'painel' && (
-                <iframe
+                <GovFrame
                   src={canvas.url}
                   title={canvas.titulo || 'Painel'}
-                  className="h-full w-full border-0 bg-white"
                   allow="clipboard-write; fullscreen"
+                  className="h-full w-full"
                 />
               )}
             </div>
