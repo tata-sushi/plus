@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { supabase } from './supabase.js'
+import { prefetchAoAbrir } from './prefetch.js'
 
 const AuthContext = createContext(null)
 
@@ -19,6 +20,7 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true)
   const [motivoBloqueio, setMotivoBloqueio] = useState('') // '' | 'inativo'
   const bloqueando = useRef(false)
+  const prefetchou = useRef(false)
   const location = useLocation()
 
   const limparBloqueio = useCallback(() => setMotivoBloqueio(''), [])
@@ -124,6 +126,15 @@ export function AuthProvider({ children }) {
     return () => {
       ativo = false
     }
+  }, [profile?.matricula])
+
+  // Prefetch silencioso após o login: aquece as imagens das telas pesadas
+  // (recompensas) uma vez, com um atraso pra não brigar com a carga inicial.
+  useEffect(() => {
+    if (!profile?.matricula || prefetchou.current) return
+    prefetchou.current = true
+    const t = setTimeout(prefetchAoAbrir, 1500)
+    return () => clearTimeout(t)
   }, [profile?.matricula])
 
   const usuario = profile
