@@ -186,8 +186,7 @@ export function Manutencao() {
                 <Sparkles size={20} />
               </span>
               <div className="min-w-0 flex-1">
-                <div className="font-display text-sm font-bold">Mostrar signo</div>
-                <div className="text-xs text-muted">Vale para o seu perfil e o dos colegas.</div>
+                <div className="font-display text-sm font-bold">Signo</div>
               </div>
               <div className="hstack shrink-0 gap-1 rounded-pill bg-surface-2 p-1">
                 {[
@@ -217,8 +216,7 @@ export function Manutencao() {
                 <Fingerprint size={20} />
               </span>
               <div className="min-w-0 flex-1">
-                <div className="font-display text-sm font-bold">Mostrar DISC</div>
-                <div className="text-xs text-muted">Vale para o seu perfil e o dos colegas.</div>
+                <div className="font-display text-sm font-bold">DISC</div>
               </div>
               <div className="hstack shrink-0 gap-1 rounded-pill bg-surface-2 p-1">
                 {[
