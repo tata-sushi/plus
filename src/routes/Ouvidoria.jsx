@@ -141,12 +141,39 @@ export function Ouvidoria() {
     <>
       <Header title="Ouvidoria" />
 
+      {/* Capa — padrão da de Treinamentos, adaptada ao painel branco da ouvidoria
+          (fundo branco fixo + brilho citric, serve nos dois temas/contrastes). */}
+      <div className="px-5 pt-3">
+        <div className="relative overflow-hidden rounded-card border border-[#E2E2E2] bg-white px-6 py-11 text-center">
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0"
+            style={{
+              background:
+                'radial-gradient(120% 150% at 50% -10%, rgba(207,255,0,0.30) 0%, rgba(207,255,0,0.08) 45%, transparent 75%)',
+            }}
+          />
+          <div aria-hidden className="pointer-events-none absolute inset-0">
+            <div className="absolute -right-6 top-5 h-24 w-24 rounded-full border border-[#35383F]/15" />
+            <div
+              className="absolute left-4 bottom-4 h-16 w-16 rounded-full"
+              style={{ background: 'rgba(207,255,0,0.16)' }}
+            />
+          </div>
+          <div className="relative">
+            <h2 className="font-display text-[1.7rem] font-bold leading-tight text-[#111111]">
+              Ouvidoria
+            </h2>
+            <p className="mx-auto mt-3 max-w-[22rem] text-sm font-semibold leading-relaxed text-[#35383F]">
+              Sigiloso e seguro. Sua voz constrói um TATÁ melhor.
+            </p>
+          </div>
+        </div>
+      </div>
+
       <div className="px-5 pt-3">
         <div className="rounded-card border border-[#E2E2E2] bg-white p-6">
-          <h2 className="text-center font-display text-lg font-bold text-[#111111]">
-            Sigiloso e seguro
-          </h2>
-          <p className="mt-2 border-b border-[#E2E2E2] pb-5 text-justify text-[13px] leading-relaxed text-[#555555]">
+          <p className="border-b border-[#E2E2E2] pb-5 text-justify text-[13px] leading-relaxed text-[#555555]">
             Use este canal para relatar feedbacks, sugestões, denúncias ou qualquer ocorrência. Você
             pode se identificar ou permanecer anônimo. Todas as manifestações são tratadas com
             sigilo.
