@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Loader2, Search, ChevronRight, Check, ShieldCheck, X, Layers } from 'lucide-react'
+import { Loader2, Search, ChevronRight, ChevronDown, Check, ShieldCheck, X, Layers } from 'lucide-react'
 import { Section } from './Section.jsx'
 import { Card } from './Card.jsx'
 import { Avatar } from './Avatar.jsx'
@@ -34,6 +34,7 @@ function EditorPessoa({ pessoa, catalogo, catalogoAbas, onFechar, onSalvo }) {
 
   const [ids, setIds] = useState(null) // Set de pagina_id · null = carregando
   const [bloqueadas, setBloqueadas] = useState(new Set()) // Set de aba_id bloqueada
+  const [abasAbertas, setAbasAbertas] = useState(new Set()) // pagina_id com abas expandidas
   const [salvando, setSalvando] = useState(false)
 
   useEffect(() => {
@@ -74,6 +75,15 @@ function EditorPessoa({ pessoa, catalogo, catalogoAbas, onFechar, onSalvo }) {
     setBloqueadas((prev) => {
       const n = new Set(prev)
       n.has(abaId) ? n.delete(abaId) : n.add(abaId)
+      return n
+    })
+  }
+
+  function toggleAbasAbertas(paginaId) {
+    tapHaptic()
+    setAbasAbertas((prev) => {
+      const n = new Set(prev)
+      n.has(paginaId) ? n.delete(paginaId) : n.add(paginaId)
       return n
     })
   }
@@ -157,6 +167,8 @@ function EditorPessoa({ pessoa, catalogo, catalogoAbas, onFechar, onSalvo }) {
                     {g.itens.map((p, i) => {
                       const on = ids.has(p.pagina_id)
                       const abas = abasPorPagina[p.pagina_id] || []
+                      const abasAberto = abasAbertas.has(p.pagina_id)
+                      const qtdOff = abas.filter((a) => bloqueadas.has(a.aba_id)).length
                       return (
                         <div key={p.pagina_id} className={cn(i > 0 && 'border-t border-line')}>
                           <button
@@ -181,49 +193,70 @@ function EditorPessoa({ pessoa, catalogo, catalogoAbas, onFechar, onSalvo }) {
                             )}
                           </button>
 
-                          {/* Abas: só quando a página está liberada. Liga/desliga
-                              o acesso por aba (ligada = pode ver; desligada = bloqueada). */}
+                          {/* Abas: só quando a página está liberada. Recolhível
+                              (começa guardado); liga/desliga o acesso por aba
+                              (ligada = pode ver; desligada = bloqueada). */}
                           {on && abas.length > 0 && (
                             <div className="px-4 pb-3 pl-12">
-                              <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-muted-2">
-                                Abas · liga/desliga o acesso
-                              </div>
-                              <div className="flex flex-col divide-y divide-line rounded-card border border-line">
-                                {abas.map((a) => {
-                                  const liberada = !bloqueadas.has(a.aba_id)
-                                  return (
-                                    <div key={a.aba_id} className="hstack gap-3 px-3 py-2">
-                                      <span
-                                        className={cn(
-                                          'flex-1 text-[13px] font-medium',
-                                          !liberada && 'text-muted-2',
-                                        )}
-                                      >
-                                        {a.label}
-                                      </span>
-                                      <button
-                                        onClick={() => toggleAba(a.aba_id)}
-                                        className={cn(
-                                          'relative h-6 w-10 shrink-0 rounded-full transition-colors tap',
-                                          liberada ? 'bg-accent' : 'bg-surface-2',
-                                        )}
-                                        aria-label={
-                                          liberada
-                                            ? `Desligar acesso à aba ${a.label}`
-                                            : `Ligar acesso à aba ${a.label}`
-                                        }
-                                      >
+                              <button
+                                onClick={() => toggleAbasAbertas(p.pagina_id)}
+                                className="hstack w-full gap-2 py-1 text-left tap"
+                              >
+                                <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-2">
+                                  Abas
+                                </span>
+                                {qtdOff > 0 && (
+                                  <span className="rounded-pill bg-danger/15 px-1.5 py-0.5 text-[9px] font-bold uppercase text-danger">
+                                    {qtdOff} desligada{qtdOff > 1 ? 's' : ''}
+                                  </span>
+                                )}
+                                <span className="flex-1" />
+                                <ChevronDown
+                                  size={14}
+                                  className={cn(
+                                    'shrink-0 text-muted-2 transition-transform',
+                                    abasAberto && 'rotate-180',
+                                  )}
+                                />
+                              </button>
+                              {abasAberto && (
+                                <div className="mt-1 flex flex-col divide-y divide-line rounded-card border border-line">
+                                  {abas.map((a) => {
+                                    const liberada = !bloqueadas.has(a.aba_id)
+                                    return (
+                                      <div key={a.aba_id} className="hstack gap-3 px-3 py-2">
                                         <span
                                           className={cn(
-                                            'absolute top-0.5 h-5 w-5 rounded-full bg-white transition-all',
-                                            liberada ? 'left-[18px]' : 'left-0.5',
+                                            'flex-1 text-[13px] font-medium',
+                                            !liberada && 'text-muted-2',
                                           )}
-                                        />
-                                      </button>
-                                    </div>
-                                  )
-                                })}
-                              </div>
+                                        >
+                                          {a.label}
+                                        </span>
+                                        <button
+                                          onClick={() => toggleAba(a.aba_id)}
+                                          className={cn(
+                                            'relative h-6 w-10 shrink-0 rounded-full transition-colors tap',
+                                            liberada ? 'bg-accent' : 'bg-surface-2',
+                                          )}
+                                          aria-label={
+                                            liberada
+                                              ? `Desligar acesso à aba ${a.label}`
+                                              : `Ligar acesso à aba ${a.label}`
+                                          }
+                                        >
+                                          <span
+                                            className={cn(
+                                              'absolute top-0.5 h-5 w-5 rounded-full bg-white transition-all',
+                                              liberada ? 'left-[18px]' : 'left-0.5',
+                                            )}
+                                          />
+                                        </button>
+                                      </div>
+                                    )
+                                  })}
+                                </div>
+                              )}
                             </div>
                           )}
                         </div>
