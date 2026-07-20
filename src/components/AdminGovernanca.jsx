@@ -22,16 +22,29 @@ function agrupar(catalogo) {
   return grupos
 }
 
-// Editor de acesso de uma pessoa: catálogo com checkboxes por página e por pasta.
-function EditorPessoa({ pessoa, catalogo, onFechar, onSalvo }) {
+// Editor de acesso de uma pessoa: páginas (checkbox) e, por página, as abas
+// (liberadas por padrão; toque pra bloquear pra esta pessoa).
+function EditorPessoa({ pessoa, catalogo, catalogoAbas, onFechar, onSalvo }) {
   const grupos = useMemo(() => agrupar(catalogo), [catalogo])
-  const [ids, setIds] = useState(null) // Set | null (carregando)
+  const abasPorPagina = useMemo(() => {
+    const m = {}
+    for (const a of catalogoAbas || []) (m[a.pagina_id] || (m[a.pagina_id] = [])).push(a)
+    return m
+  }, [catalogoAbas])
+
+  const [ids, setIds] = useState(null) // Set de pagina_id · null = carregando
+  const [bloqueadas, setBloqueadas] = useState(new Set()) // Set de aba_id bloqueada
   const [salvando, setSalvando] = useState(false)
 
   useEffect(() => {
     let ativo = true
-    supabase.rpc('gov_admin_acessos', { p_matricula: pessoa.matricula }).then(({ data }) => {
-      if (ativo) setIds(new Set((data || []).map((r) => r.pagina_id)))
+    Promise.all([
+      supabase.rpc('gov_admin_acessos', { p_matricula: pessoa.matricula }),
+      supabase.rpc('gov_admin_abas_bloqueios', { p_matricula: pessoa.matricula }),
+    ]).then(([ac, bl]) => {
+      if (!ativo) return
+      setIds(new Set((ac.data || []).map((r) => r.pagina_id)))
+      setBloqueadas(new Set((bl.data || []).map((r) => r.aba_id)))
     })
     return () => {
       ativo = false
@@ -56,14 +69,26 @@ function EditorPessoa({ pessoa, catalogo, onFechar, onSalvo }) {
     })
   }
 
+  function toggleAba(abaId) {
+    tapHaptic()
+    setBloqueadas((prev) => {
+      const n = new Set(prev)
+      n.has(abaId) ? n.delete(abaId) : n.add(abaId)
+      return n
+    })
+  }
+
   async function salvar() {
     setSalvando(true)
-    const { error } = await supabase.rpc('gov_admin_set', {
-      p_matricula: pessoa.matricula,
-      p_pagina_ids: [...ids],
-    })
+    const [r1, r2] = await Promise.all([
+      supabase.rpc('gov_admin_set', { p_matricula: pessoa.matricula, p_pagina_ids: [...ids] }),
+      supabase.rpc('gov_admin_abas_set', {
+        p_matricula: pessoa.matricula,
+        p_aba_ids: [...bloqueadas],
+      }),
+    ])
     setSalvando(false)
-    if (!error) onSalvo(ids.size)
+    if (!r1.error && !r2.error) onSalvo(ids.size)
   }
 
   return (
@@ -93,8 +118,8 @@ function EditorPessoa({ pessoa, catalogo, onFechar, onSalvo }) {
               <ShieldCheck size={20} />
             </span>
             <div className="text-sm text-muted">
-              <b className="text-text">Administrador.</b> Enxerga todas as páginas da governança
-              automaticamente — não precisa liberar página por página.
+              <b className="text-text">Administrador.</b> Enxerga todas as páginas e abas da
+              governança automaticamente — não precisa liberar nada.
             </div>
           </Card>
         ) : ids === null ? (
@@ -131,25 +156,59 @@ function EditorPessoa({ pessoa, catalogo, onFechar, onSalvo }) {
                   <Card className="!p-0">
                     {g.itens.map((p, i) => {
                       const on = ids.has(p.pagina_id)
+                      const abas = abasPorPagina[p.pagina_id] || []
                       return (
-                        <button
-                          key={p.pagina_id}
-                          onClick={() => toggle(p.pagina_id)}
-                          className={cn(
-                            'hstack w-full gap-3 px-4 py-3 text-left tap',
-                            i > 0 && 'border-t border-line',
-                          )}
-                        >
-                          <span
-                            className={cn(
-                              'grid h-6 w-6 shrink-0 place-items-center rounded-md border transition-colors',
-                              on ? 'border-accent bg-accent text-black' : 'border-line text-transparent',
-                            )}
+                        <div key={p.pagina_id} className={cn(i > 0 && 'border-t border-line')}>
+                          <button
+                            onClick={() => toggle(p.pagina_id)}
+                            className="hstack w-full gap-3 px-4 py-3 text-left tap"
                           >
-                            <Check size={15} strokeWidth={3} />
-                          </span>
-                          <span className="flex-1 text-sm font-medium">{p.label}</span>
-                        </button>
+                            <span
+                              className={cn(
+                                'grid h-6 w-6 shrink-0 place-items-center rounded-md border transition-colors',
+                                on
+                                  ? 'border-accent bg-accent text-black'
+                                  : 'border-line text-transparent',
+                              )}
+                            >
+                              <Check size={15} strokeWidth={3} />
+                            </span>
+                            <span className="flex-1 text-sm font-medium">{p.label}</span>
+                            {abas.length > 0 && (
+                              <span className="shrink-0 text-[10px] font-semibold text-muted-2">
+                                {abas.length} abas
+                              </span>
+                            )}
+                          </button>
+
+                          {/* Abas: só quando a página está liberada. Toque = bloquear. */}
+                          {on && abas.length > 0 && (
+                            <div className="px-4 pb-3 pl-12">
+                              <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-muted-2">
+                                Abas · toque pra bloquear
+                              </div>
+                              <div className="flex flex-wrap gap-1.5">
+                                {abas.map((a) => {
+                                  const bloq = bloqueadas.has(a.aba_id)
+                                  return (
+                                    <button
+                                      key={a.aba_id}
+                                      onClick={() => toggleAba(a.aba_id)}
+                                      className={cn(
+                                        'rounded-pill px-2.5 py-1 text-[11px] font-semibold tap transition-colors',
+                                        bloq
+                                          ? 'bg-danger/15 text-danger line-through'
+                                          : 'bg-accent-soft text-accent',
+                                      )}
+                                    >
+                                      {a.label}
+                                    </button>
+                                  )
+                                })}
+                              </div>
+                            </div>
+                          )}
+                        </div>
                       )
                     })}
                   </Card>
@@ -171,7 +230,9 @@ function EditorPessoa({ pessoa, catalogo, onFechar, onSalvo }) {
             {salvando ? (
               <Loader2 size={18} className="animate-spin" />
             ) : (
-              `Salvar acesso (${ids.size} ${ids.size === 1 ? 'página' : 'páginas'})`
+              `Salvar acesso (${ids.size} ${ids.size === 1 ? 'página' : 'páginas'}${
+                bloqueadas.size ? ` · ${bloqueadas.size} aba(s) bloqueada(s)` : ''
+              })`
             )}
           </button>
         </div>
@@ -181,20 +242,24 @@ function EditorPessoa({ pessoa, catalogo, onFechar, onSalvo }) {
 }
 
 // Aba "Governança" do painel admin: libera, por colaborador, quais páginas do
-// portal de líderes ele enxerga (o portal puxa isso no login).
+// portal de líderes ele enxerga — e, por página, quais abas ficam bloqueadas.
 export function AdminGovernanca() {
   const [pessoas, setPessoas] = useState(null)
   const [catalogo, setCatalogo] = useState([])
+  const [catalogoAbas, setCatalogoAbas] = useState([])
   const [busca, setBusca] = useState('')
   const [sel, setSel] = useState(null)
 
   function carregar() {
-    Promise.all([supabase.rpc('gov_admin_pessoas'), supabase.rpc('gov_catalogo')]).then(
-      ([p, c]) => {
-        setPessoas(p.data || [])
-        setCatalogo(c.data || [])
-      },
-    )
+    Promise.all([
+      supabase.rpc('gov_admin_pessoas'),
+      supabase.rpc('gov_catalogo'),
+      supabase.rpc('gov_catalogo_abas'),
+    ]).then(([p, c, a]) => {
+      setPessoas(p.data || [])
+      setCatalogo(c.data || [])
+      setCatalogoAbas(a.data || [])
+    })
   }
   useEffect(carregar, [])
 
@@ -203,7 +268,9 @@ export function AdminGovernanca() {
     if (!t) return pessoas || []
     return (pessoas || []).filter((p) =>
       [p.nome, p.cargo, p.unidade, p.matricula].some((v) =>
-        String(v || '').toLowerCase().includes(t),
+        String(v || '')
+          .toLowerCase()
+          .includes(t),
       ),
     )
   }, [pessoas, busca])
@@ -289,6 +356,7 @@ export function AdminGovernanca() {
         <EditorPessoa
           pessoa={sel}
           catalogo={catalogo}
+          catalogoAbas={catalogoAbas}
           onFechar={() => setSel(null)}
           onSalvo={(qtd) => aoSalvar(sel.matricula, qtd)}
         />
