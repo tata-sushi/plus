@@ -200,7 +200,7 @@ function EditorPessoa({ pessoa, catalogo, catalogoAbas, onFechar, onSalvo }) {
                             <div className="px-4 pb-3 pl-12">
                               <button
                                 onClick={() => toggleAbasAbertas(p.pagina_id)}
-                                className="hstack w-full gap-2 py-1 text-left tap"
+                                className="hstack w-full gap-2 py-1 text-left tap [&>*]:pointer-events-none"
                               >
                                 <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-2">
                                   Abas
