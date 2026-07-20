@@ -181,28 +181,46 @@ function EditorPessoa({ pessoa, catalogo, catalogoAbas, onFechar, onSalvo }) {
                             )}
                           </button>
 
-                          {/* Abas: só quando a página está liberada. Toque = bloquear. */}
+                          {/* Abas: só quando a página está liberada. Liga/desliga
+                              o acesso por aba (ligada = pode ver; desligada = bloqueada). */}
                           {on && abas.length > 0 && (
                             <div className="px-4 pb-3 pl-12">
                               <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-muted-2">
-                                Abas · toque pra bloquear
+                                Abas · liga/desliga o acesso
                               </div>
-                              <div className="flex flex-wrap gap-1.5">
+                              <div className="flex flex-col divide-y divide-line rounded-card border border-line">
                                 {abas.map((a) => {
-                                  const bloq = bloqueadas.has(a.aba_id)
+                                  const liberada = !bloqueadas.has(a.aba_id)
                                   return (
-                                    <button
-                                      key={a.aba_id}
-                                      onClick={() => toggleAba(a.aba_id)}
-                                      className={cn(
-                                        'rounded-pill px-2.5 py-1 text-[11px] font-semibold tap transition-colors',
-                                        bloq
-                                          ? 'bg-danger/15 text-danger line-through'
-                                          : 'bg-accent-soft text-accent',
-                                      )}
-                                    >
-                                      {a.label}
-                                    </button>
+                                    <div key={a.aba_id} className="hstack gap-3 px-3 py-2">
+                                      <span
+                                        className={cn(
+                                          'flex-1 text-[13px] font-medium',
+                                          !liberada && 'text-muted-2',
+                                        )}
+                                      >
+                                        {a.label}
+                                      </span>
+                                      <button
+                                        onClick={() => toggleAba(a.aba_id)}
+                                        className={cn(
+                                          'relative h-6 w-10 shrink-0 rounded-full transition-colors tap',
+                                          liberada ? 'bg-accent' : 'bg-surface-2',
+                                        )}
+                                        aria-label={
+                                          liberada
+                                            ? `Desligar acesso à aba ${a.label}`
+                                            : `Ligar acesso à aba ${a.label}`
+                                        }
+                                      >
+                                        <span
+                                          className={cn(
+                                            'absolute top-0.5 h-5 w-5 rounded-full bg-white transition-all',
+                                            liberada ? 'left-[18px]' : 'left-0.5',
+                                          )}
+                                        />
+                                      </button>
+                                    </div>
                                   )
                                 })}
                               </div>
@@ -231,7 +249,7 @@ function EditorPessoa({ pessoa, catalogo, catalogoAbas, onFechar, onSalvo }) {
               <Loader2 size={18} className="animate-spin" />
             ) : (
               `Salvar acesso (${ids.size} ${ids.size === 1 ? 'página' : 'páginas'}${
-                bloqueadas.size ? ` · ${bloqueadas.size} aba(s) bloqueada(s)` : ''
+                bloqueadas.size ? ` · ${bloqueadas.size} aba(s) desligada(s)` : ''
               })`
             )}
           </button>
