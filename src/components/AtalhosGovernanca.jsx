@@ -32,7 +32,7 @@ export function AtalhosGovernanca() {
   const [pinned] = useState(loadPinned)
   const fixadas = pinned.map((id) => governancaCatalogo.find((c) => c.id === id)).filter(Boolean)
   const desktop = useDesktop()
-  const { setCanvas } = useDesktopCanvas()
+  const { abrirAba } = useDesktopCanvas()
 
   return (
     <Section className="mt-5" title="Atalhos">
@@ -47,13 +47,14 @@ export function AtalhosGovernanca() {
                 <span className="min-w-0 flex-1 truncate text-xs font-semibold">{p.label}</span>
               </>
             )
-            // No desktop o atalho abre no quadrante central; no celular navega.
+            // No desktop o atalho abre como ABA (rail lateral, estilo navegador);
+            // no celular navega pra tela cheia.
             return desktop ? (
               <button
                 key={p.id}
                 onClick={() => {
                   tapHaptic()
-                  setCanvas({ tipo: 'painel', url: p.url, titulo: p.label })
+                  abrirAba({ id: p.id, url: p.url, titulo: p.label, icon: p.icon })
                 }}
                 className={`w-full text-left ${cls}`}
               >
