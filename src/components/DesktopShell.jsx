@@ -9,10 +9,12 @@ import {
   ShieldCheck,
   PanelLeftClose,
   PanelLeftOpen,
+  X,
 } from 'lucide-react'
 import { cn } from '../lib/cn'
 import { useAuth } from '../lib/AuthContext.jsx'
 import { DesktopCanvasContext } from '../lib/desktopCanvas.js'
+import { resolveIcon } from '../lib/icons.js'
 import { Ouvidoria } from '../routes/Ouvidoria.jsx'
 import { AdminRecompensas } from '../routes/AdminRecompensas.jsx'
 import { GovFrame } from './GovFrame.jsx'
@@ -41,6 +43,26 @@ export function DesktopShell() {
   // aqui via portal, em vez de tomar a tela toda.
   const [canvasEl, setCanvasEl] = useState(null)
 
+  // Abas de governança abertas (estilo navegador): cada atalho aberto vira uma
+  // aba mantida VIVA (iframe montado, só escondido) pra alternar sem recarregar.
+  const [abas, setAbas] = useState([]) // [{ id, url, titulo, icon }]
+  const [abaAtiva, setAbaAtiva] = useState(null) // id | null
+
+  function abrirAba(pagina) {
+    setAbas((prev) => (prev.some((a) => a.id === pagina.id) ? prev : [...prev, pagina]))
+    setAbaAtiva(pagina.id)
+    setCanvas(null) // sai do portal/organograma/etc pra mostrar a aba
+  }
+  function focarAba(id) {
+    setAbaAtiva(id)
+    setCanvas(null)
+  }
+  function fecharAba(id) {
+    const restante = abas.filter((a) => a.id !== id)
+    setAbas(restante)
+    if (abaAtiva === id) setAbaAtiva(restante.length ? restante[restante.length - 1].id : null)
+  }
+
   function alternarPainel() {
     setAberto((v) => {
       localStorage.setItem('tp_painel', v ? '0' : '1')
@@ -63,7 +85,7 @@ export function DesktopShell() {
   const railBtn = 'grid h-11 w-11 place-items-center rounded-2xl tap'
 
   return (
-    <DesktopCanvasContext.Provider value={{ canvas, setCanvas, canvasEl }}>
+    <DesktopCanvasContext.Provider value={{ canvas, setCanvas, canvasEl, abrirAba }}>
       <div className="flex h-[100dvh] overflow-hidden bg-bg">
         {/* Rail de navegação — só ícones */}
         <nav
@@ -114,6 +136,38 @@ export function DesktopShell() {
                 </NavLink>
               )
             })}
+
+            {/* Abas de governança abertas — ícone + "x" pra fechar */}
+            {abas.length > 0 && <span className="my-0.5 h-px w-6 bg-line" />}
+            <div className="flex flex-col items-center gap-1.5 overflow-y-auto">
+              {abas.map((aba) => {
+                const AbaIcon = resolveIcon(aba.icon)
+                const ativa = !canvas && abaAtiva === aba.id
+                return (
+                  <div key={aba.id} className="group relative">
+                    <button
+                      onClick={() => focarAba(aba.id)}
+                      title={aba.titulo}
+                      aria-label={aba.titulo}
+                      className={cn(
+                        railBtn,
+                        ativa ? 'bg-accent-soft text-accent' : 'text-carbon hover:text-text',
+                      )}
+                    >
+                      <AbaIcon size={20} strokeWidth={ativa ? 2.4 : 2} />
+                    </button>
+                    <button
+                      onClick={() => fecharAba(aba.id)}
+                      title={`Fechar ${aba.titulo}`}
+                      aria-label={`Fechar ${aba.titulo}`}
+                      className="absolute -right-0.5 -top-0.5 hidden h-4 w-4 place-items-center rounded-full bg-carbon text-white shadow group-hover:grid hover:bg-danger"
+                    >
+                      <X size={10} strokeWidth={3} />
+                    </button>
+                  </div>
+                )
+              })}
+            </div>
           </div>
         </nav>
 
@@ -156,6 +210,26 @@ export function DesktopShell() {
               </div>
             </div>
           </div>
+
+          {/* Abas de governança abertas — montadas e mantidas VIVAS; só a ativa
+              aparece (e só quando nada especial está aberto por cima). Esconder
+              com `hidden` (display:none) preserva o estado do iframe. */}
+          {abas.map((aba) => (
+            <div
+              key={aba.id}
+              className={cn(
+                'absolute inset-0 z-10 bg-white',
+                !canvas && abaAtiva === aba.id ? '' : 'hidden',
+              )}
+            >
+              <GovFrame
+                src={aba.url}
+                title={aba.titulo}
+                allow="clipboard-write; camera; microphone; geolocation; fullscreen"
+                className="h-full w-full"
+              />
+            </div>
+          ))}
 
           {/* Aberto no centro por cima: portal / organograma / ouvidoria / admin /
               atalho de KPI — ocupa a área toda. Trocar de abertura é pelo rail /

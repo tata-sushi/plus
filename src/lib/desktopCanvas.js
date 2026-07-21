@@ -7,5 +7,12 @@ import { createContext, useContext } from 'react'
 export const DesktopCanvasContext = createContext(null)
 
 export function useDesktopCanvas() {
-  return useContext(DesktopCanvasContext) || { canvas: null, setCanvas: () => {}, canvasEl: null }
+  return (
+    useContext(DesktopCanvasContext) || {
+      canvas: null,
+      setCanvas: () => {},
+      canvasEl: null,
+      abrirAba: () => {},
+    }
+  )
 }
