@@ -39,7 +39,8 @@ src/
 ├── index.css                # Tailwind + tokens + estilos do .conteudo (HTML dos desafios)
 ├── components/              # design system + desafios + admin
 │   ├── AppShell.jsx         # escolhe o shell: tela cheia · desktop (2 painéis) · mobile
-│   ├── DesktopShell.jsx     # layout desktop: rail de ícones + painel do app + área central
+│   ├── DesktopShell.jsx     # layout desktop: rail + painel do app + área central; atalhos de
+│   │                        #   governança abrem como abas vivas (estilo navegador) no rail
 │   ├── ModoApp.jsx          # portão "só pelo app" (libera quando roda como PWA instalada)
 │   ├── BottomNav.jsx        # tabs: Início · Ranking · Feed · Governança|Ouvidoria · Mais
 │   ├── Header.jsx / Section.jsx / Card.jsx / Badge.jsx / Tabs.jsx / Voltar.jsx
@@ -71,7 +72,7 @@ src/
 │   ├── Ouvidoria.jsx        # formulário nativo (replica ouvidoria.tatasushi.tech)
 │   ├── Manutencao.jsx       # Painel de Ajustes (notificações · contraste · senha)
 │   ├── GerenciarAtalhos.jsx # Atalhos de Governança (fixar páginas de KPI)
-│   ├── Cardapio.jsx         # cardápio da semana (conteúdo placeholder)
+│   ├── Cardapio.jsx         # cardápio da semana (placeholder; a religar no schema tata_refeicoes)
 │   ├── QuestionarioDisc.jsx # questionário DISC (tela cheia)
 │   ├── Mais.jsx / Login.jsx
 │   ├── Governanca.jsx       # iframe do portal Líderes (tela cheia)
@@ -80,7 +81,7 @@ src/
 └── lib/
     ├── cn.js / haptics.js / tempo.js / signo.js / useCountUp.js
     ├── useDesktop.js        # detecta viewport de desktop (matchMedia)
-    ├── desktopCanvas.js     # contexto da área central do desktop (portal/iframe)
+    ├── desktopCanvas.js     # contexto da área central do desktop (portal/iframe + abas de gov)
     ├── icons.js             # iconMap (trilhas, áreas, emblemas)
     ├── theme.js             # tema claro/escuro (data-theme no <html>)
     ├── emblemas.js          # regras + avaliação client-side do catálogo de emblemas (DB-driven)
@@ -99,9 +100,12 @@ usuário, ranking, feed, comunicados, recompensas, emblemas, notificações ou d
 telas e seus RPCs foram auditados: **toda chamada `supabase.rpc/from/storage/functions` do
 front resolve para um objeto existente no banco** (nenhuma referência quebrada).
 
-Restam como **conteúdo placeholder** (ainda sem backend próprio, a migrar quando a Tatá House
-tiver API): o **menu do dia** (Início) e o **cardápio da semana** (`/cardapio`), ambos em
-`src/lib/mockData.js`. As rotas mortas de placeholder (Procedimentos, RH Fácil, Assistente IA)
+Restam como **conteúdo placeholder** o **menu do dia** (Início) e o **cardápio da semana**
+(`/cardapio`), ambos em `src/lib/mockData.js`. O backend do cardápio nasceu no schema
+`tata_refeicoes` (`cardapio_dia`, `cardapio_itens`, `cardapio_avaliacoes`): o editor de governança
+(`cardapio.html`) e a tela do app serão **redesenhados** em cima dele — fluxo planejar cardápio →
+contagens (almoço/jantar/marmitas) → itens com custo → produção/desperdício → **avaliação da
+refeição** pelo colaborador. As rotas mortas de placeholder (Procedimentos, RH Fácil, Assistente IA)
 foram removidas nesta limpeza pré-campo.
 
 ## Carrossel de destaques e automações
@@ -144,15 +148,32 @@ iframe (origem verificada, via `GovFrame`) e cada página confere o acesso **ao 
   colaborador em `governanca_acessos_paginas`. Uma consulta (`gov_meus_acessos`) resolve o acesso
   da página **e** destrava os cards do menu (admin vê tudo). Autorização por pessoa/página no
   painel de Administração (RPCs `gov_*`, restritas a admin).
+- **Acesso por aba** — dentro de uma página, cada aba pode ser bloqueada **por pessoa** (denylist:
+  liberada por padrão, admin vê tudo). Catálogo em `governanca_abas`, bloqueios em
+  `governanca_abas_bloqueios`; a página consulta `gov_minhas_abas_bloqueadas` e o `gate.js` esconde
+  (via CSS, sem flash) as abas marcadas com `data-aba-id`, reativando a 1ª visível se a ativa cair
+  no bloqueio. Configuração no painel (`AdminGovernanca`), com **liga/desliga por aba** (recolhível).
+  Marcado em 15 páginas (abas de função + de loja/unidade).
 - **Portal embutido** — mobile em `Governanca.jsx` (capa em tela cheia) e `PainelExterno.jsx`
-  (página avulsa por `/painel/:id`); desktop na área central do `DesktopShell`. Todos usam o
-  `GovFrame`.
+  (página avulsa por `/painel/:id`); desktop na área central do `DesktopShell`, onde os **atalhos
+  abrem como abas vivas** (estilo navegador: ícone + fechar no rail, iframe mantido montado pra
+  alternar sem recarregar). Todos usam o `GovFrame`.
 - **Carregamento invisível** — o `GovFrame` segura um loader limpo até a página avisar que
   resolveu (`gov-ok`/`gov-denied`); a lista de acessos fica em cache na sessão do iframe, então a
   navegação interna libera na hora. A tela crua de "verificando acesso" não aparece.
 
 O portão que roda em cada página é o `gate.js` (repositório `lideres`). Detalhes em
 `docs/GOVERNANCA_INTEGRACAO.md` e `docs/AUTENTICACAO.md`.
+
+## Perfis de acesso
+
+`profiles.perfil` classifica o colaborador (default `colab`; é **manual** e **sobrevive ao sync**
+do RHiD — não é sobrescrito). Além de `colab`/`admin`, há perfis granulares vindos da planilha de
+RH: `lider`, `analista-rh`, `analista-compras`, `coord-financeiro`, `estoquista`, `lider-limpeza`,
+`estagio-nutri`, `oficial-manutecao`. Hoje só `admin` (e, em Recrutamento, `analista-rh`) mudam de
+verdade o que se vê; os demais estão gravados e **aguardam as regras**. Próximo passo: cortar
+**acesso** e **valores sensíveis** (salário etc.) por perfil — bases que já nascem no Supabase (ex.:
+`tata_refeicoes`) permitem o corte **seguro** por RLS; o legado ainda gateia por `isAdmin` no HTML.
 
 ## Documentação
 
@@ -219,11 +240,17 @@ combinados para a reta final, antes/junto do piloto:
       contraste claro (hoje texto branco fica fraco)
 - [x] **Aniversário de empresa** — artes próprias **centralizadas** (`aniversario-cc`), 5 mensagens
       editáveis no painel, título automático por tempo de casa; upload novo já entra centralizado
-- [ ] **Cardápio** — dar backend próprio ao menu do dia e ao cardápio da semana (hoje placeholder)
+- [~] **Cardápio** — schema `tata_refeicoes` criado; editor de governança e tela do app a serem
+      **redesenhados** em cima dele (planejar → contagens → itens/custo → produção/desperdício →
+      avaliação). Falta plumbing de acesso (RPCs/policies) e a ligação em si.
 - [x] **Configuração para desktop** — shell de 2 painéis (rail + painel do app + área central)
+- [x] **Abas de governança no desktop** — atalhos abrem como abas vivas (estilo navegador) no rail
 - [x] **Bloqueio de acesso só pelo app** — portão `ModoApp` (libera só na PWA instalada)
 - [x] **Governança só pelo app** — páginas abrem embarcadas no Plus (token via `postMessage`),
       acesso por página ao vivo e carregamento invisível (sem login no portal)
+- [x] **Acesso por aba** — bloqueio de abas individuais por pessoa, em 15 páginas de governança
+- [x] **Perfis granulares** — `perfil` da `profiles` carregado com os níveis da planilha de RH
+- [ ] **Valores por perfil** — esconder salário/custo por perfil (seguro via RLS nas bases novas)
 - [ ] Afinar cores do tema claro
 
 Roadmap e pendências detalhadas em `docs/CONTEXTO.md` (§11, §14).
