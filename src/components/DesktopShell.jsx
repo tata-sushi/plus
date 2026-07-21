@@ -137,9 +137,10 @@ export function DesktopShell() {
               )
             })}
 
-            {/* Abas de governança abertas — ícone + "x" pra fechar */}
+            {/* Abas de governança abertas — ícone + "x" pra fechar. O padding
+                dá folga pro badge do "x" não ser cortado pelo overflow do scroll. */}
             {abas.length > 0 && <span className="my-0.5 h-px w-6 bg-line" />}
-            <div className="flex flex-col items-center gap-1.5 overflow-y-auto">
+            <div className="flex flex-col items-center gap-1.5 overflow-y-auto px-2 py-1">
               {abas.map((aba) => {
                 const AbaIcon = resolveIcon(aba.icon)
                 const ativa = !canvas && abaAtiva === aba.id
