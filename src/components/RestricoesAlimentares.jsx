@@ -1,10 +1,24 @@
 import { useEffect, useState } from 'react'
-import { Plus, Egg } from 'lucide-react'
+import {
+  Plus, ChevronDown, EggFried, Utensils,
+  Shell, Fish, Nut, Milk, Wheat, Egg, Bean, Ham, Beef, Drumstick,
+  Salad, Vegan, Sprout, Leaf, Flame, CandyOff, Soup,
+} from 'lucide-react'
 import { Section } from './Section.jsx'
 import { supabase } from '../lib/supabase.js'
 import { cn } from '../lib/cn'
 
-// Toggle no padrão do app (liga/desliga com knob).
+// Ícones de contorno (padrão do app). Fallback: Utensils.
+const ICONES = {
+  Shell, Fish, Nut, Milk, Wheat, Egg, Bean, Ham, Beef, Drumstick,
+  Salad, Vegan, Sprout, Leaf, Flame, CandyOff, Soup, EggFried,
+}
+function Ico({ name, ...p }) {
+  const C = ICONES[name] || Utensils
+  return <C {...p} />
+}
+
+// Toggle no padrão do app.
 function Toggle({ on, onClick, label }) {
   return (
     <button
@@ -26,17 +40,18 @@ function Toggle({ on, onClick, label }) {
   )
 }
 
-// "Restrições alimentares" do Meu perfil: fileirinha de ícones (como as
-// conquistas). Cadastra o que não come e, por restrição, pode pedir a
-// substituição padrão (ovo frito). Alimenta o catálogo base.
+// "Restrições alimentares" do Meu perfil: fileirinha de ícones (contorno,
+// como as conquistas). A substituição padrão (ovo frito) aparece como um
+// ícone no mesmo nível. Alimenta o catálogo base.
 export function RestricoesAlimentares() {
   const [minhas, setMinhas] = useState(null) // null = carregando
   const [catalogo, setCatalogo] = useState([])
-  const [sel, setSel] = useState(null) // restricao_id em detalhe
-  const [abrindo, setAbrindo] = useState(false) // form de adicionar
+  const [sel, setSel] = useState(null)
+  const [abrindo, setAbrindo] = useState(false)
   const [nome, setNome] = useState('')
   const [tipo, setTipo] = useState('alergia')
   const [subst, setSubst] = useState(false)
+  const [lista, setLista] = useState(false) // dropdown do catálogo aberto
   const [salvando, setSalvando] = useState(false)
 
   async function carregar() {
@@ -51,8 +66,6 @@ export function RestricoesAlimentares() {
     carregar()
   }, [])
 
-  // add_ faz upsert (acha/cria no catálogo e vincula), então serve pra
-  // adicionar e pra atualizar a substituição.
   async function upsert(n, t, s) {
     await supabase.rpc('restricao_add', { p_nome: n, p_tipo: t, p_substituicao: s })
   }
@@ -67,6 +80,7 @@ export function RestricoesAlimentares() {
     setNome('')
     setSubst(false)
     setAbrindo(false)
+    setLista(false)
     carregar()
   }
 
@@ -88,6 +102,17 @@ export function RestricoesAlimentares() {
   if (minhas === null) return null
   const selR = minhas.find((x) => x.restricao_id === sel)
 
+  // Células da fileirinha: cada restrição + (se pedir) o ovo no mesmo nível.
+  const cells = []
+  minhas.forEach((r) => {
+    cells.push({ k: `r${r.restricao_id}`, tipo: 'rest', r })
+    if (r.quer_substituicao) cells.push({ k: `s${r.restricao_id}`, tipo: 'sub', r })
+  })
+
+  const filtrados = catalogo.filter((c) =>
+    c.nome.toLowerCase().includes(nome.trim().toLowerCase()),
+  )
+
   return (
     <Section
       className="reveal reveal-3 mt-5"
@@ -104,29 +129,35 @@ export function RestricoesAlimentares() {
           <p className="text-xs text-muted">Nenhuma cadastrada. Toque em adicionar abaixo.</p>
         ) : (
           <div className="grid grid-cols-5 gap-x-2 gap-y-3">
-            {minhas.map((r) => {
-              const on = r.restricao_id === sel
+            {cells.map((cell) => {
+              const on = cell.r.restricao_id === sel
+              const sub = cell.tipo === 'sub'
               return (
                 <button
-                  key={r.restricao_id}
+                  key={cell.k}
                   type="button"
-                  title={r.nome}
-                  onClick={() => setSel(on ? null : r.restricao_id)}
+                  title={sub ? 'Substituição: ovo frito' : cell.r.nome}
+                  onClick={() => setSel(on ? null : cell.r.restricao_id)}
                   className="flex flex-col items-center gap-1 text-center tap"
                 >
                   <span
                     className={cn(
-                      'relative grid h-10 w-10 place-items-center rounded-xl bg-accent-soft text-lg leading-none',
+                      'grid h-10 w-10 place-items-center rounded-xl',
+                      sub
+                        ? 'border border-dashed border-accent/50 text-accent'
+                        : 'bg-accent-soft text-accent',
                       on && 'ring-2 ring-accent',
                     )}
                   >
-                    {r.icone || '🍽️'}
-                    {r.quer_substituicao && (
-                      <span className="absolute -right-1.5 -top-1.5 text-[12px] leading-none">🍳</span>
-                    )}
+                    {sub ? <EggFried size={18} /> : <Ico name={cell.r.icone} size={18} />}
                   </span>
-                  <span className="w-full truncate text-[10px] font-semibold leading-tight">
-                    {r.nome}
+                  <span
+                    className={cn(
+                      'w-full truncate text-[10px] font-semibold leading-tight',
+                      sub && 'text-muted',
+                    )}
+                  >
+                    {sub ? 'Ovo frito' : cell.r.nome}
                   </span>
                 </button>
               )
@@ -134,21 +165,14 @@ export function RestricoesAlimentares() {
           </div>
         )}
 
-        {/* Detalhe do ícone selecionado */}
+        {/* Detalhe do selecionado */}
         {selR && (
           <div className="mt-3 rounded-card bg-surface-2 px-3 py-2.5">
             <div className="hstack justify-between gap-2">
               <span className="hstack min-w-0 gap-2 text-sm font-semibold">
-                <span className="text-base leading-none">{selR.icone || '🍽️'}</span>
+                <Ico name={selR.icone} size={16} className="shrink-0 text-accent" />
                 <span className="truncate">{selR.nome}</span>
-                <span
-                  className={cn(
-                    'pill shrink-0 text-[10px] uppercase',
-                    selR.tipo === 'alergia'
-                      ? 'bg-red-500/15 text-red-400'
-                      : 'bg-surface-3 text-muted',
-                  )}
-                >
+                <span className="pill shrink-0 bg-surface-3 text-[10px] uppercase text-muted">
                   {selR.tipo === 'alergia' ? 'Alergia' : 'Preferência'}
                 </span>
               </span>
@@ -161,7 +185,7 @@ export function RestricoesAlimentares() {
             </div>
             <div className="mt-2 hstack justify-between border-t border-line pt-2">
               <span className="hstack gap-1.5 text-xs text-muted">
-                <Egg size={13} /> Substituição padrão (ovo frito)
+                <EggFried size={13} /> Substituição padrão (ovo frito)
               </span>
               <Toggle
                 on={selR.quer_substituicao}
@@ -183,50 +207,93 @@ export function RestricoesAlimentares() {
           </button>
         ) : (
           <form onSubmit={adicionar} className="mt-3 border-t border-line pt-3">
-            <input
-              list="restr-catalogo"
-              value={nome}
-              onChange={(e) => setNome(e.target.value)}
-              autoFocus
-              placeholder="Ex.: Camarão, Lactose, Frango…"
-              className="w-full rounded-card border border-line bg-surface px-3 py-2 text-sm outline-none placeholder:text-muted-2"
-            />
-            <datalist id="restr-catalogo">
-              {catalogo.map((c) => (
-                <option key={c.id} value={c.nome} />
-              ))}
-            </datalist>
+            {/* Combobox: lista suspensa própria (sem sugestão do teclado) */}
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setLista((v) => !v)}
+                className="hstack w-full justify-between rounded-card border border-line bg-surface px-3 py-2 text-left text-sm"
+              >
+                <span className={cn('truncate', !nome && 'text-muted-2')}>
+                  {nome || 'Escolha ou digite a restrição'}
+                </span>
+                <ChevronDown size={16} className="shrink-0 text-muted-2" />
+              </button>
 
+              {lista && (
+                <>
+                  <button
+                    type="button"
+                    aria-label="Fechar lista"
+                    onClick={() => setLista(false)}
+                    className="fixed inset-0 z-10 cursor-default"
+                  />
+                  <div className="absolute z-20 mt-1 max-h-56 w-full overflow-auto rounded-card border border-line bg-surface shadow-lg">
+                    <div className="border-b border-line p-2">
+                      <input
+                        value={nome}
+                        onChange={(e) => setNome(e.target.value)}
+                        autoFocus
+                        placeholder="Buscar ou digitar…"
+                        className="w-full rounded-lg border border-line bg-surface-2 px-2.5 py-1.5 text-sm outline-none placeholder:text-muted-2"
+                      />
+                    </div>
+                    {filtrados.map((c) => (
+                      <button
+                        key={c.id}
+                        type="button"
+                        onClick={() => {
+                          setNome(c.nome)
+                          setTipo(c.tipo)
+                          setLista(false)
+                        }}
+                        className="hstack w-full gap-2.5 px-3 py-2 text-left text-sm tap active:bg-surface-2"
+                      >
+                        <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-accent-soft text-accent">
+                          <Ico name={c.icone} size={15} />
+                        </span>
+                        <span className="truncate">{c.nome}</span>
+                      </button>
+                    ))}
+                    {nome.trim() && !catalogo.some((c) => c.nome.toLowerCase() === nome.trim().toLowerCase()) && (
+                      <button
+                        type="button"
+                        onClick={() => setLista(false)}
+                        className="hstack w-full gap-2.5 border-t border-line px-3 py-2 text-left text-sm text-accent tap active:bg-surface-2"
+                      >
+                        <Plus size={15} className="shrink-0" /> Criar “{nome.trim()}”
+                      </button>
+                    )}
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* Tipo — selecionado sempre verde */}
             <div className="mt-2 hstack gap-2">
-              <button
-                type="button"
-                onClick={() => setTipo('alergia')}
-                className={cn(
-                  'flex-1 rounded-card border py-1.5 text-xs font-semibold',
-                  tipo === 'alergia'
-                    ? 'border-red-500/40 bg-red-500/15 text-red-400'
-                    : 'border-line text-muted',
-                )}
-              >
-                Alergia
-              </button>
-              <button
-                type="button"
-                onClick={() => setTipo('preferencia')}
-                className={cn(
-                  'flex-1 rounded-card border py-1.5 text-xs font-semibold',
-                  tipo === 'preferencia'
-                    ? 'border-accent/40 bg-accent-soft text-accent'
-                    : 'border-line text-muted',
-                )}
-              >
-                Preferência
-              </button>
+              {[
+                ['alergia', 'Alergia'],
+                ['preferencia', 'Preferência'],
+              ].map(([v, label]) => (
+                <button
+                  key={v}
+                  type="button"
+                  onClick={() => setTipo(v)}
+                  className={cn(
+                    'flex-1 rounded-card border py-1.5 text-xs font-semibold',
+                    tipo === v
+                      ? 'border-accent/40 bg-accent-soft text-accent'
+                      : 'border-line text-muted',
+                  )}
+                >
+                  {label}
+                </button>
+              ))}
             </div>
 
             <div className="mt-2 hstack justify-between rounded-card border border-line px-3 py-2">
               <span className="hstack gap-1.5 text-xs text-muted">
-                <Egg size={13} /> Substituição (ovo frito)
+                <EggFried size={13} /> Substituição (ovo frito)
               </span>
               <Toggle on={subst} onClick={() => setSubst((v) => !v)} label="Substituição" />
             </div>
@@ -238,6 +305,7 @@ export function RestricoesAlimentares() {
                   setAbrindo(false)
                   setNome('')
                   setSubst(false)
+                  setLista(false)
                 }}
                 className="flex-1 rounded-card border border-line py-2 text-sm font-semibold text-muted tap"
               >
