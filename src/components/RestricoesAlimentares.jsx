@@ -46,7 +46,7 @@ export function RestricoesAlimentares() {
   const [minhas, setMinhas] = useState(null) // null = carregando
   const [catalogo, setCatalogo] = useState([])
   const [substituicao, setSubstituicao] = useState(false)
-  const [tem, setTem] = useState(false) // toggle "tenho restrição"
+  const [tem, setTem] = useState(null) // tri-estado: null=não respondeu · true=Sim · false=Não
   const [sel, setSel] = useState(null)
   const [abrindo, setAbrindo] = useState(false)
   const [nome, setNome] = useState('')
@@ -64,14 +64,16 @@ export function RestricoesAlimentares() {
     setMinhas(m || [])
     setCatalogo(c || [])
     setSubstituicao(s === true)
-    setTem((m || []).length > 0 || tr === true)
+    // tem restrições ⇒ Sim; senão espelha a resposta (null = ainda não respondeu)
+    setTem((m || []).length > 0 ? true : tr === true ? true : tr === false ? false : null)
   }
   useEffect(() => {
     carregar()
   }, [])
 
-  // tem restrições cadastradas ⇒ o toggle fica ligado (não dá pra dizer "não tenho")
-  const temR = (minhas?.length || 0) > 0 || tem
+  // tri-estado do toggle: null = não respondeu (nenhum aceso) · true = Sim · false = Não.
+  // Ter restrições cadastradas ⇒ Sim (travado, não dá pra dizer "não tenho").
+  const temR = (minhas?.length || 0) > 0 ? true : tem
 
   async function escolherTem(valor) {
     // Já tem restrições cadastradas ⇒ não dá pra dizer "não tenho".
@@ -146,7 +148,7 @@ export function RestricoesAlimentares() {
           </div>
         </div>
 
-        {temR && (
+        {temR === true && (
           <div className="mt-3 flex flex-col gap-3">
             {/* Grade de ícones */}
             {minhas.length > 0 && (
