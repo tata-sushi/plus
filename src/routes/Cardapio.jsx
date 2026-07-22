@@ -39,17 +39,17 @@ function grupos(itens) {
   return ordem.filter((t) => by[t]).map((t) => ({ ...(TIPO_INFO[t] || TIPO_INFO.outro), valor: by[t].join(', ') }))
 }
 
-function Estrelas({ nota, onNota, salvando }) {
+function Estrelas({ nota, onNota, readOnly }) {
   return (
     <div className="hstack gap-1.5">
       {[1, 2, 3, 4, 5].map((n) => (
         <button
           key={n}
           type="button"
-          disabled={salvando}
-          onClick={() => onNota(n)}
+          disabled={readOnly}
+          onClick={() => !readOnly && onNota(n)}
           aria-label={`${n} estrela${n > 1 ? 's' : ''}`}
-          className="tap"
+          className={cn('tap', readOnly && 'cursor-default')}
         >
           <Star size={28} className={cn(n <= nota ? 'fill-accent text-accent' : 'text-muted-2')} />
         </button>
@@ -101,8 +101,9 @@ function DiaMenu({ dia, isHoje }) {
 
 export function Cardapio() {
   const [dias, setDias] = useState(null)
-  const [aval, setAval] = useState({}) // data -> nota
+  const [nota, setNota] = useState(0) // nota de hoje (antes de salvar)
   const [coment, setComent] = useState('')
+  const [enviado, setEnviado] = useState(false) // já avaliou hoje → trava
   const [salvando, setSalvando] = useState(false)
 
   useEffect(() => {
@@ -111,11 +112,13 @@ export function Cardapio() {
       if (!ativo) return
       const arr = data || []
       setDias(arr)
-      const a = {}
-      arr.forEach((d) => {
-        if (d.minha_nota != null) a[d.data] = d.minha_nota
-      })
-      setAval(a)
+      const hj = isoLocal(new Date())
+      const h = arr.find((d) => d.data === hj)
+      if (h && h.minha_nota != null) {
+        setNota(h.minha_nota)
+        setComent(h.meu_comentario || '')
+        setEnviado(true)
+      }
     })
     return () => {
       ativo = false
@@ -134,18 +137,16 @@ export function Cardapio() {
   const proximos = dias.filter((d) => d.data >= hojeISO)
   const hoje = dias.find((d) => d.data === hojeISO)
 
-  async function salvarAval(n, c) {
-    if (!hoje) return
+  async function salvar() {
+    if (!hoje || nota < 1 || salvando) return
     setSalvando(true)
-    await supabase.rpc('avaliar_cardapio', { p_data: hoje.data, p_nota: n, p_comentario: c || null })
+    const { error } = await supabase.rpc('avaliar_cardapio', {
+      p_data: hoje.data,
+      p_nota: nota,
+      p_comentario: coment || null,
+    })
     setSalvando(false)
-  }
-  function avaliar(n) {
-    setAval((a) => ({ ...a, [hoje.data]: n }))
-    salvarAval(n, coment)
-  }
-  function salvarComent() {
-    if (hoje && aval[hoje.data]) salvarAval(aval[hoje.data], coment)
+    if (!error) setEnviado(true)
   }
 
   return (
@@ -181,18 +182,33 @@ export function Cardapio() {
                 <DiaMenu dia={d} isHoje />
                 {temMenu && (
                   <div className="mt-4 border-t border-line pt-3">
-                    <div className="text-[11px] uppercase tracking-wide text-muted">Sua avaliação</div>
-                    <div className="mt-2 hstack justify-between">
-                      <Estrelas nota={aval[d.data] || 0} onNota={avaliar} salvando={salvando} />
-                      {aval[d.data] ? <span className="text-xs font-semibold text-accent">Obrigado! ✓</span> : null}
+                    <div className="hstack justify-between">
+                      <span className="text-[11px] uppercase tracking-wide text-muted">Sua avaliação</span>
+                      {enviado && <span className="text-xs font-semibold text-accent">Enviada ✓</span>}
                     </div>
-                    <input
-                      value={coment}
-                      onChange={(e) => setComent(e.target.value)}
-                      onBlur={salvarComent}
-                      placeholder="Comentário (opcional)"
-                      className="mt-3 w-full rounded-card border border-line bg-surface px-3 py-2 text-sm outline-none placeholder:text-muted-2"
-                    />
+                    <div className="mt-2">
+                      <Estrelas nota={nota} onNota={setNota} readOnly={enviado} />
+                    </div>
+                    {enviado ? (
+                      coment ? <div className="mt-2 text-sm text-muted">“{coment}”</div> : null
+                    ) : (
+                      <>
+                        <input
+                          value={coment}
+                          onChange={(e) => setComent(e.target.value)}
+                          placeholder="Comentário (opcional)"
+                          className="mt-3 w-full rounded-card border border-line bg-surface px-3 py-2 text-sm outline-none placeholder:text-muted-2"
+                        />
+                        <button
+                          type="button"
+                          onClick={salvar}
+                          disabled={nota < 1 || salvando}
+                          className="btn-primary mt-3 w-full disabled:opacity-50"
+                        >
+                          {salvando ? 'Salvando…' : 'Salvar avaliação'}
+                        </button>
+                      </>
+                    )}
                   </div>
                 )}
               </div>
