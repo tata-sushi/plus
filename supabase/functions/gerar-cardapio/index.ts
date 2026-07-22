@@ -47,13 +47,20 @@ CONSIDERE (informativo, não bloqueia a geração):
   com alguma restrição, registre em alerta_restricao e lembre da substituição
   padrão da casa (OVO FRITO).
 
+INSUMOS (obrigatório): para CADA prato do dia (principal, guarnição, guarnição fixa,
+salada, sobremesa e bebida), liste os INSUMOS — as matérias-primas cruas para comprar.
+Ex.: "Carne de Panela em Cubos com Batata" → ["carne bovina","batata inglesa"];
+"Arroz e Feijão" → ["arroz","feijão"]; "Repolho Roxo com Cenoura" → ["repolho roxo","cenoura"].
+É o que alimenta o Compras. Apenas o nome do ingrediente (sem quantidade).
+
 SAÍDA: responda APENAS com JSON válido, sem texto fora do JSON. Todos os campos em
 português. "Arroz e Feijão" DEVE aparecer (campo guarnicao_fixa). Formato:
 {"cardapio":[{"data":"YYYY-MM-DD","dia_semana":"...","principal":"...","guarnicao":"...",
 "guarnicao_fixa":"Arroz e Feijão","salada":"...","sobremesa":"...","bebida":"...",
 "tem_marmita":false,"novo_prato":false,"nutricao":{"kcal":0,"proteina_g":0,"carb_g":0,
-"gordura_g":0,"fibra_g":0,"porcao_g":0,"indice_saudavel":0},"alerta_restricao":[],
-"justificativa":"1 frase"}],"resumo_semana":{"indice_medio":0,"variedade_proteinas":"...","observacoes":"..."}}`
+"gordura_g":0,"fibra_g":0,"porcao_g":0,"indice_saudavel":0},
+"insumos":{"principal":["..."],"guarnicao":["..."],"guarnicao_fixa":["arroz","feijão"],"salada":["..."],"sobremesa":["..."],"bebida":["..."]},
+"alerta_restricao":[],"justificativa":"1 frase"}],"resumo_semana":{"indice_medio":0,"variedade_proteinas":"...","observacoes":"..."}}`
 
 function buildUser(ctx: any, datas: any[]): string {
   const lin = (arr: any[]) => (arr ?? []).map((x) => '- ' + x).join('\n')
