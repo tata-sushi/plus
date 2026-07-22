@@ -100,13 +100,44 @@ usuário, ranking, feed, comunicados, recompensas, emblemas, notificações ou d
 telas e seus RPCs foram auditados: **toda chamada `supabase.rpc/from/storage/functions` do
 front resolve para um objeto existente no banco** (nenhuma referência quebrada).
 
-Restam como **conteúdo placeholder** o **menu do dia** (Início) e o **cardápio da semana**
-(`/cardapio`), ambos em `src/lib/mockData.js`. O backend do cardápio nasceu no schema
-`tata_refeicoes` (`cardapio_dia`, `cardapio_itens`, `cardapio_avaliacoes`): o editor de governança
-(`cardapio.html`) e a tela do app serão **redesenhados** em cima dele — fluxo planejar cardápio →
-contagens (almoço/jantar/marmitas) → itens com custo → produção/desperdício → **avaliação da
-refeição** pelo colaborador. As rotas mortas de placeholder (Procedimentos, RH Fácil, Assistente IA)
-foram removidas nesta limpeza pré-campo.
+O **cardápio** deixou de ser placeholder — agora é real, no schema `tata_refeicoes` (`cardapio_dia`,
+`cardapio_itens`, `cardapio_avaliacoes`, `restricoes_alimentares`, `colaborador_restricoes`,
+`colaborador_pref_refeicao`), acessado **só via RPCs `SECURITY DEFINER` no `tata_plus`** (o schema não
+é exposto direto ao PostgREST). A governança planeja em `cardapio.html` e o app mostra o **cardápio do
+dia + avaliação** (ver seção **Cardápio** abaixo). `mockData.js` não é mais usado pela Início nem por
+`/cardapio`. As rotas mortas de placeholder (Procedimentos, RH Fácil, Assistente IA) foram removidas
+na limpeza pré-campo.
+
+## Cardápio (governança + app)
+
+Ciclo fechado entre a governança e o app, sobre o schema `tata_refeicoes` (só via RPCs
+`SECURITY DEFINER` em `tata_plus`).
+
+**Governança** (`compliance/kpis/tatahouse/cardapio.html`, repo `lideres`) — 3 abas:
+
+- **Cardápio (pedidos)** — planeja o dia (cards + modal): resumo, itens (tipo/qtd/un/custo),
+  contagens (almoço/jantar/marmitas). Um **selo/lista de restrições** avisa se algum item bate com
+  restrição cadastrada por alguém (nome · unidade · item). **Aprovar** move o dia pra Processamento.
+- **Status (6 estágios)** — `aguardando_aprovacao → aguardando_compra → aguardando_recebimento →
+  aguardando_preparo → aguardando_avaliacao → finalizado`. A pílula é automática; só a **aprovação**
+  (1→2) é manual. As transições 2→3→4 (**Compras**) e 4→5 (**data**) entram nas próximas fases.
+- **Processamento** — board dos dias aprovados (cross-week). No estágio *avaliação*: **notas em 3
+  níveis** (Geral/Itaim/Pinheiros, por unidade) e **Registrar servidas** → finaliza o dia.
+
+**App** (`plus`):
+
+- **Início** (capa "Menu do dia") e **`/cardapio`** mostram o **cardápio do dia** real.
+- **Avaliação** do dia: **nota 1–5** + comentário (1 por pessoa/dia; **trava após salvar**; carimba a
+  **unidade** → alimenta as notas da governança). Só o dia de hoje é avaliável.
+- **Alerta pessoal** de restrição quando um item do dia bate com uma restrição do próprio usuário.
+- **Meu perfil → Restrições Alimentares** — grade de ícones (contorno), catálogo
+  (`restricoes_alimentares`) + ligação pessoa↔restrição (`colaborador_restricoes`); a substituição
+  padrão ("ovo frito") é **global** por pessoa (`colaborador_pref_refeicao`).
+
+Principais RPCs (`tata_plus`): `refeicoes_semana`, `refeicoes_dia_salvar`, `refeicoes_dia_aprovar`,
+`refeicoes_processamento`, `refeicoes_dia_servir`, `restricoes_do_cardapio`; e no app `cardapio_app`,
+`avaliar_cardapio`, `minhas_restricoes` / `restricoes_catalogo` / `restricao_add` / `restricao_del`,
+`minha_substituicao` / `substituicao_set`, `minhas_restricoes_cardapio`.
 
 ## Carrossel de destaques e automações
 
@@ -240,9 +271,11 @@ combinados para a reta final, antes/junto do piloto:
       contraste claro (hoje texto branco fica fraco)
 - [x] **Aniversário de empresa** — artes próprias **centralizadas** (`aniversario-cc`), 5 mensagens
       editáveis no painel, título automático por tempo de casa; upload novo já entra centralizado
-- [~] **Cardápio** — schema `tata_refeicoes` criado; editor de governança e tela do app a serem
-      **redesenhados** em cima dele (planejar → contagens → itens/custo → produção/desperdício →
-      avaliação). Falta plumbing de acesso (RPCs/policies) e a ligação em si.
+- [x] **Cardápio (ciclo completo)** — governança planeja + status em 6 estágios (aprovação →
+      Processamento → servir/finalizar → notas por unidade); app mostra o **cardápio do dia** (capa +
+      `/cardapio`) com **avaliação** (nota 1–5, trava após salvar) e **alerta de restrição** pessoal;
+      perfil tem **Restrições Alimentares**. Falta: ponte com **Compras** (2→3→4), automação por
+      **data** (4→5) e **Relatórios**. Ver seção **Cardápio**.
 - [x] **Configuração para desktop** — shell de 2 painéis (rail + painel do app + área central)
 - [x] **Abas de governança no desktop** — atalhos abrem como abas vivas (estilo navegador) no rail
 - [x] **Bloqueio de acesso só pelo app** — portão `ModoApp` (libera só na PWA instalada)
