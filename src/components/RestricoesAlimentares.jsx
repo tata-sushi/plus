@@ -39,8 +39,9 @@ function Toggle({ on, onClick, label }) {
   )
 }
 
-// "Restrições alimentares" do Meu perfil. Restrições à esquerda; a
-// substituição padrão (ovo frito) é GLOBAL — um único ícone à direita.
+// "Restrições alimentares" do Meu perfil: grade de ícones de contorno.
+// A substituição padrão (ovo frito) é GLOBAL — aparece como um único ícone
+// (borda tracejada) na grade quando ligada.
 export function RestricoesAlimentares() {
   const [minhas, setMinhas] = useState(null) // null = carregando
   const [catalogo, setCatalogo] = useState([])
@@ -109,64 +110,52 @@ export function RestricoesAlimentares() {
       }
     >
       <div className="card p-4">
-        {/* Restrições à esquerda · ovo frito (global) à direita */}
+        {/* Grade de ícones */}
         {minhas.length === 0 ? (
           <p className="text-xs text-muted">Nenhuma cadastrada. Toque em adicionar abaixo.</p>
         ) : (
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex flex-wrap gap-x-2 gap-y-3">
-              {minhas.map((r) => {
-                const on = r.restricao_id === sel
-                return (
-                  <button
-                    key={r.restricao_id}
-                    type="button"
-                    title={r.nome}
-                    onClick={() => setSel(on ? null : r.restricao_id)}
-                    className="flex w-12 flex-col items-center gap-1 text-center tap"
+          <div className="grid grid-cols-5 gap-x-2 gap-y-3">
+            {minhas.map((r) => {
+              const on = r.restricao_id === sel
+              return (
+                <button
+                  key={r.restricao_id}
+                  type="button"
+                  title={r.nome}
+                  onClick={() => setSel(on ? null : r.restricao_id)}
+                  className="flex flex-col items-center gap-1 text-center tap"
+                >
+                  <span
+                    className={cn(
+                      'grid h-10 w-10 place-items-center rounded-xl bg-accent-soft text-accent',
+                      on && 'ring-2 ring-accent',
+                    )}
                   >
-                    <span
-                      className={cn(
-                        'grid h-10 w-10 place-items-center rounded-xl bg-accent-soft text-accent',
-                        on && 'ring-2 ring-accent',
-                      )}
-                    >
-                      <Ico name={r.icone} size={18} />
-                    </span>
-                    <span className="w-full truncate text-[10px] font-semibold leading-tight">
-                      {r.nome}
-                    </span>
-                  </button>
-                )
-              })}
-            </div>
+                    <Ico name={r.icone} size={18} />
+                  </span>
+                  <span className="w-full truncate text-[10px] font-semibold leading-tight">
+                    {r.nome}
+                  </span>
+                </button>
+              )
+            })}
 
-            {/* Ovo frito — único, global */}
-            <button
-              type="button"
-              onClick={toggleSub}
-              title="Substituição padrão: ovo frito"
-              className="flex w-12 shrink-0 flex-col items-center gap-1 text-center tap"
-            >
-              <span
-                className={cn(
-                  'grid h-10 w-10 place-items-center rounded-xl border',
-                  substituicao
-                    ? 'border-accent bg-accent-soft text-accent'
-                    : 'border-dashed border-line text-muted-2',
-                )}
+            {/* Ovo frito — único, global (aparece quando ligado) */}
+            {substituicao && (
+              <button
+                type="button"
+                title="Substituição padrão: ovo frito (toque para desligar)"
+                onClick={toggleSub}
+                className="flex flex-col items-center gap-1 text-center tap"
               >
-                <EggFried size={18} />
-              </span>
-              <span
-                className={cn(
-                  'w-full text-[10px] font-semibold leading-tight',
-                  substituicao ? 'text-accent' : 'text-muted-2',
-                )}
-              >
-                Ovo frito
-              </span>
-            </button>
+                <span className="grid h-10 w-10 place-items-center rounded-xl border border-dashed border-accent/50 text-accent">
+                  <EggFried size={18} />
+                </span>
+                <span className="w-full truncate text-[10px] font-semibold leading-tight text-muted">
+                  Ovo frito
+                </span>
+              </button>
+            )}
           </div>
         )}
 
@@ -200,84 +189,67 @@ export function RestricoesAlimentares() {
           </button>
         ) : (
           <form onSubmit={adicionar} className="mt-3 border-t border-line pt-3">
-            {/* lista suspensa própria + ovo frito ao lado */}
-            <div className="hstack items-stretch gap-2">
-              <div className="relative flex-1">
-                <button
-                  type="button"
-                  onClick={() => setLista((v) => !v)}
-                  className="hstack h-full w-full justify-between rounded-card border border-line bg-surface px-3 py-2 text-left text-sm"
-                >
-                  <span className={cn('truncate', !nome && 'text-muted-2')}>
-                    {nome || 'Escolha ou digite'}
-                  </span>
-                  <ChevronDown size={16} className="shrink-0 text-muted-2" />
-                </button>
-
-                {lista && (
-                  <>
-                    <button
-                      type="button"
-                      aria-label="Fechar lista"
-                      onClick={() => setLista(false)}
-                      className="fixed inset-0 z-10 cursor-default"
-                    />
-                    <div className="absolute z-20 mt-1 max-h-56 w-full overflow-auto rounded-card border border-line bg-surface shadow-lg">
-                      <div className="border-b border-line p-2">
-                        <input
-                          value={nome}
-                          onChange={(e) => setNome(e.target.value)}
-                          autoFocus
-                          placeholder="Buscar ou digitar…"
-                          className="w-full rounded-lg border border-line bg-surface-2 px-2.5 py-1.5 text-sm outline-none placeholder:text-muted-2"
-                        />
-                      </div>
-                      {filtrados.map((c) => (
-                        <button
-                          key={c.id}
-                          type="button"
-                          onClick={() => {
-                            setNome(c.nome)
-                            setTipo(c.tipo)
-                            setLista(false)
-                          }}
-                          className="hstack w-full gap-2.5 px-3 py-2 text-left text-sm tap active:bg-surface-2"
-                        >
-                          <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-accent-soft text-accent">
-                            <Ico name={c.icone} size={15} />
-                          </span>
-                          <span className="truncate">{c.nome}</span>
-                        </button>
-                      ))}
-                      {nome.trim() &&
-                        !catalogo.some((c) => c.nome.toLowerCase() === nome.trim().toLowerCase()) && (
-                          <button
-                            type="button"
-                            onClick={() => setLista(false)}
-                            className="hstack w-full gap-2.5 border-t border-line px-3 py-2 text-left text-sm text-accent tap active:bg-surface-2"
-                          >
-                            <Plus size={15} className="shrink-0" /> Criar “{nome.trim()}”
-                          </button>
-                        )}
-                    </div>
-                  </>
-                )}
-              </div>
-
-              {/* Ovo frito (global) ao lado da lista */}
+            {/* lista suspensa própria */}
+            <div className="relative">
               <button
                 type="button"
-                onClick={toggleSub}
-                title="Substituição padrão: ovo frito"
-                className={cn(
-                  'hstack shrink-0 gap-1.5 rounded-card border px-2.5 text-xs font-semibold',
-                  substituicao
-                    ? 'border-accent/40 bg-accent-soft text-accent'
-                    : 'border-line text-muted',
-                )}
+                onClick={() => setLista((v) => !v)}
+                className="hstack w-full justify-between rounded-card border border-line bg-surface px-3 py-2 text-left text-sm"
               >
-                <EggFried size={15} /> Ovo frito
+                <span className={cn('truncate', !nome && 'text-muted-2')}>
+                  {nome || 'Escolha ou digite a restrição'}
+                </span>
+                <ChevronDown size={16} className="shrink-0 text-muted-2" />
               </button>
+
+              {lista && (
+                <>
+                  <button
+                    type="button"
+                    aria-label="Fechar lista"
+                    onClick={() => setLista(false)}
+                    className="fixed inset-0 z-10 cursor-default"
+                  />
+                  <div className="absolute z-20 mt-1 max-h-56 w-full overflow-auto rounded-card border border-line bg-surface shadow-lg">
+                    <div className="border-b border-line p-2">
+                      <input
+                        value={nome}
+                        onChange={(e) => setNome(e.target.value)}
+                        autoFocus
+                        placeholder="Buscar ou digitar…"
+                        className="w-full rounded-lg border border-line bg-surface-2 px-2.5 py-1.5 text-sm outline-none placeholder:text-muted-2"
+                      />
+                    </div>
+                    {filtrados.map((c) => (
+                      <button
+                        key={c.id}
+                        type="button"
+                        onClick={() => {
+                          setNome(c.nome)
+                          setTipo(c.tipo)
+                          setLista(false)
+                        }}
+                        className="hstack w-full gap-2.5 px-3 py-2 text-left text-sm tap active:bg-surface-2"
+                      >
+                        <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-accent-soft text-accent">
+                          <Ico name={c.icone} size={15} />
+                        </span>
+                        <span className="truncate">{c.nome}</span>
+                      </button>
+                    ))}
+                    {nome.trim() &&
+                      !catalogo.some((c) => c.nome.toLowerCase() === nome.trim().toLowerCase()) && (
+                        <button
+                          type="button"
+                          onClick={() => setLista(false)}
+                          className="hstack w-full gap-2.5 border-t border-line px-3 py-2 text-left text-sm text-accent tap active:bg-surface-2"
+                        >
+                          <Plus size={15} className="shrink-0" /> Criar “{nome.trim()}”
+                        </button>
+                      )}
+                  </div>
+                </>
+              )}
             </div>
 
             {/* Tipo — selecionado sempre verde */}
@@ -300,6 +272,14 @@ export function RestricoesAlimentares() {
                   {label}
                 </button>
               ))}
+            </div>
+
+            {/* Ovo frito (global) */}
+            <div className="mt-2 hstack justify-between rounded-card border border-line px-3 py-2">
+              <span className="hstack gap-1.5 text-xs text-muted">
+                <EggFried size={13} /> Ovo frito
+              </span>
+              <Toggle on={substituicao} onClick={toggleSub} label="Ovo frito" />
             </div>
 
             <div className="mt-3 hstack gap-2">
