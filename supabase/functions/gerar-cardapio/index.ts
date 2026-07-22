@@ -48,10 +48,12 @@ CONSIDERE (informativo, não bloqueia a geração):
   padrão da casa (OVO FRITO).
 
 INSUMOS (obrigatório): para CADA prato do dia (principal, guarnição, guarnição fixa,
-salada, sobremesa e bebida), liste os INSUMOS — as matérias-primas cruas para comprar.
-Ex.: "Carne de Panela em Cubos com Batata" → ["carne bovina","batata inglesa"];
-"Arroz e Feijão" → ["arroz","feijão"]; "Repolho Roxo com Cenoura" → ["repolho roxo","cenoura"].
-É o que alimenta o Compras. Apenas o nome do ingrediente (sem quantidade).
+salada, sobremesa e bebida), liste os INSUMOS — matérias-primas para comprar — com
+QUANTIDADE ESTIMADA e UNIDADE. Baseie a quantidade na ESCALA informada (nº médio de
+refeições servidas por dia). Cada insumo é um objeto {"nome":"carne bovina","qtd":12,"un":"kg"}.
+Ex.: "Carne de Panela em Cubos com Batata" → carne bovina, batata inglesa;
+"Arroz e Feijão" → arroz, feijão; "Repolho Roxo com Cenoura" → repolho roxo, cenoura.
+Unidades usuais: kg, g, L, ml, un, maço, dúzia. É o que alimenta o Compras.
 
 SAÍDA: responda APENAS com JSON válido, sem texto fora do JSON. Todos os campos em
 português. "Arroz e Feijão" DEVE aparecer (campo guarnicao_fixa). Formato:
@@ -59,7 +61,7 @@ português. "Arroz e Feijão" DEVE aparecer (campo guarnicao_fixa). Formato:
 "guarnicao_fixa":"Arroz e Feijão","salada":"...","sobremesa":"...","bebida":"...",
 "tem_marmita":false,"novo_prato":false,"nutricao":{"kcal":0,"proteina_g":0,"carb_g":0,
 "gordura_g":0,"fibra_g":0,"porcao_g":0,"indice_saudavel":0},
-"insumos":{"principal":["..."],"guarnicao":["..."],"guarnicao_fixa":["arroz","feijão"],"salada":["..."],"sobremesa":["..."],"bebida":["..."]},
+"insumos":{"principal":[{"nome":"carne bovina","qtd":12,"un":"kg"}],"guarnicao":[{"nome":"...","qtd":0,"un":"kg"}],"guarnicao_fixa":[{"nome":"arroz","qtd":10,"un":"kg"},{"nome":"feijão","qtd":6,"un":"kg"}],"salada":[{"nome":"...","qtd":0,"un":"kg"}],"sobremesa":[{"nome":"...","qtd":0,"un":"un"}],"bebida":[{"nome":"...","qtd":0,"un":"L"}]},
 "alerta_restricao":[],"justificativa":"1 frase"}],"resumo_semana":{"indice_medio":0,"variedade_proteinas":"...","observacoes":"..."}}`
 
 function buildUser(ctx: any, datas: any[]): string {
@@ -69,6 +71,8 @@ function buildUser(ctx: any, datas: any[]): string {
     'PERÍODO — gere um dia para cada data abaixo (marque tem_marmita=true nos domingos/feriados):',
     datas.map((d) => `- ${d.data} (${d.dia})${d.domingo ? ' [DOMINGO]' : ''}${d.feriado ? ' [FERIADO]' : ''}`).join('\n'),
     feriados.length ? `Feriados no período: ${feriados.join(', ')}` : '',
+    '',
+    `ESCALA (média histórica servida por dia — use para estimar as quantidades de compra dos insumos): almoço ${(ctx.servidas_medias || {}).almoco}, jantar ${(ctx.servidas_medias || {}).jantar}, marmitas nos dias com marmita ${(ctx.servidas_medias || {}).marmitas_dia_com_marmita}, ~${(ctx.servidas_medias || {}).refeicoes_por_dia} refeições/dia no total.`,
     '',
     'REPERTÓRIO DA CASA (principal | guarnição | Arroz e Feijão | salada | sobremesa (índice)):',
     lin(ctx.catalogo),
