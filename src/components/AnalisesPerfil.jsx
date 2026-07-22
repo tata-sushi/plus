@@ -111,9 +111,6 @@ export function AnalisesPerfil({ disc, signo, onFazer, mostrarDisc = true }) {
             </span>
             <div className="min-w-0 flex-1">
               <div className="text-sm font-semibold">DISC</div>
-              <div className="text-xs text-muted">
-                {onFazer ? 'Descubra seu perfil comportamental.' : 'Ainda não fez o teste.'}
-              </div>
             </div>
             {onFazer && (
               <button onClick={onFazer} className="btn-primary shrink-0 !py-2 text-xs">
