@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import {
-  Plus, ChevronDown, EggFried, Utensils,
+  Plus, ChevronDown, EggFried, Utensils, AlertTriangle,
   Shell, Fish, Nut, Milk, Wheat, Egg, Bean, Ham, Beef, Drumstick,
   Salad, Vegan, Sprout, Leaf, Flame, CandyOff, Soup,
 } from 'lucide-react'
@@ -46,6 +46,7 @@ export function RestricoesAlimentares() {
   const [minhas, setMinhas] = useState(null) // null = carregando
   const [catalogo, setCatalogo] = useState([])
   const [substituicao, setSubstituicao] = useState(false) // flag global
+  const [semRestricao, setSemRestricao] = useState(false) // declarou "não tenho"
   const [sel, setSel] = useState(null)
   const [abrindo, setAbrindo] = useState(false)
   const [nome, setNome] = useState('')
@@ -54,14 +55,16 @@ export function RestricoesAlimentares() {
   const [salvando, setSalvando] = useState(false)
 
   async function carregar() {
-    const [{ data: m }, { data: c }, { data: s }] = await Promise.all([
+    const [{ data: m }, { data: c }, { data: s }, { data: sr }] = await Promise.all([
       supabase.rpc('minhas_restricoes'),
       supabase.rpc('restricoes_catalogo'),
       supabase.rpc('minha_substituicao'),
+      supabase.rpc('minha_sem_restricao'),
     ])
     setMinhas(m || [])
     setCatalogo(c || [])
     setSubstituicao(s === true)
+    setSemRestricao(sr === true)
   }
   useEffect(() => {
     carregar()
@@ -73,12 +76,23 @@ export function RestricoesAlimentares() {
     await supabase.rpc('substituicao_set', { p_on: novo })
   }
 
+  async function toggleSem() {
+    const novo = !semRestricao
+    setSemRestricao(novo)
+    await supabase.rpc('sem_restricao_set', { p_on: novo })
+  }
+
   async function adicionar(e) {
     e?.preventDefault()
     const n = nome.trim()
     if (!n || salvando) return
     setSalvando(true)
     await supabase.rpc('restricao_add', { p_nome: n, p_tipo: tipo })
+    // ao adicionar uma restrição, deixa de valer o "não tenho"
+    if (semRestricao) {
+      setSemRestricao(false)
+      await supabase.rpc('sem_restricao_set', { p_on: false })
+    }
     setSalvando(false)
     setNome('')
     setAbrindo(false)
@@ -110,6 +124,22 @@ export function RestricoesAlimentares() {
       }
     >
       <div className="card p-4">
+        {/* Sem restrições: força a confirmação (aviso + declaração) */}
+        {minhas.length === 0 && (
+          <div className="flex flex-col gap-3">
+            {!semRestricao && (
+              <div className="hstack gap-2 rounded-card border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs font-semibold text-amber-500">
+                <AlertTriangle size={15} className="shrink-0" />
+                <span>Confirme suas restrições: cadastre abaixo, ou marque que não tem.</span>
+              </div>
+            )}
+            <div className="hstack justify-between rounded-card border border-line px-3 py-2.5">
+              <span className="text-sm font-medium">Não tenho restrições alimentares</span>
+              <Toggle on={semRestricao} onClick={toggleSem} label="Não tenho restrições" />
+            </div>
+          </div>
+        )}
+
         {/* Grade de ícones */}
         {minhas.length > 0 && (
           <div className="flex items-start gap-3">
@@ -190,18 +220,12 @@ export function RestricoesAlimentares() {
           <button
             type="button"
             onClick={() => setAbrindo(true)}
-            className={cn(
-              'hstack w-full justify-center gap-2 rounded-card border border-dashed border-line py-2 text-xs font-semibold text-muted tap',
-              minhas.length > 0 && 'mt-3',
-            )}
+            className="mt-3 hstack w-full justify-center gap-2 rounded-card border border-dashed border-line py-2 text-xs font-semibold text-muted tap"
           >
             <Plus size={14} /> Adicionar restrição
           </button>
         ) : (
-          <form
-            onSubmit={adicionar}
-            className={cn(minhas.length > 0 && 'mt-3 border-t border-line pt-3')}
-          >
+          <form onSubmit={adicionar} className="mt-3 border-t border-line pt-3">
             {/* lista suspensa própria */}
             <div className="relative">
               <button
