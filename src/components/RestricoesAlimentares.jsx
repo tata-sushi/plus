@@ -111,50 +111,57 @@ export function RestricoesAlimentares() {
     >
       <div className="card p-4">
         {/* Grade de ícones */}
-        {minhas.length === 0 ? (
-          <p className="text-xs text-muted">Nenhuma cadastrada. Toque em adicionar abaixo.</p>
-        ) : (
-          <div className="grid grid-cols-5 gap-x-2 gap-y-3">
-            {minhas.map((r) => {
-              const on = r.restricao_id === sel
-              return (
-                <button
-                  key={r.restricao_id}
-                  type="button"
-                  title={r.nome}
-                  onClick={() => setSel(on ? null : r.restricao_id)}
-                  className="flex flex-col items-center gap-1 text-center tap"
-                >
-                  <span
-                    className={cn(
-                      'grid h-10 w-10 place-items-center rounded-xl bg-accent-soft text-accent',
-                      on && 'ring-2 ring-accent',
-                    )}
+        {minhas.length > 0 && (
+          <div className="flex items-start gap-3">
+            <div
+              className={cn(
+                'grid flex-1 gap-x-2 gap-y-3',
+                substituicao ? 'grid-cols-4' : 'grid-cols-5',
+              )}
+            >
+              {minhas.map((r) => {
+                const on = r.restricao_id === sel
+                return (
+                  <button
+                    key={r.restricao_id}
+                    type="button"
+                    title={r.nome}
+                    onClick={() => setSel(on ? null : r.restricao_id)}
+                    className="flex flex-col items-center gap-1 text-center tap"
                   >
-                    <Ico name={r.icone} size={18} />
+                    <span
+                      className={cn(
+                        'grid h-10 w-10 place-items-center rounded-xl bg-accent-soft text-accent',
+                        on && 'ring-2 ring-accent',
+                      )}
+                    >
+                      <Ico name={r.icone} size={18} />
+                    </span>
+                    <span className="w-full truncate text-[10px] font-semibold leading-tight">
+                      {r.nome}
+                    </span>
+                  </button>
+                )
+              })}
+            </div>
+
+            {/* Ovo frito — único, global, à direita (aparece quando ligado) */}
+            {substituicao && (
+              <div className="shrink-0 self-stretch border-l border-line pl-3">
+                <button
+                  type="button"
+                  title="Substituição padrão: ovo frito (toque para desligar)"
+                  onClick={toggleSub}
+                  className="flex w-14 flex-col items-center gap-1 text-center tap"
+                >
+                  <span className="grid h-10 w-10 place-items-center rounded-xl border border-dashed border-accent/50 text-accent">
+                    <EggFried size={18} />
                   </span>
-                  <span className="w-full truncate text-[10px] font-semibold leading-tight">
-                    {r.nome}
+                  <span className="w-full text-[10px] font-semibold leading-tight text-muted">
+                    Ovo frito
                   </span>
                 </button>
-              )
-            })}
-
-            {/* Ovo frito — único, global (aparece quando ligado) */}
-            {substituicao && (
-              <button
-                type="button"
-                title="Substituição padrão: ovo frito (toque para desligar)"
-                onClick={toggleSub}
-                className="flex flex-col items-center gap-1 text-center tap"
-              >
-                <span className="grid h-10 w-10 place-items-center rounded-xl border border-dashed border-accent/50 text-accent">
-                  <EggFried size={18} />
-                </span>
-                <span className="w-full truncate text-[10px] font-semibold leading-tight text-muted">
-                  Ovo frito
-                </span>
-              </button>
+              </div>
             )}
           </div>
         )}
@@ -183,12 +190,18 @@ export function RestricoesAlimentares() {
           <button
             type="button"
             onClick={() => setAbrindo(true)}
-            className="mt-3 hstack w-full justify-center gap-2 rounded-card border border-dashed border-line py-2 text-xs font-semibold text-muted tap"
+            className={cn(
+              'hstack w-full justify-center gap-2 rounded-card border border-dashed border-line py-2 text-xs font-semibold text-muted tap',
+              minhas.length > 0 && 'mt-3',
+            )}
           >
             <Plus size={14} /> Adicionar restrição
           </button>
         ) : (
-          <form onSubmit={adicionar} className="mt-3 border-t border-line pt-3">
+          <form
+            onSubmit={adicionar}
+            className={cn(minhas.length > 0 && 'mt-3 border-t border-line pt-3')}
+          >
             {/* lista suspensa própria */}
             <div className="relative">
               <button
