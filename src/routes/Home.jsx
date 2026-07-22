@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
-import { Flag, Gift, Plus, Star, Network } from 'lucide-react'
+import { Flag, Gift, Star, Network } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Section } from '../components/Section.jsx'
 import { Card } from '../components/Card.jsx'
@@ -46,10 +45,10 @@ const sugestoesCards = [
     subtitle: 'Conheça e resgate a sua',
   },
   {
+    to: '/cardapio',
     badgeIcon: Star,
-    title: 'Tatá House',
+    title: 'Cardápio',
     subtitle: 'Avalie a refeição do dia',
-    emBreve: true,
   },
   {
     to: '/organograma',
@@ -149,7 +148,7 @@ export function Home() {
       {/* Menu do dia — uma linha com scroll lateral e botão + fixo à direita */}
       <Section className="reveal reveal-1 mt-4 hsm:mt-3" title="Menu do dia">
         <Card className="relative overflow-hidden !p-0">
-          <div className="flex items-center gap-3 overflow-x-auto no-scrollbar py-3 pl-4 pr-16">
+          <div className="flex items-center gap-3 overflow-x-auto no-scrollbar py-3 pl-4 pr-4">
             {(menuHoje?.grupos || []).map((item, idx) => {
               const Icon = resolveIcon(item.icon)
               return (
@@ -166,15 +165,6 @@ export function Home() {
               <span className="whitespace-nowrap text-sm text-muted">Cardápio a definir hoje</span>
             )}
           </div>
-          <Link
-            to="/cardapio"
-            aria-label="Ver cardápio da semana"
-            className="absolute inset-y-0 right-0 flex items-center bg-gradient-to-l from-surface from-60% to-transparent pl-6 pr-3 tap"
-          >
-            <span className="grid h-8 w-8 place-items-center rounded-full border border-accent/40 bg-accent-soft text-accent">
-              <Plus size={16} />
-            </span>
-          </Link>
         </Card>
       </Section>
 
