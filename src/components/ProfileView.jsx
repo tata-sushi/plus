@@ -7,6 +7,7 @@ import { Card } from './Card.jsx'
 import { Avatar } from './Avatar.jsx'
 import { ProgressRing } from './ProgressRing.jsx'
 import { MeuPerfil } from './MeuPerfil.jsx'
+import { RestricoesAlimentares } from './RestricoesAlimentares.jsx'
 import { Conquistas } from './Conquistas.jsx'
 import { RadarChart } from './RadarChart.jsx'
 import { useAuth } from '../lib/AuthContext.jsx'
@@ -76,6 +77,9 @@ export function ProfileView({ colaborador, isSelf }) {
 
       {/* Meu perfil (Signo · DISC · em breve) */}
       {isSelf && <MeuPerfil />}
+
+      {/* Restrições alimentares */}
+      {isSelf && <RestricoesAlimentares />}
 
       {/* Indicadores — formato tabela */}
       <Section className="reveal reveal-2 mt-5" title="Indicadores">
