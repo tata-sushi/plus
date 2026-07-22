@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { CalendarDays, Star } from 'lucide-react'
+import { Star, AlertTriangle } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Voltar } from '../components/Voltar.jsx'
 import { Section } from '../components/Section.jsx'
@@ -58,7 +58,7 @@ function Estrelas({ nota, onNota, readOnly }) {
   )
 }
 
-function DiaMenu({ dia, isHoje }) {
+function DiaMenu({ dia }) {
   const gs = grupos(dia.itens)
   const temMenu = !!(dia.resumo || gs.length)
   return (
@@ -68,7 +68,7 @@ function DiaMenu({ dia, isHoje }) {
           <div className="font-display text-base font-bold">{DIAS[(parseISO(dia.data).getDay() + 6) % 7]}</div>
           <div className="text-[11px] text-muted">{fmtDia(parseISO(dia.data))}</div>
         </div>
-        {isHoje && <span className="pill bg-accent-soft text-[10px] text-accent">Hoje</span>}
+        <span className="pill bg-accent-soft text-[10px] text-accent">Hoje</span>
       </div>
       {!temMenu ? (
         <div className="mt-3 text-sm text-muted">Cardápio a definir.</div>
@@ -100,42 +100,36 @@ function DiaMenu({ dia, isHoje }) {
 }
 
 export function Cardapio() {
-  const [dias, setDias] = useState(null)
-  const [nota, setNota] = useState(0) // nota de hoje (antes de salvar)
+  const [hoje, setHoje] = useState(undefined) // undefined = carregando · null = sem dia
+  const [nota, setNota] = useState(0)
   const [coment, setComent] = useState('')
-  const [enviado, setEnviado] = useState(false) // já avaliou hoje → trava
+  const [enviado, setEnviado] = useState(false)
   const [salvando, setSalvando] = useState(false)
+  const [alerta, setAlerta] = useState([]) // restrições do usuário que batem com o cardápio de hoje
 
   useEffect(() => {
     let ativo = true
     supabase.rpc('cardapio_app', { p_inicio: mondayISO() }).then(({ data }) => {
       if (!ativo) return
-      const arr = data || []
-      setDias(arr)
       const hj = isoLocal(new Date())
-      const h = arr.find((d) => d.data === hj)
+      const h = (data || []).find((d) => d.data === hj) || null
+      setHoje(h)
       if (h && h.minha_nota != null) {
         setNota(h.minha_nota)
         setComent(h.meu_comentario || '')
         setEnviado(true)
+      }
+      const nomes = (h?.itens || []).map((it) => it.item).filter(Boolean)
+      if (nomes.length) {
+        supabase.rpc('minhas_restricoes_cardapio', { p_itens: nomes }).then(({ data: r }) => {
+          if (ativo) setAlerta(r || [])
+        })
       }
     })
     return () => {
       ativo = false
     }
   }, [])
-
-  if (dias === null)
-    return (
-      <>
-        <Header />
-        <Voltar />
-      </>
-    )
-
-  const hojeISO = isoLocal(new Date())
-  const proximos = dias.filter((d) => d.data >= hojeISO)
-  const hoje = dias.find((d) => d.data === hojeISO)
 
   async function salvar() {
     if (!hoje || nota < 1 || salvando) return
@@ -149,72 +143,65 @@ export function Cardapio() {
     if (!error) setEnviado(true)
   }
 
+  if (hoje === undefined)
+    return (
+      <>
+        <Header />
+        <Voltar />
+      </>
+    )
+
+  const temMenu = !!(hoje && (hoje.resumo || (hoje.itens && hoje.itens.length)))
+
   return (
     <>
       <Header />
       <Voltar />
 
-      <div className="mt-2 px-5">
-        <div className="hstack justify-center gap-2 text-xs font-semibold text-muted">
-          <CalendarDays size={15} className="text-accent" />
-          Cardápio dos próximos dias
-        </div>
-      </div>
-
       <Section className="mt-4">
-        <div className="flex flex-col gap-3">
-          {proximos.length === 0 && (
-            <Card className="reveal">
-              <div className="text-sm text-muted">Sem cardápio para os próximos dias.</div>
-            </Card>
-          )}
-          {proximos.map((d) => {
-            const isHoje = d.data === hojeISO
-            const temMenu = !!(d.resumo || (d.itens && d.itens.length))
-            if (!isHoje)
-              return (
-                <Card key={d.data} className="reveal">
-                  <DiaMenu dia={d} isHoje={false} />
-                </Card>
-              )
-            return (
-              <div key={d.data} className="hero-card reveal p-4">
-                <DiaMenu dia={d} isHoje />
-                {temMenu && (
-                  <div className="mt-4 border-t border-line pt-3">
-                    <div className="hstack justify-between">
-                      <span className="text-[11px] uppercase tracking-wide text-muted">Sua avaliação</span>
-                      {enviado && <span className="text-xs font-semibold text-accent">Enviada ✓</span>}
-                    </div>
-                    <div className="mt-2">
-                      <Estrelas nota={nota} onNota={setNota} readOnly={enviado} />
-                    </div>
-                    {enviado ? (
-                      coment ? <div className="mt-2 text-sm text-muted">“{coment}”</div> : null
-                    ) : (
-                      <>
-                        <input
-                          value={coment}
-                          onChange={(e) => setComent(e.target.value)}
-                          placeholder="Comentário (opcional)"
-                          className="mt-3 w-full rounded-card border border-line bg-surface px-3 py-2 text-sm outline-none placeholder:text-muted-2"
-                        />
-                        <button
-                          type="button"
-                          onClick={salvar}
-                          disabled={nota < 1 || salvando}
-                          className="btn-primary mt-3 w-full disabled:opacity-50"
-                        >
-                          {salvando ? 'Salvando…' : 'Salvar avaliação'}
-                        </button>
-                      </>
-                    )}
-                  </div>
-                )}
+        {!temMenu ? (
+          <Card className="reveal">
+            <div className="text-sm text-muted">Sem cardápio definido para hoje.</div>
+          </Card>
+        ) : (
+          <div className="hero-card reveal p-4">
+            <DiaMenu dia={hoje} />
+
+            {alerta.length > 0 && (
+              <div className="mt-3 hstack gap-2 rounded-card border border-red-500/40 bg-red-500/10 px-3 py-2 text-xs font-semibold text-red-400">
+                <AlertTriangle size={15} className="shrink-0" />
+                <span>Atenção: contém {alerta.join(', ')} — restrição sua.</span>
               </div>
-            )
-          })}
-        </div>
+            )}
+
+            <div className="mt-4 border-t border-line pt-3">
+              <div className="text-[11px] uppercase tracking-wide text-muted">Sua avaliação</div>
+              <div className="mt-2">
+                <Estrelas nota={nota} onNota={setNota} readOnly={enviado} />
+              </div>
+              {enviado ? (
+                coment ? <div className="mt-2 text-sm text-muted">“{coment}”</div> : null
+              ) : (
+                <>
+                  <input
+                    value={coment}
+                    onChange={(e) => setComent(e.target.value)}
+                    placeholder="Comentário (opcional)"
+                    className="mt-3 w-full rounded-card border border-line bg-surface px-3 py-2 text-sm outline-none placeholder:text-muted-2"
+                  />
+                  <button
+                    type="button"
+                    onClick={salvar}
+                    disabled={nota < 1 || salvando}
+                    className="btn-primary mt-3 w-full disabled:opacity-50"
+                  >
+                    {salvando ? 'Salvando…' : 'Salvar avaliação'}
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+        )}
       </Section>
     </>
   )
