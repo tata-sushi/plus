@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import {
-  Plus, ChevronDown, EggFried, Utensils,
+  Plus, ChevronDown, EggFried, Utensils, Check, X,
   Shell, Fish, Nut, Milk, Wheat, Egg, Bean, Ham, Beef, Drumstick,
   Salad, Vegan, Sprout, Leaf, Flame, CandyOff, Soup,
 } from 'lucide-react'
@@ -73,12 +73,12 @@ export function RestricoesAlimentares() {
   // tem restrições cadastradas ⇒ o toggle fica ligado (não dá pra dizer "não tenho")
   const temR = (minhas?.length || 0) > 0 || tem
 
-  async function toggleTem() {
-    if ((minhas?.length || 0) > 0) return // travado: já tem restrições
-    const novo = !tem
-    setTem(novo)
-    setAbrindo(novo) // ligou → já abre o campo de cadastrar
-    await supabase.rpc('tem_restricao_set', { p_on: novo })
+  async function escolherTem(valor) {
+    // Já tem restrições cadastradas ⇒ não dá pra dizer "não tenho".
+    if (valor === false && (minhas?.length || 0) > 0) return
+    setTem(valor)
+    setAbrindo(valor) // "Sim" → já abre o campo de cadastrar
+    await supabase.rpc('tem_restricao_set', { p_on: valor })
   }
 
   async function toggleSub() {
@@ -118,10 +118,32 @@ export function RestricoesAlimentares() {
   return (
     <Section className="reveal reveal-3 mt-5" title="Restrições alimentares">
       <div className="card p-4">
-        {/* Toggle sim/não */}
-        <div className="hstack justify-between rounded-card border border-line px-3 py-2.5">
-          <span className="text-sm font-medium">Tenho restrição alimentar</span>
-          <Toggle on={temR} onClick={toggleTem} label="Tenho restrição alimentar" />
+        {/* Cabeçalho — ícone + "Restrição Alimentar" + toggle Não/Sim (padrão DISC/Signo) */}
+        <div className="hstack gap-3">
+          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-accent-soft text-accent">
+            <Utensils size={20} />
+          </span>
+          <div className="min-w-0 flex-1 font-display text-sm font-bold">Restrição alimentar</div>
+          <div className="hstack shrink-0 gap-1 rounded-pill bg-surface-2 p-1">
+            {[
+              { on: false, label: 'Não', Icon: X },
+              { on: true, label: 'Sim', Icon: Check },
+            ].map(({ on, label, Icon }) => (
+              <button
+                key={label}
+                type="button"
+                onClick={() => escolherTem(on)}
+                aria-label={label}
+                aria-pressed={temR === on}
+                className={cn(
+                  'grid h-8 w-8 place-items-center rounded-full tap',
+                  temR === on ? 'bg-accent text-black' : 'text-muted',
+                )}
+              >
+                <Icon size={15} />
+              </button>
+            ))}
+          </div>
         </div>
 
         {temR && (
