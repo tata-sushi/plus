@@ -14,7 +14,23 @@ import { useAuth } from '../lib/AuthContext.jsx'
 import { useDesktop } from '../lib/useDesktop.js'
 import { useDesktopCanvas } from '../lib/desktopCanvas.js'
 import { supabase } from '../lib/supabase.js'
-import { menuDoDia } from '../lib/mockData.js'
+const TIPO_ICON = { principal: 'UtensilsCrossed', guarnicao: 'Salad', salada: 'Salad', sobremesa: 'IceCreamBowl', bebida: 'Wine', outro: 'Utensils' }
+function gruposDia(itens) {
+  const ordem = ['principal', 'guarnicao', 'salada', 'sobremesa', 'bebida', 'outro']
+  const by = {}
+  ;(itens || []).forEach((it) => {
+    ;(by[it.tipo] = by[it.tipo] || []).push(it.item)
+  })
+  return ordem.filter((t) => by[t]).map((t) => ({ icon: TIPO_ICON[t] || 'Utensils', valor: by[t].join(', ') }))
+}
+const padD = (n) => String(n).padStart(2, '0')
+const isoLocal = (d) => d.getFullYear() + '-' + padD(d.getMonth() + 1) + '-' + padD(d.getDate())
+function mondayISO() {
+  const h = new Date()
+  const x = new Date(h.getFullYear(), h.getMonth(), h.getDate())
+  x.setDate(x.getDate() - ((x.getDay() + 6) % 7))
+  return isoLocal(x)
+}
 
 const sugestoesCards = [
   {
@@ -48,6 +64,20 @@ export function Home() {
   const carregandoPerfil = !!usuario?.perfilPendente
   const nome = usuario?.nome || 'Colaborador'
   const primeiroNome = usuario?.primeiroNome || (usuario?.nome || 'Colaborador').split(' ')[0]
+
+  const [menuHoje, setMenuHoje] = useState(null)
+  useEffect(() => {
+    let ativo = true
+    supabase.rpc('cardapio_app', { p_inicio: mondayISO() }).then(({ data }) => {
+      if (!ativo) return
+      const hj = isoLocal(new Date())
+      const d = (data || []).find((x) => x.data === hj)
+      setMenuHoje(d ? { resumo: d.resumo, grupos: gruposDia(d.itens) } : { grupos: [] })
+    })
+    return () => {
+      ativo = false
+    }
+  }, [])
   const cargo = usuario?.cargo || ''
   const loja = usuario?.loja || ''
 
@@ -120,10 +150,10 @@ export function Home() {
       <Section className="reveal reveal-1 mt-4 hsm:mt-3" title="Menu do dia">
         <Card className="relative overflow-hidden !p-0">
           <div className="flex items-center gap-3 overflow-x-auto no-scrollbar py-3 pl-4 pr-16">
-            {menuDoDia.itens.map((item, idx) => {
+            {(menuHoje?.grupos || []).map((item, idx) => {
               const Icon = resolveIcon(item.icon)
               return (
-                <div key={item.label} className="hstack shrink-0 gap-3">
+                <div key={idx} className="hstack shrink-0 gap-3">
                   {idx > 0 && <span className="h-4 w-px shrink-0 bg-carbon/60" />}
                   <span className="hstack shrink-0 gap-1.5">
                     <Icon size={15} className="shrink-0 text-accent" />
@@ -132,6 +162,9 @@ export function Home() {
                 </div>
               )
             })}
+            {menuHoje && menuHoje.grupos.length === 0 && (
+              <span className="whitespace-nowrap text-sm text-muted">Cardápio a definir hoje</span>
+            )}
           </div>
           <Link
             to="/cardapio"
