@@ -146,7 +146,9 @@ Ciclo fechado entre a governança e o app, sobre o schema `tata_refeicoes` (só 
   tooltip), e o rodapé (**Custo do cardápio**) soma tudo. Antes do pedido existir, cai na estimativa do
   catálogo. No estágio *avaliação*: **notas em 3 níveis** (Geral/Itaim/Pinheiros), **desperdício por
   prato** (`cardapio_itens.quantidade_desperdicada`, só nesse estágio) e **Registrar servidas** →
-  finaliza (o desperdício é gravado junto, via `refeicoes_dia_servir`).
+  finaliza (o desperdício é gravado junto, via `refeicoes_dia_servir`). O **"Arroz e Feijão"** é
+  dividido em **2 campos (Arroz/Feijão)** só nessa tela — guardados em `desperdicio_partes` (a soma vai
+  em `quantidade_desperdicada`); no resto do cardápio continua um prato só.
 - **Relatórios** *(próxima etapa)* — visão detalhada por insumo (Insumo · Qtd · Vl. unit. · Total +
   subtotal do prato), estilo Conferência de NF, reaproveitando `refeicoes_dia_detalhe`.
 
