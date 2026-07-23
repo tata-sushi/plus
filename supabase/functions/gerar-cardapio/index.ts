@@ -50,10 +50,12 @@ CONSIDERE (informativo, não bloqueia a geração):
 INSUMOS (obrigatório): para CADA prato do dia (principal, guarnição, guarnição fixa,
 salada, sobremesa e bebida), liste os INSUMOS — matérias-primas para comprar — com
 QUANTIDADE ESTIMADA e UNIDADE. Baseie a quantidade na ESCALA informada (nº médio de
-refeições servidas por dia). Cada insumo é um objeto {"nome":"carne bovina","qtd":12,"un":"kg"}.
-Ex.: "Carne de Panela em Cubos com Batata" → carne bovina, batata inglesa;
-"Arroz e Feijão" → arroz, feijão; "Repolho Roxo com Cenoura" → repolho roxo, cenoura.
-Unidades usuais: kg, g, L, ml, un, maço, dúzia. É o que alimenta o Compras.
+refeições servidas por dia).
+IMPORTANTE: escolha os insumos EXCLUSIVAMENTE da lista "CATÁLOGO DE INSUMOS" fornecida
+no contexto, copiando EXATAMENTE o nome cadastrado (com acentos e maiúsculas como estão).
+Não invente itens fora do catálogo; se o ingrediente ideal não existir, use o item
+cadastrado mais próximo. Cada insumo é um objeto {"nome":"<nome EXATO do catálogo>","qtd":12,"un":"kg"}.
+Unidades usuais: kg, g, L, ml, un. O nome exato é o que garante o vínculo de custo com o Compras.
 
 SAÍDA: responda APENAS com JSON válido, sem texto fora do JSON. Todos os campos em
 português. "Arroz e Feijão" DEVE aparecer (campo guarnicao_fixa). Formato:
@@ -73,6 +75,9 @@ function buildUser(ctx: any, datas: any[]): string {
     feriados.length ? `Feriados no período: ${feriados.join(', ')}` : '',
     '',
     `ESCALA (média histórica servida por dia — use para estimar as quantidades de compra dos insumos): almoço ${(ctx.servidas_medias || {}).almoco}, jantar ${(ctx.servidas_medias || {}).jantar}, marmitas nos dias com marmita ${(ctx.servidas_medias || {}).marmitas_dia_com_marmita}, ~${(ctx.servidas_medias || {}).refeicoes_por_dia} refeições/dia no total.`,
+    '',
+    'CATÁLOGO DE INSUMOS — escolha os insumos SOMENTE desta lista, usando o nome EXATO:',
+    lin(ctx.insumos_catalogo),
     '',
     'REPERTÓRIO DA CASA (principal | guarnição | Arroz e Feijão | salada | sobremesa (índice)):',
     lin(ctx.catalogo),
