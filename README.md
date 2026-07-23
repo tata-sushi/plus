@@ -139,8 +139,10 @@ Ciclo fechado entre a governança e o app, sobre o schema `tata_refeicoes` (só 
     por nome). Nunca escreve no schema do Compras (só leitura).
   - **Data** — `refeicoes_promover_avaliacao` (cron) move `aguardando_preparo→aguardando_avaliacao` no
     dia da refeição.
-- **Processamento** — board dos dias aprovados (cross-week). No estágio *avaliação*: **notas em 3
-  níveis** (Geral/Itaim/Pinheiros, por unidade) e **Registrar servidas** → finaliza o dia.
+- **Processamento** — board dos dias aprovados (cross-week). O modal traz, por prato, a **tabela de
+  insumos com os valores do Compras** (Insumo · Qtd · Vl. unit. · Total + subtotal), estilo
+  Conferência de NF, via `refeicoes_dia_detalhe`. No estágio *avaliação*: **notas em 3 níveis**
+  (Geral/Itaim/Pinheiros, por unidade) e **Registrar servidas** → finaliza o dia.
 
 **App** (`plus`):
 
@@ -153,8 +155,9 @@ Ciclo fechado entre a governança e o app, sobre o schema `tata_refeicoes` (só 
   padrão ("ovo frito") é **global** por pessoa (`colaborador_pref_refeicao`).
 
 Principais RPCs (`tata_plus`): `refeicoes_semana`, `refeicoes_dia_salvar`, `refeicoes_dia_aprovar`,
-`refeicoes_processamento`, `refeicoes_dia_servir`, `restricoes_do_cardapio`, `_gerar_pedido_compra`
-(ida), `refeicoes_sync_compras` (volta) e `refeicoes_promover_avaliacao` (data); e no app `cardapio_app`,
+`refeicoes_processamento`, `refeicoes_dia_detalhe` (insumos + valores do Compras), `refeicoes_dia_servir`,
+`restricoes_do_cardapio`, `_gerar_pedido_compra` (ida), `refeicoes_sync_compras` (volta) e
+`refeicoes_promover_avaliacao` (data); e no app `cardapio_app`,
 `avaliar_cardapio`, `minhas_restricoes` / `restricoes_catalogo` / `restricao_add` / `restricao_del`,
 `minha_substituicao` / `substituicao_set`, `minhas_restricoes_cardapio`.
 
