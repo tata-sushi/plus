@@ -126,17 +126,18 @@ Ciclo fechado entre a governança e o app, sobre o schema `tata_refeicoes` (só 
 - **Integração com o Compras** (schema compartilhado `tata_abastecimento`), nos dois sentidos:
   - **Ida** — ao aprovar (1→2), `_gerar_pedido_compra` agrega os insumos do dia (só os vinculados ao
     catálogo) num **pedido** (`departamento='Cozinha'`, `id_display` `#THItaim…` / `#THPinh…`),
-    idempotente por `data_entrega`+`unidade`.
+    idempotente por `data_entrega`+`unidade`. **Convenção do Compras: `valor_*` é preço UNITÁRIO** (o
+    total é `unitário × qtd`), então o `valor_inicial` gravado é o `valor_unitario` do catálogo.
   - **Volta (status)** — `refeicoes_sync_compras` (chamado no load do Processamento **e** por cron a
     cada 5 min) **lê** o pedido no Compras e espelha o **status** de volta, sempre **para a frente**:
     `solicitado→aguardando_compra`, `comprado→aguardando_recebimento`, `recebido→aguardando_preparo`.
     O estágio do pedido é o do **item menos avançado**. Vínculo: `data_entrega=data_refeicao` +
     `unidade` + `departamento='Cozinha'`. Nunca escreve no schema do Compras (só leitura).
-  - **Custo real (último preço)** — calculado **ao vivo** pelo `refeicoes_dia_detalhe`, a partir do
-    **último valor** do pedido (`valor_recebimento` → senão `valor_compra` → senão `valor_inicial`),
-    rateado por insumo (`insumo.qtd / qtd_solicitada`). A soma dos itens bate com o total do pedido.
-    Quando o pedido está **recebido**, o valor é o `valor_recebimento` (o correto). Não é gravado no
-    cardápio — sempre lido do Compras.
+  - **Custo real (último preço)** — calculado **ao vivo** pelo `refeicoes_dia_detalhe`. O **último
+    valor unitário** do pedido (`valor_recebimento` → senão `valor_compra` → senão `valor_inicial`) é o
+    preço que aparece **na linha** do insumo; o **total** de cada linha é `unitário × qtd` e o rodapé
+    (**Custo do cardápio**) soma tudo. Quando o pedido está **recebido**, o unitário é o
+    `valor_recebimento` (o correto). Não é gravado no cardápio — sempre lido do Compras.
   - **Data** — `refeicoes_promover_avaliacao` (cron) move `aguardando_preparo→aguardando_avaliacao` no
     dia da refeição.
 - **Processamento** — board dos dias aprovados (cross-week). O modal é a **visão de Elaboração
