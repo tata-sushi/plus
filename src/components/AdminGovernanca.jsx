@@ -110,7 +110,7 @@ function EditorPessoa({ pessoa, catalogo, catalogoAbas, onFechar, onSalvo }) {
           <button onClick={onFechar} className="shrink-0 text-muted tap" aria-label="Fechar">
             <X size={22} />
           </button>
-          <Avatar name={pessoa.nome} size={38} />
+          <Avatar name={pessoa.nome} src={pessoa.avatar_url} size={38} />
           <div className="min-w-0 flex-1">
             <div className="truncate font-display text-sm font-bold">{pessoa.nome}</div>
             <div className="truncate text-xs text-muted">
@@ -374,7 +374,7 @@ export function AdminGovernanca() {
               className="tap text-left"
             >
               <Card className="hstack gap-3 !py-3">
-                <Avatar name={p.nome} size={40} />
+                <Avatar name={p.nome} src={p.avatar_url} size={40} />
                 <div className="min-w-0 flex-1">
                   <div className="truncate text-sm font-semibold">{p.nome}</div>
                   <div className="truncate text-xs text-muted">
