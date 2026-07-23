@@ -127,22 +127,23 @@ Ciclo fechado entre a governança e o app, sobre o schema `tata_refeicoes` (só 
   - **Ida** — ao aprovar (1→2), `_gerar_pedido_compra` agrega os insumos do dia (só os vinculados ao
     catálogo) num **pedido** (`departamento='Cozinha'`, `id_display` `#THItaim…` / `#THPinh…`),
     idempotente por `data_entrega`+`unidade`.
-  - **Volta** — `refeicoes_sync_compras` (chamado no load do Processamento **e** por cron a cada 5 min)
-    **lê** o pedido no Compras e traz duas coisas de volta pro cardápio:
-    - **Status**, sempre **para a frente**: `solicitado→aguardando_compra`,
-      `comprado→aguardando_recebimento`, `recebido→aguardando_preparo`. O estágio do pedido é o do
-      **item menos avançado**.
-    - **Custo real** — grava em `cardapio_itens.custo` o **último valor** do pedido
-      (`valor_recebimento` → senão `valor_compra` → senão `valor_inicial`), rateado por insumo
-      (`insumo.qtd / qtd_solicitada`). A soma dos itens bate exatamente com o total do pedido.
-    O vínculo é `data_entrega=data_refeicao` + `unidade` + `departamento='Cozinha'` (produto ↔ catálogo
-    por nome). Nunca escreve no schema do Compras (só leitura).
+  - **Volta (status)** — `refeicoes_sync_compras` (chamado no load do Processamento **e** por cron a
+    cada 5 min) **lê** o pedido no Compras e espelha o **status** de volta, sempre **para a frente**:
+    `solicitado→aguardando_compra`, `comprado→aguardando_recebimento`, `recebido→aguardando_preparo`.
+    O estágio do pedido é o do **item menos avançado**. Vínculo: `data_entrega=data_refeicao` +
+    `unidade` + `departamento='Cozinha'`. Nunca escreve no schema do Compras (só leitura).
+  - **Custo real** — não é gravado no cardápio; é calculado **ao vivo** para os **Relatórios** pelo
+    `refeicoes_dia_detalhe`, a partir do **último valor** do pedido (`valor_recebimento` → senão
+    `valor_compra` → senão `valor_inicial`), rateado por insumo (`insumo.qtd / qtd_solicitada`). A
+    soma dos itens bate exatamente com o total do pedido.
   - **Data** — `refeicoes_promover_avaliacao` (cron) move `aguardando_preparo→aguardando_avaliacao` no
     dia da refeição.
-- **Processamento** — board dos dias aprovados (cross-week). O modal traz, por prato, a **tabela de
-  insumos com os valores do Compras** (Insumo · Qtd · Vl. unit. · Total + subtotal), estilo
-  Conferência de NF, via `refeicoes_dia_detalhe`. No estágio *avaliação*: **notas em 3 níveis**
-  (Geral/Itaim/Pinheiros, por unidade) e **Registrar servidas** → finaliza o dia.
+- **Processamento** — board dos dias aprovados (cross-week). O modal é a **visão de Elaboração
+  bloqueada** (itens read-only, insumos com **custo estimado** do catálogo). No estágio *avaliação*:
+  **notas em 3 níveis** (Geral/Itaim/Pinheiros, por unidade) e **Registrar servidas** → finaliza o dia.
+- **Relatórios** — os **valores reais do Compras** por insumo (Insumo · Qtd · Vl. unit. · Total +
+  subtotal do prato), estilo Conferência de NF, via `refeicoes_dia_detalhe` (último valor do pedido,
+  rateado por insumo).
 
 **App** (`plus`):
 
