@@ -119,8 +119,21 @@ Ciclo fechado entre a governança e o app, sobre o schema `tata_refeicoes` (só 
   contagens (almoço/jantar/marmitas). Um **selo/lista de restrições** avisa se algum item bate com
   restrição cadastrada por alguém (nome · unidade · item). **Aprovar** move o dia pra Processamento.
 - **Status (6 estágios)** — `aguardando_aprovacao → aguardando_compra → aguardando_recebimento →
-  aguardando_preparo → aguardando_avaliacao → finalizado`. A pílula é automática; só a **aprovação**
-  (1→2) é manual. As transições 2→3→4 (**Compras**) e 4→5 (**data**) entram nas próximas fases.
+  aguardando_preparo → aguardando_avaliacao → finalizado`. A pílula é automática; **só a aprovação
+  (1→2) e o fechamento (5→6) são manuais**. As transições 2→3→4 são conduzidas pelo **Compras** e
+  4→5 pela **data da refeição** (ver abaixo). Todo o fluxo é **por cozinha** (Itaim / Pinheiros):
+  cada dia é duplicado por unidade e cada cozinha aprova o seu.
+- **Integração com o Compras** (schema compartilhado `tata_abastecimento`), nos dois sentidos:
+  - **Ida** — ao aprovar (1→2), `_gerar_pedido_compra` agrega os insumos do dia (só os vinculados ao
+    catálogo) num **pedido** (`departamento='Cozinha'`, `id_display` `#THItaim…` / `#THPinh…`),
+    idempotente por `data_entrega`+`unidade`.
+  - **Volta** — `refeicoes_sync_compras` (chamado no load do Processamento **e** por cron a cada 5 min)
+    **lê** o pedido no Compras e espelha o andamento de volta pro cardápio, sempre **para a frente**:
+    `solicitado→aguardando_compra`, `comprado→aguardando_recebimento`, `recebido→aguardando_preparo`.
+    O vínculo é `data_entrega=data_refeicao` + `unidade` + `departamento='Cozinha'`; o estágio do
+    pedido é o do **item menos avançado**. Nunca escreve no schema do Compras (só leitura).
+  - **Data** — `refeicoes_promover_avaliacao` (cron) move `aguardando_preparo→aguardando_avaliacao` no
+    dia da refeição.
 - **Processamento** — board dos dias aprovados (cross-week). No estágio *avaliação*: **notas em 3
   níveis** (Geral/Itaim/Pinheiros, por unidade) e **Registrar servidas** → finaliza o dia.
 
@@ -135,7 +148,8 @@ Ciclo fechado entre a governança e o app, sobre o schema `tata_refeicoes` (só 
   padrão ("ovo frito") é **global** por pessoa (`colaborador_pref_refeicao`).
 
 Principais RPCs (`tata_plus`): `refeicoes_semana`, `refeicoes_dia_salvar`, `refeicoes_dia_aprovar`,
-`refeicoes_processamento`, `refeicoes_dia_servir`, `restricoes_do_cardapio`; e no app `cardapio_app`,
+`refeicoes_processamento`, `refeicoes_dia_servir`, `restricoes_do_cardapio`, `_gerar_pedido_compra`
+(ida), `refeicoes_sync_compras` (volta) e `refeicoes_promover_avaliacao` (data); e no app `cardapio_app`,
 `avaliar_cardapio`, `minhas_restricoes` / `restricoes_catalogo` / `restricao_add` / `restricao_del`,
 `minha_substituicao` / `substituicao_set`, `minhas_restricoes_cardapio`.
 
