@@ -140,10 +140,10 @@ Ciclo fechado entre a governança e o app, sobre o schema `tata_refeicoes` (só 
   - **Data** — `refeicoes_promover_avaliacao` (cron) move `aguardando_preparo→aguardando_avaliacao` no
     dia da refeição.
 - **Processamento** — board dos dias aprovados (cross-week). O modal é a **visão de Elaboração
-  bloqueada** (itens read-only); os insumos mostram o **valor real do Compras** pela regra do
-  **último preço** (`refeicoes_dia_detalhe`) — cada linha é `qtd × valor unitário` e o rodapé
-  (**Custo do cardápio**) soma o total. Antes do pedido existir, cai na estimativa do catálogo. No
-  estágio *avaliação*: **notas em 3 níveis** (Geral/Itaim/Pinheiros) e **Registrar servidas** → finaliza.
+  bloqueada** (itens read-only); cada insumo mostra o **valor unitário real do Compras** pela regra do
+  **último preço** (`refeicoes_dia_detalhe`), e só o rodapé (**Custo do cardápio**) traz a **soma =
+  custo total da compra**. Antes do pedido existir, cai na estimativa do catálogo. No estágio
+  *avaliação*: **notas em 3 níveis** (Geral/Itaim/Pinheiros) e **Registrar servidas** → finaliza.
 - **Relatórios** *(próxima etapa)* — visão detalhada por insumo (Insumo · Qtd · Vl. unit. · Total +
   subtotal do prato), estilo Conferência de NF, reaproveitando `refeicoes_dia_detalhe`.
 
