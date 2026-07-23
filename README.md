@@ -132,18 +132,20 @@ Ciclo fechado entre a governança e o app, sobre o schema `tata_refeicoes` (só 
     `solicitado→aguardando_compra`, `comprado→aguardando_recebimento`, `recebido→aguardando_preparo`.
     O estágio do pedido é o do **item menos avançado**. Vínculo: `data_entrega=data_refeicao` +
     `unidade` + `departamento='Cozinha'`. Nunca escreve no schema do Compras (só leitura).
-  - **Custo real** — não é gravado no cardápio; é calculado **ao vivo** para os **Relatórios** pelo
-    `refeicoes_dia_detalhe`, a partir do **último valor** do pedido (`valor_recebimento` → senão
-    `valor_compra` → senão `valor_inicial`), rateado por insumo (`insumo.qtd / qtd_solicitada`). A
-    soma dos itens bate exatamente com o total do pedido.
+  - **Custo real (último preço)** — calculado **ao vivo** pelo `refeicoes_dia_detalhe`, a partir do
+    **último valor** do pedido (`valor_recebimento` → senão `valor_compra` → senão `valor_inicial`),
+    rateado por insumo (`insumo.qtd / qtd_solicitada`). A soma dos itens bate com o total do pedido.
+    Quando o pedido está **recebido**, o valor é o `valor_recebimento` (o correto). Não é gravado no
+    cardápio — sempre lido do Compras.
   - **Data** — `refeicoes_promover_avaliacao` (cron) move `aguardando_preparo→aguardando_avaliacao` no
     dia da refeição.
 - **Processamento** — board dos dias aprovados (cross-week). O modal é a **visão de Elaboração
-  bloqueada** (itens read-only, insumos com **custo estimado** do catálogo). No estágio *avaliação*:
-  **notas em 3 níveis** (Geral/Itaim/Pinheiros, por unidade) e **Registrar servidas** → finaliza o dia.
-- **Relatórios** — os **valores reais do Compras** por insumo (Insumo · Qtd · Vl. unit. · Total +
-  subtotal do prato), estilo Conferência de NF, via `refeicoes_dia_detalhe` (último valor do pedido,
-  rateado por insumo).
+  bloqueada** (itens read-only); os insumos mostram o **valor real do Compras** pela regra do
+  **último preço** (`refeicoes_dia_detalhe`) — cada linha é `qtd × valor unitário` e o rodapé
+  (**Custo do cardápio**) soma o total. Antes do pedido existir, cai na estimativa do catálogo. No
+  estágio *avaliação*: **notas em 3 níveis** (Geral/Itaim/Pinheiros) e **Registrar servidas** → finaliza.
+- **Relatórios** *(próxima etapa)* — visão detalhada por insumo (Insumo · Qtd · Vl. unit. · Total +
+  subtotal do prato), estilo Conferência de NF, reaproveitando `refeicoes_dia_detalhe`.
 
 **App** (`plus`):
 
