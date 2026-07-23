@@ -144,8 +144,9 @@ Ciclo fechado entre a governança e o app, sobre o schema `tata_refeicoes` (só 
   bloqueada** (itens read-only); cada insumo mostra o **valor do item = unitário × qtd** (com o preço
   unitário real do Compras pela regra do **último preço**, `refeicoes_dia_detalhe`; o unitário fica no
   tooltip), e o rodapé (**Custo do cardápio**) soma tudo. Antes do pedido existir, cai na estimativa do
-  catálogo. No estágio *avaliação*: **notas em 3 níveis** (Geral/Itaim/Pinheiros) e **Registrar
-  servidas** → finaliza.
+  catálogo. No estágio *avaliação*: **notas em 3 níveis** (Geral/Itaim/Pinheiros), **desperdício por
+  prato** (`cardapio_itens.quantidade_desperdicada`, só nesse estágio) e **Registrar servidas** →
+  finaliza (o desperdício é gravado junto, via `refeicoes_dia_servir`).
 - **Relatórios** *(próxima etapa)* — visão detalhada por insumo (Insumo · Qtd · Vl. unit. · Total +
   subtotal do prato), estilo Conferência de NF, reaproveitando `refeicoes_dia_detalhe`.
 
