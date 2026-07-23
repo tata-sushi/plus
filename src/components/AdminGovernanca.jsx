@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { Loader2, Search, ChevronRight, ChevronDown, Check, ShieldCheck, X, Layers } from 'lucide-react'
 import { Section } from './Section.jsx'
 import { Card } from './Card.jsx'
@@ -101,7 +102,7 @@ function EditorPessoa({ pessoa, catalogo, catalogoAbas, onFechar, onSalvo }) {
     if (!r1.error && !r2.error) onSalvo(ids.size)
   }
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-50 flex flex-col bg-bg">
       {/* Cabeçalho */}
       <div className="safe-top shrink-0 border-b border-line bg-surface">
@@ -288,7 +289,8 @@ function EditorPessoa({ pessoa, catalogo, catalogoAbas, onFechar, onSalvo }) {
           </button>
         </div>
       )}
-    </div>
+    </div>,
+    document.body,
   )
 }
 
