@@ -128,10 +128,15 @@ Ciclo fechado entre a governança e o app, sobre o schema `tata_refeicoes` (só 
     catálogo) num **pedido** (`departamento='Cozinha'`, `id_display` `#THItaim…` / `#THPinh…`),
     idempotente por `data_entrega`+`unidade`.
   - **Volta** — `refeicoes_sync_compras` (chamado no load do Processamento **e** por cron a cada 5 min)
-    **lê** o pedido no Compras e espelha o andamento de volta pro cardápio, sempre **para a frente**:
-    `solicitado→aguardando_compra`, `comprado→aguardando_recebimento`, `recebido→aguardando_preparo`.
-    O vínculo é `data_entrega=data_refeicao` + `unidade` + `departamento='Cozinha'`; o estágio do
-    pedido é o do **item menos avançado**. Nunca escreve no schema do Compras (só leitura).
+    **lê** o pedido no Compras e traz duas coisas de volta pro cardápio:
+    - **Status**, sempre **para a frente**: `solicitado→aguardando_compra`,
+      `comprado→aguardando_recebimento`, `recebido→aguardando_preparo`. O estágio do pedido é o do
+      **item menos avançado**.
+    - **Custo real** — grava em `cardapio_itens.custo` o **último valor** do pedido
+      (`valor_recebimento` → senão `valor_compra` → senão `valor_inicial`), rateado por insumo
+      (`insumo.qtd / qtd_solicitada`). A soma dos itens bate exatamente com o total do pedido.
+    O vínculo é `data_entrega=data_refeicao` + `unidade` + `departamento='Cozinha'` (produto ↔ catálogo
+    por nome). Nunca escreve no schema do Compras (só leitura).
   - **Data** — `refeicoes_promover_avaliacao` (cron) move `aguardando_preparo→aguardando_avaliacao` no
     dia da refeição.
 - **Processamento** — board dos dias aprovados (cross-week). No estágio *avaliação*: **notas em 3
