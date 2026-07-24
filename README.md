@@ -222,9 +222,10 @@ O carrossel da Início é montado pelo RPC `destaques()`, que junta duas origens
   aparecem "de vez em quando", sem competir com aniversário/publicações (que sempre aparecem).
   O limite fica no `limit` do CTE `auto_pick` da `destaques()`.
 
-- **Card de front (modo escuro)** — 🌙 recomenda o modo escuro **só para quem está no claro**. É
-  injetado **no front** (`Home.jsx`), porque o tema vive no aparelho (o backend não sabe); aparece
-  de vez em quando (sorteio) e, **ao tocar, já ativa o escuro** (some em seguida). Não usa a base.
+- 🌙 **Modo escuro** — recomenda o modo escuro **só para quem está no claro**. O liga/desliga, texto
+  e imagem ficam no `destaque_config` (aparece no painel de **Automáticos**, como os outros), mas o
+  tema vive no aparelho: a `destaques()` sempre devolve o card quando ligado e o **front** (`Home.jsx`)
+  o filtra — mostra só no claro e de vez em quando (sorteio). Leva ao **Painel de Ajustes**.
 
 Tudo é gerido em **Administração → Anúncios**: a lista dos manuais + a seção **Automáticos**
 (toggles, editores de mensagem e a tela de imagens/mensagens do aniversário embutida).
