@@ -9,7 +9,7 @@ export const TIPO_INFO = {
   guarnicao: { label: 'Acompanhamento', icon: 'Salad' },
   salada: { label: 'Salada', icon: 'Salad' },
   sobremesa: { label: 'Sobremesa', icon: 'IceCreamBowl' },
-  bebida: { label: 'Bebida', icon: 'Wine' },
+  bebida: { label: 'Refresco', icon: 'Wine' },
   outro: { label: 'Outro', icon: 'Utensils' },
 }
 export const pad = (n) => String(n).padStart(2, '0')
