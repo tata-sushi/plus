@@ -78,7 +78,7 @@ export function DiaMenu({ dia, hoje }) {
           <div className="font-display text-base font-bold">{DIAS[(parseISO(dia.data).getDay() + 6) % 7]}</div>
           <div className="text-[11px] text-muted">{fmtDia(parseISO(dia.data))}</div>
         </div>
-        {hoje && <span className="pill bg-accent-soft text-[10px] text-accent">Hoje</span>}
+        {hoje && <span className="pill bg-accent-soft text-[10px] text-carbon dark:text-accent">Hoje</span>}
       </div>
       {!temMenu ? (
         <div className="mt-3 text-sm text-muted">Cardápio a definir.</div>
@@ -91,7 +91,7 @@ export function DiaMenu({ dia, hoje }) {
                 const Icon = resolveIcon(g.icon)
                 return (
                   <div key={g.label} className={cn('hstack gap-3', idx > 0 && 'border-t border-line pt-3')}>
-                    <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-accent-soft text-accent">
+                    <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-accent-soft text-carbon dark:text-accent">
                       <Icon size={16} />
                     </span>
                     <div className="min-w-0">
