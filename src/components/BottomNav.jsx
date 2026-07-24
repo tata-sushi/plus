@@ -4,7 +4,9 @@ import { cn } from '../lib/cn'
 import { tapHaptic } from '../lib/haptics.js'
 import { useAuth } from '../lib/AuthContext.jsx'
 
-export function BottomNav() {
+// flow: renderiza a barra em fluxo (dentro de uma coluna flex) em vez de fixa —
+// usado na Governança, onde o iframe ocupa o espaço acima da barra.
+export function BottomNav({ flow = false }) {
   const { usuario } = useAuth()
   // slot 4 reveza: quem tem acesso ao portal de Governança vê Governança;
   // quem não tem vê Ouvidoria no lugar (a Ouvidoria fica no menu "Mais" p/ quem vê Governança).
@@ -20,7 +22,10 @@ export function BottomNav() {
   ]
   return (
     <nav
-      className="safe-bottom fixed inset-x-0 bottom-0 z-30 border-t border-line bg-bg/95 backdrop-blur"
+      className={cn(
+        'safe-bottom z-30 border-t border-line bg-bg/95 backdrop-blur',
+        flow ? 'shrink-0' : 'fixed inset-x-0 bottom-0',
+      )}
       aria-label="Navegação principal"
     >
       <ul className="grid grid-cols-5">
