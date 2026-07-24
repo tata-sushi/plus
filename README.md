@@ -344,6 +344,12 @@ combinados para a reta final, antes/junto do piloto:
 - [x] **Acesso por aba** — bloqueio de abas individuais por pessoa, em 15 páginas de governança
 - [x] **Perfis granulares** — `perfil` da `profiles` carregado com os níveis da planilha de RH
 - [ ] **Valores por perfil** — esconder salário/custo por perfil (seguro via RLS nas bases novas)
+- [ ] **Painel Kanban (mini-Trello)** — quadros com colunas e cards **arrastáveis** (`@dnd-kit`, toque),
+      **responsáveis** (avatar), **comentários** e **anexos** (bucket privado); criar quadro + **selecionar
+      membros**. Decidido: **criar quadro = líder/admin** (colaborador participa quando adicionado);
+      **entrada = aba própria na barra**. Backend `tata_plus` (`quadros → quadro_colunas → quadro_cards` +
+      `quadro_membros`/`card_responsaveis`/`card_comentarios`/`card_anexos`), acesso amarrado à
+      participação. Em fases: (1) kanban base, (2) card rico, (3) anexos, (4) tempo real/polimento.
 - [ ] Afinar cores do tema claro
 
 Roadmap e pendências detalhadas em `docs/CONTEXTO.md` (§11, §14).
