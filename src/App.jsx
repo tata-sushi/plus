@@ -13,6 +13,7 @@ import { AdminRecompensas } from './routes/AdminRecompensas.jsx'
 import { Manutencao } from './routes/Manutencao.jsx'
 import { Ranking } from './routes/Ranking.jsx'
 import { Cardapio } from './routes/Cardapio.jsx'
+import { Avaliar } from './routes/Avaliar.jsx'
 import { Comunidade } from './routes/Comunidade.jsx'
 import { Ouvidoria } from './routes/Ouvidoria.jsx'
 import { Governanca } from './routes/Governanca.jsx'
@@ -55,6 +56,7 @@ export function App() {
         <Route path="/ranking" element={<Ranking />} />
         <Route path="/ouvidoria" element={<Ouvidoria />} />
         <Route path="/cardapio" element={<Cardapio />} />
+        <Route path="/avaliar" element={<Avaliar />} />
         <Route path="/comunidade" element={<Comunidade />} />
         <Route path="/governanca" element={<Governanca />} />
         <Route path="/organograma" element={<Organograma />} />

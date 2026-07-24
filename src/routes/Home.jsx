@@ -169,7 +169,7 @@ export function Home() {
             </div>
             {menuHoje && menuHoje.grupos.length > 0 && (
               <Link
-                to="/cardapio#avaliacao"
+                to="/avaliar"
                 aria-label="Avaliar o cardápio de hoje"
                 className="grid shrink-0 place-items-center border-l border-line pl-3 pr-4 tap"
               >
