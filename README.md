@@ -212,6 +212,18 @@ O carrossel da Início é montado pelo RPC `destaques()`, que junta duas origens
   - 🎯 **Desafio de hoje / pendentes**, 🏆 **Ranking**, ⭐ **Saldo** — liga/desliga e **mensagem
     editável** (título + texto com variáveis `{titulo}` `{pontos}` `{qtd}` `{posicao}` `{saldo}`,
     trocadas pelos valores reais) em `destaque_config`.
+  - 🔒 **Trocar senha** — para quem **ainda está na senha padrão** (`profiles.senha_alterada=false`;
+    a flag liga quando a pessoa troca pelo app, via `marcar_senha_alterada()`). Leva ao Painel de
+    Ajustes. Liga/desliga + texto em `destaque_config` (`chave='senha'`).
+  - 🥗 **Cadastrar restrições** — para quem **não tem nenhuma restrição** cadastrada
+    (`tata_refeicoes.colaborador_restricoes`). Leva a **Meu perfil**. `destaque_config` (`chave='restricoes'`).
+
+  Os automáticos elegíveis entram num **sorteio de 1 por usuário/dia** (estável no dia) — por isso
+  aparecem "de vez em quando", sem competir com aniversário/publicações (que sempre aparecem).
+
+- **Card de front (modo escuro)** — 🌙 recomenda o modo escuro **só para quem está no claro**. É
+  injetado **no front** (`Home.jsx`), porque o tema vive no aparelho (o backend não sabe); aparece
+  de vez em quando (sorteio) e, **ao tocar, já ativa o escuro** (some em seguida). Não usa a base.
 
 Tudo é gerido em **Administração → Anúncios**: a lista dos manuais + a seção **Automáticos**
 (toggles, editores de mensagem e a tela de imagens/mensagens do aniversário embutida).

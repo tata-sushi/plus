@@ -21,6 +21,8 @@ import {
   Target,
   Trophy,
   Star,
+  ShieldCheck,
+  Salad,
 } from 'lucide-react'
 import { Section } from './Section.jsx'
 import { Card } from './Card.jsx'
@@ -37,15 +39,19 @@ const AUTO = [
   { chave: 'desafios_pendentes', label: 'Desafios pendentes', Icon: Target, vars: '{qtd} = quantidade de desafios' },
   { chave: 'ranking', label: 'Ranking', Icon: Trophy, vars: '{posicao} = posição no ranking' },
   { chave: 'saldo', label: 'Saldo de pontos', Icon: Star, vars: '{saldo} = pontos na carteira' },
+  { chave: 'senha', label: 'Trocar senha', Icon: ShieldCheck, vars: 'aparece p/ quem está na senha padrão' },
+  { chave: 'restricoes', label: 'Cadastrar restrições', Icon: Salad, vars: 'aparece p/ quem não cadastrou restrição' },
 ]
 
-// Linha de um destaque automático: liga/desliga + editor de título/texto.
-function AutoLinha({ meta, estado, onToggle, onSalvar }) {
+// Linha de um destaque automático: liga/desliga + editor de título/texto/imagem.
+function AutoLinha({ meta, estado, onToggle, onSalvar, onImagem, onRemoverImg }) {
   const { Icon } = meta
   const on = estado?.ativo ?? true
   const [aberto, setAberto] = useState(false)
   const [titulo, setTitulo] = useState(estado?.titulo || '')
   const [texto, setTexto] = useState(estado?.texto || '')
+  const [imgSalvando, setImgSalvando] = useState(false)
+  const fileRef = useRef(null)
   // Sincroniza quando o valor do servidor muda (carga inicial / após salvar).
   useEffect(() => {
     setTitulo(estado?.titulo || '')
@@ -100,6 +106,47 @@ function AutoLinha({ meta, estado, onToggle, onSalvar }) {
             placeholder="Texto"
             className="w-full resize-none rounded-card border border-line bg-surface px-3 py-2 text-sm outline-none placeholder:text-muted-2"
           />
+          {/* Imagem do card (opcional) — aparece por cima do fundo do destaque */}
+          <div className="hstack gap-2">
+            {estado?.imagem_url ? (
+              <div className="relative shrink-0">
+                <img src={estado.imagem_url} alt="" className="h-14 w-14 rounded-card object-cover" />
+                <button
+                  type="button"
+                  onClick={() => onRemoverImg(meta.chave)}
+                  aria-label="Remover imagem"
+                  className="absolute -right-1.5 -top-1.5 grid h-5 w-5 place-items-center rounded-full bg-danger text-white"
+                >
+                  <X size={11} />
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => fileRef.current?.click()}
+                disabled={imgSalvando}
+                className="hstack shrink-0 gap-1.5 rounded-card border border-dashed border-line px-3 py-2 text-xs font-semibold text-muted tap disabled:opacity-50"
+              >
+                {imgSalvando ? <Loader2 size={14} className="animate-spin" /> : <ImageIcon size={14} />}
+                Imagem
+              </button>
+            )}
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={async (e) => {
+                const f = e.target.files?.[0]
+                e.target.value = ''
+                if (!f) return
+                setImgSalvando(true)
+                await onImagem(meta.chave, f)
+                setImgSalvando(false)
+              }}
+            />
+            <span className="text-[10px] leading-tight text-muted-2">Imagem opcional do card.</span>
+          </div>
           <div className="hstack justify-between gap-2">
             <span className="text-[10px] leading-tight text-muted-2">Variáveis: {meta.vars}</span>
             {mudou && titulo.trim() && (
@@ -193,6 +240,36 @@ export function AdminPublicacoes() {
     const c = texto.trim()
     setAuto((prev) => prev.map((a) => (a.chave === chave ? { ...a, titulo: t, texto: c } : a)))
     await supabase.rpc('admin_destaque_msg_salvar', { p_chave: chave, p_titulo: t, p_texto: c })
+  }
+
+  function ligaAuto(chave, patch) {
+    setAuto((prev) =>
+      prev.some((a) => a.chave === chave)
+        ? prev.map((a) => (a.chave === chave ? { ...a, ...patch } : a))
+        : [...prev, { chave, ...patch }],
+    )
+  }
+
+  async function salvarImgAuto(chave, file) {
+    if (!file || !matricula) return
+    if (!file.type.startsWith('image/')) return setErro('Selecione uma imagem.')
+    if (file.size > TAM_MAX) return setErro('Imagem muito grande (máx. 15 MB).')
+    setErro('')
+    const ext = (file.name.split('.').pop() || 'jpg').toLowerCase()
+    const caminho = `${matricula}/destaque-${chave}-${crypto.randomUUID()}.${ext}`
+    const { error: upErr } = await supabase.storage
+      .from('comunicados')
+      .upload(caminho, file, { cacheControl: '3600', contentType: file.type })
+    if (upErr) return setErro('Não foi possível enviar a imagem.')
+    const url = supabase.storage.from('comunicados').getPublicUrl(caminho).data.publicUrl
+    const { error } = await supabase.rpc('admin_destaque_img_salvar', { p_chave: chave, p_url: url })
+    if (!error) ligaAuto(chave, { imagem_url: url })
+  }
+
+  async function removerImgAuto(chave) {
+    tapHaptic()
+    ligaAuto(chave, { imagem_url: null })
+    await supabase.rpc('admin_destaque_img_salvar', { p_chave: chave, p_url: null })
   }
 
   function alternarLista(setter, valor) {
@@ -380,6 +457,8 @@ export function AdminPublicacoes() {
               estado={auto.find((a) => a.chave === meta.chave)}
               onToggle={alternarAuto}
               onSalvar={salvarMsgAuto}
+              onImagem={salvarImgAuto}
+              onRemoverImg={removerImgAuto}
             />
           ))}
         </div>
