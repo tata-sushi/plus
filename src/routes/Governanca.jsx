@@ -8,7 +8,7 @@ const HOME = 'https://lideres.tatasushi.tech/compliance/'
 
 export function Governanca() {
   return (
-    <div className="flex h-[100dvh] flex-col bg-white">
+    <div className="flex h-full flex-col bg-white">
       <div className="safe-top shrink-0 bg-bg" />
       <GovFrame
         src={HOME}
