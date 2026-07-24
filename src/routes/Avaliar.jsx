@@ -86,7 +86,7 @@ export function Avaliar() {
       <Header />
       <Voltar />
 
-      <Section className="mt-4" title="Avaliar o cardápio de hoje">
+      <Section className="mt-4">
         {!temMenu ? (
           <Card className="reveal">
             <div className="text-sm text-muted">Sem cardápio definido para hoje.</div>
@@ -102,19 +102,22 @@ export function Avaliar() {
               </div>
             )}
 
-            <div className="mt-4 border-t border-line pt-3">
-              <div className="text-[11px] uppercase tracking-wide text-muted">Sua avaliação</div>
-              <div className="mt-2">
-                <Estrelas nota={nota} onNota={setNota} readOnly={enviado} />
+            <div className="mt-4 border-t border-line pt-4">
+              <div className="text-center">
+                <div className="font-display text-base font-bold">O que achou da refeição de hoje?</div>
+                <div className="mt-1 text-xs text-muted">Avalie e deixe a sua sugestão</div>
+                <div className="mt-3 flex justify-center">
+                  <Estrelas nota={nota} onNota={setNota} readOnly={enviado} />
+                </div>
               </div>
               {enviado ? (
-                coment ? <div className="mt-2 text-sm text-muted">“{coment}”</div> : null
+                coment ? <div className="mt-3 text-center text-sm text-muted">“{coment}”</div> : null
               ) : (
                 <>
                   <input
                     value={coment}
                     onChange={(e) => setComent(e.target.value)}
-                    placeholder="Comentário (opcional)"
+                    placeholder="Sua sugestão (opcional)"
                     className="mt-3 w-full rounded-card border border-line bg-surface px-3 py-2 text-sm outline-none placeholder:text-muted-2"
                   />
                   <button
