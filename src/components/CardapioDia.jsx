@@ -25,13 +25,29 @@ export function parseISO(s) {
   return new Date(+p[0], +p[1] - 1, +p[2])
 }
 export const fmtDia = (d) => d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })
+const ehArrozFeijao = (g) => /arroz\s+e\s+feij/i.test(g)
+
 export function grupos(itens) {
   const ordem = ['principal', 'guarnicao', 'salada', 'sobremesa', 'bebida', 'outro']
   const by = {}
   ;(itens || []).forEach((it) => {
     ;(by[it.tipo] = by[it.tipo] || []).push(it.item)
   })
-  return ordem.filter((t) => by[t]).map((t) => ({ ...(TIPO_INFO[t] || TIPO_INFO.outro), valor: by[t].join(', ') }))
+  const out = []
+  ordem.forEach((t) => {
+    if (!by[t]) return
+    if (t === 'guarnicao') {
+      // "Arroz e Feijão" (guarnição fixa) vira uma linha própria "Guarnição";
+      // as demais ficam em "Acompanhamento".
+      const outras = by[t].filter((g) => !ehArrozFeijao(g))
+      const fixa = by[t].filter(ehArrozFeijao)
+      if (outras.length) out.push({ ...TIPO_INFO.guarnicao, valor: outras.join(', ') })
+      if (fixa.length) out.push({ label: 'Guarnição', icon: 'Utensils', valor: fixa.join(', ') })
+    } else {
+      out.push({ ...(TIPO_INFO[t] || TIPO_INFO.outro), valor: by[t].join(', ') })
+    }
+  })
+  return out
 }
 
 // Nome composto do prato: "Principal com guarnição e salada de salada".
