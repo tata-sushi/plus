@@ -218,8 +218,9 @@ O carrossel da Início é montado pelo RPC `destaques()`, que junta duas origens
   - 🥗 **Cadastrar restrições** — para quem **não tem nenhuma restrição** cadastrada
     (`tata_refeicoes.colaborador_restricoes`). Leva a **Meu perfil**. `destaque_config` (`chave='restricoes'`).
 
-  Os automáticos elegíveis entram num **sorteio de 1 por usuário/dia** (estável no dia) — por isso
+  Os automáticos elegíveis entram num **sorteio de até 2 por usuário/dia** (estável no dia) — por isso
   aparecem "de vez em quando", sem competir com aniversário/publicações (que sempre aparecem).
+  O limite fica no `limit` do CTE `auto_pick` da `destaques()`.
 
 - **Card de front (modo escuro)** — 🌙 recomenda o modo escuro **só para quem está no claro**. É
   injetado **no front** (`Home.jsx`), porque o tema vive no aparelho (o backend não sabe); aparece
