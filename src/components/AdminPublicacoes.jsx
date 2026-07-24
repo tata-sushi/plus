@@ -12,6 +12,7 @@ import {
   Bell,
   Eye,
   Megaphone,
+  ImagePlus,
   Archive,
   ArchiveRestore,
   ArrowLeft,
@@ -106,18 +107,23 @@ function AutoLinha({ meta, estado, onToggle, onSalvar, onImagem, onRemoverImg })
             placeholder="Texto"
             className="w-full resize-none rounded-card border border-line bg-surface px-3 py-2 text-sm outline-none placeholder:text-muted-2"
           />
-          {/* Imagem do card (opcional) — aparece por cima do fundo do destaque */}
-          <div className="hstack gap-2">
+          {/* Imagem do card (opcional) — preview grande */}
+          <div>
+            <div className="mb-1.5 text-[10px] leading-tight text-muted-2">Imagem opcional do card.</div>
             {estado?.imagem_url ? (
-              <div className="relative shrink-0">
-                <img src={estado.imagem_url} alt="" className="h-14 w-14 rounded-card object-cover" />
+              <div className="relative w-32">
+                <img
+                  src={estado.imagem_url}
+                  alt=""
+                  className="aspect-square w-32 rounded-card border border-line object-cover"
+                />
                 <button
                   type="button"
                   onClick={() => onRemoverImg(meta.chave)}
                   aria-label="Remover imagem"
-                  className="absolute -right-1.5 -top-1.5 grid h-5 w-5 place-items-center rounded-full bg-danger text-white"
+                  className="absolute -right-2 -top-2 grid h-6 w-6 place-items-center rounded-full bg-danger text-white tap"
                 >
-                  <X size={11} />
+                  <X size={12} />
                 </button>
               </div>
             ) : (
@@ -125,10 +131,10 @@ function AutoLinha({ meta, estado, onToggle, onSalvar, onImagem, onRemoverImg })
                 type="button"
                 onClick={() => fileRef.current?.click()}
                 disabled={imgSalvando}
-                className="hstack shrink-0 gap-1.5 rounded-card border border-dashed border-line px-3 py-2 text-xs font-semibold text-muted tap disabled:opacity-50"
+                aria-label="Adicionar imagem"
+                className="grid aspect-square w-32 place-items-center rounded-card border border-dashed border-line text-muted tap disabled:opacity-50"
               >
-                {imgSalvando ? <Loader2 size={14} className="animate-spin" /> : <ImageIcon size={14} />}
-                Imagem
+                {imgSalvando ? <Loader2 size={22} className="animate-spin" /> : <ImagePlus size={24} />}
               </button>
             )}
             <input
@@ -145,7 +151,6 @@ function AutoLinha({ meta, estado, onToggle, onSalvar, onImagem, onRemoverImg })
                 setImgSalvando(false)
               }}
             />
-            <span className="text-[10px] leading-tight text-muted-2">Imagem opcional do card.</span>
           </div>
           <div className="hstack justify-between gap-2">
             <span className="text-[10px] leading-tight text-muted-2">Variáveis: {meta.vars}</span>
