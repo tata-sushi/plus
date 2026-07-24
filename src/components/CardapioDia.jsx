@@ -34,8 +34,26 @@ export function grupos(itens) {
   return ordem.filter((t) => by[t]).map((t) => ({ ...(TIPO_INFO[t] || TIPO_INFO.outro), valor: by[t].join(', ') }))
 }
 
+// Nome composto do prato: "Principal com guarnição e salada de salada".
+// A guarnição fixa "Arroz e Feijão" fica de fora. Cai no resumo se não der.
+export function nomeComposto(dia) {
+  const by = {}
+  ;(dia.itens || []).forEach((it) => {
+    ;(by[it.tipo] = by[it.tipo] || []).push(it.item)
+  })
+  const principal = (by.principal || [])[0]
+  if (!principal) return dia.resumo || ''
+  const guarn = (by.guarnicao || []).filter((g) => !/arroz\s+e\s+feij/i.test(g))
+  const salada = (by.salada || [])[0]
+  let s = principal
+  if (guarn.length) s += ' com ' + guarn.map((g) => g.toLowerCase()).join(' e ')
+  if (salada) s += ' e salada de ' + salada.toLowerCase()
+  return s
+}
+
 export function DiaMenu({ dia, hoje }) {
   const gs = grupos(dia.itens)
+  const nome = nomeComposto(dia)
   const temMenu = !!(dia.resumo || gs.length)
   return (
     <>
@@ -50,7 +68,7 @@ export function DiaMenu({ dia, hoje }) {
         <div className="mt-3 text-sm text-muted">Cardápio a definir.</div>
       ) : (
         <>
-          {dia.resumo && <div className="mt-2 text-sm font-semibold">{dia.resumo}</div>}
+          {nome && <div className="mt-2 text-sm font-semibold">{nome}</div>}
           {gs.length > 0 && (
             <div className="mt-3 flex flex-col gap-3">
               {gs.map((g, idx) => {
