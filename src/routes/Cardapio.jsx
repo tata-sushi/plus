@@ -5,6 +5,7 @@ import { Section } from '../components/Section.jsx'
 import { Card } from '../components/Card.jsx'
 import { supabase } from '../lib/supabase.js'
 import { DiaMenu, mondayISO, isoLocal } from '../components/CardapioDia.jsx'
+import { AvaliacaoDia } from '../components/AvaliacaoDia.jsx'
 
 export function Cardapio() {
   const [semana, setSemana] = useState(undefined) // undefined = carregando
@@ -43,11 +44,15 @@ export function Cardapio() {
           </Card>
         ) : (
           <div className="flex flex-col gap-3">
-            {proximos.map((d, i) => (
-              <Card key={d.data} className={`reveal reveal-${Math.min(i + 1, 4)} p-4`}>
-                <DiaMenu dia={d} hoje={d.data === hj} />
-              </Card>
-            ))}
+            {proximos.map((d, i) => {
+              const eHoje = d.data === hj
+              return (
+                <Card key={d.data} className={`reveal reveal-${Math.min(i + 1, 4)} p-4`}>
+                  <DiaMenu dia={d} hoje={eHoje} />
+                  {eHoje && <AvaliacaoDia dia={d} />}
+                </Card>
+              )
+            })}
           </div>
         )}
       </Section>
