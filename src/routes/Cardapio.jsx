@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useLocation } from 'react-router-dom'
 import { Star, AlertTriangle } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Voltar } from '../components/Voltar.jsx'
@@ -106,6 +107,7 @@ export function Cardapio() {
   const [enviado, setEnviado] = useState(false)
   const [salvando, setSalvando] = useState(false)
   const [alerta, setAlerta] = useState([]) // restrições do usuário que batem com o cardápio de hoje
+  const location = useLocation()
 
   useEffect(() => {
     let ativo = true
@@ -130,6 +132,14 @@ export function Cardapio() {
       ativo = false
     }
   }, [])
+
+  // Vindo pelo botão de estrela da Início (/cardapio#avaliacao): rola até a avaliação.
+  useEffect(() => {
+    if (hoje && location.hash === '#avaliacao') {
+      const el = document.getElementById('avaliacao')
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }
+  }, [hoje, location.hash])
 
   async function salvar() {
     if (!hoje || nota < 1 || salvando) return
@@ -174,7 +184,7 @@ export function Cardapio() {
               </div>
             )}
 
-            <div className="mt-4 border-t border-line pt-3">
+            <div id="avaliacao" className="mt-4 scroll-mt-24 border-t border-line pt-3">
               <div className="text-[11px] uppercase tracking-wide text-muted">Sua avaliação</div>
               <div className="mt-2">
                 <Estrelas nota={nota} onNota={setNota} readOnly={enviado} />
