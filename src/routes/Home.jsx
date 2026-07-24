@@ -14,7 +14,7 @@ import { useAuth } from '../lib/AuthContext.jsx'
 import { useDesktop } from '../lib/useDesktop.js'
 import { useDesktopCanvas } from '../lib/desktopCanvas.js'
 import { supabase } from '../lib/supabase.js'
-import { getTheme, applyTheme } from '../lib/theme.js'
+import { getTheme } from '../lib/theme.js'
 const TIPO_ICON = { principal: 'UtensilsCrossed', guarnicao: 'Salad', salada: 'Salad', sobremesa: 'IceCreamBowl', bebida: 'Wine', outro: 'Utensils' }
 function gruposDia(itens) {
   const ordem = ['principal', 'guarnicao', 'salada', 'sobremesa', 'bebida', 'outro']
@@ -112,9 +112,9 @@ export function Home() {
   }, [])
 
   // Card "modo escuro" — injetado no front (o tema vive no aparelho, o backend
-  // não sabe). Só pra quem está no claro, aparece de vez em quando (sorteio) e,
-  // ao tocar, já ativa o escuro — aí some, porque o tema deixou de ser claro.
-  const [tema, setTema] = useState(getTheme)
+  // não sabe). Só pra quem está no claro, aparece de vez em quando (sorteio) e
+  // leva ao Painel de Ajustes, onde a pessoa ativa o escuro.
+  const [tema] = useState(getTheme)
   const [sorteouEscuro] = useState(() => Math.random() < 0.5)
   const cardsDestaque = useMemo(() => {
     if (tema !== 'light' || !sorteouEscuro) return destaques
@@ -125,9 +125,9 @@ export function Home() {
         categoria: 'tema',
         template: 'tema',
         titulo: 'Experimente o modo escuro',
-        texto: 'O Tatá Plus fica ainda melhor no escuro. Toque para ativar.',
-        cta_label: 'Ativar',
-        onTap: () => setTema(applyTheme('dark')),
+        texto: 'O Tatá Plus fica ainda melhor no escuro. Ative no Painel de Ajustes.',
+        cta_label: 'Ajustes',
+        cta_to: '/manutencao',
       },
     ]
   }, [destaques, tema, sorteouEscuro])
