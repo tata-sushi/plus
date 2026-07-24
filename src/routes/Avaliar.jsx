@@ -1,24 +1,30 @@
 import { useEffect, useState } from 'react'
-import { Star } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Voltar } from '../components/Voltar.jsx'
 import { Section } from '../components/Section.jsx'
 import { Card } from '../components/Card.jsx'
-import { IntroDesafio } from '../components/IntroDesafio.jsx'
 import { supabase } from '../lib/supabase.js'
 import { DiaMenu, mondayISO, isoLocal } from '../components/CardapioDia.jsx'
 import { AvaliacaoDia } from '../components/AvaliacaoDia.jsx'
 
+// Capa compacta (≈ metade da altura), sem ícone, texto branco num padrão só,
+// mantendo o brilho verde da marca no fundo.
 function Capa() {
   return (
     <div className="px-5 pt-2">
-      <IntroDesafio
-        titulo="Sua opinião importa"
-        frase="Agradeça à nossa equipe deixando sua avaliação"
-        variante={0}
-        Icone={Star}
-        fraseEscuraNoClaro
-      />
+      <div className="relative overflow-hidden rounded-2xl border border-line bg-surface px-6 py-6 text-center">
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-0"
+          style={{
+            background:
+              'radial-gradient(120% 150% at 50% -10%, rgb(var(--accent) / 0.18) 0%, rgb(var(--accent) / 0.05) 45%, transparent 75%)',
+          }}
+        />
+        <p className="relative mx-auto max-w-[20rem] text-base font-semibold leading-snug text-text">
+          Agradeça à nossa equipe deixando sua avaliação
+        </p>
+      </div>
     </div>
   )
 }
