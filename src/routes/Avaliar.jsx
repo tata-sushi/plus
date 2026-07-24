@@ -1,11 +1,27 @@
 import { useEffect, useState } from 'react'
+import { Star } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Voltar } from '../components/Voltar.jsx'
 import { Section } from '../components/Section.jsx'
 import { Card } from '../components/Card.jsx'
+import { IntroDesafio } from '../components/IntroDesafio.jsx'
 import { supabase } from '../lib/supabase.js'
 import { DiaMenu, mondayISO, isoLocal } from '../components/CardapioDia.jsx'
 import { AvaliacaoDia } from '../components/AvaliacaoDia.jsx'
+
+function Capa() {
+  return (
+    <div className="px-5 pt-2">
+      <IntroDesafio
+        titulo="Sua opinião importa"
+        frase="Agradeça à nossa equipe deixando sua avaliação"
+        variante={0}
+        Icone={Star}
+        fraseEscuraNoClaro
+      />
+    </div>
+  )
+}
 
 export function Avaliar() {
   const [hoje, setHoje] = useState(undefined) // undefined = carregando · null = sem dia
@@ -27,6 +43,7 @@ export function Avaliar() {
       <>
         <Header />
         <Voltar />
+        <Capa />
       </>
     )
 
@@ -36,6 +53,7 @@ export function Avaliar() {
     <>
       <Header />
       <Voltar />
+      <Capa />
 
       <Section className="mt-4">
         {!temMenu ? (

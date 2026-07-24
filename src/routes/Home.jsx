@@ -171,7 +171,7 @@ export function Home() {
               <Link
                 to="/avaliar"
                 aria-label="Avaliar o cardápio de hoje"
-                className="grid shrink-0 place-items-center border-l border-line pl-3 pr-4 tap"
+                className="grid shrink-0 place-items-center border-l border-line pl-3 pr-3 tap"
               >
                 <span className="grid h-8 w-8 place-items-center rounded-full border border-accent/40 bg-accent-soft text-accent">
                   <Star size={16} />
