@@ -111,25 +111,14 @@ export function Home() {
     }
   }, [])
 
-  // Card "modo escuro" — injetado no front (o tema vive no aparelho, o backend
-  // não sabe). Só pra quem está no claro, aparece de vez em quando (sorteio) e
-  // leva ao Painel de Ajustes, onde a pessoa ativa o escuro.
+  // Card "modo escuro" — vem da destaques() (texto/imagem/liga-desliga geridos no
+  // admin), mas o tema vive no aparelho: o front só mostra pra quem está no claro
+  // e de vez em quando (sorteio). Nos demais casos, filtra o card fora.
   const [tema] = useState(getTheme)
   const [sorteouEscuro] = useState(() => Math.random() < 0.5)
   const cardsDestaque = useMemo(() => {
-    if (tema !== 'light' || !sorteouEscuro) return destaques
-    return [
-      ...destaques,
-      {
-        chave: 'modo_escuro',
-        categoria: 'tema',
-        template: 'tema',
-        titulo: 'Experimente o modo escuro',
-        texto: 'O Tatá Plus fica ainda melhor no escuro. Ative no Painel de Ajustes.',
-        cta_label: 'Ajustes',
-        cta_to: '/manutencao',
-      },
-    ]
+    const mostrarEscuro = tema === 'light' && sorteouEscuro
+    return destaques.filter((d) => d.chave !== 'modo_escuro' || mostrarEscuro)
   }, [destaques, tema, sorteouEscuro])
 
   return (

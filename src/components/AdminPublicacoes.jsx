@@ -24,6 +24,7 @@ import {
   Star,
   ShieldCheck,
   Salad,
+  Moon,
 } from 'lucide-react'
 import { Section } from './Section.jsx'
 import { Card } from './Card.jsx'
@@ -42,6 +43,7 @@ const AUTO = [
   { chave: 'saldo', label: 'Saldo de pontos', Icon: Star, vars: '{saldo} = pontos na carteira' },
   { chave: 'senha', label: 'Trocar senha', Icon: ShieldCheck, vars: 'aparece p/ quem está na senha padrão' },
   { chave: 'restricoes', label: 'Cadastrar restrições', Icon: Salad, vars: 'aparece p/ quem não cadastrou restrição' },
+  { chave: 'modo_escuro', label: 'Modo escuro', Icon: Moon, vars: 'aparece p/ quem está no modo claro' },
 ]
 
 // Linha de um destaque automático: liga/desliga + editor de título/texto/imagem.
