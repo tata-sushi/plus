@@ -56,6 +56,8 @@ src/
 │   ├── LeituraProva.jsx / Avaliacao.jsx / AssinaturaPad.jsx
 │   ├── VideosYouTube.jsx / VideoPlayer.jsx / PdfViewer.jsx / PhotoCropper.jsx
 │   ├── AtalhosGovernanca.jsx / RecompensaFoto.jsx
+│   ├── CardapioDia.jsx      # card de um dia (helpers + nome composto + grupos + selo de destaque)
+│   ├── AvaliacaoDia.jsx     # bloco de avaliação (estrelas centralizadas + sugestão + alerta de restrição)
 │   ├── DestaqueBanner.jsx    # card do carrossel (publicação ou destaque; aniversário com texto centralizado)
 │   ├── GovFrame.jsx          # iframe de Governança: entrega o token da sessão + loader (carregamento invisível)
 │   └── AdminPublicacoes.jsx / AdminAniversarios.jsx / AdminConquistas.jsx  # CRUD do painel
@@ -72,7 +74,8 @@ src/
 │   ├── Ouvidoria.jsx        # formulário nativo (replica ouvidoria.tatasushi.tech)
 │   ├── Manutencao.jsx       # Painel de Ajustes (notificações · contraste · senha)
 │   ├── GerenciarAtalhos.jsx # Atalhos de Governança (fixar páginas de KPI)
-│   ├── Cardapio.jsx         # cardápio da semana (placeholder; a religar no schema tata_refeicoes)
+│   ├── Cardapio.jsx         # Cardápio da semana (próximos dias) — usa DiaMenu; hoje ganha avaliação
+│   ├── Avaliar.jsx          # Avaliação do dia (/avaliar; atalho da estrela na Início) — capa + DiaMenu + avaliação
 │   ├── QuestionarioDisc.jsx # questionário DISC (tela cheia)
 │   ├── Mais.jsx / Login.jsx
 │   ├── Governanca.jsx       # iframe do portal Líderes (tela cheia)
@@ -154,18 +157,40 @@ Ciclo fechado entre a governança e o app, sobre o schema `tata_refeicoes` (só 
 
 **App** (`plus`):
 
-- **Início** (capa "Menu do dia") e **`/cardapio`** mostram o **cardápio do dia** real.
-- **Avaliação** do dia: **nota 1–5** + comentário (1 por pessoa/dia; **trava após salvar**; carimba a
+- **Início** — capa **"Menu do dia"** (linha com scroll) + **estrela** que é atalho pra `/avaliar`.
+- **`/cardapio` (Cardápio da semana)** — os **próximos dias** (de hoje em diante). Cada dia mostra o
+  **nome composto** do prato ("Principal com guarnição e salada de …"), os grupos (principal ·
+  acompanhamento · **Arroz e Feijão** em linha própria "Guarnição" · salada · sobremesa · **Refresco**)
+  e, no dia de hoje, a **avaliação** embutida. `DiaMenu`/`AvaliacaoDia` são compartilhados com `/avaliar`.
+- **`/avaliar` (Avaliação)** — página do dia com **capa** (estilo treinamento, adaptada ao tema) +
+  cardápio de hoje + **nota 1–5** + sugestão (1 por pessoa/dia; **trava após salvar**; carimba a
   **unidade** → alimenta as notas da governança). Só o dia de hoje é avaliável.
+- **Destaque do dia** — **um** dia da semana ganha um selo automático, calculado na base
+  (`cardapio_app`) e renderizado no card (`DiaMenu`): **⭐ nota** (prato historicamente muito bem
+  avaliado) ou **🔥 saída** (prato que costuma sair muito). Ver **Destaque do cardápio** abaixo.
 - **Alerta pessoal** de restrição quando um item do dia bate com uma restrição do próprio usuário.
 - **Meu perfil → Restrições Alimentares** — grade de ícones (contorno), catálogo
   (`restricoes_alimentares`) + ligação pessoa↔restrição (`colaborador_restricoes`); a substituição
   padrão ("ovo frito") é **global** por pessoa (`colaborador_pref_refeicao`).
 
+**Destaque do cardápio** (automático, na base) — o `cardapio_app` devolve um campo `destaque`
+(nullable) **só no melhor dia visível** (hoje em diante); os demais vêm `null`. A escolha combina
+duas fontes, com **nota tendo prioridade sobre saída**:
+
+- **Nota** — média das avaliações (`cardapio_avaliacoes.voto`) do prato principal, mín. 3 votos:
+  ≥4.7 "ponto alto da semana" · ≥4.5 "extremamente bem avaliado" · ≥4.0 "queridinho da equipe".
+- **Saída** — média histórica do total servido (`almoco+jantar+marmitas_servido`) daquele principal
+  comparada à distribuição dos demais pratos (top ~20% = p80≈73; muito alto = "quase não sobra pro
+  jantar"). O casamento entre o prato agendado e o histórico usa **similaridade de nome** (`pg_trgm`),
+  pra não perder o sinal quando a escrita varia ("Iscas de peixe" ↔ "iscas de peixe com molho de limão").
+
+Enquanto as avaliações do app ainda são poucas, quem costuma disparar é a **saída** (há centenas de
+dias de histórico servido); conforme a galera avalia, o sinal de **nota** aparece sozinho.
+
 Principais RPCs (`tata_plus`): `refeicoes_semana`, `refeicoes_dia_salvar`, `refeicoes_dia_aprovar`,
 `refeicoes_processamento`, `refeicoes_dia_detalhe` (insumos + valores do Compras), `refeicoes_dia_servir`,
 `restricoes_do_cardapio`, `_gerar_pedido_compra` (ida), `refeicoes_sync_compras` (volta) e
-`refeicoes_promover_avaliacao` (data); e no app `cardapio_app`,
+`refeicoes_promover_avaliacao` (data); e no app `cardapio_app` (semana + **destaque** do dia),
 `avaliar_cardapio`, `minhas_restricoes` / `restricoes_catalogo` / `restricao_add` / `restricao_del`,
 `minha_substituicao` / `substituicao_set`, `minhas_restricoes_cardapio`.
 
@@ -198,6 +223,9 @@ Tudo é gerido em **Administração → Anúncios**: a lista dos manuais + a se�
 - `sync-tata-plus` — a cada **10 min**: se a base mudou (`profiles.updated_at`, mantido pelo
   trigger `set_updated_at`), propaga para as tabelas derivadas do app (auth, pontos e conclusões
   históricas). Se nada mudou, não faz nada.
+- `refeicoes-sync-compras` — a cada **5 min**: espelha o **status** do pedido no Compras de volta
+  pro cardápio (só pra frente; ver **Volta (status)**). Também roda no load do Processamento.
+- `refeicoes-promover-avaliacao` — no dia da refeição, move `aguardando_preparo→aguardando_avaliacao`.
 
 ## Governança de Processos
 
@@ -302,10 +330,12 @@ combinados para a reta final, antes/junto do piloto:
 - [x] **Aniversário de empresa** — artes próprias **centralizadas** (`aniversario-cc`), 5 mensagens
       editáveis no painel, título automático por tempo de casa; upload novo já entra centralizado
 - [x] **Cardápio (ciclo completo)** — governança planeja + status em 6 estágios (aprovação →
-      Processamento → servir/finalizar → notas por unidade); app mostra o **cardápio do dia** (capa +
-      `/cardapio`) com **avaliação** (nota 1–5, trava após salvar) e **alerta de restrição** pessoal;
-      perfil tem **Restrições Alimentares**. Falta: ponte com **Compras** (2→3→4), automação por
-      **data** (4→5) e **Relatórios**. Ver seção **Cardápio**.
+      Processamento → servir/finalizar → notas por unidade); ponte com **Compras** nos dois sentidos
+      (ida = pedido; volta = status por cron a cada 5 min) e **custo real** pelo último preço;
+      automação por **data** (4→5). App: **Cardápio da semana** (`/cardapio`) + **Avaliação**
+      (`/avaliar`, atalho da estrela) com nota 1–5, **alerta de restrição** e **destaque automático**
+      do dia (nota + saída); perfil tem **Restrições Alimentares**. Falta só o **dashboard/Relatórios**
+      (valores reais por insumo + CSV). Ver seção **Cardápio**.
 - [x] **Configuração para desktop** — shell de 2 painéis (rail + painel do app + área central)
 - [x] **Abas de governança no desktop** — atalhos abrem como abas vivas (estilo navegador) no rail
 - [x] **Bloqueio de acesso só pelo app** — portão `ModoApp` (libera só na PWA instalada)
@@ -314,6 +344,12 @@ combinados para a reta final, antes/junto do piloto:
 - [x] **Acesso por aba** — bloqueio de abas individuais por pessoa, em 15 páginas de governança
 - [x] **Perfis granulares** — `perfil` da `profiles` carregado com os níveis da planilha de RH
 - [ ] **Valores por perfil** — esconder salário/custo por perfil (seguro via RLS nas bases novas)
+- [ ] **Painel Kanban (mini-Trello)** — quadros com colunas e cards **arrastáveis** (`@dnd-kit`, toque),
+      **responsáveis** (avatar), **comentários** e **anexos** (bucket privado); criar quadro + **selecionar
+      membros**. Decidido: **criar quadro = líder/admin** (colaborador participa quando adicionado);
+      **entrada = aba própria na barra**. Backend `tata_plus` (`quadros → quadro_colunas → quadro_cards` +
+      `quadro_membros`/`card_responsaveis`/`card_comentarios`/`card_anexos`), acesso amarrado à
+      participação. Em fases: (1) kanban base, (2) card rico, (3) anexos, (4) tempo real/polimento.
 - [ ] Afinar cores do tema claro
 
 Roadmap e pendências detalhadas em `docs/CONTEXTO.md` (§11, §14).

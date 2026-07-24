@@ -1,3 +1,4 @@
+import { Star, Flame } from 'lucide-react'
 import { resolveIcon } from '../lib/icons.js'
 import { cn } from '../lib/cn'
 
@@ -67,6 +68,23 @@ export function nomeComposto(dia) {
   return s
 }
 
+// Destaque do dia: mensagem automática (nota alta ou muita saída) calculada na
+// base e devolvida no cardapio_app. tipo: 'nota' (estrela) | 'saida' (chama).
+function Destaque({ d }) {
+  const Icon = d.tipo === 'nota' ? Star : Flame
+  return (
+    <div className="mt-3 hstack gap-2.5 rounded-card border border-accent/30 bg-accent-soft px-3 py-2">
+      <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-accent/15 text-carbon dark:text-accent">
+        <Icon size={16} className={cn(d.tipo === 'nota' && 'fill-current')} />
+      </span>
+      <div className="min-w-0">
+        <div className="text-sm font-bold leading-tight text-carbon dark:text-accent">{d.titulo}</div>
+        {d.subtitulo && <div className="text-[11px] text-muted">{d.subtitulo}</div>}
+      </div>
+    </div>
+  )
+}
+
 export function DiaMenu({ dia, hoje }) {
   const gs = grupos(dia.itens)
   const nome = nomeComposto(dia)
@@ -84,6 +102,7 @@ export function DiaMenu({ dia, hoje }) {
         <div className="mt-3 text-sm text-muted">Cardápio a definir.</div>
       ) : (
         <>
+          {dia.destaque && <Destaque d={dia.destaque} />}
           {nome && <div className="mt-2 text-sm font-semibold">{nome}</div>}
           {gs.length > 0 && (
             <div className="mt-3 flex flex-col gap-3">
