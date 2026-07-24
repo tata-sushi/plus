@@ -176,7 +176,12 @@ export function AuthProvider({ children }) {
     signIn: (email, senha) =>
       supabase.auth.signInWithPassword({ email: email.trim(), password: senha }),
     signOut: () => supabase.auth.signOut(),
-    updatePassword: (novaSenha) => supabase.auth.updateUser({ password: novaSenha }),
+    updatePassword: async (novaSenha) => {
+      const res = await supabase.auth.updateUser({ password: novaSenha })
+      // Marca que a senha deixou de ser a padrão (some o aviso de trocar senha).
+      if (!res.error) supabase.rpc('marcar_senha_alterada').then(() => {})
+      return res
+    },
     // Atualiza a foto de perfil (grava em auth_users via função SECURITY DEFINER)
     definirAvatar: async (url) => {
       const { error } = await supabase.rpc('definir_meu_avatar', { url })

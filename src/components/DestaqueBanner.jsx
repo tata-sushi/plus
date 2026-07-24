@@ -1,6 +1,17 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Target, Trophy, Megaphone, Star, PartyPopper, Cake, Newspaper } from 'lucide-react'
+import {
+  Target,
+  Trophy,
+  Megaphone,
+  Star,
+  PartyPopper,
+  Cake,
+  Newspaper,
+  ShieldCheck,
+  Salad,
+  Moon,
+} from 'lucide-react'
 import { cn } from '../lib/cn'
 
 // Cada categoria tem um "template" de fundo (placeholder até chegarem as artes).
@@ -15,6 +26,9 @@ const TEMPLATES = {
     Icon: PartyPopper,
     tint: 'text-pink-200',
   },
+  senha: { grad: 'from-sky-500/30 via-sky-500/5', Icon: ShieldCheck, tint: 'text-sky-200' },
+  restricoes: { grad: 'from-emerald-500/30 via-emerald-500/5', Icon: Salad, tint: 'text-emerald-200' },
+  tema: { grad: 'from-indigo-500/40 via-indigo-500/10', Icon: Moon, tint: 'text-indigo-200' },
 }
 
 export function DestaqueBanner({ d }) {
@@ -41,11 +55,11 @@ export function DestaqueBanner({ d }) {
   // (desafio/ranking/pontos) usam a própria CTA como pílula no mesmo lugar.
   const temPilulaCategoria = ['comunicado', 'noticia', 'aniversario'].includes(d.categoria)
 
-  return (
-    <Link
-      to={d.cta_to || '/'}
-      className="relative block aspect-square overflow-hidden rounded-3xl border border-line bg-surface tap"
-    >
+  // Card de ação (ex.: "ativar modo escuro") executa d.onTap em vez de navegar.
+  const cls =
+    'relative block aspect-square w-full overflow-hidden rounded-3xl border border-line bg-surface text-left tap'
+  const conteudo = (
+    <>
       {/* fundo: arte real ou gradiente do template (fallback se a arte faltar) */}
       {temImagem ? (
         <img
@@ -145,6 +159,16 @@ export function DestaqueBanner({ d }) {
           </div>
         </div>
       )}
+    </>
+  )
+
+  return d.onTap ? (
+    <button type="button" onClick={d.onTap} className={cls}>
+      {conteudo}
+    </button>
+  ) : (
+    <Link to={d.cta_to || '/'} className={cls}>
+      {conteudo}
     </Link>
   )
 }

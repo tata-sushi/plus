@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Flag, Gift, Star, Network } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
@@ -14,6 +14,7 @@ import { useAuth } from '../lib/AuthContext.jsx'
 import { useDesktop } from '../lib/useDesktop.js'
 import { useDesktopCanvas } from '../lib/desktopCanvas.js'
 import { supabase } from '../lib/supabase.js'
+import { getTheme, applyTheme } from '../lib/theme.js'
 const TIPO_ICON = { principal: 'UtensilsCrossed', guarnicao: 'Salad', salada: 'Salad', sobremesa: 'IceCreamBowl', bebida: 'Wine', outro: 'Utensils' }
 function gruposDia(itens) {
   const ordem = ['principal', 'guarnicao', 'salada', 'sobremesa', 'bebida', 'outro']
@@ -110,6 +111,27 @@ export function Home() {
     }
   }, [])
 
+  // Card "modo escuro" — injetado no front (o tema vive no aparelho, o backend
+  // não sabe). Só pra quem está no claro, aparece de vez em quando (sorteio) e,
+  // ao tocar, já ativa o escuro — aí some, porque o tema deixou de ser claro.
+  const [tema, setTema] = useState(getTheme)
+  const [sorteouEscuro] = useState(() => Math.random() < 0.5)
+  const cardsDestaque = useMemo(() => {
+    if (tema !== 'light' || !sorteouEscuro) return destaques
+    return [
+      ...destaques,
+      {
+        chave: 'modo_escuro',
+        categoria: 'tema',
+        template: 'tema',
+        titulo: 'Experimente o modo escuro',
+        texto: 'O Tatá Plus fica ainda melhor no escuro. Toque para ativar.',
+        cta_label: 'Ativar',
+        onTap: () => setTema(applyTheme('dark')),
+      },
+    ]
+  }, [destaques, tema, sorteouEscuro])
+
   return (
     <>
       <Header />
@@ -183,9 +205,9 @@ export function Home() {
       </Section>
 
       {/* Notícias — carrossel automático (aniversário, comunicados, avisos…) */}
-      {destaques.length > 0 && (
+      {cardsDestaque.length > 0 && (
         <Section className="reveal reveal-3 mt-4 hsm:mt-3" title="Notícias">
-          <Carrossel itens={destaques} />
+          <Carrossel itens={cardsDestaque} />
         </Section>
       )}
 
