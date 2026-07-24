@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { Flag, Gift, Star, Network } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Section } from '../components/Section.jsx'
@@ -145,24 +146,37 @@ export function Home() {
         </div>
       </div>
 
-      {/* Menu do dia — uma linha com scroll lateral e botão + fixo à direita */}
+      {/* Menu do dia — linha com scroll lateral e botão de avaliação (estrela) fixo à direita */}
       <Section className="reveal reveal-1 mt-4 hsm:mt-3" title="Menu do dia">
         <Card className="relative overflow-hidden !p-0">
-          <div className="flex items-center gap-3 overflow-x-auto no-scrollbar py-3 pl-4 pr-4">
-            {(menuHoje?.grupos || []).map((item, idx) => {
-              const Icon = resolveIcon(item.icon)
-              return (
-                <div key={idx} className="hstack shrink-0 gap-3">
-                  {idx > 0 && <span className="h-4 w-px shrink-0 bg-carbon/60" />}
-                  <span className="hstack shrink-0 gap-1.5">
-                    <Icon size={15} className="shrink-0 text-accent" />
-                    <span className="whitespace-nowrap text-sm font-semibold">{item.valor}</span>
-                  </span>
-                </div>
-              )
-            })}
-            {menuHoje && menuHoje.grupos.length === 0 && (
-              <span className="whitespace-nowrap text-sm text-muted">Cardápio a definir hoje</span>
+          <div className="flex items-stretch">
+            <div className="flex grow items-center gap-3 overflow-x-auto no-scrollbar py-3 pl-4 pr-2">
+              {(menuHoje?.grupos || []).map((item, idx) => {
+                const Icon = resolveIcon(item.icon)
+                return (
+                  <div key={idx} className="hstack shrink-0 gap-3">
+                    {idx > 0 && <span className="h-4 w-px shrink-0 bg-carbon/60" />}
+                    <span className="hstack shrink-0 gap-1.5">
+                      <Icon size={15} className="shrink-0 text-accent" />
+                      <span className="whitespace-nowrap text-sm font-semibold">{item.valor}</span>
+                    </span>
+                  </div>
+                )
+              })}
+              {menuHoje && menuHoje.grupos.length === 0 && (
+                <span className="whitespace-nowrap text-sm text-muted">Cardápio a definir hoje</span>
+              )}
+            </div>
+            {menuHoje && menuHoje.grupos.length > 0 && (
+              <Link
+                to="/cardapio#avaliacao"
+                aria-label="Avaliar o cardápio de hoje"
+                className="grid shrink-0 place-items-center border-l border-line pl-3 pr-4 tap"
+              >
+                <span className="grid h-8 w-8 place-items-center rounded-full border border-accent/40 bg-accent-soft text-accent">
+                  <Star size={16} />
+                </span>
+              </Link>
             )}
           </div>
         </Card>
