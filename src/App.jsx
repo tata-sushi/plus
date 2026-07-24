@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { AppShell } from './components/AppShell.jsx'
 import { useAuth } from './lib/AuthContext.jsx'
@@ -22,6 +23,10 @@ import { GerenciarAtalhos } from './routes/GerenciarAtalhos.jsx'
 import { QuestionarioDisc } from './routes/QuestionarioDisc.jsx'
 import { PainelExterno } from './routes/PainelExterno.jsx'
 import { BuscarPessoas } from './routes/BuscarPessoas.jsx'
+
+// Esboço do painel Kanban — carregado sob demanda (só o dono abre), pra não
+// pesar o bundle de todo mundo com a lib de drag-and-drop.
+const QuadrosEsboco = lazy(() => import('./routes/QuadrosEsboco.jsx'))
 
 function Splash() {
   return (
@@ -63,6 +68,14 @@ export function App() {
         <Route path="/atalhos-governanca" element={<GerenciarAtalhos />} />
         <Route path="/perfil-disc" element={<QuestionarioDisc />} />
         <Route path="/painel/:id" element={<PainelExterno />} />
+        <Route
+          path="/quadros"
+          element={
+            <Suspense fallback={<Splash />}>
+              <QuadrosEsboco />
+            </Suspense>
+          }
+        />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
     </Routes>
