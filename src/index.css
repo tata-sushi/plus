@@ -71,7 +71,9 @@
   background-image: linear-gradient(to left, rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.2), transparent);
 }
 :root[data-theme='light'] .scrim-inferior {
-  background-image: linear-gradient(to top, rgb(255 255 255 / 0.85), rgb(255 255 255 / 0.35), transparent);
+  /* Véu bem leve no claro (~80% mais fraco): deixa a imagem aparecer, mantendo
+     só um respiro de legibilidade atrás do texto escuro. */
+  background-image: linear-gradient(to top, rgb(255 255 255 / 0.2), rgb(255 255 255 / 0.06), transparent);
 }
 :root[data-theme='light'] .scrim-lateral {
   background-image: linear-gradient(to left, rgb(255 255 255 / 0.8), rgb(255 255 255 / 0.3), transparent);
