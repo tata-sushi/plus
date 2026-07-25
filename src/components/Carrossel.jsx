@@ -3,7 +3,7 @@ import { DestaqueBanner } from './DestaqueBanner.jsx'
 
 // Carrossel automático da seção "Notícias": mostra vários destaques
 // (aniversário, comunicados, avisos…) em slides de largura total, com
-// auto-avanço a cada 5s, arrasto nativo (scroll-snap) e bolinhas embaixo.
+// auto-avanço a cada 8s, arrasto nativo (scroll-snap) e bolinhas embaixo.
 // Pausa o auto-avanço enquanto o dedo está na tela.
 export function Carrossel({ itens }) {
   const trilhaRef = useRef(null)
@@ -19,7 +19,7 @@ export function Carrossel({ itens }) {
       const atual = Math.round(trilha.scrollLeft / trilha.clientWidth)
       const prox = (atual + 1) % n
       trilha.scrollTo({ left: prox * trilha.clientWidth, behavior: 'smooth' })
-    }, 5000)
+    }, 8000)
     return () => clearInterval(t)
   }, [n])
 
