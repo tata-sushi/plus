@@ -111,15 +111,14 @@ export function Home() {
     }
   }, [])
 
-  // Card "modo escuro" — vem da destaques() (texto/imagem/liga-desliga geridos no
-  // admin), mas o tema vive no aparelho: o front só mostra pra quem está no claro
-  // e de vez em quando (sorteio). Nos demais casos, filtra o card fora.
+  // Card "modo escuro" — entra no sorteio dos automáticos na base (2/dia), mas o
+  // tema vive no aparelho: o front mostra só pra quem está no claro (no escuro,
+  // filtra fora). O "de vez em quando" já é o sorteio da base.
   const [tema] = useState(getTheme)
-  const [sorteouEscuro] = useState(() => Math.random() < 0.5)
-  const cardsDestaque = useMemo(() => {
-    const mostrarEscuro = tema === 'light' && sorteouEscuro
-    return destaques.filter((d) => d.chave !== 'modo_escuro' || mostrarEscuro)
-  }, [destaques, tema, sorteouEscuro])
+  const cardsDestaque = useMemo(
+    () => destaques.filter((d) => d.chave !== 'modo_escuro' || tema === 'light'),
+    [destaques, tema],
+  )
 
   return (
     <>
