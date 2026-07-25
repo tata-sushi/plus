@@ -53,15 +53,19 @@ function AutoLinha({ meta, estado, onToggle, onSalvar, onImagem, onRemoverImg })
   const [aberto, setAberto] = useState(false)
   const [titulo, setTitulo] = useState(estado?.titulo || '')
   const [texto, setTexto] = useState(estado?.texto || '')
+  const [cta, setCta] = useState(estado?.cta_label || '')
   const [imgSalvando, setImgSalvando] = useState(false)
   const fileRef = useRef(null)
   // Sincroniza quando o valor do servidor muda (carga inicial / após salvar).
   useEffect(() => {
     setTitulo(estado?.titulo || '')
     setTexto(estado?.texto || '')
-  }, [estado?.titulo, estado?.texto])
+    setCta(estado?.cta_label || '')
+  }, [estado?.titulo, estado?.texto, estado?.cta_label])
   const mudou =
-    titulo.trim() !== (estado?.titulo || '').trim() || texto.trim() !== (estado?.texto || '').trim()
+    titulo.trim() !== (estado?.titulo || '').trim() ||
+    texto.trim() !== (estado?.texto || '').trim() ||
+    cta.trim() !== (estado?.cta_label || '').trim()
   return (
     <div>
       <div className="hstack items-center gap-3 px-4 py-3">
@@ -108,6 +112,14 @@ function AutoLinha({ meta, estado, onToggle, onSalvar, onImagem, onRemoverImg })
             rows={2}
             placeholder="Texto"
             className="w-full resize-none rounded-card border border-line bg-surface px-3 py-2 text-sm outline-none placeholder:text-muted-2"
+          />
+          {/* Etiqueta (pílula) mostrada no canto do card */}
+          <input
+            value={cta}
+            onChange={(e) => setCta(e.target.value)}
+            placeholder="Etiqueta (pílula)"
+            maxLength={22}
+            className="w-full rounded-card border border-line bg-surface px-3 py-2 text-sm outline-none placeholder:text-muted-2"
           />
           {/* Imagem do card (opcional) — preview grande */}
           <div>
@@ -156,9 +168,9 @@ function AutoLinha({ meta, estado, onToggle, onSalvar, onImagem, onRemoverImg })
           </div>
           <div className="hstack justify-between gap-2">
             <span className="text-[10px] leading-tight text-muted-2">Variáveis: {meta.vars}</span>
-            {mudou && titulo.trim() && (
+            {mudou && (
               <button
-                onClick={() => onSalvar(meta.chave, titulo, texto)}
+                onClick={() => onSalvar(meta.chave, titulo, texto, cta)}
                 className="btn-primary shrink-0 !px-3 !py-1.5 text-xs"
               >
                 Salvar
@@ -241,12 +253,13 @@ export function AdminPublicacoes() {
     if (error) setAuto((prev) => prev.map((a) => (a.chave === chave ? { ...a, ativo: !novo } : a)))
   }
 
-  async function salvarMsgAuto(chave, titulo, texto) {
+  async function salvarMsgAuto(chave, titulo, texto, cta) {
     tapHaptic()
     const t = titulo.trim()
     const c = texto.trim()
-    setAuto((prev) => prev.map((a) => (a.chave === chave ? { ...a, titulo: t, texto: c } : a)))
-    await supabase.rpc('admin_destaque_msg_salvar', { p_chave: chave, p_titulo: t, p_texto: c })
+    const l = (cta || '').trim()
+    setAuto((prev) => prev.map((a) => (a.chave === chave ? { ...a, titulo: t, texto: c, cta_label: l } : a)))
+    await supabase.rpc('admin_destaque_msg_salvar', { p_chave: chave, p_titulo: t, p_texto: c, p_cta: l })
   }
 
   function ligaAuto(chave, patch) {
