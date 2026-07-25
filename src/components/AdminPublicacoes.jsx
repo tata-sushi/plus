@@ -41,7 +41,7 @@ const AUTO = [
   { chave: 'desafios_pendentes', label: 'Desafios pendentes', Icon: Target, vars: '{qtd} = quantidade de desafios' },
   { chave: 'ranking', label: 'Ranking', Icon: Trophy, vars: '{posicao} = posição no ranking' },
   { chave: 'saldo', label: 'Saldo de pontos', Icon: Star, vars: '{saldo} = pontos na carteira' },
-  { chave: 'senha', label: 'Trocar senha', Icon: ShieldCheck, vars: 'aparece p/ quem está na senha padrão' },
+  { chave: 'senha', label: 'Segurança', Icon: ShieldCheck, vars: 'aparece p/ quem está na senha padrão' },
   { chave: 'restricoes', label: 'Cadastrar restrições', Icon: Salad, vars: 'aparece p/ quem não cadastrou restrição' },
   { chave: 'modo_escuro', label: 'Modo escuro', Icon: Moon, vars: 'aparece p/ quem está no modo claro' },
 ]
