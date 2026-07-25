@@ -211,7 +211,8 @@ O carrossel da Início é montado pelo RPC `destaques()`, que junta duas origens
     já entra centralizada.
   - 🎯 **Desafio de hoje / pendentes**, 🏆 **Ranking**, ⭐ **Saldo** — liga/desliga e **mensagem
     editável** (título + texto com variáveis `{titulo}` `{pontos}` `{qtd}` `{posicao}` `{saldo}`,
-    trocadas pelos valores reais) em `destaque_config`.
+    trocadas pelos valores reais) em `destaque_config`. A **etiqueta/pílula** (`cta_label`) também é
+    editável no painel — a `destaques()` lê de `destaque_config` (com fallback pro texto padrão).
   - 🔒 **Trocar senha** — para quem **ainda está na senha padrão** (`profiles.senha_alterada=false`;
     a flag liga quando a pessoa troca pelo app, via `marcar_senha_alterada()`). Leva ao Painel de
     Ajustes. Liga/desliga + texto em `destaque_config` (`chave='senha'`).
