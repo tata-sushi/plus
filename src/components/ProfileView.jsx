@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { Clock, X } from 'lucide-react'
 import { Header } from './Header.jsx'
 import { Voltar } from './Voltar.jsx'
@@ -137,30 +138,34 @@ export function ProfileView({ colaborador, isSelf }) {
         </Section>
       )}
 
-      {/* Foto ampliada — toca fora ou no X pra fechar */}
-      {zoom && colaborador.avatar && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-6 backdrop-blur-sm"
-          role="dialog"
-          aria-modal="true"
-          onClick={() => setZoom(false)}
-        >
-          <img
-            src={colaborador.avatar}
-            alt={colaborador.nome}
-            onClick={(e) => e.stopPropagation()}
-            className="max-h-[85vh] max-w-full rounded-3xl object-contain shadow-2xl"
-          />
-          <button
+      {/* Foto ampliada — portal no body pra ficar fixa na tela toda (fora do
+          contexto da página animada). Toca fora ou no X pra fechar. */}
+      {zoom &&
+        colaborador.avatar &&
+        createPortal(
+          <div
+            className="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 p-5 backdrop-blur-sm"
+            role="dialog"
+            aria-modal="true"
             onClick={() => setZoom(false)}
-            aria-label="Fechar"
-            className="absolute right-4 top-4 grid h-9 w-9 place-items-center rounded-full bg-white/15 text-white backdrop-blur tap"
-            style={{ top: 'calc(env(safe-area-inset-top, 0px) + 16px)' }}
           >
-            <X size={18} />
-          </button>
-        </div>
-      )}
+            <img
+              src={colaborador.avatar}
+              alt={colaborador.nome}
+              onClick={(e) => e.stopPropagation()}
+              className="max-h-[85dvh] max-w-full rounded-3xl object-contain shadow-2xl"
+            />
+            <button
+              onClick={() => setZoom(false)}
+              aria-label="Fechar"
+              className="absolute right-4 grid h-9 w-9 place-items-center rounded-full bg-white/15 text-white backdrop-blur tap"
+              style={{ top: 'calc(env(safe-area-inset-top, 0px) + 16px)' }}
+            >
+              <X size={18} />
+            </button>
+          </div>,
+          document.body,
+        )}
     </>
   )
 }

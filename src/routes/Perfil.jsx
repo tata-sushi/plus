@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { useParams, useNavigate, Navigate } from 'react-router-dom'
 import { ArrowLeft, Loader2, Send, Check, Cake, X } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
@@ -264,30 +265,34 @@ export function Perfil() {
         />
       </Section>
 
-      {/* Foto ampliada — toca fora ou no X pra fechar */}
-      {zoom && perfil.avatar_url && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-6 backdrop-blur-sm"
-          role="dialog"
-          aria-modal="true"
-          onClick={() => setZoom(false)}
-        >
-          <img
-            src={perfil.avatar_url}
-            alt={perfil.nome}
-            onClick={(e) => e.stopPropagation()}
-            className="max-h-[85vh] max-w-full rounded-3xl object-contain shadow-2xl"
-          />
-          <button
+      {/* Foto ampliada — portal no body pra ficar fixa na tela toda (fora do
+          contexto da página animada). Toca fora ou no X pra fechar. */}
+      {zoom &&
+        perfil.avatar_url &&
+        createPortal(
+          <div
+            className="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 p-5 backdrop-blur-sm"
+            role="dialog"
+            aria-modal="true"
             onClick={() => setZoom(false)}
-            aria-label="Fechar"
-            className="absolute right-4 grid h-9 w-9 place-items-center rounded-full bg-white/15 text-white backdrop-blur tap"
-            style={{ top: 'calc(env(safe-area-inset-top, 0px) + 16px)' }}
           >
-            <X size={18} />
-          </button>
-        </div>
-      )}
+            <img
+              src={perfil.avatar_url}
+              alt={perfil.nome}
+              onClick={(e) => e.stopPropagation()}
+              className="max-h-[85dvh] max-w-full rounded-3xl object-contain shadow-2xl"
+            />
+            <button
+              onClick={() => setZoom(false)}
+              aria-label="Fechar"
+              className="absolute right-4 grid h-9 w-9 place-items-center rounded-full bg-white/15 text-white backdrop-blur tap"
+              style={{ top: 'calc(env(safe-area-inset-top, 0px) + 16px)' }}
+            >
+              <X size={18} />
+            </button>
+          </div>,
+          document.body,
+        )}
     </>
   )
 }
