@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Clock } from 'lucide-react'
+import { Clock, X } from 'lucide-react'
 import { Header } from './Header.jsx'
 import { Voltar } from './Voltar.jsx'
 import { Section } from './Section.jsx'
@@ -26,6 +26,8 @@ export function ProfileView({ colaborador, isSelf }) {
   const demoRadar = isSelf && usuario?.matricula === '7'
   // Resumo real: saldo, resgates e progresso de desafios.
   const [resumo, setResumo] = useState(null)
+  // Foto ampliada (lightbox) ao tocar no avatar, quando há foto de verdade.
+  const [zoom, setZoom] = useState(false)
 
   useEffect(() => {
     if (!isSelf) return
@@ -51,7 +53,18 @@ export function ProfileView({ colaborador, isSelf }) {
       <div className="px-5 pt-2">
         <div className="card p-4">
           <div className="hstack gap-3">
-            <Avatar name={colaborador.nome} src={colaborador.avatar} size={52} />
+            {colaborador.avatar ? (
+              <button
+                type="button"
+                onClick={() => setZoom(true)}
+                aria-label="Ampliar foto"
+                className="shrink-0 rounded-full tap"
+              >
+                <Avatar name={colaborador.nome} src={colaborador.avatar} size={52} />
+              </button>
+            ) : (
+              <Avatar name={colaborador.nome} src={colaborador.avatar} size={52} />
+            )}
             <div className="min-w-0 flex-1">
               <div className="font-display text-base font-bold">{colaborador.nome}</div>
               <div className="text-xs text-muted">
@@ -122,6 +135,31 @@ export function ProfileView({ colaborador, isSelf }) {
             </div>
           </Card>
         </Section>
+      )}
+
+      {/* Foto ampliada — toca fora ou no X pra fechar */}
+      {zoom && colaborador.avatar && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-6 backdrop-blur-sm"
+          role="dialog"
+          aria-modal="true"
+          onClick={() => setZoom(false)}
+        >
+          <img
+            src={colaborador.avatar}
+            alt={colaborador.nome}
+            onClick={(e) => e.stopPropagation()}
+            className="max-h-[85vh] max-w-full rounded-3xl object-contain shadow-2xl"
+          />
+          <button
+            onClick={() => setZoom(false)}
+            aria-label="Fechar"
+            className="absolute right-4 top-4 grid h-9 w-9 place-items-center rounded-full bg-white/15 text-white backdrop-blur tap"
+            style={{ top: 'calc(env(safe-area-inset-top, 0px) + 16px)' }}
+          >
+            <X size={18} />
+          </button>
+        </div>
       )}
     </>
   )
