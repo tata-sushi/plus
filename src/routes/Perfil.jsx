@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate, Navigate } from 'react-router-dom'
-import { ArrowLeft, Loader2, Send, Check, Cake } from 'lucide-react'
+import { ArrowLeft, Loader2, Send, Check, Cake, X } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Section } from '../components/Section.jsx'
 import { Card } from '../components/Card.jsx'
@@ -40,6 +40,7 @@ export function Perfil() {
   const [enviando, setEnviando] = useState(false)
   const [erro, setErro] = useState('')
   const [feito, setFeito] = useState(null) // { pontos } após concluir
+  const [zoom, setZoom] = useState(false) // foto ampliada (lightbox)
 
   useEffect(() => {
     if (ehEu) return
@@ -138,7 +139,18 @@ export function Perfil() {
       <div className="mt-3 px-5">
         <div className="hero-card reveal p-4">
           <div className="hstack gap-3">
-            <Avatar name={perfil.nome} src={perfil.avatar_url} size={56} />
+            {perfil.avatar_url ? (
+              <button
+                type="button"
+                onClick={() => setZoom(true)}
+                aria-label="Ampliar foto"
+                className="shrink-0 rounded-full tap"
+              >
+                <Avatar name={perfil.nome} src={perfil.avatar_url} size={56} />
+              </button>
+            ) : (
+              <Avatar name={perfil.nome} src={perfil.avatar_url} size={56} />
+            )}
             <div className="min-w-0 flex-1">
               <div className="font-display text-base font-bold">{perfil.nome}</div>
               <div className="text-xs text-muted">
@@ -251,6 +263,31 @@ export function Perfil() {
           mostrarDisc={getDiscVisivel()}
         />
       </Section>
+
+      {/* Foto ampliada — toca fora ou no X pra fechar */}
+      {zoom && perfil.avatar_url && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-6 backdrop-blur-sm"
+          role="dialog"
+          aria-modal="true"
+          onClick={() => setZoom(false)}
+        >
+          <img
+            src={perfil.avatar_url}
+            alt={perfil.nome}
+            onClick={(e) => e.stopPropagation()}
+            className="max-h-[85vh] max-w-full rounded-3xl object-contain shadow-2xl"
+          />
+          <button
+            onClick={() => setZoom(false)}
+            aria-label="Fechar"
+            className="absolute right-4 grid h-9 w-9 place-items-center rounded-full bg-white/15 text-white backdrop-blur tap"
+            style={{ top: 'calc(env(safe-area-inset-top, 0px) + 16px)' }}
+          >
+            <X size={18} />
+          </button>
+        </div>
+      )}
     </>
   )
 }
