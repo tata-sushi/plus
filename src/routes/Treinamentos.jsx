@@ -27,7 +27,7 @@ import { VideosYouTube, VideosLista } from '../components/VideosYouTube.jsx'
 import { IntroDesafio } from '../components/IntroDesafio.jsx'
 import { ProvaDesafio } from '../components/ProvaDesafio.jsx'
 import { EnvioDesafio } from '../components/EnvioDesafio.jsx'
-import { Submodulo } from '../components/Submodulo.jsx'
+import { Submodulo, GrupoUnidade } from '../components/Submodulo.jsx'
 import { CodigoEtica } from '../components/CodigoEtica.jsx'
 import { LeituraProva } from '../components/LeituraProva.jsx'
 import { Avaliacao } from '../components/Avaliacao.jsx'
@@ -1021,16 +1021,57 @@ export function Treinamentos() {
                       </button>
                     )
                   })}
-                  {Object.entries(subcats).map(([nome, itens]) => (
-                    <Submodulo
-                      key={nome}
-                      nome={nome}
-                      itens={itens}
-                      onAbrir={abrir}
-                      admin={admin}
-                      personalizar={personalizarComo}
-                    />
-                  ))}
+                  {(() => {
+                    // Prêmios têm subcategoria "Prêmio <Unidade> — <Departamento>".
+                    // Admin agrupa por unidade (senão a lista de todas as unidades polui);
+                    // colaborador vê só o prêmio do próprio depto, direto.
+                    const entries = Object.entries(subcats)
+                    const premios = entries.filter(([n]) => n.includes(' — '))
+                    const demais = entries.filter(([n]) => !n.includes(' — '))
+                    const els = demais.map(([nome, itens]) => (
+                      <Submodulo
+                        key={nome}
+                        nome={nome}
+                        itens={itens}
+                        onAbrir={abrir}
+                        admin={admin}
+                        personalizar={personalizarComo}
+                      />
+                    ))
+                    if (premios.length && admin) {
+                      const porUnidade = {}
+                      for (const [nome, itens] of premios) {
+                        const unidade = nome.replace(/^Prêmio\s+/, '').split(' — ')[0]
+                        ;(porUnidade[unidade] ||= []).push([nome, itens])
+                      }
+                      for (const [unidade, subs] of Object.entries(porUnidade)) {
+                        els.push(
+                          <GrupoUnidade
+                            key={`u:${unidade}`}
+                            unidade={unidade}
+                            subs={subs}
+                            onAbrir={abrir}
+                            admin={admin}
+                            personalizar={personalizarComo}
+                          />,
+                        )
+                      }
+                    } else {
+                      for (const [nome, itens] of premios) {
+                        els.push(
+                          <Submodulo
+                            key={nome}
+                            nome={nome}
+                            itens={itens}
+                            onAbrir={abrir}
+                            admin={admin}
+                            personalizar={personalizarComo}
+                          />,
+                        )
+                      }
+                    }
+                    return els
+                  })()}
                 </div>
               )}
             </Card>
