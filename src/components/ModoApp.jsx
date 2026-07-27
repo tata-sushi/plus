@@ -111,7 +111,22 @@ export function ModoApp({ children }) {
         <p className="mt-2 text-sm text-muted">Acesse e navegue</p>
       </div>
 
-      {mostrarAbrir ? (
+      {ios ? (
+        <div className="w-full max-w-xs rounded-card border border-line bg-surface p-4 text-left">
+          <h2 className="font-display text-sm font-bold">Instalação no iPhone</h2>
+          <ol className="mt-3 flex list-decimal flex-col gap-2 pl-5 text-sm text-muted marker:font-bold marker:text-accent">
+            <li>
+              Acesse o link: <b className="text-text">plus.tatasushi.tech</b>
+            </li>
+            <li>
+              Vá em <b className="text-text">Compartilhamento</b>
+            </li>
+            <li>
+              Selecione <b className="text-text">Adicionar à Tela de Início</b>
+            </li>
+          </ol>
+        </div>
+      ) : mostrarAbrir ? (
         <a href="web+tataplus://abrir" className="btn-primary w-full max-w-xs !py-3.5">
           <ExternalLink size={18} /> Abrir aplicativo
         </a>
