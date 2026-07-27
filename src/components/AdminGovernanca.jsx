@@ -27,16 +27,34 @@ function agrupar(catalogo) {
 // (liberadas por padrão; toque pra bloquear pra esta pessoa).
 function EditorPessoa({ pessoa, catalogo, catalogoAbas, onFechar, onSalvo }) {
   const grupos = useMemo(() => agrupar(catalogo), [catalogo])
-  const abasPorPagina = useMemo(() => {
+  // Agrupa por página e separa em abas (tipo='aba') e botões (tipo='botao').
+  const itensPorPagina = useMemo(() => {
     const m = {}
-    for (const a of catalogoAbas || []) (m[a.pagina_id] || (m[a.pagina_id] = [])).push(a)
+    for (const a of catalogoAbas || []) {
+      const bucket = m[a.pagina_id] || (m[a.pagina_id] = { abas: [], botoes: [] })
+      if (a.tipo === 'botao') bucket.botoes.push(a)
+      else bucket.abas.push(a)
+    }
     return m
   }, [catalogoAbas])
 
   const [ids, setIds] = useState(null) // Set de pagina_id · null = carregando
   const [bloqueadas, setBloqueadas] = useState(new Set()) // Set de aba_id bloqueada
   const [abasAbertas, setAbasAbertas] = useState(new Set()) // pagina_id com abas expandidas
+  const [botoesAbertas, setBotoesAbertas] = useState(new Set()) // pagina_id com botões expandidos
   const [salvando, setSalvando] = useState(false)
+
+  // Quantos itens desligados existem no total, separados por tipo — pro rodapé.
+  const desligados = useMemo(() => {
+    let a = 0,
+      b = 0
+    for (const item of catalogoAbas || []) {
+      if (!bloqueadas.has(item.aba_id)) continue
+      if (item.tipo === 'botao') b++
+      else a++
+    }
+    return { abas: a, botoes: b }
+  }, [catalogoAbas, bloqueadas])
 
   useEffect(() => {
     let ativo = true
@@ -89,6 +107,15 @@ function EditorPessoa({ pessoa, catalogo, catalogoAbas, onFechar, onSalvo }) {
     })
   }
 
+  function toggleBotoesAbertas(paginaId) {
+    tapHaptic()
+    setBotoesAbertas((prev) => {
+      const n = new Set(prev)
+      n.has(paginaId) ? n.delete(paginaId) : n.add(paginaId)
+      return n
+    })
+  }
+
   async function salvar() {
     setSalvando(true)
     const [r1, r2] = await Promise.all([
@@ -100,6 +127,67 @@ function EditorPessoa({ pessoa, catalogo, catalogoAbas, onFechar, onSalvo }) {
     ])
     setSalvando(false)
     if (!r1.error && !r2.error) onSalvo(ids.size)
+  }
+
+  // Bloco recolhível de abas ou botões dentro de uma página. Mesma UX pros dois —
+  // muda só o rótulo e a concordância de gênero na contagem.
+  function BlocoToggles({ tipo, itens, aberto, onToggleAberto }) {
+    if (!itens || itens.length === 0) return null
+    const qtdOff = itens.filter((a) => bloqueadas.has(a.aba_id)).length
+    const label = tipo === 'botao' ? 'Botões' : 'Abas'
+    const desligado =
+      tipo === 'botao' ? `desligado${qtdOff > 1 ? 's' : ''}` : `desligada${qtdOff > 1 ? 's' : ''}`
+    return (
+      <div className="px-4 pb-3 pl-12">
+        <button
+          onClick={onToggleAberto}
+          className="hstack w-full gap-2 py-1 text-left tap [&>*]:pointer-events-none"
+        >
+          <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-2">
+            {label}
+          </span>
+          {qtdOff > 0 && (
+            <span className="rounded-pill bg-danger/15 px-1.5 py-0.5 text-[9px] font-bold uppercase text-danger">
+              {qtdOff} {desligado}
+            </span>
+          )}
+          <span className="flex-1" />
+          <ChevronDown
+            size={14}
+            className={cn('shrink-0 text-muted-2 transition-transform', aberto && 'rotate-180')}
+          />
+        </button>
+        {aberto && (
+          <div className="mt-1 flex flex-col divide-y divide-line rounded-card border border-line">
+            {itens.map((a) => {
+              const liberada = !bloqueadas.has(a.aba_id)
+              return (
+                <div key={a.aba_id} className="hstack gap-3 px-3 py-2">
+                  <span className={cn('flex-1 text-[13px] font-medium', !liberada && 'text-muted-2')}>
+                    {a.label}
+                  </span>
+                  <button
+                    onClick={() => toggleAba(a.aba_id)}
+                    className={cn(
+                      'relative h-6 w-10 shrink-0 rounded-full transition-colors tap',
+                      liberada ? 'bg-accent' : 'bg-surface-2',
+                    )}
+                    aria-label={liberada ? `Desligar acesso: ${a.label}` : `Ligar acesso: ${a.label}`}
+                  >
+                    <span
+                      className={cn(
+                        'absolute top-0.5 h-5 w-5 rounded-full bg-white transition-all',
+                        liberada ? 'left-[18px]' : 'left-0.5',
+                      )}
+                    />
+                  </button>
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </div>
+    )
   }
 
   return createPortal(
@@ -167,9 +255,10 @@ function EditorPessoa({ pessoa, catalogo, catalogoAbas, onFechar, onSalvo }) {
                   <Card className="!p-0">
                     {g.itens.map((p, i) => {
                       const on = ids.has(p.pagina_id)
-                      const abas = abasPorPagina[p.pagina_id] || []
-                      const abasAberto = abasAbertas.has(p.pagina_id)
-                      const qtdOff = abas.filter((a) => bloqueadas.has(a.aba_id)).length
+                      const bucket = itensPorPagina[p.pagina_id] || { abas: [], botoes: [] }
+                      const abas = bucket.abas
+                      const botoes = bucket.botoes
+                      const totalItens = abas.length + botoes.length
                       return (
                         <div key={p.pagina_id} className={cn(i > 0 && 'border-t border-line')}>
                           <button
@@ -187,78 +276,34 @@ function EditorPessoa({ pessoa, catalogo, catalogoAbas, onFechar, onSalvo }) {
                               <Check size={15} strokeWidth={3} />
                             </span>
                             <span className="flex-1 text-sm font-medium">{p.label}</span>
-                            {abas.length > 0 && (
+                            {totalItens > 0 && (
                               <span className="shrink-0 text-[10px] font-semibold text-muted-2">
-                                {abas.length} abas
+                                {abas.length > 0 && `${abas.length} aba${abas.length > 1 ? 's' : ''}`}
+                                {abas.length > 0 && botoes.length > 0 && ' · '}
+                                {botoes.length > 0 &&
+                                  `${botoes.length} botão${botoes.length > 1 ? 'es' : ''}`}
                               </span>
                             )}
                           </button>
 
-                          {/* Abas: só quando a página está liberada. Recolhível
-                              (começa guardado); liga/desliga o acesso por aba
-                              (ligada = pode ver; desligada = bloqueada). */}
-                          {on && abas.length > 0 && (
-                            <div className="px-4 pb-3 pl-12">
-                              <button
-                                onClick={() => toggleAbasAbertas(p.pagina_id)}
-                                className="hstack w-full gap-2 py-1 text-left tap [&>*]:pointer-events-none"
-                              >
-                                <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-2">
-                                  Abas
-                                </span>
-                                {qtdOff > 0 && (
-                                  <span className="rounded-pill bg-danger/15 px-1.5 py-0.5 text-[9px] font-bold uppercase text-danger">
-                                    {qtdOff} desligada{qtdOff > 1 ? 's' : ''}
-                                  </span>
-                                )}
-                                <span className="flex-1" />
-                                <ChevronDown
-                                  size={14}
-                                  className={cn(
-                                    'shrink-0 text-muted-2 transition-transform',
-                                    abasAberto && 'rotate-180',
-                                  )}
-                                />
-                              </button>
-                              {abasAberto && (
-                                <div className="mt-1 flex flex-col divide-y divide-line rounded-card border border-line">
-                                  {abas.map((a) => {
-                                    const liberada = !bloqueadas.has(a.aba_id)
-                                    return (
-                                      <div key={a.aba_id} className="hstack gap-3 px-3 py-2">
-                                        <span
-                                          className={cn(
-                                            'flex-1 text-[13px] font-medium',
-                                            !liberada && 'text-muted-2',
-                                          )}
-                                        >
-                                          {a.label}
-                                        </span>
-                                        <button
-                                          onClick={() => toggleAba(a.aba_id)}
-                                          className={cn(
-                                            'relative h-6 w-10 shrink-0 rounded-full transition-colors tap',
-                                            liberada ? 'bg-accent' : 'bg-surface-2',
-                                          )}
-                                          aria-label={
-                                            liberada
-                                              ? `Desligar acesso à aba ${a.label}`
-                                              : `Ligar acesso à aba ${a.label}`
-                                          }
-                                        >
-                                          <span
-                                            className={cn(
-                                              'absolute top-0.5 h-5 w-5 rounded-full bg-white transition-all',
-                                              liberada ? 'left-[18px]' : 'left-0.5',
-                                            )}
-                                          />
-                                        </button>
-                                      </div>
-                                    )
-                                  })}
-                                </div>
-                              )}
-                            </div>
+                          {/* Só quando a página está liberada: abas e botões
+                              recolhíveis (começam guardados). Ligado = a pessoa
+                              enxerga; desligado = bloqueado só pra ela. */}
+                          {on && (
+                            <>
+                              <BlocoToggles
+                                tipo="aba"
+                                itens={abas}
+                                aberto={abasAbertas.has(p.pagina_id)}
+                                onToggleAberto={() => toggleAbasAbertas(p.pagina_id)}
+                              />
+                              <BlocoToggles
+                                tipo="botao"
+                                itens={botoes}
+                                aberto={botoesAbertas.has(p.pagina_id)}
+                                onToggleAberto={() => toggleBotoesAbertas(p.pagina_id)}
+                              />
+                            </>
                           )}
                         </div>
                       )
@@ -283,7 +328,9 @@ function EditorPessoa({ pessoa, catalogo, catalogoAbas, onFechar, onSalvo }) {
               <Loader2 size={18} className="animate-spin" />
             ) : (
               `Salvar acesso (${ids.size} ${ids.size === 1 ? 'página' : 'páginas'}${
-                bloqueadas.size ? ` · ${bloqueadas.size} aba(s) desligada(s)` : ''
+                bloqueadas.size
+                  ? ` · ${desligados.abas} aba(s) · ${desligados.botoes} botão(ões) desligado(s)`
+                  : ''
               })`
             )}
           </button>

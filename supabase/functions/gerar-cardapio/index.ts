@@ -56,6 +56,10 @@ no contexto, copiando EXATAMENTE o nome cadastrado (com acentos e maiúsculas co
 Não invente itens fora do catálogo; se o ingrediente ideal não existir, use o item
 cadastrado mais próximo. Cada insumo é um objeto {"nome":"<nome EXATO do catálogo>","qtd":12,"un":"kg"}.
 Unidades usuais: kg, g, L, ml, un. O nome exato é o que garante o vínculo de custo com o Compras.
+REFRESCO (bebida): o insumo é SEMPRE o refresco EM PÓ do catálogo — os itens no formato
+"Refrescos <sabor> ( pacote 1 kg)" —, NUNCA a fruta in natura. Ex.: bebida de abacaxi →
+insumo "Refrescos Abacaxi ( pacote 1 kg)" (e não "Abacaxi"). Se o sabor não existir em pó
+no catálogo, escolha outro sabor de refresco em pó que exista.
 
 SAÍDA: responda APENAS com JSON válido, sem texto fora do JSON. Todos os campos em
 português. "Arroz e Feijão" DEVE aparecer (campo guarnicao_fixa). Formato:
@@ -184,11 +188,25 @@ Deno.serve(async (req) => {
     }
     const cardapio: any[] = parsed.cardapio ?? []
 
+    // A DATA de cada dia é AUTORITATIVA do servidor (datas[], na ordem pedida ao
+    // LLM). O modelo às vezes devolve o dia sem o campo `data` (ou com uma data
+    // fora do período) — e isso quebrava o gravar com "data_refeicao viola
+    // NOT NULL". Regra: mantém a data do LLM se ela for uma das datas do período;
+    // senão, casa pela posição. Marmita é forçada em domingo/feriado pela data final.
+    const alvo = new Set(datas.map((d) => d.data))
+    cardapio.forEach((c, i) => {
+      if (!c.data || !alvo.has(String(c.data))) c.data = datas[i]?.data
+      const info = datas.find((d) => d.data === c.data)
+      if (info && (info.domingo || info.feriado)) c.tem_marmita = true
+    })
+    const dias_prontos = cardapio.filter((c) => c.data && alvo.has(String(c.data)))
+    if (!dias_prontos.length) return json({ error: 'LLM não retornou dias utilizáveis', content }, 502)
+
     // 6) preview (dry_run) ou grava rascunho
-    if (dryRun) return json({ ok: true, dry_run: true, resumo: parsed.resumo_semana, cardapio })
-    const { data: grav, error: gerr } = await svc.rpc('cardapio_rascunho_gravar', { p_dias: cardapio })
+    if (dryRun) return json({ ok: true, dry_run: true, resumo: parsed.resumo_semana, cardapio: dias_prontos })
+    const { data: grav, error: gerr } = await svc.rpc('cardapio_rascunho_gravar', { p_dias: dias_prontos })
     if (gerr) return json({ error: 'gravar: ' + gerr.message }, 500)
-    return json({ ok: true, resumo: parsed.resumo_semana, ...(grav as object), cardapio })
+    return json({ ok: true, resumo: parsed.resumo_semana, ...(grav as object), cardapio: dias_prontos })
   } catch (e) {
     return json({ error: String(e) }, 500)
   }
