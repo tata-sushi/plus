@@ -56,6 +56,10 @@ no contexto, copiando EXATAMENTE o nome cadastrado (com acentos e maiúsculas co
 Não invente itens fora do catálogo; se o ingrediente ideal não existir, use o item
 cadastrado mais próximo. Cada insumo é um objeto {"nome":"<nome EXATO do catálogo>","qtd":12,"un":"kg"}.
 Unidades usuais: kg, g, L, ml, un. O nome exato é o que garante o vínculo de custo com o Compras.
+REFRESCO (bebida): o insumo é SEMPRE o refresco EM PÓ do catálogo — os itens no formato
+"Refrescos <sabor> ( pacote 1 kg)" —, NUNCA a fruta in natura. Ex.: bebida de abacaxi →
+insumo "Refrescos Abacaxi ( pacote 1 kg)" (e não "Abacaxi"). Se o sabor não existir em pó
+no catálogo, escolha outro sabor de refresco em pó que exista.
 
 SAÍDA: responda APENAS com JSON válido, sem texto fora do JSON. Todos os campos em
 português. "Arroz e Feijão" DEVE aparecer (campo guarnicao_fixa). Formato:
