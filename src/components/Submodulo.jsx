@@ -108,7 +108,7 @@ const SERIE_ICON = {
 // Submódulo dentro de uma trilha (ex.: dentro de "Especiais"). Recolhível.
 // Série mensal de envio (ex.: 100% de Presença) → bancada de calendários (mês/ano),
 // no estilo do TATÁ NEWS. Demais → lista simples de desafios.
-export function Submodulo({ nome, itens, onAbrir, admin = false, personalizar = (h) => h }) {
+export function Submodulo({ nome, itens, onAbrir, admin = false, personalizar = (h) => h, soDepto = false }) {
   const [aberto, setAberto] = useState(false)
   const [sobre, setSobre] = useState(false)
   const ehSerieEnvio = itens.length > 0 && itens.every((i) => i.tipo === 'envio')
@@ -123,10 +123,12 @@ export function Submodulo({ nome, itens, onAbrir, admin = false, personalizar = 
   const ehMensalConteudo = ehSerieConteudo
   const ehMensal = ehMensalEnvio || ehMensalConteudo
   // Prêmio (série mensal de conteúdo): subcategoria = "Prêmio <Unidade> — <Departamento>".
-  // Mostra só "Prêmio <Departamento>" — a unidade vem no cabeçalho do grupo (admin) ou
-  // é implícita (colaborador só vê o prêmio do próprio depto).
+  // Dentro do grupo de unidade (admin), mostra só o departamento — a unidade já está no
+  // cabeçalho do grupo, e "Prêmio" repetido em cada linha polui. Solto (colaborador vê só
+  // o do próprio depto), mantém "Prêmio <Departamento>" pra dar contexto.
   const ehPremio = ehMensalConteudo && nome.includes(' — ')
-  const rotulo = ehPremio ? 'Prêmio ' + nome.split(' — ').slice(1).join(' — ') : nome
+  const deptoDoNome = ehPremio ? nome.split(' — ').slice(1).join(' — ') : nome
+  const rotulo = ehPremio ? (soDepto ? deptoDoNome : 'Prêmio ' + deptoDoNome) : nome
   const feitos = itens.filter((i) => i.concluido).length
   const pontos = itens.reduce((s, i) => s + (i.pontos || 0), 0)
   const temAcao =
@@ -536,6 +538,7 @@ export function GrupoUnidade({ unidade, subs, onAbrir, admin, personalizar }) {
               onAbrir={onAbrir}
               admin={admin}
               personalizar={personalizar}
+              soDepto
             />
           ))}
         </div>
