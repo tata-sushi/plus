@@ -34,7 +34,7 @@ function competencia(di) {
   return `${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`
 }
 
-// rótulo curto do mês do período (para a bancada de Metas): 2026-06-21 → "Jun/26"
+// rótulo curto do mês de competência (fim do período) — bancada de Metas: 2026-08-20 → "Ago/26"
 const MESES = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
 function mesCurto(di) {
   if (!di) return ''
@@ -277,7 +277,7 @@ export function Submodulo({ nome, itens, onAbrir, admin = false, personalizar = 
                   key={item.id}
                   onClick={() => pode && onAbrir(item)}
                   disabled={!pode}
-                  aria-label={`Metas ${mesCurto(item.data_inicio)}`}
+                  aria-label={`Metas ${mesCurto(item.data_fim)}`}
                   className="flex flex-col items-center gap-1.5 py-1.5 tap"
                 >
                   <span
@@ -310,7 +310,7 @@ export function Submodulo({ nome, itens, onAbrir, admin = false, personalizar = 
                       abertoAgora || concl ? 'text-text' : 'text-muted-2',
                     )}
                   >
-                    {mesCurto(item.data_inicio)}
+                    {mesCurto(item.data_fim)}
                   </span>
                 </button>
               )
