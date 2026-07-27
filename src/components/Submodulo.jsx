@@ -270,7 +270,8 @@ export function Submodulo({ nome, itens, onAbrir, admin = false, personalizar = 
       )}
 
       {/* Série mensal de conteúdo (Metas & Prêmio) → bancada de calendários por mês.
-          Passado = concluído (✓) ou fechado (cinza) · atual = destaque citric · futuro = cadeado (oculto). */}
+          Concluído (✓) ou fechado sem pegar (X) = passado · atual = citric · futuro = cadeado.
+          Mesmo modelo do 100% de Presença. */}
       {aberto && ehMensalConteudo && (
         <div className="bg-surface-2/40">
           {comoFunciona}
@@ -279,6 +280,8 @@ export function Submodulo({ nome, itens, onAbrir, admin = false, personalizar = 
               const concl = item.concluido
               const estado = concl ? 'concluido' : item.janela_estado
               const abertoAgora = estado === 'aberto'
+              // já passou = pegou (concluiu) ou o período fechou sem concluir (perdeu → X)
+              const jaPassou = concl || estado === 'encerrado'
               const pode = abertoAgora || concl || admin
               return (
                 <button
@@ -291,7 +294,7 @@ export function Submodulo({ nome, itens, onAbrir, admin = false, personalizar = 
                   <span
                     className={cn(
                       'relative grid h-11 w-11 place-items-center rounded-2xl',
-                      concl
+                      jaPassou
                         ? 'bg-accent-soft text-accent'
                         : abertoAgora
                           ? 'bg-accent text-black'
@@ -305,6 +308,12 @@ export function Submodulo({ nome, itens, onAbrir, admin = false, personalizar = 
                         <Check size={10} strokeWidth={2.5} />
                       </span>
                     )}
+                    {/* fechou sem concluir → X (perdeu, bloqueado) */}
+                    {estado === 'encerrado' && (
+                      <span className="absolute -right-1.5 -top-1.5 grid h-[18px] w-[18px] place-items-center rounded-full bg-surface-3 text-muted ring-2 ring-surface">
+                        <X size={10} strokeWidth={3} />
+                      </span>
+                    )}
                     {/* futuro → cadeado (conteúdo oculto) */}
                     {estado === 'em_breve' && (
                       <span className="absolute -right-1.5 -top-1.5 text-muted-2">
@@ -315,7 +324,7 @@ export function Submodulo({ nome, itens, onAbrir, admin = false, personalizar = 
                   <span
                     className={cn(
                       'text-[10.5px] font-semibold',
-                      abertoAgora || concl ? 'text-text' : 'text-muted-2',
+                      abertoAgora || jaPassou ? 'text-text' : 'text-muted-2',
                     )}
                   >
                     {mesCurto(item.data_fim)}
