@@ -10,27 +10,20 @@
 // Chamada (POST, JSON, com JWT de admin): { "limit": 60, "dry_run": false }
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
-const SYSTEM = `Você é um nutricionista que classifica pratos de um refeitório quanto a RESTRIÇÕES ALIMENTARES.
+const SYSTEM = `Você é um nutricionista que classifica pratos de um refeitório quanto a PROTEÍNA e adequação VEGETARIANA/VEGANA.
 Para CADA prato da lista, diga com QUAIS restrições da LISTA ele conflita (ou seja, contém / não é adequado para quem tem aquela restrição).
 
 REGRAS:
 - Use EXATAMENTE os nomes da LISTA DE RESTRIÇÕES fornecida. Não invente nomes nem crie novos.
-- "Carne de porco": bacon, linguiça, costelinha/bisteca/lombo/pernil suíno, calabresa, presunto, feijoada, torresmo, etc.
-- "Carne vermelha": carne bovina (picanha, costela bovina, carne moída, almôndegas de carne, bife, cupim, etc.).
-- "Frango": qualquer ave (frango, galinha).
+- "Carne de porco": bacon, linguiça, calabresa, costelinha/bisteca/lombo/pernil suíno, presunto, feijoada, tropeiro, torresmo, mortadela, salsicha, tender, etc.
+- "Carne vermelha": carne bovina e outras carnes vermelhas (picanha, costela, carne moída, almôndegas, bife, cupim, cordeiro, etc.).
+- "Frango": qualquer ave (frango, galinha, chester, peru).
 - "Peixe": peixes (tilápia, merluza, salmão, bacalhau, sardinha, atum, etc.).
-- "Frutos do mar" / "Marisco" / "Camarão": conforme o fruto do mar presente.
-- "Glúten": trigo — macarrão, pão, empanados/à milanesa/à parmegiana, nhoque, quibe, farofa com farinha de trigo, etc.
-- "Lactose": leite e derivados — queijo, creme de leite, manteiga, molho branco, estrogonofe, gratinado, purê com leite, etc.
-- "Ovo": ovo, omelete, maionese, empanados à milanesa/dorê.
-- "Soja": soja, shoyu, tofu, edamame.
-- "Amendoim" / "Castanhas": conforme presença.
-- "Vegano": marque se o prato contém QUALQUER produto de origem animal (carne, peixe, ovo, leite/derivados, mel).
-- "Vegetariano": marque se o prato contém carne ou peixe (laticínio e ovo NÃO marcam vegetariano).
-- "Sem cebola" / "Sem alho" / "Sem pimenta": marque quando o prato tipicamente leva esse ingrediente de forma marcante.
-- "Sem açúcar": marque sobremesas / pratos adoçados.
-- "Sem sal": NÃO classifique (ignore essa restrição).
-Se o prato não conflita com NENHUMA restrição, devolva lista vazia [] para ele.
+- "Frutos do mar": camarão, lula, polvo, marisco, mexilhão, lagosta, siri, etc.
+- "Vegetariano": marque se o prato contém carne, ave, peixe ou frutos do mar (laticínio e ovo NÃO marcam vegetariano).
+- "Vegano": marque se o prato contém QUALQUER produto de origem animal — carne/ave/peixe/frutos do mar, ovo, leite e derivados (queijo, creme de leite, manteiga, requeijão, molho branco, purê com leite), maionese, ou mel.
+- NÃO classifique lactose, glúten, ovo, soja, amendoim, castanhas nem "Sem ..." — essas ficam FORA (são tratadas por outra camada). Restrinja-se EXCLUSIVAMENTE aos nomes da LISTA.
+Se o prato não conflita com NENHUMA restrição da lista, devolva lista vazia [] para ele.
 
 SAÍDA: responda APENAS com JSON válido, sem texto fora do JSON. Formato:
 {"tags": {"<nome EXATO do prato>": ["<restrição>", "<restrição>"], "<outro prato>": []}}`
