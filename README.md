@@ -213,20 +213,22 @@ O carrossel da Início é montado pelo RPC `destaques()`, que junta duas origens
     editável** (título + texto com variáveis `{titulo}` `{pontos}` `{qtd}` `{posicao}` `{saldo}`,
     trocadas pelos valores reais) em `destaque_config`. A **etiqueta/pílula** (`cta_label`) também é
     editável no painel — a `destaques()` lê de `destaque_config` (com fallback pro texto padrão).
-  - 🔒 **Trocar senha** — para quem **ainda está na senha padrão** (`profiles.senha_alterada=false`;
-    a flag liga quando a pessoa troca pelo app, via `marcar_senha_alterada()`). Leva ao Painel de
-    Ajustes. Liga/desliga + texto em `destaque_config` (`chave='senha'`).
-  - 🥗 **Cadastrar restrições** — para quem **não tem nenhuma restrição** cadastrada
-    (`tata_refeicoes.colaborador_restricoes`). Leva a **Meu perfil**. `destaque_config` (`chave='restricoes'`).
+  - 🔒 **Segurança** (trocar senha) — para quem **ainda está na senha padrão** (`profiles.senha_alterada
+    = false`; a flag liga quando a pessoa troca pelo app, via `marcar_senha_alterada()`). Pílula
+    "Segurança"; leva ao Painel de Ajustes. `destaque_config` (`chave='senha'`).
+  - 🥗 **Cadastrar restrições** — para quem **ainda não respondeu**: sem itens em
+    `colaborador_restricoes` **e** `colaborador_pref_refeicao.tem_restricao is null`. **Some quando a
+    pessoa responde** (cadastra uma restrição ou marca "Não tenho" na tela de restrições). Leva a **Meu perfil**.
+  - 🌙 **Modo escuro** — recomenda o modo escuro **só para quem está no claro**. Gerido no painel como
+    os outros; como o tema vive no aparelho, a `destaques()` devolve o card quando o sorteio o pega e o
+    **front** (`Home.jsx`) filtra pelo tema (no escuro, tira). Leva ao Painel de Ajustes. *(Efeito: um
+    usuário no escuro pode ver 1 automático em vez de 2 nos dias em que o sorteio pega o modo escuro.)*
 
-  Os automáticos elegíveis entram num **sorteio de até 2 por usuário/dia** (estável no dia) — por isso
-  aparecem "de vez em quando", sem competir com aniversário/publicações (que sempre aparecem).
-  O limite fica no `limit` do CTE `auto_pick` da `destaques()`.
-
-- 🌙 **Modo escuro** — recomenda o modo escuro **só para quem está no claro**. O liga/desliga, texto
-  e imagem ficam no `destaque_config` (aparece no painel de **Automáticos**, como os outros), mas o
-  tema vive no aparelho: a `destaques()` sempre devolve o card quando ligado e o **front** (`Home.jsx`)
-  o filtra — mostra só no claro e de vez em quando (sorteio). Leva ao **Painel de Ajustes**.
+  Todos os automáticos acima entram num **sorteio de até 2 por usuário/dia** (estável no dia) — por
+  isso aparecem "de vez em quando". A **etiqueta/pílula** (`cta_label`), o título, o texto e a **imagem**
+  de cada um são editáveis no painel. Aniversário e publicações manuais ficam **fora** do sorteio
+  (sempre aparecem). O limite é o `limit` do CTE `auto_pick` da `destaques()`. O carrossel auto-avança
+  a cada **8 s** e pausa enquanto o dedo está na tela.
 
 Tudo é gerido em **Administração → Anúncios**: a lista dos manuais + a seção **Automáticos**
 (toggles, editores de mensagem e a tela de imagens/mensagens do aniversário embutida).
@@ -339,7 +341,10 @@ combinados para a reta final, antes/junto do piloto:
 - [ ] **Desafios por categoria** — organizar as trilhas em Gente & Gestão, Soft Skill, Feedback e
       Especiais (fechar a mecânica de formulário / texto livre que falta em IE)
 - [x] **Comunicados / Notícias** — aba **Anúncios** unifica manuais + automáticos; publicação
-      só‑imagem; mensagens dos automáticos editáveis por template
+      só‑imagem; cada automático com **liga/desliga, título, texto, etiqueta e imagem** editáveis;
+      automáticos de **Segurança (senha)**, **Restrições** e **Modo escuro**; sorteio de **2/dia**;
+      carrossel a **8 s**
+- [x] **Perfil** — tocar na foto **amplia** (lightbox via portal `createPortal`, fixo na tela toda)
 - [ ] **Card de destaque no tema claro** — degradê dos cards sem imagem precisa ficar legível no
       contraste claro (hoje texto branco fica fraco)
 - [x] **Aniversário de empresa** — artes próprias **centralizadas** (`aniversario-cc`), 5 mensagens
