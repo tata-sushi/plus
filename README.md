@@ -326,11 +326,18 @@ Detalhe por sessão em `docs/CONTEXTO.md` (§13–§14). Resumo:
 
 - **Prontas:** Integração, Código de Ética, Qualidade, **Gente & Gestão** (12 desafios),
   Especiais (100% de Presença, Aniversário, Indicação, Saúde), Tatá News, **Tatá Plus**.
-- **Gorjeta & Prêmio:** intros (vídeos) + **Metas & Prêmio mensal** — bancada de "caixinhas"
-  por mês (série de conteúdo com janela de data), **direcionada por unidade+departamento**
-  (alvo composto). Ver §14.
+- **Gorjeta & Prêmio:** ✅ **no ar (100%)**. Intros (vídeos) + **Metas & Prêmio mensal** por
+  **unidade + departamento** (alvo composto): **20 prêmios** em Poke - Pinheiros, Itaim e
+  Pinheiros — cada colaborador vê só o do seu depto (~124 pessoas). Valor do ponto por unidade
+  (Poke R$100; Itaim/Pinheiros/Tatá House R$50) **× pontuação**; faixas de volume cumulativas.
+  Bancada no modelo Presença (✓ concluído / **X** perdeu / aberto / cadeado). **Histórico por
+  lotação** — tabela `colaborador_lotacao` + trigger no `profiles` (admissão p/ novos, data da
+  troca quando muda de depto): a conclusão **preserva** o passado e a entrada no depto é o **piso**
+  de visibilidade (não vê períodos anteriores). Admin vê tudo **agrupado por unidade**. Ver §14.
 - **Soft Skill:** 3 submódulos (Inteligência Emocional, Missão dos Desbravadores, DISC).
-  **Inteligência Emocional** montado (12/16); faltam 4 desafios de **formulário/texto livre**.
+  **Inteligência Emocional** (16) e **Missão dos Desbravadores** (4) estão **ocultas dos
+  colaboradores** (visíveis só ao admin, via atribuição-alvo `[OCULTO]`) até o refino — faltam
+  os 4 desafios de **formulário/texto livre** em IE.
 
 ## Próximos passos
 
