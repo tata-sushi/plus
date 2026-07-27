@@ -121,6 +121,11 @@ export function Submodulo({ nome, itens, onAbrir, admin = false, personalizar = 
   const ehMensalEnvio = ehSerieEnvio && !ehSeq
   const ehMensalConteudo = ehSerieConteudo
   const ehMensal = ehMensalEnvio || ehMensalConteudo
+  // Prêmio (série mensal de conteúdo): subcategoria = "Prêmio <Unidade> — <Departamento>".
+  // O colaborador vê só "Prêmio <Departamento>"; o admin (que enxerga todos os deptos e
+  // unidades) vê unidade + departamento, pra distinguir cada um na lista geral.
+  const ehPremio = ehMensalConteudo && nome.includes(' — ')
+  const rotulo = ehPremio && !admin ? 'Prêmio ' + nome.split(' — ').slice(1).join(' — ') : nome
   const feitos = itens.filter((i) => i.concluido).length
   const pontos = itens.reduce((s, i) => s + (i.pontos || 0), 0)
   const temAcao =
@@ -179,7 +184,9 @@ export function Submodulo({ nome, itens, onAbrir, admin = false, personalizar = 
           <HeaderIcon size={16} />
         </span>
         <span className="min-w-0 flex-1">
-          <span className="block truncate text-sm font-semibold">{nome}</span>
+          <span className={cn('block text-sm font-semibold', !(ehPremio && admin) && 'truncate')}>
+            {rotulo}
+          </span>
           <span className="text-[11px] text-muted-2">
             {feitos}/{itens.length} {ehRec ? 'resgatados' : 'concluídos'}
             {temAcao ? ' · disponível' : ''}
