@@ -17,6 +17,7 @@ import {
   HeartPulse,
   ClipboardList,
   Coins,
+  Store,
 } from 'lucide-react'
 import { cn } from '../lib/cn'
 
@@ -122,10 +123,10 @@ export function Submodulo({ nome, itens, onAbrir, admin = false, personalizar = 
   const ehMensalConteudo = ehSerieConteudo
   const ehMensal = ehMensalEnvio || ehMensalConteudo
   // Prêmio (série mensal de conteúdo): subcategoria = "Prêmio <Unidade> — <Departamento>".
-  // O colaborador vê só "Prêmio <Departamento>"; o admin (que enxerga todos os deptos e
-  // unidades) vê unidade + departamento, pra distinguir cada um na lista geral.
+  // Mostra só "Prêmio <Departamento>" — a unidade vem no cabeçalho do grupo (admin) ou
+  // é implícita (colaborador só vê o prêmio do próprio depto).
   const ehPremio = ehMensalConteudo && nome.includes(' — ')
-  const rotulo = ehPremio && !admin ? 'Prêmio ' + nome.split(' — ').slice(1).join(' — ') : nome
+  const rotulo = ehPremio ? 'Prêmio ' + nome.split(' — ').slice(1).join(' — ') : nome
   const feitos = itens.filter((i) => i.concluido).length
   const pontos = itens.reduce((s, i) => s + (i.pontos || 0), 0)
   const temAcao =
@@ -184,9 +185,7 @@ export function Submodulo({ nome, itens, onAbrir, admin = false, personalizar = 
           <HeaderIcon size={16} />
         </span>
         <span className="min-w-0 flex-1">
-          <span className={cn('block text-sm font-semibold', !(ehPremio && admin) && 'truncate')}>
-            {rotulo}
-          </span>
+          <span className="block truncate text-sm font-semibold">{rotulo}</span>
           <span className="text-[11px] text-muted-2">
             {feitos}/{itens.length} {ehRec ? 'resgatados' : 'concluídos'}
             {temAcao ? ' · disponível' : ''}
@@ -495,6 +494,50 @@ export function Submodulo({ nome, itens, onAbrir, admin = false, personalizar = 
               </button>
             )
           })}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// Agrupador por unidade — usado só no perfil admin, que enxerga os prêmios de
+// todas as unidades/departamentos. Recolhível: cada unidade abre a lista de
+// bancadas dos seus departamentos. O colaborador não passa por aqui (vê só o
+// prêmio do próprio depto, direto).
+export function GrupoUnidade({ unidade, subs, onAbrir, admin, personalizar }) {
+  const [aberto, setAberto] = useState(false)
+  return (
+    <div className="border-t border-line">
+      <button
+        onClick={() => setAberto((a) => !a)}
+        className="hstack w-full gap-3 px-4 py-3 text-left tap"
+      >
+        <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-accent-soft text-accent">
+          <Store size={16} />
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block truncate text-sm font-semibold">{unidade}</span>
+          <span className="text-[11px] text-muted-2">
+            {subs.length} departamento{subs.length > 1 ? 's' : ''}
+          </span>
+        </span>
+        <ChevronDown
+          size={16}
+          className={cn('shrink-0 text-muted transition-transform', aberto && 'rotate-180')}
+        />
+      </button>
+      {aberto && (
+        <div className="bg-surface-2/30">
+          {subs.map(([nome, itens]) => (
+            <Submodulo
+              key={nome}
+              nome={nome}
+              itens={itens}
+              onAbrir={onAbrir}
+              admin={admin}
+              personalizar={personalizar}
+            />
+          ))}
         </div>
       )}
     </div>
