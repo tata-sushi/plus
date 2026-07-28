@@ -31,14 +31,14 @@ import { tapHaptic } from '../lib/haptics.js'
 const ROTA_CANVAS = { '/ouvidoria': 'ouvidoria' }
 
 // gov: true → só aparece para quem tem acesso à Governança.
-// dono: true → esboço restrito ao Victor (matrícula 7).
+// quadros: true → só para quem tem acesso a Quadros (liberado no painel de admin).
 const itens = [
   { to: '/jornada', label: 'Meu perfil', icon: UserRound },
   { to: '/buscar', label: 'Buscar colaborador', icon: Search },
   { to: '/comunicados', label: 'Comunicados', icon: Megaphone },
   { to: '/ouvidoria', label: 'Ouvidoria', icon: MessageSquareWarning, gov: true },
   { to: '/cardapio', label: 'Cardápio', icon: UtensilsCrossed },
-  { to: '/quadros', label: 'Quadros (esboço)', icon: KanbanSquare, dono: true },
+  { to: '/quadros', label: 'Quadros', icon: KanbanSquare, quadros: true },
   { to: '/manutencao', label: 'Painel de Ajustes', icon: Wrench },
   { to: '/atalhos-governanca', label: 'Atalhos', icon: Pin, gov: true },
 ]
@@ -54,9 +54,9 @@ export function Mais() {
   const cargo = usuario?.cargo || ''
   const loja = usuario?.loja || ''
   // Ouvidoria e Gerenciar atalhos só para quem tem acesso à Governança.
-  // O esboço de Quadros (dono) só aparece para o Victor (matrícula 7).
+  // Quadros só aparece para quem foi liberado no painel de admin.
   const navItens = itens.filter(
-    (i) => (!i.gov || usuario?.governanca?.tem) && (!i.dono || usuario?.matricula === '7'),
+    (i) => (!i.gov || usuario?.governanca?.tem) && (!i.quadros || usuario?.podeQuadros),
   )
 
   const inputFoto = useRef(null)

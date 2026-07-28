@@ -16,6 +16,7 @@ export function AuthProvider({ children }) {
   const [profile, setProfile] = useState(null)
   const [avatarUrl, setAvatarUrl] = useState(null)
   const [podePublicar, setPodePublicar] = useState(false)
+  const [podeQuadros, setPodeQuadros] = useState(null) // acesso a Quadros: null = verificando
   const [govTipo, setGovTipo] = useState(null) // tipo de acesso à governança (ou null)
   const [loading, setLoading] = useState(true)
   const [motivoBloqueio, setMotivoBloqueio] = useState('') // '' | 'inativo'
@@ -105,6 +106,7 @@ export function AuthProvider({ children }) {
     if (!mat) {
       setAvatarUrl(null)
       setPodePublicar(false)
+      setPodeQuadros(null)
       setGovTipo(null)
       return
     }
@@ -119,6 +121,9 @@ export function AuthProvider({ children }) {
       })
     supabase.rpc('pode_publicar').then(({ data }) => {
       if (ativo) setPodePublicar(data === true)
+    })
+    supabase.rpc('kanban_pode_criar').then(({ data }) => {
+      if (ativo) setPodeQuadros(data === true)
     })
     supabase.rpc('acesso_governanca').then(({ data }) => {
       if (ativo) setGovTipo(data || null)
@@ -151,6 +156,7 @@ export function AuthProvider({ children }) {
         status: profile.status,
         avatarUrl,
         podePublicar,
+        podeQuadros,
         governanca: { tem: !!govTipo, tipo: govTipo },
       }
     : session?.user
