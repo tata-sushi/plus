@@ -24,9 +24,9 @@ import { QuestionarioDisc } from './routes/QuestionarioDisc.jsx'
 import { PainelExterno } from './routes/PainelExterno.jsx'
 import { BuscarPessoas } from './routes/BuscarPessoas.jsx'
 
-// Esboço do painel Kanban — carregado sob demanda (só o dono abre), pra não
+// Painel Kanban (Quadros) — carregado sob demanda (poucos têm acesso), pra não
 // pesar o bundle de todo mundo com a lib de drag-and-drop.
-const QuadrosEsboco = lazy(() => import('./routes/QuadrosEsboco.jsx'))
+const Quadros = lazy(() => import('./routes/Quadros.jsx'))
 
 function Splash() {
   return (
@@ -72,7 +72,7 @@ export function App() {
           path="/quadros"
           element={
             <Suspense fallback={<Splash />}>
-              <QuadrosEsboco />
+              <Quadros />
             </Suspense>
           }
         />
