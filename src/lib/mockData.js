@@ -108,6 +108,7 @@ export const governancaCatalogo = [
   { id: 'gov_solicitacoes', label: 'Solicitações', icon: 'Inbox', url: 'https://lideres.tatasushi.tech/compliance/kpis/rh/solicitacoes.html' },
   { id: 'gov_ferias', label: 'Férias', icon: 'Umbrella', url: 'https://lideres.tatasushi.tech/compliance/kpis/rh/ferias.html' },
   { id: 'gov_medicina', label: 'Medicina Ocupacional', icon: 'Stethoscope', url: 'https://lideres.tatasushi.tech/compliance/kpis/rh/medicina.html' },
-  { id: 'gov_performance', label: 'Performance', icon: 'Target', url: 'https://lideres.tatasushi.tech/compliance/kpis/rh/performance.html' },
+  { id: 'gov_performance', label: 'Performance', icon: 'Target', url: 'https://lideres.tatasushi.tech/compliance/kpis/rh/performance.html', admin: true },
   { id: 'gov_cardapio', label: 'Elaboração de Cardápio', icon: 'BookOpen', url: 'https://lideres.tatasushi.tech/compliance/kpis/tatahouse/cardapio.html' },
+  { id: 'gov_report_semanal', label: 'Report semanal', icon: 'LineChart', url: 'https://lideres.tatasushi.tech/compliance/kpis/rh/semanal.html', admin: true },
 ]
