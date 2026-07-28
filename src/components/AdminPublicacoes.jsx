@@ -44,6 +44,8 @@ const AUTO = [
   { chave: 'senha', label: 'Segurança', Icon: ShieldCheck, vars: 'aparece p/ quem está na senha padrão' },
   { chave: 'restricoes', label: 'Cadastrar restrições', Icon: Salad, vars: 'aparece p/ quem não cadastrou restrição' },
   { chave: 'modo_escuro', label: 'Modo escuro', Icon: Moon, vars: 'aparece p/ quem está no modo claro' },
+  { chave: 'aviso_1', label: 'Aviso recorrente 1', Icon: Megaphone, vars: 'Texto e imagem livres · entra no revezamento do carrossel' },
+  { chave: 'aviso_2', label: 'Aviso recorrente 2', Icon: Megaphone, vars: 'Texto e imagem livres · entra no revezamento (comece desligado)' },
 ]
 
 // Linha de um destaque automático: liga/desliga + editor de título/texto/imagem.
