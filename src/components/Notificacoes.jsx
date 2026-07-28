@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
-import { Bell, X, CheckCircle2, XCircle, Info, Loader2, BellOff } from 'lucide-react'
+import { Bell, X, CheckCircle2, XCircle, Info, Loader2, BellOff, KanbanSquare } from 'lucide-react'
 import { supabase } from '../lib/supabase.js'
 import { cn } from '../lib/cn'
 import { tapHaptic } from '../lib/haptics.js'
@@ -25,6 +25,7 @@ function visual(n) {
       ? { Icon: XCircle, cls: 'bg-danger/10 text-danger' }
       : { Icon: CheckCircle2, cls: 'bg-accent-soft text-accent' }
   }
+  if (n.categoria === 'kanban') return { Icon: KanbanSquare, cls: 'bg-accent-soft text-accent' }
   return { Icon: Info, cls: 'bg-surface-2 text-carbon' }
 }
 
@@ -66,6 +67,7 @@ export function Notificacoes() {
   function irPara(n) {
     fechar()
     if (n.referencia_tipo === 'treinamento') navigate('/treinamentos')
+    else if (n.referencia_tipo === 'kanban_card') navigate('/quadros')
   }
 
   return (
