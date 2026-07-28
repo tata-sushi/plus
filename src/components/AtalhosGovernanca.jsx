@@ -6,6 +6,7 @@ import { resolveIcon } from '../lib/icons.js'
 import { tapHaptic } from '../lib/haptics.js'
 import { useDesktop } from '../lib/useDesktop.js'
 import { useDesktopCanvas } from '../lib/desktopCanvas.js'
+import { useAuth } from '../lib/AuthContext.jsx'
 import { governancaCatalogo, MAX_PAGINAS_FIXADAS } from '../lib/mockData.js'
 
 export const ATALHOS_KEY = 'tata_gov_pinned'
@@ -29,8 +30,14 @@ export function loadPinned() {
 // desafixar) fica em Mais › Gerenciar atalhos (rota /atalhos-governanca). Como o
 // <main> remonta a cada troca de rota, ao voltar para a Início a seleção é relida.
 export function AtalhosGovernanca() {
+  const { usuario } = useAuth()
+  const isAdmin = (usuario?.perfil || '').toLowerCase() === 'admin'
   const [pinned] = useState(loadPinned)
-  const fixadas = pinned.map((id) => governancaCatalogo.find((c) => c.id === id)).filter(Boolean)
+  // Páginas marcadas admin só aparecem pra quem é admin (mesmo se ficaram fixadas).
+  const fixadas = pinned
+    .map((id) => governancaCatalogo.find((c) => c.id === id))
+    .filter(Boolean)
+    .filter((p) => isAdmin || !p.admin)
   const desktop = useDesktop()
   const { abrirAba } = useDesktopCanvas()
 
