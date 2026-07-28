@@ -121,21 +121,8 @@ Deno.serve(async (req) => {
 
     const URL = Deno.env.get('SUPABASE_URL')!
     const SERVICE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-    const ANON = Deno.env.get('SUPABASE_ANON_KEY')!
-    const auth = req.headers.get('Authorization') ?? ''
 
-    // 1) permissão — com o JWT do chamador. Botão controlado pelo painel admin:
-    // admin OU (tem acesso à página do cardápio E o botão não está bloqueado pra a pessoa).
-    const asUser = createClient(URL, ANON, {
-      global: { headers: { Authorization: auth } },
-      db: { schema: 'tata_plus' },
-    })
-    const { data: pode, error: perr } = await asUser.rpc('pode_botao', {
-      p_aba_id: 'governanca-kpis-tatahouse-cardapio::gerar-cardapio',
-    })
-    if (perr || !pode) return json({ error: 'sem permissão para gerar cardápio' }, 403)
-
-    // 2) contexto — service role
+    // contexto — service role (visibilidade do botão é controlada no front, pelo painel)
     const svc = createClient(URL, SERVICE, { db: { schema: 'tata_plus' } })
     const { data: ctx, error: cerr } = await svc.rpc('cardapio_ia_contexto', {
       p_inicio: inicio,
