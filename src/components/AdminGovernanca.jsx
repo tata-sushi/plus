@@ -24,7 +24,8 @@ function agrupar(catalogo) {
 }
 
 // Editor de acesso de uma pessoa: páginas (checkbox) e, por página, as abas
-// (liberadas por padrão; toque pra bloquear pra esta pessoa).
+// (liberadas por padrão; toque pra bloquear) e os botões da barra lateral
+// (ocultos por padrão; toque pra liberar pra esta pessoa).
 function EditorPessoa({ pessoa, catalogo, catalogoAbas, onFechar, onSalvo }) {
   const grupos = useMemo(() => agrupar(catalogo), [catalogo])
   // Agrupa por página e separa em abas (tipo='aba') e botões (tipo='botao').
@@ -39,32 +40,36 @@ function EditorPessoa({ pessoa, catalogo, catalogoAbas, onFechar, onSalvo }) {
   }, [catalogoAbas])
 
   const [ids, setIds] = useState(null) // Set de pagina_id · null = carregando
-  const [bloqueadas, setBloqueadas] = useState(new Set()) // Set de aba_id bloqueada
+  const [bloqueadas, setBloqueadas] = useState(new Set()) // aba_id bloqueada (abas · opt-out)
+  const [liberados, setLiberados] = useState(new Set()) // aba_id de botão liberado (botões · opt-in)
   const [abasAbertas, setAbasAbertas] = useState(new Set()) // pagina_id com abas expandidas
   const [botoesAbertas, setBotoesAbertas] = useState(new Set()) // pagina_id com botões expandidos
   const [salvando, setSalvando] = useState(false)
 
-  // Quantos itens desligados existem no total, separados por tipo — pro rodapé.
-  const desligados = useMemo(() => {
-    let a = 0,
-      b = 0
+  // Contagem pro rodapé: abas desligadas (opt-out) e botões liberados (opt-in).
+  const contagem = useMemo(() => {
+    let abasOff = 0
     for (const item of catalogoAbas || []) {
-      if (!bloqueadas.has(item.aba_id)) continue
-      if (item.tipo === 'botao') b++
-      else a++
+      if (item.tipo !== 'botao' && bloqueadas.has(item.aba_id)) abasOff++
     }
-    return { abas: a, botoes: b }
-  }, [catalogoAbas, bloqueadas])
+    return { abasOff, botoesOn: liberados.size }
+  }, [catalogoAbas, bloqueadas, liberados])
 
   useEffect(() => {
     let ativo = true
     Promise.all([
       supabase.rpc('gov_admin_acessos', { p_matricula: pessoa.matricula }),
       supabase.rpc('gov_admin_abas_bloqueios', { p_matricula: pessoa.matricula }),
-    ]).then(([ac, bl]) => {
+      supabase.rpc('gov_admin_botoes_liberados', { p_matricula: pessoa.matricula }),
+    ]).then(([ac, bl, lb]) => {
       if (!ativo) return
+      // bloqueadas guarda só abas (botões usam a allowlist `liberados`).
+      const abaIds = new Set(
+        (catalogoAbas || []).filter((a) => a.tipo !== 'botao').map((a) => a.aba_id),
+      )
       setIds(new Set((ac.data || []).map((r) => r.pagina_id)))
-      setBloqueadas(new Set((bl.data || []).map((r) => r.aba_id)))
+      setBloqueadas(new Set((bl.data || []).map((r) => r.aba_id).filter((id) => abaIds.has(id))))
+      setLiberados(new Set((lb.data || []).map((r) => r.aba_id)))
     })
     return () => {
       ativo = false
@@ -98,6 +103,15 @@ function EditorPessoa({ pessoa, catalogo, catalogoAbas, onFechar, onSalvo }) {
     })
   }
 
+  function toggleBotao(abaId) {
+    tapHaptic()
+    setLiberados((prev) => {
+      const n = new Set(prev)
+      n.has(abaId) ? n.delete(abaId) : n.add(abaId)
+      return n
+    })
+  }
+
   function toggleAbasAbertas(paginaId) {
     tapHaptic()
     setAbasAbertas((prev) => {
@@ -118,25 +132,40 @@ function EditorPessoa({ pessoa, catalogo, catalogoAbas, onFechar, onSalvo }) {
 
   async function salvar() {
     setSalvando(true)
-    const [r1, r2] = await Promise.all([
+    const [r1, r2, r3] = await Promise.all([
       supabase.rpc('gov_admin_set', { p_matricula: pessoa.matricula, p_pagina_ids: [...ids] }),
       supabase.rpc('gov_admin_abas_set', {
         p_matricula: pessoa.matricula,
         p_aba_ids: [...bloqueadas],
       }),
+      supabase.rpc('gov_admin_botoes_set', {
+        p_matricula: pessoa.matricula,
+        p_aba_ids: [...liberados],
+      }),
     ])
     setSalvando(false)
-    if (!r1.error && !r2.error) onSalvo(ids.size)
+    if (!r1.error && !r2.error && !r3.error) onSalvo(ids.size)
   }
 
   // Bloco recolhível de abas ou botões dentro de uma página. Mesma UX pros dois —
   // muda só o rótulo e a concordância de gênero na contagem.
   function BlocoToggles({ tipo, itens, aberto, onToggleAberto }) {
     if (!itens || itens.length === 0) return null
-    const qtdOff = itens.filter((a) => bloqueadas.has(a.aba_id)).length
-    const label = tipo === 'botao' ? 'Botões' : 'Abas'
-    const desligado =
-      tipo === 'botao' ? `desligado${qtdOff > 1 ? 's' : ''}` : `desligada${qtdOff > 1 ? 's' : ''}`
+    const isBotao = tipo === 'botao'
+    // Botões: opt-in (ligado = liberado). Abas: opt-out (ligado = não bloqueado).
+    const estaOn = (id) => (isBotao ? liberados.has(id) : !bloqueadas.has(id))
+    const onToggle = isBotao ? toggleBotao : toggleAba
+    const label = isBotao ? 'Botões' : 'Abas'
+    const qtdOn = itens.filter((a) => estaOn(a.aba_id)).length
+    const qtdOff = itens.length - qtdOn
+    // Botões mostram quantos estão liberados (verde); abas, quantas estão
+    // desligadas (vermelho).
+    const badge = isBotao
+      ? qtdOn > 0 && { txt: `${qtdOn} liberado${qtdOn > 1 ? 's' : ''}`, cls: 'bg-accent/15 text-accent' }
+      : qtdOff > 0 && {
+          txt: `${qtdOff} desligada${qtdOff > 1 ? 's' : ''}`,
+          cls: 'bg-danger/15 text-danger',
+        }
     return (
       <div className="px-4 pb-3 pl-12">
         <button
@@ -146,9 +175,16 @@ function EditorPessoa({ pessoa, catalogo, catalogoAbas, onFechar, onSalvo }) {
           <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-2">
             {label}
           </span>
-          {qtdOff > 0 && (
-            <span className="rounded-pill bg-danger/15 px-1.5 py-0.5 text-[9px] font-bold uppercase text-danger">
-              {qtdOff} {desligado}
+          {badge && (
+            <span
+              className={cn('rounded-pill px-1.5 py-0.5 text-[9px] font-bold uppercase', badge.cls)}
+            >
+              {badge.txt}
+            </span>
+          )}
+          {isBotao && qtdOn === 0 && (
+            <span className="rounded-pill bg-surface-2 px-1.5 py-0.5 text-[9px] font-medium uppercase text-muted-2">
+              oculto por padrão
             </span>
           )}
           <span className="flex-1" />
@@ -160,24 +196,32 @@ function EditorPessoa({ pessoa, catalogo, catalogoAbas, onFechar, onSalvo }) {
         {aberto && (
           <div className="mt-1 flex flex-col divide-y divide-line rounded-card border border-line">
             {itens.map((a) => {
-              const liberada = !bloqueadas.has(a.aba_id)
+              const on = estaOn(a.aba_id)
               return (
                 <div key={a.aba_id} className="hstack gap-3 px-3 py-2">
-                  <span className={cn('flex-1 text-[13px] font-medium', !liberada && 'text-muted-2')}>
+                  <span className={cn('flex-1 text-[13px] font-medium', !on && 'text-muted-2')}>
                     {a.label}
                   </span>
                   <button
-                    onClick={() => toggleAba(a.aba_id)}
+                    onClick={() => onToggle(a.aba_id)}
                     className={cn(
                       'relative h-6 w-10 shrink-0 rounded-full transition-colors tap',
-                      liberada ? 'bg-accent' : 'bg-surface-2',
+                      on ? 'bg-accent' : 'bg-surface-2',
                     )}
-                    aria-label={liberada ? `Desligar acesso: ${a.label}` : `Ligar acesso: ${a.label}`}
+                    aria-label={
+                      isBotao
+                        ? on
+                          ? `Ocultar botão: ${a.label}`
+                          : `Liberar botão: ${a.label}`
+                        : on
+                          ? `Desligar acesso: ${a.label}`
+                          : `Ligar acesso: ${a.label}`
+                    }
                   >
                     <span
                       className={cn(
                         'absolute top-0.5 h-5 w-5 rounded-full bg-white transition-all',
-                        liberada ? 'left-[18px]' : 'left-0.5',
+                        on ? 'left-[18px]' : 'left-0.5',
                       )}
                     />
                   </button>
@@ -328,10 +372,8 @@ function EditorPessoa({ pessoa, catalogo, catalogoAbas, onFechar, onSalvo }) {
               <Loader2 size={18} className="animate-spin" />
             ) : (
               `Salvar acesso (${ids.size} ${ids.size === 1 ? 'página' : 'páginas'}${
-                bloqueadas.size
-                  ? ` · ${desligados.abas} aba(s) · ${desligados.botoes} botão(ões) desligado(s)`
-                  : ''
-              })`
+                contagem.abasOff ? ` · ${contagem.abasOff} aba(s) off` : ''
+              }${contagem.botoesOn ? ` · ${contagem.botoesOn} botão(ões) liberado(s)` : ''})`
             )}
           </button>
         </div>
