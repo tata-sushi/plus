@@ -15,7 +15,7 @@ import { useDesktop } from '../lib/useDesktop.js'
 import { useDesktopCanvas } from '../lib/desktopCanvas.js'
 import { supabase } from '../lib/supabase.js'
 import { getTheme } from '../lib/theme.js'
-import { estadoPush, ativarPush } from '../lib/push.js'
+import { estadoPush } from '../lib/push.js'
 const TIPO_ICON = { principal: 'UtensilsCrossed', guarnicao: 'Salad', salada: 'Salad', sobremesa: 'IceCreamBowl', bebida: 'Wine', outro: 'Utensils' }
 function gruposDia(itens) {
   const ordem = ['principal', 'guarnicao', 'salada', 'sobremesa', 'bebida', 'outro']
@@ -136,17 +136,8 @@ export function Home() {
       destaques
         .filter((d) => d.chave !== 'modo_escuro' || tema === 'light')
         .filter((d) => d.chave !== 'aviso_1' || (pushInfo.suportado && !pushInfo.ativo))
-        .map((d) =>
-          d.chave === 'aviso_1'
-            ? {
-                ...d,
-                onTap: async () => {
-                  const r = await ativarPush()
-                  if (r?.ok) setPushInfo((p) => ({ ...p, ativo: true }))
-                },
-              }
-            : d,
-        ),
+        // aviso_1 leva pro Painel de Ajustes (não ativa direto) — a pessoa liga lá.
+        .map((d) => (d.chave === 'aviso_1' ? { ...d, cta_to: '/manutencao' } : d)),
     [destaques, tema, pushInfo],
   )
 

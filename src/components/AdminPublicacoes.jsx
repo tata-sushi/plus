@@ -44,7 +44,7 @@ const AUTO = [
   { chave: 'senha', label: 'Segurança', Icon: ShieldCheck, vars: 'aparece p/ quem está na senha padrão' },
   { chave: 'restricoes', label: 'Cadastrar restrições', Icon: Salad, vars: 'aparece p/ quem não cadastrou restrição' },
   { chave: 'modo_escuro', label: 'Modo escuro', Icon: Moon, vars: 'aparece p/ quem está no modo claro' },
-  { chave: 'aviso_1', label: 'Ativar notificações', Icon: Bell, vars: 'aparece só p/ quem está sem push no aparelho · o toque ativa a notificação' },
+  { chave: 'aviso_1', label: 'Ativar notificações', Icon: Bell, vars: 'aparece só p/ quem está sem push no aparelho · leva pro Painel de Ajustes' },
   { chave: 'aviso_2', label: 'Aviso recorrente', Icon: Megaphone, vars: 'Texto e imagem livres · entra no revezamento (comece desligado)' },
 ]
 
