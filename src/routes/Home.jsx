@@ -15,6 +15,7 @@ import { useDesktop } from '../lib/useDesktop.js'
 import { useDesktopCanvas } from '../lib/desktopCanvas.js'
 import { supabase } from '../lib/supabase.js'
 import { getTheme } from '../lib/theme.js'
+import { estadoPush, ativarPush } from '../lib/push.js'
 const TIPO_ICON = { principal: 'UtensilsCrossed', guarnicao: 'Salad', salada: 'Salad', sobremesa: 'IceCreamBowl', bebida: 'Wine', outro: 'Utensils' }
 function gruposDia(itens) {
   const ordem = ['principal', 'guarnicao', 'salada', 'sobremesa', 'bebida', 'outro']
@@ -115,9 +116,38 @@ export function Home() {
   // tema vive no aparelho: o front mostra só pra quem está no claro (no escuro,
   // filtra fora). O "de vez em quando" já é o sorteio da base.
   const [tema] = useState(getTheme)
+
+  // Card "aviso_1" = ativar notificações. O push é por aparelho (a base não sabe),
+  // então o front decide: mostra só pra quem está SEM push AQUI, e o toque ativa
+  // direto (onTap → ativarPush). Começa oculto até checar o estado do aparelho.
+  const [pushInfo, setPushInfo] = useState({ suportado: false, ativo: true })
+  useEffect(() => {
+    let ativo = true
+    estadoPush().then((e) => {
+      if (ativo) setPushInfo({ suportado: e.suportado, ativo: e.ativo })
+    })
+    return () => {
+      ativo = false
+    }
+  }, [])
+
   const cardsDestaque = useMemo(
-    () => destaques.filter((d) => d.chave !== 'modo_escuro' || tema === 'light'),
-    [destaques, tema],
+    () =>
+      destaques
+        .filter((d) => d.chave !== 'modo_escuro' || tema === 'light')
+        .filter((d) => d.chave !== 'aviso_1' || (pushInfo.suportado && !pushInfo.ativo))
+        .map((d) =>
+          d.chave === 'aviso_1'
+            ? {
+                ...d,
+                onTap: async () => {
+                  const r = await ativarPush()
+                  if (r?.ok) setPushInfo((p) => ({ ...p, ativo: true }))
+                },
+              }
+            : d,
+        ),
+    [destaques, tema, pushInfo],
   )
 
   return (
