@@ -52,6 +52,18 @@ export function GovFrame({ src, title, allow, className }) {
     } catch (e) {}
   }
 
+  // Quando o Plus renova o token (autoRefreshToken), reenvia pro iframe JÁ aberto.
+  // Sem isso, o iframe fica com o token antigo, que expira em ~1h e as consultas
+  // passam a dar 401 (páginas de governança travam/quebram depois de um tempo).
+  useEffect(() => {
+    const win = iframeRef.current?.contentWindow
+    if (!session || !win) return
+    try {
+      enviarToken(win, new URL(src, window.location.href).origin)
+    } catch (e) {}
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session?.access_token])
+
   // Rede de segurança: revela mesmo se a página não avisar (ex.: sem gate).
   useEffect(() => {
     if (!carregando) return
