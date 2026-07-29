@@ -1202,49 +1202,43 @@ function CardModal({ estado, card, board, admin, onClose, onFeito, onRefresh }) 
               </div>
             )}
 
-            {board.etiquetas.length > 0 && (
+            {/* Responsáveis | Categoria (etiquetas) */}
+            <div className={cn(board.etiquetas.length > 0 && 'grid grid-cols-2 items-start gap-4')}>
               <div>
-                <div className={lbl}>Etiquetas</div>
+                <div className={lbl}>Responsáveis</div>
                 <div className="mt-2 flex flex-wrap gap-1.5">
-                  {board.etiquetas.map((e) => {
-                    const on = etqs.has(e.id)
+                  {board.membros.map((p) => {
+                    const on = resp.has(p.matricula)
                     return (
-                      <button key={e.id} disabled={!editavel} onClick={() => toggle(setEtqs, e.id)} className={cn('hstack gap-1.5 rounded-md border px-2.5 py-1 text-xs font-semibold tap', on ? 'text-white' : 'border-line text-muted')} style={on ? { backgroundColor: e.cor, borderColor: e.cor } : undefined}>
-                        <span className="h-2 w-2 rounded-full" style={{ backgroundColor: on ? '#fff' : e.cor }} />
-                        {e.nome}
-                        {on && <Check size={12} />}
+                      <button key={p.matricula} disabled={!editavel} onClick={() => toggle(setResp, p.matricula)} className={cn('hstack gap-1.5 rounded-md border px-2 py-1 text-xs font-semibold tap', on ? chipSel : 'border-line text-muted')}>
+                        <Avatar name={p.nome} src={p.avatar} size={18} />
+                        {primeiro(p.nome)}
+                        {on && <Check size={13} />}
                       </button>
                     )
                   })}
                 </div>
               </div>
-            )}
-
-            <div>
-              <div className={lbl}>Responsáveis</div>
-              <div className="mt-2 flex flex-wrap gap-1.5">
-                {board.membros.map((p) => {
-                  const on = resp.has(p.matricula)
-                  return (
-                    <button key={p.matricula} disabled={!editavel} onClick={() => toggle(setResp, p.matricula)} className={cn('hstack gap-1.5 rounded-md border px-2 py-1 text-xs font-semibold tap', on ? chipSel : 'border-line text-muted')}>
-                      <Avatar name={p.nome} src={p.avatar} size={18} />
-                      {primeiro(p.nome)}
-                      {on && <Check size={13} />}
-                    </button>
-                  )
-                })}
-              </div>
-            </div>
-
-            <div>
-              <div className={lbl}>Prazo de conclusão</div>
-              {editavel ? (
-                <input type="date" value={prazo || ''} onChange={(e) => setPrazo(e.target.value)} className="mt-2 rounded-lg border border-line bg-bg px-3 py-2 text-sm outline-none" />
-              ) : (
-                <div className="mt-1.5 text-sm">{prazo ? fmtPrazo(prazo) : '—'}</div>
+              {board.etiquetas.length > 0 && (
+                <div>
+                  <div className={lbl}>Categoria</div>
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    {board.etiquetas.map((e) => {
+                      const on = etqs.has(e.id)
+                      return (
+                        <button key={e.id} disabled={!editavel} onClick={() => toggle(setEtqs, e.id)} className={cn('hstack gap-1.5 rounded-md border px-2.5 py-1 text-xs font-semibold tap', on ? 'text-white' : 'border-line text-muted')} style={on ? { backgroundColor: e.cor, borderColor: e.cor } : undefined}>
+                          <span className="h-2 w-2 rounded-full" style={{ backgroundColor: on ? '#fff' : e.cor }} />
+                          {e.nome}
+                          {on && <Check size={12} />}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
               )}
             </div>
 
+            {/* Descrição */}
             <div>
               <div className={lbl}>Descrição</div>
               {editavel ? (
@@ -1254,68 +1248,65 @@ function CardModal({ estado, card, board, admin, onClose, onFeito, onRefresh }) 
               )}
             </div>
 
-            {existe && (
-              <div>
-                <div className="hstack justify-between">
-                  <div className={lbl}>Checklist</div>
-                  <div className="hstack gap-3">
-                    {modelos.length > 0 && (
-                      <button onClick={() => setModelosAbertos((v) => !v)} className="hstack gap-1 font-mono text-[9px] font-medium uppercase tracking-[0.5px] text-carbon dark:text-accent tap">
-                        <ListChecks size={11} /> Usar pronto
-                      </button>
-                    )}
-                    {checklist.length > 0 && <div className="font-mono text-[10px] text-muted">{feitos}/{checklist.length}</div>}
+            {/* Checklist | Prazo de conclusão */}
+            <div className={cn(existe && 'grid grid-cols-2 items-start gap-4')}>
+              {existe && (
+                <div>
+                  <div className="hstack justify-between">
+                    <div className={lbl}>Checklist</div>
+                    <div className="hstack gap-2">
+                      {modelos.length > 0 && (
+                        <button onClick={() => setModelosAbertos((v) => !v)} className="hstack gap-1 font-mono text-[9px] font-medium uppercase tracking-[0.4px] text-carbon dark:text-accent tap">
+                          <ListChecks size={11} /> Usar pronto
+                        </button>
+                      )}
+                      {checklist.length > 0 && <div className="font-mono text-[10px] text-muted">{feitos}/{checklist.length}</div>}
+                    </div>
                   </div>
-                </div>
-                {modelosAbertos && modelos.length > 0 && (
-                  <div className="mt-2 flex flex-wrap gap-1.5">
-                    {modelos.map((m) => (
-                      <button key={m.id} onClick={() => { sub('kanban_checklist_aplicar', { p_card: card.id, p_modelo: m.id }); setModelosAbertos(false) }} className="rounded-md border border-line px-2.5 py-1 text-xs font-semibold text-muted tap">
-                        + {m.nome} <span className="text-muted-2">({(m.itens || []).length})</span>
-                      </button>
+                  {modelosAbertos && modelos.length > 0 && (
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                      {modelos.map((m) => (
+                        <button key={m.id} onClick={() => { sub('kanban_checklist_aplicar', { p_card: card.id, p_modelo: m.id }); setModelosAbertos(false) }} className="rounded-md border border-line px-2.5 py-1 text-xs font-semibold text-muted tap">
+                          + {m.nome} <span className="text-muted-2">({(m.itens || []).length})</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  <div className="mt-2 flex flex-col gap-1.5">
+                    {checklist.map((it) => (
+                      <div key={it.id} className="hstack gap-2">
+                        <button onClick={() => sub('kanban_checklist_toggle', { p_item: it.id, p_feito: !it.feito })} disabled={busy} aria-label={it.feito ? 'Desmarcar' : 'Marcar'} className={cn('grid h-5 w-5 shrink-0 place-items-center rounded border tap', it.feito ? 'border-[#35383F] ' + ctaEscuro : 'border-line')}>
+                          {it.feito && <Check size={13} />}
+                        </button>
+                        <span className={cn('min-w-0 flex-1 text-sm', it.feito && 'text-muted line-through')}>{it.texto}</span>
+                        <button onClick={() => sub('kanban_checklist_excluir', { p_item: it.id })} disabled={busy} aria-label="Remover item" className="shrink-0 text-muted-2 tap">
+                          <X size={14} />
+                        </button>
+                      </div>
                     ))}
                   </div>
+                  <div className="mt-2 hstack gap-2">
+                    <input value={novoItem} onChange={(e) => setNovoItem(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter' && novoItem.trim()) { sub('kanban_checklist_add', { p_card: card.id, p_texto: novoItem.trim() }); setNovoItem('') } }} placeholder="Adicionar item…" className="min-w-0 flex-1 rounded-lg border border-line bg-bg px-3 py-2 text-sm outline-none placeholder:text-muted-2" />
+                    <button onClick={() => { if (novoItem.trim()) { sub('kanban_checklist_add', { p_card: card.id, p_texto: novoItem.trim() }); setNovoItem('') } }} disabled={busy || !novoItem.trim()} className={cn('grid h-9 w-9 shrink-0 place-items-center rounded-lg tap disabled:opacity-40', ctaEscuro)}>
+                      <Plus size={15} />
+                    </button>
+                  </div>
+                </div>
+              )}
+              <div>
+                <div className={lbl}>Prazo de conclusão</div>
+                {editavel ? (
+                  <input type="date" value={prazo || ''} onChange={(e) => setPrazo(e.target.value)} className="mt-2 w-full rounded-lg border border-line bg-bg px-3 py-2 text-sm outline-none" />
+                ) : (
+                  <div className="mt-1.5 text-sm">{prazo ? fmtPrazo(prazo) : '—'}</div>
                 )}
-                <div className="mt-2 flex flex-col gap-1.5">
-                  {checklist.map((it) => (
-                    <div key={it.id} className="hstack gap-2">
-                      <button onClick={() => sub('kanban_checklist_toggle', { p_item: it.id, p_feito: !it.feito })} disabled={busy} aria-label={it.feito ? 'Desmarcar' : 'Marcar'} className={cn('grid h-5 w-5 shrink-0 place-items-center rounded border tap', it.feito ? 'border-[#35383F] ' + ctaEscuro : 'border-line')}>
-                        {it.feito && <Check size={13} />}
-                      </button>
-                      <span className={cn('min-w-0 flex-1 text-sm', it.feito && 'text-muted line-through')}>{it.texto}</span>
-                      <button onClick={() => sub('kanban_checklist_excluir', { p_item: it.id })} disabled={busy} aria-label="Remover item" className="shrink-0 text-muted-2 tap">
-                        <X size={14} />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-                <div className="mt-2 hstack gap-2">
-                  <input value={novoItem} onChange={(e) => setNovoItem(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter' && novoItem.trim()) { sub('kanban_checklist_add', { p_card: card.id, p_texto: novoItem.trim() }); setNovoItem('') } }} placeholder="Adicionar item…" className="min-w-0 flex-1 rounded-lg border border-line bg-bg px-3 py-2 text-sm outline-none placeholder:text-muted-2" />
-                  <button onClick={() => { if (novoItem.trim()) { sub('kanban_checklist_add', { p_card: card.id, p_texto: novoItem.trim() }); setNovoItem('') } }} disabled={busy || !novoItem.trim()} className={cn('grid h-9 w-9 shrink-0 place-items-center rounded-lg tap disabled:opacity-40', ctaEscuro)}>
-                    <Plus size={15} />
-                  </button>
-                </div>
               </div>
-            )}
+            </div>
 
+            {/* Comentários — campo de escrever fica em cima da lista */}
             {existe && (
               <div>
                 <div className={lbl}>Comentários</div>
-                <div className="mt-2 flex flex-col gap-2">
-                  {comentarios.map((c) => (
-                    <div key={c.id} className="hstack items-start gap-2">
-                      <Avatar name={c.nome} src={c.avatar} size={24} />
-                      <div className="min-w-0 flex-1 rounded-lg border border-line bg-bg px-3 py-2">
-                        <div className="hstack justify-between gap-2">
-                          <div className="truncate font-mono text-[10px] uppercase tracking-[0.4px] text-muted">{c.nome}</div>
-                          <div className="shrink-0 font-mono text-[9px] text-muted-2">{fmtQuando(c.created_at)}</div>
-                        </div>
-                        <div className="mt-0.5 text-sm">{c.texto}</div>
-                      </div>
-                    </div>
-                  ))}
-                  {comentarios.length === 0 && <div className="text-xs text-muted-2">Sem comentários ainda.</div>}
-                </div>
                 {sugestoes.length > 0 && (
                   <div className="mt-2 overflow-hidden rounded-lg border border-line bg-surface">
                     <div className={cn('hstack gap-1 border-b border-line px-3 py-1.5', lbl)}>
@@ -1336,6 +1327,21 @@ function CardModal({ estado, card, board, admin, onClose, onFeito, onRefresh }) 
                   <button onClick={enviarComentario} disabled={busy || !novoComent.trim()} className={cn('grid h-9 w-9 shrink-0 place-items-center rounded-lg tap disabled:opacity-40', ctaEscuro)}>
                     <Send size={15} />
                   </button>
+                </div>
+                <div className="mt-3 flex flex-col gap-2">
+                  {comentarios.map((c) => (
+                    <div key={c.id} className="hstack items-start gap-2">
+                      <Avatar name={c.nome} src={c.avatar} size={24} />
+                      <div className="min-w-0 flex-1 rounded-lg border border-line bg-bg px-3 py-2">
+                        <div className="hstack justify-between gap-2">
+                          <div className="truncate font-mono text-[10px] uppercase tracking-[0.4px] text-muted">{c.nome}</div>
+                          <div className="shrink-0 font-mono text-[9px] text-muted-2">{fmtQuando(c.created_at)}</div>
+                        </div>
+                        <div className="mt-0.5 text-sm">{c.texto}</div>
+                      </div>
+                    </div>
+                  ))}
+                  {comentarios.length === 0 && <div className="text-xs text-muted-2">Sem comentários ainda.</div>}
                 </div>
               </div>
             )}
