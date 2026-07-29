@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Flag, Gift, Star, Network } from 'lucide-react'
+import { Flag, Gift, Star, Network, Clock, ChevronRight, Coffee } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Section } from '../components/Section.jsx'
 import { Card } from '../components/Card.jsx'
@@ -80,6 +80,20 @@ export function Home() {
       ativo = false
     }
   }, [])
+  // Escala de hoje (teste — só pra quem tem acesso liberado no painel de admin)
+  const [escalaHoje, setEscalaHoje] = useState(null)
+  useEffect(() => {
+    if (!usuario?.podeEscala) return
+    let ativo = true
+    supabase.rpc('escala_meu_dia', { p_data: isoLocal(new Date()) }).then(({ data }) => {
+      if (ativo) setEscalaHoje(data || { definido: false })
+    })
+    return () => {
+      ativo = false
+    }
+  }, [usuario?.podeEscala])
+  const hm = (t) => (t ? String(t).slice(0, 5) : '')
+
   const cargo = usuario?.cargo || ''
   const loja = usuario?.loja || ''
 
@@ -212,6 +226,36 @@ export function Home() {
           </div>
         </Card>
       </Section>
+
+      {/* Escala de hoje — só pra quem tem acesso (teste) */}
+      {usuario?.podeEscala && (
+        <Section className="reveal reveal-2 mt-4 hsm:mt-3" title="Escala de hoje">
+          <Link to="/escala" className="block tap">
+            <Card className="hstack gap-3 p-4">
+              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-accent-soft text-accent">
+                {escalaHoje?.folga ? <Coffee size={19} /> : <Clock size={19} />}
+              </span>
+              <div className="min-w-0 flex-1">
+                {escalaHoje == null ? (
+                  <span className="block h-4 w-32 animate-pulse rounded bg-fill" />
+                ) : escalaHoje.folga ? (
+                  <div className="text-sm font-bold">Folga hoje</div>
+                ) : escalaHoje.definido ? (
+                  <>
+                    <div className="text-sm font-bold">
+                      {hm(escalaHoje.entrada)} <span className="text-muted-2">–</span> {hm(escalaHoje.saida)}
+                    </div>
+                    <div className="text-xs text-muted">Seu turno de hoje</div>
+                  </>
+                ) : (
+                  <div className="text-sm text-muted">Sem escala definida hoje</div>
+                )}
+              </div>
+              <ChevronRight size={18} className="shrink-0 text-carbon" />
+            </Card>
+          </Link>
+        </Section>
+      )}
 
       {/* Notícias — carrossel automático (aniversário, comunicados, avisos…) */}
       {cardsDestaque.length > 0 && (

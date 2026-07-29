@@ -27,6 +27,8 @@ import { BuscarPessoas } from './routes/BuscarPessoas.jsx'
 // Painel Kanban (Quadros) — carregado sob demanda (poucos têm acesso), pra não
 // pesar o bundle de todo mundo com a lib de drag-and-drop.
 const Quadros = lazy(() => import('./routes/Quadros.jsx'))
+// Escala de trabalho — carregada sob demanda (liberada pelo painel de admin).
+const Escala = lazy(() => import('./routes/Escala.jsx'))
 
 function Splash() {
   return (
@@ -73,6 +75,14 @@ export function App() {
           element={
             <Suspense fallback={<Splash />}>
               <Quadros />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/escala"
+          element={
+            <Suspense fallback={<Splash />}>
+              <Escala />
             </Suspense>
           }
         />
