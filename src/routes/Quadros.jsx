@@ -445,8 +445,9 @@ function VisaoQuadro({ quadroId, onVoltar, emCanvas }) {
       <div className="min-w-0 flex-1">
         <div className="truncate font-display text-lg font-bold leading-tight">{board.nome}</div>
       </div>
-      <button onClick={() => setSheet('membros')} aria-label="Membros do quadro" className={cn(btnQuadro, btnOff)}>
-        <Users size={16} />
+      <button onClick={() => setSheet('membros')} aria-label="Membros do quadro" className="hstack h-8 shrink-0 gap-1.5 rounded-pill border border-line px-2.5 text-xs font-semibold text-muted tap">
+        <PilhaAvatares membros={board.membros} />
+        <Users size={14} />
       </button>
       <button onClick={() => setSheet('filtros')} aria-label="Filtros" className={cn(btnQuadro, temFiltro ? btnOn : btnOff)}>
         <SlidersHorizontal size={16} />
@@ -1261,38 +1262,32 @@ function CardModal({ estado, card, board, admin, onClose, onFeito, onRefresh }) 
             {/* Categoria (etiquetas) | Responsáveis */}
             <div className={cn(board.etiquetas.length > 0 && 'grid grid-cols-2 items-start gap-4')}>
               {board.etiquetas.length > 0 && (
-                <div className="relative">
-                  <div className="hstack justify-between">
-                    <div className={lbl}>Categoria</div>
+                <div>
+                  <div className={lbl}>Categoria</div>
+                  <div className="relative mt-2">
                     <button
                       disabled={!editavel}
                       onClick={() => setEtqAberto((v) => !v)}
-                      className="hstack gap-1 font-mono text-[9px] font-medium uppercase tracking-[0.4px] text-carbon tap disabled:opacity-100"
+                      className={cn('hstack gap-1.5 rounded-md border border-line px-2.5 py-1 text-xs font-semibold tap disabled:opacity-100', etqSel ? 'text-carbon dark:text-text' : 'text-muted')}
                     >
-                      {etqSel ? (
-                        <>
-                          <span className="h-2 w-2 rounded-full" style={{ backgroundColor: etqSel.cor }} />
-                          {etqSel.nome}
-                        </>
-                      ) : (
-                        <>
-                          <Tag size={11} /> Etiqueta
-                        </>
-                      )}
+                      <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={etqSel ? { backgroundColor: etqSel.cor } : undefined}>
+                        {!etqSel && <span className="block h-full w-full rounded-full bg-muted-2" />}
+                      </span>
+                      {etqSel ? etqSel.nome : 'Etiqueta'}
                     </button>
+                    <MenuFlutuante aberto={etqAberto && editavel} onClose={() => setEtqAberto(false)}>
+                      {board.etiquetas.map((e) => {
+                        const on = etqs.has(e.id)
+                        return (
+                          <button key={e.id} onClick={() => { setEtqs(new Set(on ? [] : [e.id])); setEtqAberto(false) }} className="hstack w-full items-center gap-2 px-3 py-2 text-left text-xs font-semibold tap hover:bg-fill">
+                            <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: e.cor }} />
+                            <span className="min-w-0 flex-1 truncate">{e.nome}</span>
+                            {on && <Check size={13} className="shrink-0 text-carbon dark:text-text" />}
+                          </button>
+                        )
+                      })}
+                    </MenuFlutuante>
                   </div>
-                  <MenuFlutuante aberto={etqAberto && editavel} onClose={() => setEtqAberto(false)}>
-                    {board.etiquetas.map((e) => {
-                      const on = etqs.has(e.id)
-                      return (
-                        <button key={e.id} onClick={() => { setEtqs(new Set(on ? [] : [e.id])); setEtqAberto(false) }} className="hstack w-full items-center gap-2 px-3 py-2 text-left text-xs font-semibold tap hover:bg-fill">
-                          <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: e.cor }} />
-                          <span className="min-w-0 flex-1 truncate">{e.nome}</span>
-                          {on && <Check size={13} className="shrink-0 text-carbon dark:text-text" />}
-                        </button>
-                      )
-                    })}
-                  </MenuFlutuante>
                 </div>
               )}
               <div>
@@ -1987,12 +1982,14 @@ function ModelosSheet({ board, onClose }) {
 }
 
 // ── Bottom-sheet genérico ────────────────────────────────────────────────────
+// Bottom-sheet no mobile, card centralizado no desktop — mesmo formato de
+// abertura do modal do card (largura, cantos, sombra e alça só no mobile).
 function Sheet({ children, onClose }) {
   return createPortal(
-    <div className="fixed inset-0 z-50 flex flex-col justify-end" role="dialog" aria-modal="true">
+    <div className="fixed inset-0 z-50 flex flex-col justify-end sm:items-center sm:justify-center" role="dialog" aria-modal="true">
       <button aria-label="Fechar" onClick={onClose} className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
-      <div className="relative max-h-[88vh] overflow-y-auto overscroll-contain rounded-t-3xl border-t border-line bg-bg px-5 pb-8 pt-4">
-        <div className="mx-auto mb-3 h-1 w-10 rounded-pill bg-line" />
+      <div className="relative max-h-[90dvh] w-full overflow-y-auto overscroll-contain rounded-t-2xl border border-line bg-bg px-5 pb-8 pt-4 shadow-xl sm:max-w-[580px] sm:rounded-2xl">
+        <div className="mx-auto mb-3 h-1 w-9 rounded-full bg-line sm:hidden" />
         <button onClick={onClose} aria-label="Fechar" className="absolute right-4 top-4 grid h-8 w-8 place-items-center rounded-full bg-surface text-muted tap">
           <X size={16} />
         </button>
