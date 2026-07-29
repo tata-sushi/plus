@@ -40,21 +40,34 @@ import {
   History,
   SlidersHorizontal,
   Layers,
+  AtSign,
 } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Voltar } from '../components/Voltar.jsx'
 import { Avatar } from '../components/Avatar.jsx'
 import { cn } from '../lib/cn'
 import { useAuth } from '../lib/AuthContext.jsx'
+import { useDesktop } from '../lib/useDesktop.js'
+import { useDesktopCanvas } from '../lib/desktopCanvas.js'
 import { supabase } from '../lib/supabase.js'
 
 // ── Painel Kanban (Quadros) — ligado ao backend (schema tata_kanban via RPCs) ──
-// Acesso liberado pelo painel de admin (governanca-app-quadros → kanban_pode_criar).
-// Membros criam cartões; editar/mover/arquivar/excluir e gerir o quadro é do admin.
-// Tempo real: realtime do Supabase re-carrega o quadro quando algo muda.
+// Membros criam cartões; editar/mover/arquivar/excluir e gerir o quadro é do
+// admin. Tempo real via realtime do Supabase. Notificação só por @menção.
 
 const CORES = ['#2f7d4f', '#d98a2b', '#c2453f', '#3b6fb3', '#7a4fb3', '#0f766e', '#64748b']
 const TABELAS_RT = ['cards', 'colunas', 'etiquetas', 'membros', 'card_comentarios', 'card_checklist']
+const ACOES = {
+  quadro_criado: 'criou o quadro',
+  quadro_arquivado: 'arquivou o quadro',
+  quadro_reaberto: 'reabriu o quadro',
+  cartao_criado: 'criou o cartão',
+  cartao_editado: 'editou',
+  cartao_arquivado: 'arquivou',
+  cartao_reaberto: 'reabriu',
+  cartao_excluido: 'excluiu',
+  comentou: 'comentou',
+}
 
 async function call(fn, args) {
   const { data, error } = await supabase.rpc(fn, args)
@@ -76,15 +89,12 @@ function fmtPrazo(iso) {
 function fmtQuando(iso) {
   try {
     const d = new Date(iso)
-    return (
-      d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }) +
-      ' ' +
-      d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
-    )
+    return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }) + ' ' + d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
   } catch {
     return ''
   }
 }
+const primeiro = (n) => (n || '').trim().split(/\s+/)[0] || ''
 
 // ── Entrada / gate ───────────────────────────────────────────────────────────
 function Quadros() {
@@ -100,10 +110,17 @@ function Quadros() {
   return <Painel />
 }
 
+// Board aberto na área grande do desktop (canvas do DesktopShell).
+export function QuadroCanvas({ quadroId, onVoltar }) {
+  return <VisaoQuadro quadroId={quadroId} onVoltar={onVoltar} emCanvas />
+}
+
 // ── Casca: lista de quadros ↔ visão de um quadro ─────────────────────────────
 function Painel() {
+  const desktop = useDesktop()
+  const { canvas, setCanvas } = useDesktopCanvas()
   const [quadros, setQuadros] = useState(null)
-  const [quadroId, setQuadroId] = useState(null)
+  const [quadroIdMobile, setQuadroIdMobile] = useState(null)
 
   const recarregarLista = useCallback(async () => {
     try {
@@ -114,27 +131,37 @@ function Painel() {
       setQuadros([])
     }
   }, [])
-
   useEffect(() => {
     recarregarLista()
   }, [recarregarLista])
 
-  if (quadroId) {
+  // Desktop: o quadro abre no canvas; ao fechar, a lista se atualiza.
+  const canvasQuadro = canvas?.tipo === 'quadro' ? canvas.quadroId : null
+  useEffect(() => {
+    if (desktop && !canvasQuadro) recarregarLista()
+  }, [desktop, canvasQuadro, recarregarLista])
+
+  function abrir(id) {
+    if (desktop) setCanvas({ tipo: 'quadro', quadroId: id })
+    else setQuadroIdMobile(id)
+  }
+
+  if (!desktop && quadroIdMobile) {
     return (
       <VisaoQuadro
-        quadroId={quadroId}
+        quadroId={quadroIdMobile}
         onVoltar={() => {
-          setQuadroId(null)
+          setQuadroIdMobile(null)
           recarregarLista()
         }}
       />
     )
   }
-  return <ListaQuadros quadros={quadros} onAbrir={setQuadroId} onMudou={recarregarLista} />
+  return <ListaQuadros quadros={quadros} onAbrir={abrir} onMudou={recarregarLista} selecionadoId={canvasQuadro} />
 }
 
 // ── Lista de quadros ─────────────────────────────────────────────────────────
-function ListaQuadros({ quadros, onAbrir, onMudou }) {
+function ListaQuadros({ quadros, onAbrir, onMudou, selecionadoId }) {
   const [criando, setCriando] = useState(false)
   const podeMais = (quadros?.filter((q) => !q.arquivado).length || 0) < 3
 
@@ -171,7 +198,11 @@ function ListaQuadros({ quadros, onAbrir, onMudou }) {
         ) : (
           <div className="mt-2 flex flex-col gap-2.5">
             {quadros.map((q) => (
-              <button key={q.id} onClick={() => onAbrir(q.id)} className="card hstack gap-3 px-4 py-3.5 text-left tap">
+              <button
+                key={q.id}
+                onClick={() => onAbrir(q.id)}
+                className={cn('card hstack gap-3 px-4 py-3.5 text-left tap', selecionadoId === q.id && 'ring-2 ring-accent')}
+              >
                 <div className="grid h-10 w-10 place-items-center rounded-card bg-accent-soft text-accent">
                   <Columns3 size={19} />
                 </div>
@@ -193,41 +224,29 @@ function ListaQuadros({ quadros, onAbrir, onMudou }) {
         )}
 
         {quadros != null && (
-          <button
-            onClick={novoQuadro}
-            disabled={!podeMais || criando}
-            className="btn-primary mt-4 hstack w-full justify-center gap-2 py-3 text-sm disabled:opacity-40"
-          >
+          <button onClick={novoQuadro} disabled={!podeMais || criando} className="btn-primary mt-4 hstack w-full justify-center gap-2 py-3 text-sm disabled:opacity-40">
             {criando ? <Loader2 size={16} className="animate-spin" /> : <Plus size={16} />}
             Novo quadro
           </button>
         )}
-        {quadros != null && !podeMais && (
-          <div className="mt-2 text-center text-[11px] text-muted">Limite de 3 quadros por pessoa.</div>
-        )}
+        {quadros != null && !podeMais && <div className="mt-2 text-center text-[11px] text-muted">Limite de 3 quadros por pessoa.</div>}
       </div>
     </>
   )
 }
 
 // ── Visão de um quadro ───────────────────────────────────────────────────────
-function VisaoQuadro({ quadroId, onVoltar }) {
+function VisaoQuadro({ quadroId, onVoltar, emCanvas }) {
   const { usuario } = useAuth()
   const mat = usuario?.matricula
   const [board, setBoard] = useState(null)
   const [cols, setCols] = useState([])
-  const [cardAberto, setCardAberto] = useState(null) // { modo, cardId?, colunaId }
-  const [sheet, setSheet] = useState(null) // 'membros' | 'etiquetas' | 'colunas' | 'menu' | 'atividade' | 'filtros'
+  const [cardAberto, setCardAberto] = useState(null)
+  const [sheet, setSheet] = useState(null)
 
-  // filtros / busca / swimlane
   const [busca, setBusca] = useState('')
   const [agrupar, setAgrupar] = useState(false)
-  const [filtros, setFiltros] = useState({
-    filtroEtq: new Set(),
-    filtroResp: new Set(),
-    soVencidos: false,
-    soMeus: false,
-  })
+  const [filtros, setFiltros] = useState({ filtroEtq: new Set(), filtroResp: new Set(), soVencidos: false, soMeus: false })
 
   const carregarInicial = useCallback(async () => {
     try {
@@ -245,11 +264,10 @@ function VisaoQuadro({ quadroId, onVoltar }) {
     try {
       setBoard(await call('kanban_carregar', { p_quadro: quadroId }))
     } catch {
-      /* silencioso no refresh */
+      /* silencioso */
     }
   }, [quadroId])
 
-  // Tempo real: qualquer mudança nas tabelas do quadro re-carrega (com debounce).
   const timerRef = useRef(null)
   const agendar = useCallback(() => {
     clearTimeout(timerRef.current)
@@ -266,8 +284,6 @@ function VisaoQuadro({ quadroId, onVoltar }) {
       supabase.removeChannel(canal)
     }
   }, [quadroId, agendar])
-
-  // Também re-carrega ao voltar o foco (rede de segurança).
   useEffect(() => {
     function v() {
       if (document.visibilityState === 'visible') recarregar()
@@ -276,7 +292,6 @@ function VisaoQuadro({ quadroId, onVoltar }) {
     return () => document.removeEventListener('visibilitychange', v)
   }, [recarregar])
 
-  // Deriva colunas + cartões do board bruto.
   useEffect(() => {
     if (!board) return
     setCols(
@@ -296,13 +311,11 @@ function VisaoQuadro({ quadroId, onVoltar }) {
     return m
   }, [board])
 
-  // cartão "ao vivo" (deriva do board — atualiza sozinho no realtime).
   const cardLive = cardAberto?.cardId ? (board?.cards || []).find((k) => k.id === cardAberto.cardId) : null
   useEffect(() => {
-    if (cardAberto?.cardId && board && !cardLive) setCardAberto(null) // sumiu (arquivado/excluído)
+    if (cardAberto?.cardId && board && !cardLive) setCardAberto(null)
   }, [cardAberto, board, cardLive])
 
-  // filtragem
   const temFiltro = filtros.filtroEtq.size || filtros.filtroResp.size || filtros.soVencidos || filtros.soMeus
   const filtrando = !!busca.trim() || !!temFiltro
   const cardVisivel = useCallback(
@@ -319,12 +332,7 @@ function VisaoQuadro({ quadroId, onVoltar }) {
     },
     [busca, filtros, mat],
   )
-  const colsFiltradas = useMemo(
-    () => cols.map((c) => ({ ...c, cards: c.cards.filter(cardVisivel) })),
-    [cols, cardVisivel],
-  )
-
-  // swimlane: agrupa por responsável
+  const colsFiltradas = useMemo(() => cols.map((c) => ({ ...c, cards: c.cards.filter(cardVisivel) })), [cols, cardVisivel])
   const grupos = useMemo(() => {
     if (!agrupar) return null
     const base = (board?.membros || []).map((m) => ({ key: m.matricula, nome: m.nome }))
@@ -334,18 +342,13 @@ function VisaoQuadro({ quadroId, onVoltar }) {
         ...g,
         cols: colsFiltradas.map((c) => ({
           ...c,
-          cards: c.cards.filter((k) =>
-            g.key === '__none__'
-              ? (k.responsaveis || []).length === 0
-              : (k.responsaveis || []).some((r) => r.matricula === g.key),
-          ),
+          cards: c.cards.filter((k) => (g.key === '__none__' ? (k.responsaveis || []).length === 0 : (k.responsaveis || []).some((r) => r.matricula === g.key))),
         })),
       }))
       .filter((g) => g.cols.some((c) => c.cards.length > 0))
   }, [agrupar, colsFiltradas, board])
 
   const dragEnabled = admin && !filtrando && !agrupar
-
   function abrirCard(colId, card) {
     setCardAberto({ modo: admin ? 'editar' : 'ver', cardId: card.id, colunaId: colId })
   }
@@ -354,129 +357,97 @@ function VisaoQuadro({ quadroId, onVoltar }) {
   }
 
   if (!board) {
-    return (
-      <>
-        <Header title="Quadro" />
-        <div className="grid place-items-center py-20 text-muted">
-          <Loader2 size={22} className="animate-spin" />
-        </div>
-      </>
+    const loader = (
+      <div className="grid h-full place-items-center py-20 text-muted">
+        <Loader2 size={22} className="animate-spin" />
+      </div>
     )
+    return emCanvas ? <div className="flex h-full flex-col">{loader}</div> : <><Header title="Quadro" />{loader}</>
   }
 
-  return (
-    <>
-      <Header title="Quadros" />
+  const barra = (
+    <div className="hstack gap-2 px-5 pt-1">
+      <button onClick={onVoltar} aria-label="Voltar" className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-surface text-muted tap">
+        <ChevronLeft size={18} />
+      </button>
+      <div className="min-w-0 flex-1">
+        <div className="truncate font-display text-lg font-bold leading-tight">{board.nome}</div>
+      </div>
+      <button onClick={() => setSheet('membros')} className="hstack shrink-0 gap-1.5 rounded-pill border border-line px-2.5 py-1.5 text-xs font-semibold text-muted tap">
+        <PilhaAvatares membros={board.membros} />
+        <Users size={14} />
+      </button>
+      {admin && (
+        <button onClick={() => setSheet('menu')} aria-label="Gerenciar quadro" className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-surface text-muted tap">
+          <Settings2 size={16} />
+        </button>
+      )}
+    </div>
+  )
 
-      {/* Barra do quadro */}
-      <div className="hstack gap-2 px-5 pt-1">
-        <button onClick={onVoltar} aria-label="Voltar" className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-surface text-muted tap">
-          <ChevronLeft size={18} />
-        </button>
-        <div className="min-w-0 flex-1">
-          <div className="truncate font-display text-lg font-bold leading-tight">{board.nome}</div>
-        </div>
-        <button onClick={() => setSheet('atividade')} aria-label="Atividade" className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-surface text-muted tap">
-          <History size={16} />
-        </button>
-        <button
-          onClick={() => setSheet('membros')}
-          className="hstack shrink-0 gap-1.5 rounded-pill border border-line px-2.5 py-1.5 text-xs font-semibold text-muted tap"
-        >
-          <PilhaAvatares membros={board.membros} />
-          <Users size={14} />
-        </button>
-        {admin && (
-          <button onClick={() => setSheet('menu')} aria-label="Gerenciar quadro" className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-surface text-muted tap">
-            <Settings2 size={16} />
+  const toolbar = (
+    <div className="mt-2 hstack gap-2 px-5">
+      <div className="hstack min-w-0 flex-1 gap-2 rounded-pill border border-line bg-surface px-3 py-1.5">
+        <Search size={14} className="shrink-0 text-muted-2" />
+        <input value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Buscar cartão…" className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-2" />
+        {busca && (
+          <button onClick={() => setBusca('')} aria-label="Limpar busca">
+            <X size={14} className="text-muted-2" />
           </button>
         )}
       </div>
+      <button onClick={() => setSheet('filtros')} aria-label="Filtros" className={cn('grid h-9 w-9 shrink-0 place-items-center rounded-full border tap', temFiltro ? 'border-accent bg-accent-soft text-accent' : 'border-line text-muted')}>
+        <SlidersHorizontal size={16} />
+      </button>
+      <button onClick={() => setAgrupar((a) => !a)} aria-label="Agrupar por responsável" className={cn('grid h-9 w-9 shrink-0 place-items-center rounded-full border tap', agrupar ? 'border-accent bg-accent-soft text-accent' : 'border-line text-muted')}>
+        <Layers size={16} />
+      </button>
+    </div>
+  )
 
-      {/* Busca + filtros + agrupar */}
-      <div className="mt-2 hstack gap-2 px-5">
-        <div className="hstack min-w-0 flex-1 gap-2 rounded-pill border border-line bg-surface px-3 py-1.5">
-          <Search size={14} className="shrink-0 text-muted-2" />
-          <input
-            value={busca}
-            onChange={(e) => setBusca(e.target.value)}
-            placeholder="Buscar cartão…"
-            className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-2"
-          />
-          {busca && (
-            <button onClick={() => setBusca('')} aria-label="Limpar busca">
-              <X size={14} className="text-muted-2" />
-            </button>
-          )}
-        </div>
-        <button
-          onClick={() => setSheet('filtros')}
-          aria-label="Filtros"
-          className={cn('grid h-9 w-9 shrink-0 place-items-center rounded-full border tap', temFiltro ? 'border-accent bg-accent-soft text-accent' : 'border-line text-muted')}
-        >
-          <SlidersHorizontal size={16} />
-        </button>
-        <button
-          onClick={() => setAgrupar((a) => !a)}
-          aria-label="Agrupar por responsável"
-          className={cn('grid h-9 w-9 shrink-0 place-items-center rounded-full border tap', agrupar ? 'border-accent bg-accent-soft text-accent' : 'border-line text-muted')}
-        >
-          <Layers size={16} />
-        </button>
-      </div>
+  const boardEl = dragEnabled ? (
+    <BoardDnD cols={cols} setCols={setCols} quadroId={board.id} etiquetaPorId={etiquetaPorId} onAbrirCard={abrirCard} onNovoCard={novoCard} />
+  ) : (
+    <BoardStatic cols={agrupar ? undefined : colsFiltradas} grupos={agrupar ? grupos : null} etiquetaPorId={etiquetaPorId} podeAdicionar={!filtrando} onAbrirCard={abrirCard} onNovoCard={novoCard} />
+  )
 
-      {dragEnabled ? (
-        <BoardDnD cols={cols} setCols={setCols} quadroId={board.id} etiquetaPorId={etiquetaPorId} onAbrirCard={abrirCard} onNovoCard={novoCard} />
-      ) : (
-        <BoardStatic
-          cols={agrupar ? undefined : colsFiltradas}
-          grupos={agrupar ? grupos : null}
-          etiquetaPorId={etiquetaPorId}
-          podeAdicionar={!filtrando}
-          onAbrirCard={abrirCard}
-          onNovoCard={novoCard}
-        />
-      )}
-
+  const overlays = (
+    <>
       {cardAberto && (
-        <CardModal
-          key={cardAberto.cardId || 'novo'}
-          estado={cardAberto}
-          card={cardLive}
-          board={board}
-          admin={admin}
-          onClose={() => setCardAberto(null)}
-          onRefresh={recarregar}
-          onFeito={async () => {
-            setCardAberto(null)
-            await recarregar()
-          }}
-        />
+        <CardModal key={cardAberto.cardId || 'novo'} estado={cardAberto} card={cardLive} board={board} admin={admin} onClose={() => setCardAberto(null)} onRefresh={recarregar} onFeito={async () => { setCardAberto(null); await recarregar() }} />
       )}
-
-      {sheet === 'filtros' && (
-        <FiltrosSheet board={board} filtros={filtros} setFiltros={setFiltros} onClose={() => setSheet(null)} />
-      )}
-      {sheet === 'atividade' && <AtividadeSheet board={board} onClose={() => setSheet(null)} />}
+      {sheet === 'filtros' && <FiltrosSheet board={board} filtros={filtros} setFiltros={setFiltros} onClose={() => setSheet(null)} />}
       {sheet === 'membros' && <MembrosSheet board={board} admin={admin} onClose={() => setSheet(null)} onFeito={recarregar} />}
       {sheet === 'etiquetas' && <EtiquetasSheet board={board} onClose={() => setSheet(null)} onFeito={recarregar} />}
       {sheet === 'colunas' && <ColunasSheet board={board} onClose={() => setSheet(null)} onFeito={recarregar} />}
       {sheet === 'menu' && (
-        <MenuGerenciar
-          board={board}
-          onClose={() => setSheet(null)}
-          onEscolher={(s) => setSheet(s)}
-          onArquivou={() => {
-            setSheet(null)
-            onVoltar()
-          }}
-        />
+        <MenuGerenciar board={board} onClose={() => setSheet(null)} onEscolher={(s) => setSheet(s)} onArquivou={() => { setSheet(null); onVoltar() }} />
       )}
+    </>
+  )
+
+  if (emCanvas) {
+    return (
+      <div className="flex h-full flex-col bg-bg pt-3">
+        {barra}
+        {toolbar}
+        <div className="min-h-0 flex-1 overflow-y-auto">{boardEl}</div>
+        {overlays}
+      </div>
+    )
+  }
+  return (
+    <>
+      <Header title="Quadros" />
+      {barra}
+      {toolbar}
+      {boardEl}
+      {overlays}
     </>
   )
 }
 
-// ── Rosto do cartão (visual puro, sem DnD) ───────────────────────────────────
+// ── Rosto do cartão (visual puro) ────────────────────────────────────────────
 function CardFace({ card, etiquetaPorId, onOpen, handle }) {
   const etqs = (card.etiquetas || []).map((id) => etiquetaPorId[id]).filter(Boolean)
   const resp = card.responsaveis || []
@@ -530,7 +501,7 @@ function CardFace({ card, etiquetaPorId, onOpen, handle }) {
 
 function ColunaFace({ col, isOver, bodyRef, children, onNovoCard, podeAdicionar }) {
   return (
-    <section className="flex w-[80vw] max-w-[300px] shrink-0 snap-start flex-col rounded-2xl bg-surface/60 p-2">
+    <section className="flex w-[80vw] max-w-[300px] shrink-0 snap-start flex-col self-start rounded-2xl bg-surface/60 p-2">
       <div className="hstack gap-1 px-1 py-1">
         <span className="min-w-0 flex-1 truncate text-sm font-bold">{col.nome}</span>
         <span className="rounded-pill bg-fill px-1.5 text-[11px] font-semibold text-muted">{col.cards.length}</span>
@@ -547,7 +518,6 @@ function ColunaFace({ col, isOver, bodyRef, children, onNovoCard, podeAdicionar 
   )
 }
 
-// ── Board estático (filtrado / agrupado / leitura) ───────────────────────────
 function BoardStatic({ cols, grupos, etiquetaPorId, podeAdicionar, onAbrirCard, onNovoCard }) {
   if (grupos) {
     return (
@@ -560,7 +530,7 @@ function BoardStatic({ cols, grupos, etiquetaPorId, podeAdicionar, onAbrirCard, 
               {g.nome}
               <span className="h-px flex-1 bg-line" />
             </div>
-            <div className="flex gap-3 overflow-x-auto no-scrollbar snap-x">
+            <div className="flex items-start gap-3 overflow-x-auto no-scrollbar snap-x">
               {g.cols.map((col) => (
                 <ColunaFace key={col.id} col={col} podeAdicionar={false}>
                   {col.cards.map((card) => (
@@ -575,7 +545,7 @@ function BoardStatic({ cols, grupos, etiquetaPorId, podeAdicionar, onAbrirCard, 
     )
   }
   return (
-    <div className="mt-3 flex gap-3 overflow-x-auto px-5 pb-24 no-scrollbar snap-x">
+    <div className="mt-3 flex items-start gap-3 overflow-x-auto px-5 pb-24 no-scrollbar snap-x">
       {cols.map((col) => (
         <ColunaFace key={col.id} col={col} podeAdicionar={podeAdicionar} onNovoCard={() => onNovoCard(col.id)}>
           {col.cards.map((card) => (
@@ -587,7 +557,7 @@ function BoardStatic({ cols, grupos, etiquetaPorId, podeAdicionar, onAbrirCard, 
   )
 }
 
-// ── Board com DnD (admin, sem filtro/agrupamento) ────────────────────────────
+// ── Board com DnD ────────────────────────────────────────────────────────────
 function colDoId(cs, id) {
   if (typeof id === 'string' && id.startsWith('col:')) return id.slice(4)
   const c = cs.find((c) => c.cards.some((k) => k.id === id))
@@ -648,7 +618,6 @@ function BoardDnD({ cols, setCols, quadroId, etiquetaPorId, onAbrirCard, onNovoC
     }
     return null
   }
-
   function onDragOver({ active, over }) {
     if (!over) return
     const cs = colsRef.current
@@ -671,7 +640,6 @@ function BoardDnD({ cols, setCols, quadroId, etiquetaPorId, onAbrirCard, onNovoC
     })
     aplicar(next)
   }
-
   async function persistDest(colId, ids) {
     try {
       await call('kanban_cards_reordenar', { p_quadro: quadroId, p_coluna: colId, p_ids: ids })
@@ -679,7 +647,6 @@ function BoardDnD({ cols, setCols, quadroId, etiquetaPorId, onAbrirCard, onNovoC
       avisarErro(e)
     }
   }
-
   function onDragEnd({ active, over }) {
     setAtivo(null)
     if (!over) return
@@ -700,17 +667,9 @@ function BoardDnD({ cols, setCols, quadroId, etiquetaPorId, onAbrirCard, onNovoC
     const destCol = cs.find((c) => c.id === para)
     if (destCol) persistDest(para, destCol.cards.map((k) => k.id))
   }
-
   return (
-    <DndContext
-      sensors={sensors}
-      collisionDetection={closestCorners}
-      onDragStart={({ active }) => setAtivo(cardById(active.id))}
-      onDragOver={onDragOver}
-      onDragEnd={onDragEnd}
-      onDragCancel={() => setAtivo(null)}
-    >
-      <div className="mt-3 flex gap-3 overflow-x-auto px-5 pb-24 no-scrollbar snap-x">
+    <DndContext sensors={sensors} collisionDetection={closestCorners} onDragStart={({ active }) => setAtivo(cardById(active.id))} onDragOver={onDragOver} onDragEnd={onDragEnd} onDragCancel={() => setAtivo(null)}>
+      <div className="mt-3 flex items-start gap-3 overflow-x-auto px-5 pb-24 no-scrollbar snap-x">
         {cols.map((col) => (
           <ColunaDnD key={col.id} col={col} etiquetaPorId={etiquetaPorId} onAbrirCard={onAbrirCard} onNovoCard={() => onNovoCard(col.id)} />
         ))}
@@ -738,8 +697,24 @@ function CardModal({ estado, card, board, admin, onClose, onFeito, onRefresh }) 
   const [etqs, setEtqs] = useState(() => new Set(base.etiquetas || []))
   const [salvando, setSalvando] = useState(false)
   const [novoItem, setNovoItem] = useState('')
-  const [novoComent, setNovoComent] = useState('')
   const [busy, setBusy] = useState(false)
+
+  // comentário + @menção
+  const [novoComent, setNovoComent] = useState('')
+  const [mencoes, setMencoes] = useState([]) // [{matricula, nome}]
+  const [frag, setFrag] = useState(null) // fragmento após @ (ou null)
+
+  // histórico do cartão
+  const [hist, setHist] = useState(null)
+  const recarregarHist = useCallback(() => {
+    if (!card?.id) return
+    call('kanban_card_atividade', { p_card: card.id })
+      .then((d) => setHist(Array.isArray(d) ? d : []))
+      .catch(() => {})
+  }, [card?.id])
+  useEffect(() => {
+    recarregarHist()
+  }, [recarregarHist])
 
   function toggle(setState, valor) {
     setState((s) => {
@@ -770,7 +745,6 @@ function CardModal({ estado, card, board, admin, onClose, onFeito, onRefresh }) 
       setSalvando(false)
     }
   }
-
   async function acaoCard(fn, args) {
     setSalvando(true)
     try {
@@ -781,19 +755,45 @@ function CardModal({ estado, card, board, admin, onClose, onFeito, onRefresh }) 
       setSalvando(false)
     }
   }
-
-  // ações de checklist/comentário (não fecham o modal)
   async function sub(fn, args) {
     setBusy(true)
     try {
       await call(fn, args)
       await onRefresh()
+      recarregarHist()
     } catch (e) {
       avisarErro(e)
     } finally {
       setBusy(false)
     }
   }
+
+  // @menção: detecta o fragmento após "@" até o cursor
+  function onComentChange(e) {
+    const v = e.target.value
+    setNovoComent(v)
+    const caret = e.target.selectionStart ?? v.length
+    const m = v.slice(0, caret).match(/@([\p{L}\p{N}._-]*)$/u)
+    setFrag(m ? m[1] : null)
+  }
+  function escolherMencao(p) {
+    setNovoComent((v) => v.replace(/@([\p{L}\p{N}._-]*)$/u, '@' + primeiro(p.nome) + ' '))
+    setMencoes((ms) => (ms.some((x) => x.matricula === p.matricula) ? ms : [...ms, { matricula: p.matricula, nome: p.nome }]))
+    setFrag(null)
+  }
+  function enviarComentario() {
+    const texto = novoComent.trim()
+    if (!texto) return
+    const alvo = mencoes.filter((m) => novoComent.toLowerCase().includes('@' + primeiro(m.nome).toLowerCase())).map((m) => m.matricula)
+    sub('kanban_comentario_add', { p_card: card.id, p_texto: texto, p_mencoes: alvo })
+    setNovoComent('')
+    setMencoes([])
+    setFrag(null)
+  }
+  const sugestoes =
+    frag == null
+      ? []
+      : board.membros.filter((p) => frag === '' || p.nome.toLowerCase().includes(frag.toLowerCase())).slice(0, 6)
 
   const checklist = card?.checklist || []
   const feitos = checklist.filter((c) => c.feito).length
@@ -802,13 +802,7 @@ function CardModal({ estado, card, board, admin, onClose, onFeito, onRefresh }) 
   return (
     <Sheet onClose={onClose}>
       {editavel ? (
-        <input
-          value={titulo}
-          onChange={(e) => setTitulo(e.target.value)}
-          placeholder="Título do cartão"
-          className="w-full bg-transparent pr-8 font-display text-lg font-bold outline-none placeholder:text-muted-2"
-          aria-label="Título do cartão"
-        />
+        <input value={titulo} onChange={(e) => setTitulo(e.target.value)} placeholder="Título do cartão" className="w-full bg-transparent pr-8 font-display text-lg font-bold outline-none placeholder:text-muted-2" aria-label="Título do cartão" />
       ) : (
         <div className="pr-8 font-display text-lg font-bold">{base.titulo}</div>
       )}
@@ -820,13 +814,7 @@ function CardModal({ estado, card, board, admin, onClose, onFeito, onRefresh }) 
             {board.etiquetas.map((e) => {
               const on = etqs.has(e.id)
               return (
-                <button
-                  key={e.id}
-                  disabled={!editavel}
-                  onClick={() => toggle(setEtqs, e.id)}
-                  className={cn('hstack gap-1.5 rounded-pill border px-2.5 py-1 text-xs font-semibold tap', on ? 'text-white' : 'border-line text-muted')}
-                  style={on ? { backgroundColor: e.cor, borderColor: e.cor } : undefined}
-                >
+                <button key={e.id} disabled={!editavel} onClick={() => toggle(setEtqs, e.id)} className={cn('hstack gap-1.5 rounded-pill border px-2.5 py-1 text-xs font-semibold tap', on ? 'text-white' : 'border-line text-muted')} style={on ? { backgroundColor: e.cor, borderColor: e.cor } : undefined}>
                   <span className="h-2 w-2 rounded-full" style={{ backgroundColor: on ? '#fff' : e.cor }} />
                   {e.nome}
                   {on && <Check size={12} />}
@@ -843,14 +831,9 @@ function CardModal({ estado, card, board, admin, onClose, onFeito, onRefresh }) 
           {board.membros.map((p) => {
             const on = resp.has(p.matricula)
             return (
-              <button
-                key={p.matricula}
-                disabled={!editavel}
-                onClick={() => toggle(setResp, p.matricula)}
-                className={cn('hstack gap-1.5 rounded-pill border px-2 py-1 text-xs font-semibold tap', on ? 'border-accent bg-accent-soft text-carbon dark:text-accent' : 'border-line text-muted')}
-              >
+              <button key={p.matricula} disabled={!editavel} onClick={() => toggle(setResp, p.matricula)} className={cn('hstack gap-1.5 rounded-pill border px-2 py-1 text-xs font-semibold tap', on ? 'border-accent bg-accent-soft text-carbon dark:text-accent' : 'border-line text-muted')}>
                 <Avatar name={p.nome} size={18} />
-                {(p.nome || '').split(' ')[0]}
+                {primeiro(p.nome)}
                 {on && <Check size={13} />}
               </button>
             )
@@ -870,13 +853,7 @@ function CardModal({ estado, card, board, admin, onClose, onFeito, onRefresh }) 
       <div className="mt-4">
         <div className="text-[11px] font-semibold uppercase tracking-wide text-muted">Descrição</div>
         {editavel ? (
-          <textarea
-            rows={3}
-            value={descricao}
-            onChange={(e) => setDescricao(e.target.value)}
-            placeholder="Detalhe a tarefa…"
-            className="mt-2 w-full resize-none rounded-card border border-line bg-surface px-3 py-2 text-sm outline-none placeholder:text-muted-2"
-          />
+          <textarea rows={3} value={descricao} onChange={(e) => setDescricao(e.target.value)} placeholder="Detalhe a tarefa…" className="mt-2 w-full resize-none rounded-card border border-line bg-surface px-3 py-2 text-sm outline-none placeholder:text-muted-2" />
         ) : (
           <div className="mt-2 whitespace-pre-wrap text-sm text-muted">{base.descricao || '—'}</div>
         )}
@@ -891,11 +868,7 @@ function CardModal({ estado, card, board, admin, onClose, onFeito, onRefresh }) 
 
       {estado.modo === 'editar' && admin && card?.id && (
         <div className="mt-2 hstack gap-2">
-          <button
-            onClick={() => acaoCard('kanban_card_arquivar', { p_id: card.id, p_arquivar: true })}
-            disabled={salvando}
-            className="hstack flex-1 justify-center gap-2 rounded-card bg-surface p-3 text-sm font-semibold text-muted tap disabled:opacity-40"
-          >
+          <button onClick={() => acaoCard('kanban_card_arquivar', { p_id: card.id, p_arquivar: true })} disabled={salvando} className="hstack flex-1 justify-center gap-2 rounded-card bg-surface p-3 text-sm font-semibold text-muted tap disabled:opacity-40">
             <Archive size={16} /> Arquivar
           </button>
           <button
@@ -910,9 +883,9 @@ function CardModal({ estado, card, board, admin, onClose, onFeito, onRefresh }) 
         </div>
       )}
 
-      {/* Checklist e Comentários — disponíveis a qualquer membro em cartão existente */}
       {existe && (
         <>
+          {/* Checklist */}
           <div className="mt-6">
             <div className="hstack justify-between">
               <div className="text-[11px] font-semibold uppercase tracking-wide text-muted">Checklist</div>
@@ -921,12 +894,7 @@ function CardModal({ estado, card, board, admin, onClose, onFeito, onRefresh }) 
             <div className="mt-2 flex flex-col gap-1.5">
               {checklist.map((it) => (
                 <div key={it.id} className="hstack gap-2">
-                  <button
-                    onClick={() => sub('kanban_checklist_toggle', { p_item: it.id, p_feito: !it.feito })}
-                    disabled={busy}
-                    aria-label={it.feito ? 'Desmarcar' : 'Marcar'}
-                    className={cn('grid h-5 w-5 shrink-0 place-items-center rounded-md border tap', it.feito ? 'border-accent bg-accent text-black' : 'border-line')}
-                  >
+                  <button onClick={() => sub('kanban_checklist_toggle', { p_item: it.id, p_feito: !it.feito })} disabled={busy} aria-label={it.feito ? 'Desmarcar' : 'Marcar'} className={cn('grid h-5 w-5 shrink-0 place-items-center rounded-md border tap', it.feito ? 'border-accent bg-accent text-black' : 'border-line')}>
                     {it.feito && <Check size={13} />}
                   </button>
                   <span className={cn('min-w-0 flex-1 text-sm', it.feito && 'text-muted line-through')}>{it.texto}</span>
@@ -949,21 +917,13 @@ function CardModal({ estado, card, board, admin, onClose, onFeito, onRefresh }) 
                 placeholder="Adicionar item…"
                 className="min-w-0 flex-1 rounded-card border border-line bg-surface px-3 py-2 text-sm outline-none placeholder:text-muted-2"
               />
-              <button
-                onClick={() => {
-                  if (novoItem.trim()) {
-                    sub('kanban_checklist_add', { p_card: card.id, p_texto: novoItem.trim() })
-                    setNovoItem('')
-                  }
-                }}
-                disabled={busy || !novoItem.trim()}
-                className="btn-primary px-3 py-2 text-xs disabled:opacity-40"
-              >
+              <button onClick={() => { if (novoItem.trim()) { sub('kanban_checklist_add', { p_card: card.id, p_texto: novoItem.trim() }); setNovoItem('') } }} disabled={busy || !novoItem.trim()} className="btn-primary px-3 py-2 text-xs disabled:opacity-40">
                 <Plus size={14} />
               </button>
             </div>
           </div>
 
+          {/* Comentários (com @menção) */}
           <div className="mt-6">
             <div className="text-[11px] font-semibold uppercase tracking-wide text-muted">Comentários</div>
             <div className="mt-2 flex flex-col gap-2">
@@ -981,31 +941,60 @@ function CardModal({ estado, card, board, admin, onClose, onFeito, onRefresh }) 
               ))}
               {comentarios.length === 0 && <div className="text-xs text-muted-2">Sem comentários ainda.</div>}
             </div>
+
+            {sugestoes.length > 0 && (
+              <div className="mt-2 overflow-hidden rounded-card border border-line bg-surface">
+                <div className="hstack gap-1 border-b border-line px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wide text-muted-2">
+                  <AtSign size={11} /> Marcar alguém
+                </div>
+                {sugestoes.map((p) => (
+                  <button key={p.matricula} onClick={() => escolherMencao(p)} className="hstack w-full gap-2 px-3 py-2 text-left tap hover:bg-fill">
+                    <Avatar name={p.nome} size={22} />
+                    <span className="min-w-0 flex-1 truncate text-sm">
+                      <span className="font-semibold">@{primeiro(p.nome)}</span> <span className="text-muted">· {p.nome}</span>
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
+
             <div className="mt-2 hstack gap-2">
               <input
                 value={novoComent}
-                onChange={(e) => setNovoComent(e.target.value)}
+                onChange={onComentChange}
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter' && novoComent.trim()) {
-                    sub('kanban_comentario_add', { p_card: card.id, p_texto: novoComent.trim() })
-                    setNovoComent('')
-                  }
+                  if (e.key === 'Enter' && frag == null) enviarComentario()
                 }}
-                placeholder="Escreva um comentário…"
+                placeholder="Comente e use @ para marcar…"
                 className="min-w-0 flex-1 rounded-card border border-line bg-surface px-3 py-2 text-sm outline-none placeholder:text-muted-2"
               />
-              <button
-                onClick={() => {
-                  if (novoComent.trim()) {
-                    sub('kanban_comentario_add', { p_card: card.id, p_texto: novoComent.trim() })
-                    setNovoComent('')
-                  }
-                }}
-                disabled={busy || !novoComent.trim()}
-                className="btn-primary px-3 py-2 text-xs disabled:opacity-40"
-              >
+              <button onClick={enviarComentario} disabled={busy || !novoComent.trim()} className="btn-primary px-3 py-2 text-xs disabled:opacity-40">
                 <Send size={14} />
               </button>
+            </div>
+          </div>
+
+          {/* Histórico do cartão */}
+          <div className="mt-6">
+            <div className="hstack gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted">
+              <History size={12} /> Histórico
+            </div>
+            <div className="mt-2 flex flex-col gap-2">
+              {hist == null ? (
+                <div className="text-xs text-muted-2">Carregando…</div>
+              ) : hist.length === 0 ? (
+                <div className="text-xs text-muted-2">Sem histórico.</div>
+              ) : (
+                hist.map((a) => (
+                  <div key={a.id} className="hstack items-start gap-2 text-[12px]">
+                    <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-line" />
+                    <div className="min-w-0 flex-1">
+                      <span className="font-semibold">{primeiro(a.nome)}</span> <span className="text-muted">{ACOES[a.acao] || a.acao}</span>
+                      <span className="ml-1 text-[10px] text-muted-2">{fmtQuando(a.created_at)}</span>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           </div>
         </>
@@ -1027,16 +1016,10 @@ function FiltrosSheet({ board, filtros, setFiltros, onClose }) {
   return (
     <Sheet onClose={onClose}>
       <div className="font-display text-lg font-bold">Filtros</div>
-
       <div className="mt-3 hstack flex-wrap gap-2">
-        <button onClick={() => setFiltros((f) => ({ ...f, soMeus: !f.soMeus }))} className={chip(filtros.soMeus)}>
-          Meus cartões
-        </button>
-        <button onClick={() => setFiltros((f) => ({ ...f, soVencidos: !f.soVencidos }))} className={chip(filtros.soVencidos)}>
-          Vencidos
-        </button>
+        <button onClick={() => setFiltros((f) => ({ ...f, soMeus: !f.soMeus }))} className={chip(filtros.soMeus)}>Meus cartões</button>
+        <button onClick={() => setFiltros((f) => ({ ...f, soVencidos: !f.soVencidos }))} className={chip(filtros.soVencidos)}>Vencidos</button>
       </div>
-
       {board.etiquetas.length > 0 && (
         <div className="mt-4">
           <div className="text-[11px] font-semibold uppercase tracking-wide text-muted">Etiquetas</div>
@@ -1044,12 +1027,7 @@ function FiltrosSheet({ board, filtros, setFiltros, onClose }) {
             {board.etiquetas.map((e) => {
               const on = filtros.filtroEtq.has(e.id)
               return (
-                <button
-                  key={e.id}
-                  onClick={() => toggleSet('filtroEtq', e.id)}
-                  className={cn('hstack gap-1.5 rounded-pill border px-2.5 py-1 text-xs font-semibold tap', on ? 'text-white' : 'border-line text-muted')}
-                  style={on ? { backgroundColor: e.cor, borderColor: e.cor } : undefined}
-                >
+                <button key={e.id} onClick={() => toggleSet('filtroEtq', e.id)} className={cn('hstack gap-1.5 rounded-pill border px-2.5 py-1 text-xs font-semibold tap', on ? 'text-white' : 'border-line text-muted')} style={on ? { backgroundColor: e.cor, borderColor: e.cor } : undefined}>
                   <span className="h-2 w-2 rounded-full" style={{ backgroundColor: on ? '#fff' : e.cor }} />
                   {e.nome}
                 </button>
@@ -1058,7 +1036,6 @@ function FiltrosSheet({ board, filtros, setFiltros, onClose }) {
           </div>
         </div>
       )}
-
       <div className="mt-4">
         <div className="text-[11px] font-semibold uppercase tracking-wide text-muted">Responsáveis</div>
         <div className="mt-2 flex flex-wrap gap-2">
@@ -1067,68 +1044,15 @@ function FiltrosSheet({ board, filtros, setFiltros, onClose }) {
             return (
               <button key={p.matricula} onClick={() => toggleSet('filtroResp', p.matricula)} className={cn('hstack gap-1.5', chip(on))}>
                 <Avatar name={p.nome} size={18} />
-                {(p.nome || '').split(' ')[0]}
+                {primeiro(p.nome)}
               </button>
             )
           })}
         </div>
       </div>
-
-      <button
-        onClick={() => setFiltros({ filtroEtq: new Set(), filtroResp: new Set(), soVencidos: false, soMeus: false })}
-        className="mt-6 hstack w-full justify-center gap-2 rounded-card bg-surface p-3 text-sm font-semibold text-muted tap"
-      >
+      <button onClick={() => setFiltros({ filtroEtq: new Set(), filtroResp: new Set(), soVencidos: false, soMeus: false })} className="mt-6 hstack w-full justify-center gap-2 rounded-card bg-surface p-3 text-sm font-semibold text-muted tap">
         Limpar filtros
       </button>
-    </Sheet>
-  )
-}
-
-// ── Atividade ────────────────────────────────────────────────────────────────
-const ACOES = {
-  quadro_criado: 'criou o quadro',
-  quadro_arquivado: 'arquivou o quadro',
-  quadro_reaberto: 'reabriu o quadro',
-  cartao_criado: 'criou o cartão',
-  cartao_editado: 'editou o cartão',
-  cartao_arquivado: 'arquivou o cartão',
-  cartao_reaberto: 'reabriu o cartão',
-  cartao_excluido: 'excluiu o cartão',
-  comentou: 'comentou em',
-}
-function AtividadeSheet({ board, onClose }) {
-  const [itens, setItens] = useState(null)
-  useEffect(() => {
-    call('kanban_atividade', { p_quadro: board.id })
-      .then((d) => setItens(Array.isArray(d) ? d : []))
-      .catch(() => setItens([]))
-  }, [board.id])
-  return (
-    <Sheet onClose={onClose}>
-      <div className="font-display text-lg font-bold">Atividade</div>
-      {itens == null ? (
-        <div className="grid place-items-center py-10 text-muted">
-          <Loader2 size={20} className="animate-spin" />
-        </div>
-      ) : itens.length === 0 ? (
-        <div className="py-8 text-center text-sm text-muted">Nada por aqui ainda.</div>
-      ) : (
-        <div className="mt-3 flex flex-col gap-3">
-          {itens.map((a) => (
-            <div key={a.id} className="hstack items-start gap-2.5">
-              <Avatar name={a.nome} size={26} />
-              <div className="min-w-0 flex-1">
-                <div className="text-sm leading-snug">
-                  <span className="font-semibold">{(a.nome || '').split(' ')[0]}</span>{' '}
-                  <span className="text-muted">{ACOES[a.acao] || a.acao}</span>
-                  {a.detalhe && <span className="font-medium"> “{a.detalhe}”</span>}
-                </div>
-                <div className="text-[10px] text-muted-2">{fmtQuando(a.created_at)}</div>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
     </Sheet>
   )
 }
@@ -1247,12 +1171,12 @@ function MembrosSheet({ board, admin, onClose, onFeito }) {
               <span className="text-[11px] font-semibold text-accent">admin</span>
             </div>
           ))}
-        {selecionados.map((mat) => (
-          <div key={mat} className="hstack gap-3 rounded-card border border-accent bg-accent-soft px-3 py-2">
-            <Avatar name={nomes[mat] || mat} size={30} />
-            <span className="flex-1 text-sm font-semibold">{nomes[mat] || `Matrícula ${mat}`}</span>
+        {selecionados.map((mt) => (
+          <div key={mt} className="hstack gap-3 rounded-card border border-accent bg-accent-soft px-3 py-2">
+            <Avatar name={nomes[mt] || mt} size={30} />
+            <span className="flex-1 text-sm font-semibold">{nomes[mt] || `Matrícula ${mt}`}</span>
             {admin && (
-              <button onClick={() => toggle(mat)} aria-label="Remover" className="text-muted-2 tap">
+              <button onClick={() => toggle(mt)} aria-label="Remover" className="text-muted-2 tap">
                 <X size={16} />
               </button>
             )}
@@ -1267,7 +1191,7 @@ function MembrosSheet({ board, admin, onClose, onFeito }) {
             <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Buscar pessoa pelo nome…" className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-2" />
             {buscando && <Loader2 size={14} className="animate-spin text-muted-2" />}
           </div>
-          <div className="mt-2 flex max-h-56 flex-col gap-1 overflow-y-auto">
+          <div className="mt-2 flex flex-col gap-1">
             {res
               .filter((p) => !adminMats.includes(p.matricula) && !sel.has(p.matricula))
               .map((p) => (
@@ -1407,7 +1331,7 @@ function Sheet({ children, onClose }) {
   return (
     <div className="fixed inset-0 z-50 flex flex-col justify-end" role="dialog" aria-modal="true">
       <button aria-label="Fechar" onClick={onClose} className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
-      <div className="relative max-h-[88vh] overflow-y-auto rounded-t-3xl border-t border-line bg-bg px-5 pb-8 pt-4">
+      <div className="relative max-h-[88vh] overflow-y-auto overscroll-contain rounded-t-3xl border-t border-line bg-bg px-5 pb-8 pt-4">
         <div className="mx-auto mb-3 h-1 w-10 rounded-pill bg-line" />
         <button onClick={onClose} aria-label="Fechar" className="absolute right-4 top-4 grid h-8 w-8 place-items-center rounded-full bg-surface text-muted tap">
           <X size={16} />
