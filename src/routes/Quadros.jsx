@@ -45,7 +45,6 @@ import {
   Circle,
   Upload,
   Pencil,
-  ArrowRightLeft,
   KanbanSquare,
   ClipboardList,
   Rocket,
@@ -1016,10 +1015,10 @@ function CardModal({ estado, card, board, admin, onClose, onFeito, onRefresh }) 
   const [novoComent, setNovoComent] = useState('')
   const [frag, setFrag] = useState(null) // fragmento após @ (ou null)
 
-  // modelos de checklist + mover para outro quadro
+  // modelos de checklist + outros quadros (mover)
   const [modelos, setModelos] = useState([])
   const [modelosAbertos, setModelosAbertos] = useState(false)
-  const [moverQuadro, setMoverQuadro] = useState(false)
+  const [outrosQuadros, setOutrosQuadros] = useState([])
 
   // histórico do cartão
   const [hist, setHist] = useState(null)
@@ -1036,6 +1035,9 @@ function CardModal({ estado, card, board, admin, onClose, onFeito, onRefresh }) 
     if (!existe) return
     call('kanban_modelos_checklist', { p_quadro: board.id })
       .then((d) => setModelos(Array.isArray(d) ? d : []))
+      .catch(() => {})
+    call('kanban_meus_quadros')
+      .then((d) => setOutrosQuadros((Array.isArray(d) ? d : []).filter((q) => q.id !== board.id)))
       .catch(() => {})
   }, [existe, board.id])
 
@@ -1090,6 +1092,20 @@ function CardModal({ estado, card, board, admin, onClose, onFeito, onRefresh }) 
       setBusy(false)
     }
   }
+  async function moverParaQuadro(quadroId) {
+    if (!quadroId) return
+    setBusy(true)
+    try {
+      const cols = await call('kanban_quadro_colunas', { p_quadro: quadroId })
+      const destCol = cols?.[0]?.id
+      if (!destCol) throw new Error('O quadro de destino não tem listas.')
+      await call('kanban_card_mover_quadro', { p_id: card.id, p_quadro_dest: quadroId, p_coluna_dest: destCol })
+      await onFeito()
+    } catch (e) {
+      avisarErro(e)
+      setBusy(false)
+    }
+  }
 
   // @menção: detecta o fragmento após "@" até o cursor
   function onComentChange(e) {
@@ -1122,10 +1138,10 @@ function CardModal({ estado, card, board, admin, onClose, onFeito, onRefresh }) 
   const checklist = card?.checklist || []
   const feitos = checklist.filter((c) => c.feito).length
   const comentarios = card?.comentarios || []
-  const colunaNome = board.colunas.find((c) => c.id === (card?.coluna_id || estado.colunaId))?.nome || 'Cartão'
   const lbl = 'font-mono text-[9px] font-medium uppercase tracking-[0.12em] text-muted'
-  const chipSel = 'border-accent bg-accent-soft text-carbon dark:text-accent'
+  const chipSel = 'border-[#35383F] bg-[#35383F] text-white'
   const ctaEscuro = 'bg-[#35383F] text-[#CFFF00]'
+  const selCls = 'mt-2 w-full rounded-lg border border-line bg-bg px-2.5 py-2 text-xs font-semibold outline-none'
 
   return createPortal(
     <>
@@ -1148,12 +1164,11 @@ function CardModal({ estado, card, board, admin, onClose, onFeito, onRefresh }) 
               </button>
             )}
             <div className="min-w-0 flex-1">
-              <div className={lbl}>{colunaNome}</div>
               {editavel ? (
                 <input value={titulo} onChange={(e) => setTitulo(e.target.value)} placeholder="Título do cartão" aria-label="Título do cartão"
-                  className="mt-0.5 w-full bg-transparent text-[18px] font-bold leading-tight tracking-[-0.3px] text-carbon outline-none placeholder:text-muted-2 dark:text-text" />
+                  className="w-full bg-transparent text-[18px] font-bold leading-tight tracking-[-0.3px] text-carbon outline-none placeholder:text-muted-2 dark:text-text" />
               ) : (
-                <div className={cn('mt-0.5 text-[18px] font-bold leading-tight tracking-[-0.3px] text-carbon dark:text-text', card?.concluido && 'text-muted line-through')}>{base.titulo}</div>
+                <div className={cn('text-[18px] font-bold leading-tight tracking-[-0.3px] text-carbon dark:text-text', card?.concluido && 'text-muted line-through')}>{base.titulo}</div>
               )}
             </div>
             <div className="hstack shrink-0 gap-0.5">
@@ -1184,42 +1199,40 @@ function CardModal({ estado, card, board, admin, onClose, onFeito, onRefresh }) 
           {/* Corpo rolável */}
           <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain px-5 py-4">
             {existe && (
-              <div>
-                <div className={lbl}>Mover para lista</div>
-                <div className="mt-2 flex flex-wrap gap-1.5">
-                  {board.colunas.map((c) => {
-                    const atual = c.id === card.coluna_id
-                    return (
-                      <button key={c.id} disabled={atual || busy} onClick={() => sub('kanban_card_mover_lista', { p_id: card.id, p_coluna: c.id })}
-                        className={cn('rounded-md border px-2.5 py-1 text-xs font-semibold tap disabled:opacity-100', atual ? chipSel : 'border-line text-muted')}>
+              <div className="grid grid-cols-2 items-start gap-4">
+                <div>
+                  <div className={lbl}>Mover para lista</div>
+                  <select
+                    value={card.coluna_id}
+                    disabled={busy}
+                    onChange={(e) => {
+                      if (e.target.value !== card.coluna_id) sub('kanban_card_mover_lista', { p_id: card.id, p_coluna: e.target.value })
+                    }}
+                    className={selCls}
+                  >
+                    {board.colunas.map((c) => (
+                      <option key={c.id} value={c.id}>
                         {c.nome}
-                      </button>
-                    )
-                  })}
+                      </option>
+                    ))}
+                  </select>
                 </div>
-                <button onClick={() => setMoverQuadro(true)} className="mt-2 hstack gap-1.5 font-mono text-[10px] font-medium uppercase tracking-[0.5px] text-carbon dark:text-accent tap">
-                  <ArrowRightLeft size={12} /> Mover para outro quadro
-                </button>
+                <div>
+                  <div className={lbl}>Mover para outro quadro</div>
+                  <select value="" disabled={busy || outrosQuadros.length === 0} onChange={(e) => moverParaQuadro(e.target.value)} className={cn(selCls, 'disabled:opacity-50')}>
+                    <option value="">{outrosQuadros.length ? 'Selecionar…' : 'Sem outros quadros'}</option>
+                    {outrosQuadros.map((q) => (
+                      <option key={q.id} value={q.id}>
+                        {q.nome}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
             )}
 
-            {/* Responsáveis | Categoria (etiquetas) */}
+            {/* Categoria (etiquetas) | Responsáveis */}
             <div className={cn(board.etiquetas.length > 0 && 'grid grid-cols-2 items-start gap-4')}>
-              <div>
-                <div className={lbl}>Responsáveis</div>
-                <div className="mt-2 flex flex-wrap gap-1.5">
-                  {board.membros.map((p) => {
-                    const on = resp.has(p.matricula)
-                    return (
-                      <button key={p.matricula} disabled={!editavel} onClick={() => toggle(setResp, p.matricula)} className={cn('hstack gap-1.5 rounded-md border px-2 py-1 text-xs font-semibold tap', on ? chipSel : 'border-line text-muted')}>
-                        <Avatar name={p.nome} src={p.avatar} size={18} />
-                        {primeiro(p.nome)}
-                        {on && <Check size={13} />}
-                      </button>
-                    )
-                  })}
-                </div>
-              </div>
               {board.etiquetas.length > 0 && (
                 <div>
                   <div className={lbl}>Categoria</div>
@@ -1237,6 +1250,21 @@ function CardModal({ estado, card, board, admin, onClose, onFeito, onRefresh }) 
                   </div>
                 </div>
               )}
+              <div>
+                <div className={lbl}>Responsáveis</div>
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {board.membros.map((p) => {
+                    const on = resp.has(p.matricula)
+                    return (
+                      <button key={p.matricula} disabled={!editavel} onClick={() => toggle(setResp, p.matricula)} className={cn('hstack gap-1.5 rounded-md border px-2 py-1 text-xs font-semibold tap', on ? chipSel : 'border-line text-muted')}>
+                        <Avatar name={p.nome} src={p.avatar} size={18} />
+                        {primeiro(p.nome)}
+                        {on && <Check size={13} />}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
             </div>
 
             {/* Descrição */}
@@ -1257,7 +1285,7 @@ function CardModal({ estado, card, board, admin, onClose, onFeito, onRefresh }) 
                     <div className={lbl}>Checklist</div>
                     <div className="hstack gap-2">
                       {modelos.length > 0 && (
-                        <button onClick={() => setModelosAbertos((v) => !v)} className="hstack gap-1 font-mono text-[9px] font-medium uppercase tracking-[0.4px] text-carbon dark:text-accent tap">
+                        <button onClick={() => setModelosAbertos((v) => !v)} className="hstack gap-1 font-mono text-[9px] font-medium uppercase tracking-[0.4px] text-carbon tap">
                           <ListChecks size={11} /> Usar pronto
                         </button>
                       )}
@@ -1273,6 +1301,12 @@ function CardModal({ estado, card, board, admin, onClose, onFeito, onRefresh }) 
                       ))}
                     </div>
                   )}
+                  <div className="mt-2 hstack gap-2">
+                    <input value={novoItem} onChange={(e) => setNovoItem(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter' && novoItem.trim()) { sub('kanban_checklist_add', { p_card: card.id, p_texto: novoItem.trim() }); setNovoItem('') } }} placeholder="Adicionar item…" className="min-w-0 flex-1 rounded-lg border border-line bg-bg px-3 py-2 text-sm outline-none placeholder:text-muted-2" />
+                    <button onClick={() => { if (novoItem.trim()) { sub('kanban_checklist_add', { p_card: card.id, p_texto: novoItem.trim() }); setNovoItem('') } }} disabled={busy || !novoItem.trim()} className={cn('grid h-9 w-9 shrink-0 place-items-center rounded-lg tap disabled:opacity-40', ctaEscuro)}>
+                      <Plus size={15} />
+                    </button>
+                  </div>
                   <div className="mt-2 flex flex-col gap-1.5">
                     {checklist.map((it) => (
                       <div key={it.id} className="hstack gap-2">
@@ -1285,12 +1319,6 @@ function CardModal({ estado, card, board, admin, onClose, onFeito, onRefresh }) 
                         </button>
                       </div>
                     ))}
-                  </div>
-                  <div className="mt-2 hstack gap-2">
-                    <input value={novoItem} onChange={(e) => setNovoItem(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter' && novoItem.trim()) { sub('kanban_checklist_add', { p_card: card.id, p_texto: novoItem.trim() }); setNovoItem('') } }} placeholder="Adicionar item…" className="min-w-0 flex-1 rounded-lg border border-line bg-bg px-3 py-2 text-sm outline-none placeholder:text-muted-2" />
-                    <button onClick={() => { if (novoItem.trim()) { sub('kanban_checklist_add', { p_card: card.id, p_texto: novoItem.trim() }); setNovoItem('') } }} disabled={busy || !novoItem.trim()} className={cn('grid h-9 w-9 shrink-0 place-items-center rounded-lg tap disabled:opacity-40', ctaEscuro)}>
-                      <Plus size={15} />
-                    </button>
                   </div>
                 </div>
               )}
@@ -1385,7 +1413,6 @@ function CardModal({ estado, card, board, admin, onClose, onFeito, onRefresh }) 
           )}
         </div>
       </div>
-      {moverQuadro && <MoverQuadroSheet board={board} card={card} onClose={() => setMoverQuadro(false)} onFeito={onFeito} />}
     </>,
     document.body,
   )
@@ -1841,87 +1868,6 @@ function EditarQuadroSheet({ board, onClose, onFeito }) {
       <button onClick={salvar} disabled={salvando || !nome.trim()} className="btn-primary mt-5 hstack w-full justify-center gap-2 py-3 text-sm disabled:opacity-40">
         {salvando ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />} Salvar
       </button>
-    </Sheet>
-  )
-}
-
-// ── Mover cartão para outro quadro ───────────────────────────────────────────
-function MoverQuadroSheet({ board, card, onClose, onFeito }) {
-  const [quadros, setQuadros] = useState(null)
-  const [destino, setDestino] = useState(null)
-  const [colunas, setColunas] = useState([])
-  const [colId, setColId] = useState('')
-  const [salvando, setSalvando] = useState(false)
-  useEffect(() => {
-    call('kanban_meus_quadros')
-      .then((d) => setQuadros((Array.isArray(d) ? d : []).filter((q) => q.id !== board.id)))
-      .catch(() => setQuadros([]))
-  }, [board.id])
-  async function escolherDestino(q) {
-    setDestino(q)
-    setColunas([])
-    setColId('')
-    try {
-      const cols = await call('kanban_quadro_colunas', { p_quadro: q.id })
-      setColunas(Array.isArray(cols) ? cols : [])
-      setColId(cols?.[0]?.id || '')
-    } catch (e) {
-      avisarErro(e)
-    }
-  }
-  async function mover() {
-    if (!destino || !colId) return
-    setSalvando(true)
-    try {
-      await call('kanban_card_mover_quadro', { p_id: card.id, p_quadro_dest: destino.id, p_coluna_dest: colId })
-      await onFeito()
-    } catch (e) {
-      avisarErro(e)
-      setSalvando(false)
-    }
-  }
-  return (
-    <Sheet onClose={onClose}>
-      <div className="font-display text-lg font-bold">Mover para outro quadro</div>
-      <div className="mt-1 text-xs text-muted">O cartão sai deste quadro. As etiquetas são removidas e ficam só os responsáveis que também são membros do destino.</div>
-      {quadros == null ? (
-        <div className="grid place-items-center py-8 text-muted">
-          <Loader2 size={20} className="animate-spin" />
-        </div>
-      ) : quadros.length === 0 ? (
-        <div className="py-6 text-center text-sm text-muted">Você não participa de outro quadro.</div>
-      ) : (
-        <>
-          <div className="mt-3 text-[11px] font-semibold uppercase tracking-wide text-muted">Quadro de destino</div>
-          <div className="mt-2 flex flex-col gap-1.5">
-            {quadros.map((q) => {
-              const Ic = iconeQuadro(q.icone)
-              return (
-                <button key={q.id} onClick={() => escolherDestino(q)} className={cn('hstack gap-3 rounded-card border px-3 py-2 text-left tap', destino?.id === q.id ? 'border-accent bg-accent-soft' : 'border-line')}>
-                  <Ic size={18} className="text-accent" />
-                  <span className="flex-1 text-sm font-semibold">{q.nome}</span>
-                  {destino?.id === q.id && <Check size={16} className="text-accent" />}
-                </button>
-              )
-            })}
-          </div>
-          {destino && (
-            <div className="mt-3">
-              <div className="text-[11px] font-semibold uppercase tracking-wide text-muted">Lista de destino</div>
-              <select value={colId} onChange={(e) => setColId(e.target.value)} className="mt-2 w-full rounded-card border border-line bg-surface px-3 py-2 text-sm outline-none">
-                {colunas.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.nome}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
-          <button onClick={mover} disabled={!destino || !colId || salvando} className="btn-primary mt-4 hstack w-full justify-center gap-2 py-3 text-sm disabled:opacity-40">
-            {salvando ? <Loader2 size={16} className="animate-spin" /> : <ArrowRightLeft size={16} />} Mover cartão
-          </button>
-        </>
-      )}
     </Sheet>
   )
 }
