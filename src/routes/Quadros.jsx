@@ -32,6 +32,7 @@ import {
   Archive,
   Settings2,
   ChevronLeft,
+  ChevronDown,
   Columns3,
   Search,
   ListChecks,
@@ -997,6 +998,21 @@ function BoardDnD({ cols, setCols, quadroId, etiquetaPorId, onAbrirCard, onNovoC
   )
 }
 
+// Menu flutuante: abre uma listinha ancorada abaixo do gatilho, por cima do
+// conteúdo (não empurra os itens pra baixo). Fecha ao clicar fora. O container
+// pai precisa ser `relative`.
+function MenuFlutuante({ aberto, onClose, children }) {
+  if (!aberto) return null
+  return (
+    <>
+      <button aria-hidden tabIndex={-1} onClick={onClose} className="fixed inset-0 z-[60] cursor-default" />
+      <div className="absolute left-0 right-0 top-full z-[61] mt-1 max-h-56 overflow-y-auto overscroll-contain rounded-lg border border-line bg-surface py-1 shadow-xl">
+        {children}
+      </div>
+    </>
+  )
+}
+
 // ── Modal do cartão ──────────────────────────────────────────────────────────
 function CardModal({ estado, card, board, admin, onClose, onFeito, onRefresh }) {
   const existe = estado.modo !== 'criar' && !!card
@@ -1018,6 +1034,7 @@ function CardModal({ estado, card, board, admin, onClose, onFeito, onRefresh }) 
   // modelos de checklist + outros quadros (mover)
   const [modelos, setModelos] = useState([])
   const [modelosAbertos, setModelosAbertos] = useState(false)
+  const [etqAberto, setEtqAberto] = useState(false)
   const [outrosQuadros, setOutrosQuadros] = useState([])
 
   // histórico do cartão
@@ -1138,6 +1155,7 @@ function CardModal({ estado, card, board, admin, onClose, onFeito, onRefresh }) 
   const checklist = card?.checklist || []
   const feitos = checklist.filter((c) => c.feito).length
   const comentarios = card?.comentarios || []
+  const etqSel = board.etiquetas.find((e) => etqs.has(e.id)) // categoria é única (uma por vez)
   const lbl = 'font-mono text-[9px] font-medium uppercase tracking-[0.12em] text-muted'
   const chipSel = 'border-[#35383F] bg-[#35383F] text-white'
   const ctaEscuro = 'bg-[#35383F] text-[#CFFF00]'
@@ -1236,17 +1254,34 @@ function CardModal({ estado, card, board, admin, onClose, onFeito, onRefresh }) 
               {board.etiquetas.length > 0 && (
                 <div>
                   <div className={lbl}>Categoria</div>
-                  <div className="mt-2 flex flex-wrap gap-1.5">
-                    {board.etiquetas.map((e) => {
-                      const on = etqs.has(e.id)
-                      return (
-                        <button key={e.id} disabled={!editavel} onClick={() => toggle(setEtqs, e.id)} className={cn('hstack gap-1.5 rounded-md border px-2.5 py-1 text-xs font-semibold tap', on ? 'text-white' : 'border-line text-muted')} style={on ? { backgroundColor: e.cor, borderColor: e.cor } : undefined}>
-                          <span className="h-2 w-2 rounded-full" style={{ backgroundColor: on ? '#fff' : e.cor }} />
-                          {e.nome}
-                          {on && <Check size={12} />}
-                        </button>
-                      )
-                    })}
+                  <div className="relative mt-2">
+                    <button
+                      disabled={!editavel}
+                      onClick={() => setEtqAberto((v) => !v)}
+                      className="hstack w-full items-center gap-2 rounded-lg border border-line bg-bg px-2.5 py-2 text-xs font-semibold tap disabled:opacity-100"
+                    >
+                      {etqSel ? (
+                        <>
+                          <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: etqSel.cor }} />
+                          <span className="min-w-0 flex-1 truncate text-left">{etqSel.nome}</span>
+                        </>
+                      ) : (
+                        <span className="min-w-0 flex-1 truncate text-left text-muted-2">Etiqueta</span>
+                      )}
+                      {editavel && <ChevronDown size={14} className="shrink-0 text-muted-2" />}
+                    </button>
+                    <MenuFlutuante aberto={etqAberto && editavel} onClose={() => setEtqAberto(false)}>
+                      {board.etiquetas.map((e) => {
+                        const on = etqs.has(e.id)
+                        return (
+                          <button key={e.id} onClick={() => { setEtqs(new Set(on ? [] : [e.id])); setEtqAberto(false) }} className="hstack w-full items-center gap-2 px-3 py-2 text-left text-xs font-semibold tap hover:bg-fill">
+                            <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: e.cor }} />
+                            <span className="min-w-0 flex-1 truncate">{e.nome}</span>
+                            {on && <Check size={13} className="shrink-0 text-carbon dark:text-text" />}
+                          </button>
+                        )
+                      })}
+                    </MenuFlutuante>
                   </div>
                 </div>
               )}
@@ -1281,26 +1316,27 @@ function CardModal({ estado, card, board, admin, onClose, onFeito, onRefresh }) 
             <div className={cn(existe && 'grid grid-cols-2 items-start gap-4')}>
               {existe && (
                 <div>
-                  <div className="hstack justify-between">
-                    <div className={lbl}>Checklist</div>
-                    <div className="hstack gap-2">
-                      {modelos.length > 0 && (
-                        <button onClick={() => setModelosAbertos((v) => !v)} className="hstack gap-1 font-mono text-[9px] font-medium uppercase tracking-[0.4px] text-carbon tap">
-                          <ListChecks size={11} /> Usar pronto
-                        </button>
-                      )}
-                      {checklist.length > 0 && <div className="font-mono text-[10px] text-muted">{feitos}/{checklist.length}</div>}
+                  <div className="relative">
+                    <div className="hstack justify-between">
+                      <div className={lbl}>Checklist</div>
+                      <div className="hstack gap-2">
+                        {modelos.length > 0 && (
+                          <button onClick={() => setModelosAbertos((v) => !v)} className="hstack gap-1 font-mono text-[9px] font-medium uppercase tracking-[0.4px] text-carbon tap">
+                            <ListChecks size={11} /> Usar pronto
+                          </button>
+                        )}
+                        {checklist.length > 0 && <div className="font-mono text-[10px] text-muted">{feitos}/{checklist.length}</div>}
+                      </div>
                     </div>
-                  </div>
-                  {modelosAbertos && modelos.length > 0 && (
-                    <div className="mt-2 flex flex-wrap gap-1.5">
+                    <MenuFlutuante aberto={modelosAbertos && modelos.length > 0} onClose={() => setModelosAbertos(false)}>
                       {modelos.map((m) => (
-                        <button key={m.id} onClick={() => { sub('kanban_checklist_aplicar', { p_card: card.id, p_modelo: m.id }); setModelosAbertos(false) }} className="rounded-md border border-line px-2.5 py-1 text-xs font-semibold text-muted tap">
-                          + {m.nome} <span className="text-muted-2">({(m.itens || []).length})</span>
+                        <button key={m.id} onClick={() => { sub('kanban_checklist_aplicar', { p_card: card.id, p_modelo: m.id }); setModelosAbertos(false) }} className="hstack w-full items-center justify-between gap-2 px-3 py-2 text-left text-xs font-semibold text-muted tap hover:bg-fill">
+                          <span className="min-w-0 flex-1 truncate">{m.nome}</span>
+                          <span className="shrink-0 text-muted-2">({(m.itens || []).length})</span>
                         </button>
                       ))}
-                    </div>
-                  )}
+                    </MenuFlutuante>
+                  </div>
                   <div className="mt-2 hstack gap-2">
                     <input value={novoItem} onChange={(e) => setNovoItem(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter' && novoItem.trim()) { sub('kanban_checklist_add', { p_card: card.id, p_texto: novoItem.trim() }); setNovoItem('') } }} placeholder="Adicionar item…" className="min-w-0 flex-1 rounded-lg border border-line bg-bg px-3 py-2 text-sm outline-none placeholder:text-muted-2" />
                     <button onClick={() => { if (novoItem.trim()) { sub('kanban_checklist_add', { p_card: card.id, p_texto: novoItem.trim() }); setNovoItem('') } }} disabled={busy || !novoItem.trim()} className={cn('grid h-9 w-9 shrink-0 place-items-center rounded-lg tap disabled:opacity-40', ctaEscuro)}>
