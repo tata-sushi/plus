@@ -41,6 +41,7 @@ import {
   SlidersHorizontal,
   Layers,
   AtSign,
+  List,
 } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Voltar } from '../components/Voltar.jsx'
@@ -246,6 +247,7 @@ function VisaoQuadro({ quadroId, onVoltar, emCanvas }) {
 
   const [busca, setBusca] = useState('')
   const [agrupar, setAgrupar] = useState(false)
+  const [vista, setVista] = useState('kanban') // 'kanban' | 'lista' | 'calendario'
   const [filtros, setFiltros] = useState({ filtroEtq: new Set(), filtroResp: new Set(), soVencidos: false, soMeus: false })
 
   const carregarInicial = useCallback(async () => {
@@ -348,7 +350,7 @@ function VisaoQuadro({ quadroId, onVoltar, emCanvas }) {
       .filter((g) => g.cols.some((c) => c.cards.length > 0))
   }, [agrupar, colsFiltradas, board])
 
-  const dragEnabled = admin && !filtrando && !agrupar
+  const dragEnabled = admin && !filtrando && !agrupar && vista === 'kanban'
   function abrirCard(colId, card) {
     setCardAberto({ modo: admin ? 'editar' : 'ver', cardId: card.id, colunaId: colId })
   }
@@ -377,11 +379,9 @@ function VisaoQuadro({ quadroId, onVoltar, emCanvas }) {
         <PilhaAvatares membros={board.membros} />
         <Users size={14} />
       </button>
-      {admin && (
-        <button onClick={() => setSheet('menu')} aria-label="Gerenciar quadro" className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-surface text-muted tap">
-          <Settings2 size={16} />
-        </button>
-      )}
+      <button onClick={() => setSheet('menu')} aria-label="Opções do quadro" className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-surface text-muted tap">
+        <Settings2 size={16} />
+      </button>
     </div>
   )
 
@@ -399,17 +399,27 @@ function VisaoQuadro({ quadroId, onVoltar, emCanvas }) {
       <button onClick={() => setSheet('filtros')} aria-label="Filtros" className={cn('grid h-9 w-9 shrink-0 place-items-center rounded-full border tap', temFiltro ? 'border-accent bg-accent-soft text-accent' : 'border-line text-muted')}>
         <SlidersHorizontal size={16} />
       </button>
-      <button onClick={() => setAgrupar((a) => !a)} aria-label="Agrupar por responsável" className={cn('grid h-9 w-9 shrink-0 place-items-center rounded-full border tap', agrupar ? 'border-accent bg-accent-soft text-accent' : 'border-line text-muted')}>
-        <Layers size={16} />
-      </button>
+      {vista === 'kanban' && (
+        <button onClick={() => setAgrupar((a) => !a)} aria-label="Agrupar por responsável" className={cn('grid h-9 w-9 shrink-0 place-items-center rounded-full border tap', agrupar ? 'border-accent bg-accent-soft text-accent' : 'border-line text-muted')}>
+          <Layers size={16} />
+        </button>
+      )}
     </div>
   )
 
-  const boardEl = dragEnabled ? (
+  const kanbanEl = dragEnabled ? (
     <BoardDnD cols={cols} setCols={setCols} quadroId={board.id} etiquetaPorId={etiquetaPorId} onAbrirCard={abrirCard} onNovoCard={novoCard} />
   ) : (
     <BoardStatic cols={agrupar ? undefined : colsFiltradas} grupos={agrupar ? grupos : null} etiquetaPorId={etiquetaPorId} podeAdicionar={!filtrando} onAbrirCard={abrirCard} onNovoCard={novoCard} />
   )
+  const conteudo =
+    vista === 'lista' ? (
+      <ListaView cols={colsFiltradas} etiquetaPorId={etiquetaPorId} onAbrirCard={abrirCard} />
+    ) : vista === 'calendario' ? (
+      <CalendarioView cards={colsFiltradas.flatMap((c) => c.cards)} etiquetaPorId={etiquetaPorId} onAbrirCard={abrirCard} />
+    ) : (
+      kanbanEl
+    )
 
   const overlays = (
     <>
@@ -421,7 +431,7 @@ function VisaoQuadro({ quadroId, onVoltar, emCanvas }) {
       {sheet === 'etiquetas' && <EtiquetasSheet board={board} onClose={() => setSheet(null)} onFeito={recarregar} />}
       {sheet === 'colunas' && <ColunasSheet board={board} onClose={() => setSheet(null)} onFeito={recarregar} />}
       {sheet === 'menu' && (
-        <MenuGerenciar board={board} onClose={() => setSheet(null)} onEscolher={(s) => setSheet(s)} onArquivou={() => { setSheet(null); onVoltar() }} />
+        <MenuGerenciar board={board} admin={admin} vista={vista} setVista={setVista} onClose={() => setSheet(null)} onEscolher={(s) => setSheet(s)} onArquivou={() => { setSheet(null); onVoltar() }} />
       )}
     </>
   )
@@ -431,7 +441,7 @@ function VisaoQuadro({ quadroId, onVoltar, emCanvas }) {
       <div className="flex h-full flex-col bg-bg pt-3">
         {barra}
         {toolbar}
-        <div className="min-h-0 flex-1 overflow-y-auto">{boardEl}</div>
+        <div className="min-h-0 flex-1 overflow-y-auto">{conteudo}</div>
         {overlays}
       </div>
     )
@@ -441,7 +451,7 @@ function VisaoQuadro({ quadroId, onVoltar, emCanvas }) {
       <Header title="Quadros" />
       {barra}
       {toolbar}
-      {boardEl}
+      {conteudo}
       {overlays}
     </>
   )
@@ -553,6 +563,161 @@ function BoardStatic({ cols, grupos, etiquetaPorId, podeAdicionar, onAbrirCard, 
           ))}
         </ColunaFace>
       ))}
+    </div>
+  )
+}
+
+// ── Visualização em Lista ────────────────────────────────────────────────────
+function ListaView({ cols, etiquetaPorId, onAbrirCard }) {
+  const vazio = cols.every((c) => c.cards.length === 0)
+  return (
+    <div className="mt-3 flex flex-col gap-4 px-5 pb-24">
+      {vazio && <div className="py-10 text-center text-sm text-muted">Nenhum cartão.</div>}
+      {cols.map((col) =>
+        col.cards.length === 0 ? null : (
+          <div key={col.id}>
+            <div className="mb-1.5 hstack gap-2 text-[11px] font-bold uppercase tracking-wide text-muted">
+              <Columns3 size={12} /> {col.nome}
+              <span className="rounded-pill bg-fill px-1.5 text-[10px] text-muted">{col.cards.length}</span>
+            </div>
+            <div className="flex flex-col gap-1.5">
+              {col.cards.map((card) => {
+                const etqs = (card.etiquetas || []).map((id) => etiquetaPorId[id]).filter(Boolean)
+                const vencido = card.data_conclusao && card.data_conclusao < hojeISO()
+                const chk = card.checklist || []
+                const feitos = chk.filter((c) => c.feito).length
+                return (
+                  <button key={card.id} onClick={() => onAbrirCard(col.id, card)} className="hstack items-start gap-3 rounded-card border border-line bg-surface px-3 py-2.5 text-left tap">
+                    <div className="min-w-0 flex-1">
+                      {etqs.length > 0 && (
+                        <div className="mb-1 hstack flex-wrap gap-1">
+                          {etqs.map((e) => (
+                            <span key={e.id} className="h-1.5 w-6 rounded-pill" style={{ backgroundColor: e.cor }} title={e.nome} />
+                          ))}
+                        </div>
+                      )}
+                      <div className="text-sm font-semibold leading-snug">{card.titulo}</div>
+                      <div className="mt-1 hstack flex-wrap items-center gap-2 text-[11px]">
+                        {card.data_conclusao && (
+                          <span className={cn('hstack gap-1 rounded-pill px-1.5 py-0.5 font-semibold', vencido ? 'bg-danger/15 text-danger' : 'bg-warn/15 text-warn')}>
+                            <CalendarDays size={11} /> {fmtPrazo(card.data_conclusao)}
+                          </span>
+                        )}
+                        {chk.length > 0 && (
+                          <span className={cn('hstack gap-1 text-muted', feitos === chk.length && 'text-accent')}>
+                            <ListChecks size={12} /> {feitos}/{chk.length}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <PilhaAvatares membros={card.responsaveis} size={24} />
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        ),
+      )}
+    </div>
+  )
+}
+
+// ── Visualização em Calendário ───────────────────────────────────────────────
+const DOW = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb']
+function CalendarioView({ cards, etiquetaPorId, onAbrirCard }) {
+  const [offset, setOffset] = useState(0)
+  const agora = new Date()
+  const base = new Date(agora.getFullYear(), agora.getMonth() + offset, 1)
+  const ano = base.getFullYear()
+  const mes = base.getMonth()
+  const inicio = base.getDay()
+  const dias = new Date(ano, mes + 1, 0).getDate()
+  const hj = hojeISO()
+
+  const porDia = {}
+  const semData = []
+  for (const c of cards) {
+    if (!c.data_conclusao) {
+      semData.push(c)
+      continue
+    }
+    const [y, m, d] = c.data_conclusao.split('-').map(Number)
+    if (y === ano && m - 1 === mes) (porDia[d] || (porDia[d] = [])).push(c)
+  }
+  const celulas = []
+  for (let i = 0; i < inicio; i++) celulas.push(null)
+  for (let d = 1; d <= dias; d++) celulas.push(d)
+  const iso = (d) => `${ano}-${String(mes + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`
+  const tituloRaw = base.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })
+  const titulo = tituloRaw.charAt(0).toUpperCase() + tituloRaw.slice(1)
+
+  function Chip({ c }) {
+    const cor = (c.etiquetas || []).map((id) => etiquetaPorId[id]).filter(Boolean)[0]?.cor
+    return (
+      <button
+        onClick={() => onAbrirCard(c.coluna_id, c)}
+        className={cn('block w-full truncate rounded px-1 py-0.5 text-left text-[9px] font-semibold leading-tight tap', !cor && 'bg-accent text-black')}
+        style={cor ? { backgroundColor: cor, color: '#fff' } : undefined}
+        title={c.titulo}
+      >
+        {c.titulo}
+      </button>
+    )
+  }
+
+  return (
+    <div className="mt-3 px-5 pb-24">
+      <div className="hstack justify-between">
+        <button onClick={() => setOffset((o) => o - 1)} aria-label="Mês anterior" className="grid h-8 w-8 place-items-center rounded-full bg-surface text-muted tap">
+          <ChevronLeft size={16} />
+        </button>
+        <div className="hstack gap-2">
+          <span className="font-display text-sm font-bold">{titulo}</span>
+          {offset !== 0 && (
+            <button onClick={() => setOffset(0)} className="rounded-pill border border-line px-2 py-0.5 text-[10px] font-semibold text-muted tap">
+              hoje
+            </button>
+          )}
+        </div>
+        <button onClick={() => setOffset((o) => o + 1)} aria-label="Próximo mês" className="grid h-8 w-8 place-items-center rounded-full bg-surface text-muted tap">
+          <ChevronLeft size={16} className="rotate-180" />
+        </button>
+      </div>
+
+      <div className="mt-3 grid grid-cols-7 gap-1 text-center text-[10px] font-semibold text-muted-2">
+        {DOW.map((d, i) => (
+          <div key={i}>{d}</div>
+        ))}
+      </div>
+      <div className="mt-1 grid grid-cols-7 gap-1">
+        {celulas.map((d, i) => {
+          if (d == null) return <div key={`b${i}`} />
+          const lista = porDia[d] || []
+          const ehHoje = iso(d) === hj
+          return (
+            <div key={d} className={cn('flex min-h-[64px] flex-col gap-0.5 rounded-lg border p-1', ehHoje ? 'border-accent bg-accent-soft/40' : 'border-line')}>
+              <div className={cn('text-[10px] font-bold', ehHoje ? 'text-accent' : 'text-muted')}>{d}</div>
+              {lista.slice(0, 2).map((c) => (
+                <Chip key={c.id} c={c} />
+              ))}
+              {lista.length > 2 && <div className="px-1 text-[9px] font-semibold text-muted-2">+{lista.length - 2}</div>}
+            </div>
+          )
+        })}
+      </div>
+
+      {semData.length > 0 && (
+        <div className="mt-4">
+          <div className="mb-1.5 text-[11px] font-bold uppercase tracking-wide text-muted">Sem data de entrega</div>
+          <div className="flex flex-wrap gap-1.5">
+            {semData.map((c) => (
+              <button key={c.id} onClick={() => onAbrirCard(c.coluna_id, c)} className="rounded-pill border border-line bg-surface px-2.5 py-1 text-xs font-semibold text-muted tap">
+                {c.titulo}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -701,7 +866,6 @@ function CardModal({ estado, card, board, admin, onClose, onFeito, onRefresh }) 
 
   // comentário + @menção
   const [novoComent, setNovoComent] = useState('')
-  const [mencoes, setMencoes] = useState([]) // [{matricula, nome}]
   const [frag, setFrag] = useState(null) // fragmento após @ (ou null)
 
   // histórico do cartão
@@ -778,16 +942,17 @@ function CardModal({ estado, card, board, admin, onClose, onFeito, onRefresh }) 
   }
   function escolherMencao(p) {
     setNovoComent((v) => v.replace(/@([\p{L}\p{N}._-]*)$/u, '@' + primeiro(p.nome) + ' '))
-    setMencoes((ms) => (ms.some((x) => x.matricula === p.matricula) ? ms : [...ms, { matricula: p.matricula, nome: p.nome }]))
     setFrag(null)
   }
   function enviarComentario() {
     const texto = novoComent.trim()
     if (!texto) return
-    const alvo = mencoes.filter((m) => novoComent.toLowerCase().includes('@' + primeiro(m.nome).toLowerCase())).map((m) => m.matricula)
+    // Extrai os @tokens do texto e casa com os membros pelo primeiro nome —
+    // robusto: funciona escolhendo na lista OU digitando o nome à mão.
+    const tokens = (texto.match(/@([\p{L}\p{N}._-]+)/gu) || []).map((t) => t.slice(1).toLowerCase())
+    const alvo = tokens.length ? board.membros.filter((m) => tokens.includes(primeiro(m.nome).toLowerCase())).map((m) => m.matricula) : []
     sub('kanban_comentario_add', { p_card: card.id, p_texto: texto, p_mencoes: alvo })
     setNovoComent('')
-    setMencoes([])
     setFrag(null)
   }
   const sugestoes =
@@ -1058,7 +1223,7 @@ function FiltrosSheet({ board, filtros, setFiltros, onClose }) {
 }
 
 // ── Menu de gerenciamento (admin) ────────────────────────────────────────────
-function MenuGerenciar({ board, onClose, onEscolher, onArquivou }) {
+function MenuGerenciar({ board, admin, vista, setVista, onClose, onEscolher, onArquivou }) {
   const [busy, setBusy] = useState(false)
   async function arquivarQuadro() {
     if (!window.confirm('Arquivar o quadro inteiro? Ele sai da sua lista.')) return
@@ -1072,23 +1237,44 @@ function MenuGerenciar({ board, onClose, onEscolher, onArquivou }) {
     }
   }
   const item = 'hstack w-full gap-3 rounded-card border border-line px-4 py-3 text-sm font-semibold tap'
+  const VISUALIZACOES = [
+    ['kanban', 'Kanban', Columns3],
+    ['lista', 'Lista', List],
+    ['calendario', 'Calendário', CalendarDays],
+  ]
   return (
     <Sheet onClose={onClose}>
-      <div className="font-display text-lg font-bold">Gerenciar quadro</div>
-      <div className="mt-3 flex flex-col gap-2">
-        <button className={item} onClick={() => onEscolher('membros')}>
-          <Users size={17} className="text-accent" /> Membros
-        </button>
-        <button className={item} onClick={() => onEscolher('etiquetas')}>
-          <Tag size={17} className="text-accent" /> Etiquetas
-        </button>
-        <button className={item} onClick={() => onEscolher('colunas')}>
-          <Columns3 size={17} className="text-accent" /> Colunas
-        </button>
-        <button onClick={arquivarQuadro} disabled={busy} className={cn(item, 'text-danger disabled:opacity-40')}>
-          {busy ? <Loader2 size={17} className="animate-spin" /> : <Archive size={17} />} Arquivar quadro
-        </button>
+      <div className="font-display text-lg font-bold">Opções do quadro</div>
+
+      <div className="mt-3 text-[11px] font-semibold uppercase tracking-wide text-muted">Visualização</div>
+      <div className="mt-2 flex flex-col gap-2">
+        {VISUALIZACOES.map(([v, label, Ic]) => (
+          <button key={v} onClick={() => { setVista(v); onClose() }} className={cn(item, vista === v && 'border-accent bg-accent-soft text-accent')}>
+            <Ic size={17} className={vista === v ? 'text-accent' : 'text-muted'} /> {label}
+            {vista === v && <Check size={16} className="ml-auto" />}
+          </button>
+        ))}
       </div>
+
+      {admin && (
+        <>
+          <div className="mt-4 text-[11px] font-semibold uppercase tracking-wide text-muted">Gerenciar quadro</div>
+          <div className="mt-2 flex flex-col gap-2">
+            <button className={item} onClick={() => onEscolher('membros')}>
+              <Users size={17} className="text-accent" /> Membros
+            </button>
+            <button className={item} onClick={() => onEscolher('etiquetas')}>
+              <Tag size={17} className="text-accent" /> Etiquetas
+            </button>
+            <button className={item} onClick={() => onEscolher('colunas')}>
+              <Columns3 size={17} className="text-accent" /> Colunas
+            </button>
+            <button onClick={arquivarQuadro} disabled={busy} className={cn(item, 'text-danger disabled:opacity-40')}>
+              {busy ? <Loader2 size={17} className="animate-spin" /> : <Archive size={17} />} Arquivar quadro
+            </button>
+          </div>
+        </>
+      )}
     </Sheet>
   )
 }
