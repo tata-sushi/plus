@@ -32,7 +32,6 @@ import {
   Archive,
   Settings2,
   ChevronLeft,
-  ChevronDown,
   Columns3,
   Search,
   ListChecks,
@@ -291,6 +290,7 @@ function VisaoQuadro({ quadroId, onVoltar, emCanvas }) {
   const [sheet, setSheet] = useState(null)
 
   const [busca, setBusca] = useState('')
+  const [buscaAberta, setBuscaAberta] = useState(false)
   const [agrupar, setAgrupar] = useState(false)
   const [vista, setVista] = useState('kanban') // 'kanban' | 'lista' | 'calendario'
   const [filtros, setFiltros] = useState({ filtroEtq: new Set(), filtroResp: new Set(), soVencidos: false, soMeus: false })
@@ -430,46 +430,52 @@ function VisaoQuadro({ quadroId, onVoltar, emCanvas }) {
   }
 
   const IconeBoard = iconeQuadro(board.icone)
+  // Todos os controles do quadro numa única linha, com o mesmo padrão de botão
+  // (círculo em branco; ativo = accent). Ordem: membros · filtros · busca ·
+  // camadas · opções.
+  const btnQuadro = 'grid h-8 w-8 shrink-0 place-items-center rounded-full tap'
+  const btnOff = 'bg-surface text-muted'
+  const btnOn = 'bg-accent-soft text-accent'
   const barra = (
-    <div className="hstack gap-2 px-5 pt-1">
-      <button onClick={onVoltar} aria-label="Voltar" className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-surface text-muted tap">
+    <div className="hstack gap-1.5 px-5 pt-1">
+      <button onClick={onVoltar} aria-label="Voltar" className={cn(btnQuadro, btnOff)}>
         <ChevronLeft size={18} />
       </button>
       <IconeBoard size={18} className="shrink-0 text-accent" />
       <div className="min-w-0 flex-1">
         <div className="truncate font-display text-lg font-bold leading-tight">{board.nome}</div>
       </div>
-      <button onClick={() => setSheet('membros')} className="hstack shrink-0 gap-1.5 rounded-pill border border-line px-2.5 py-1.5 text-xs font-semibold text-muted tap">
-        <PilhaAvatares membros={board.membros} />
-        <Users size={14} />
+      <button onClick={() => setSheet('membros')} aria-label="Membros do quadro" className={cn(btnQuadro, btnOff)}>
+        <Users size={16} />
       </button>
-      <button onClick={() => setSheet('menu')} aria-label="Opções do quadro" className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-surface text-muted tap">
+      <button onClick={() => setSheet('filtros')} aria-label="Filtros" className={cn(btnQuadro, temFiltro ? btnOn : btnOff)}>
+        <SlidersHorizontal size={16} />
+      </button>
+      <button onClick={() => setBuscaAberta((v) => !v)} aria-label="Buscar" className={cn(btnQuadro, buscaAberta || busca ? btnOn : btnOff)}>
+        <Search size={16} />
+      </button>
+      {vista === 'kanban' && (
+        <button onClick={() => setAgrupar((a) => !a)} aria-label="Agrupar por responsável" className={cn(btnQuadro, agrupar ? btnOn : btnOff)}>
+          <Layers size={16} />
+        </button>
+      )}
+      <button onClick={() => setSheet('menu')} aria-label="Opções do quadro" className={cn(btnQuadro, btnOff)}>
         <Settings2 size={16} />
       </button>
     </div>
   )
 
-  const toolbar = (
-    <div className="mt-2 hstack gap-2 px-5">
-      <div className="hstack min-w-0 flex-1 gap-2 rounded-pill border border-line bg-surface px-3 py-1.5">
+  const toolbar = buscaAberta ? (
+    <div className="mt-2 px-5">
+      <div className="hstack gap-2 rounded-pill border border-line bg-surface px-3 py-1.5">
         <Search size={14} className="shrink-0 text-muted-2" />
-        <input value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Buscar cartão…" className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-2" />
-        {busca && (
-          <button onClick={() => setBusca('')} aria-label="Limpar busca">
-            <X size={14} className="text-muted-2" />
-          </button>
-        )}
-      </div>
-      <button onClick={() => setSheet('filtros')} aria-label="Filtros" className={cn('grid h-9 w-9 shrink-0 place-items-center rounded-full border tap', temFiltro ? 'border-accent bg-accent-soft text-accent' : 'border-line text-muted')}>
-        <SlidersHorizontal size={16} />
-      </button>
-      {vista === 'kanban' && (
-        <button onClick={() => setAgrupar((a) => !a)} aria-label="Agrupar por responsável" className={cn('grid h-9 w-9 shrink-0 place-items-center rounded-full border tap', agrupar ? 'border-accent bg-accent-soft text-accent' : 'border-line text-muted')}>
-          <Layers size={16} />
+        <input autoFocus value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Buscar cartão…" className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-2" />
+        <button onClick={() => { setBusca(''); setBuscaAberta(false) }} aria-label="Fechar busca">
+          <X size={14} className="text-muted-2" />
         </button>
-      )}
+      </div>
     </div>
-  )
+  ) : null
 
   const kanbanEl = dragEnabled ? (
     <BoardDnD cols={cols} setCols={setCols} quadroId={board.id} etiquetaPorId={etiquetaPorId} onAbrirCard={abrirCard} onNovoCard={novoCard} />
@@ -548,20 +554,23 @@ function CardFace({ card, etiquetaPorId, onOpen, handle, semAcoes }) {
               ctx.onConcluir(card)
             }}
             aria-label={card.concluido ? 'Reabrir cartão' : 'Concluir cartão'}
-            className={cn('mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full border tap', card.concluido ? 'border-accent bg-accent text-black' : 'border-line text-muted-2')}
+            className={cn('mt-1 grid h-3.5 w-3.5 shrink-0 place-items-center rounded-full border tap', card.concluido ? 'border-accent bg-accent text-black' : 'border-line text-muted-2')}
           >
-            {card.concluido && <Check size={12} />}
+            {card.concluido && <Check size={9} />}
           </button>
         )}
         <button onClick={onOpen} className="min-w-0 flex-1 text-left tap">
-          {etqs.length > 0 && (
-            <div className="mb-1.5 hstack flex-wrap gap-1">
-              {etqs.map((e) => (
-                <span key={e.id} className="h-1.5 w-6 rounded-pill" style={{ backgroundColor: e.cor }} title={e.nome} />
-              ))}
-            </div>
-          )}
-          <div className={cn('text-sm font-semibold leading-snug', card.concluido && 'text-muted line-through')}>{card.titulo}</div>
+          {/* Título à esquerda; cor da etiqueta à direita (acima das fotos dos responsáveis) */}
+          <div className="hstack items-start gap-2">
+            <div className={cn('min-w-0 flex-1 text-sm font-semibold leading-snug', card.concluido && 'text-muted line-through')}>{card.titulo}</div>
+            {etqs.length > 0 && (
+              <div className="mt-1.5 hstack shrink-0 flex-wrap justify-end gap-1">
+                {etqs.map((e) => (
+                  <span key={e.id} className="h-1.5 w-6 rounded-pill" style={{ backgroundColor: e.cor }} title={e.nome} />
+                ))}
+              </div>
+            )}
+          </div>
           {temMeta && (
             <div className="mt-2 hstack flex-wrap items-center gap-2 text-[11px]">
               {card.data_conclusao && (
@@ -1252,37 +1261,38 @@ function CardModal({ estado, card, board, admin, onClose, onFeito, onRefresh }) 
             {/* Categoria (etiquetas) | Responsáveis */}
             <div className={cn(board.etiquetas.length > 0 && 'grid grid-cols-2 items-start gap-4')}>
               {board.etiquetas.length > 0 && (
-                <div>
-                  <div className={lbl}>Categoria</div>
-                  <div className="relative mt-2">
+                <div className="relative">
+                  <div className="hstack justify-between">
+                    <div className={lbl}>Categoria</div>
                     <button
                       disabled={!editavel}
                       onClick={() => setEtqAberto((v) => !v)}
-                      className="hstack w-full items-center gap-2 rounded-lg border border-line bg-bg px-2.5 py-2 text-xs font-semibold tap disabled:opacity-100"
+                      className="hstack gap-1 font-mono text-[9px] font-medium uppercase tracking-[0.4px] text-carbon tap disabled:opacity-100"
                     >
                       {etqSel ? (
                         <>
-                          <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: etqSel.cor }} />
-                          <span className="min-w-0 flex-1 truncate text-left">{etqSel.nome}</span>
+                          <span className="h-2 w-2 rounded-full" style={{ backgroundColor: etqSel.cor }} />
+                          {etqSel.nome}
                         </>
                       ) : (
-                        <span className="min-w-0 flex-1 truncate text-left text-muted-2">Etiqueta</span>
+                        <>
+                          <Tag size={11} /> Etiqueta
+                        </>
                       )}
-                      {editavel && <ChevronDown size={14} className="shrink-0 text-muted-2" />}
                     </button>
-                    <MenuFlutuante aberto={etqAberto && editavel} onClose={() => setEtqAberto(false)}>
-                      {board.etiquetas.map((e) => {
-                        const on = etqs.has(e.id)
-                        return (
-                          <button key={e.id} onClick={() => { setEtqs(new Set(on ? [] : [e.id])); setEtqAberto(false) }} className="hstack w-full items-center gap-2 px-3 py-2 text-left text-xs font-semibold tap hover:bg-fill">
-                            <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: e.cor }} />
-                            <span className="min-w-0 flex-1 truncate">{e.nome}</span>
-                            {on && <Check size={13} className="shrink-0 text-carbon dark:text-text" />}
-                          </button>
-                        )
-                      })}
-                    </MenuFlutuante>
                   </div>
+                  <MenuFlutuante aberto={etqAberto && editavel} onClose={() => setEtqAberto(false)}>
+                    {board.etiquetas.map((e) => {
+                      const on = etqs.has(e.id)
+                      return (
+                        <button key={e.id} onClick={() => { setEtqs(new Set(on ? [] : [e.id])); setEtqAberto(false) }} className="hstack w-full items-center gap-2 px-3 py-2 text-left text-xs font-semibold tap hover:bg-fill">
+                          <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: e.cor }} />
+                          <span className="min-w-0 flex-1 truncate">{e.nome}</span>
+                          {on && <Check size={13} className="shrink-0 text-carbon dark:text-text" />}
+                        </button>
+                      )
+                    })}
+                  </MenuFlutuante>
                 </div>
               )}
               <div>
