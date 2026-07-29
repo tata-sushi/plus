@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Flag, Gift, Star, Network, Clock, ChevronRight, Coffee } from 'lucide-react'
+import { Flag, Gift, Star, Network, Coffee } from 'lucide-react'
+import { cn } from '../lib/cn'
 import { Header } from '../components/Header.jsx'
 import { Section } from '../components/Section.jsx'
 import { Card } from '../components/Card.jsx'
@@ -27,6 +28,7 @@ function gruposDia(itens) {
 }
 const padD = (n) => String(n).padStart(2, '0')
 const isoLocal = (d) => d.getFullYear() + '-' + padD(d.getMonth() + 1) + '-' + padD(d.getDate())
+const DIAS_ABREV = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom']
 function mondayISO() {
   const h = new Date()
   const x = new Date(h.getFullYear(), h.getMonth(), h.getDate())
@@ -80,19 +82,18 @@ export function Home() {
       ativo = false
     }
   }, [])
-  // Escala de hoje (teste — só pra quem tem acesso liberado no painel de admin)
-  const [escalaHoje, setEscalaHoje] = useState(null)
+  // Escala da semana (teste — só pra quem tem acesso liberado no painel de admin)
+  const [escalaSemana, setEscalaSemana] = useState(null)
   useEffect(() => {
     if (!usuario?.podeEscala) return
     let ativo = true
-    supabase.rpc('escala_meu_dia', { p_data: isoLocal(new Date()) }).then(({ data }) => {
-      if (ativo) setEscalaHoje(data || { definido: false })
+    supabase.rpc('escala_minha_semana', { p_inicio: mondayISO() }).then(({ data }) => {
+      if (ativo) setEscalaSemana(Array.isArray(data) ? data : [])
     })
     return () => {
       ativo = false
     }
   }, [usuario?.podeEscala])
-  const hm = (t) => (t ? String(t).slice(0, 5) : '')
 
   const cargo = usuario?.cargo || ''
   const loja = usuario?.loja || ''
@@ -227,40 +228,41 @@ export function Home() {
         </Card>
       </Section>
 
-      {/* Escala de hoje — só pra quem tem acesso (teste) */}
-      {usuario?.podeEscala && (
-        <Section className="reveal reveal-2 mt-4 hsm:mt-3" title="Escala de hoje">
-          <Link to="/escala" className="block tap">
-            <Card className="hstack gap-3 p-4">
-              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-accent-soft text-accent">
-                {escalaHoje?.folga ? <Coffee size={19} /> : <Clock size={19} />}
-              </span>
-              <div className="min-w-0 flex-1">
-                {escalaHoje == null ? (
-                  <span className="block h-4 w-32 animate-pulse rounded bg-fill" />
-                ) : escalaHoje.folga ? (
-                  <div className="text-sm font-bold">Folga hoje</div>
-                ) : escalaHoje.definido ? (
-                  <>
-                    <div className="text-sm font-bold">
-                      {hm(escalaHoje.entrada)} <span className="text-muted-2">–</span> {hm(escalaHoje.saida)}
-                    </div>
-                    <div className="text-xs text-muted">Seu turno de hoje</div>
-                  </>
-                ) : (
-                  <div className="text-sm text-muted">Sem escala definida hoje</div>
-                )}
-              </div>
-              <ChevronRight size={18} className="shrink-0 text-carbon" />
-            </Card>
-          </Link>
-        </Section>
-      )}
-
       {/* Notícias — carrossel automático (aniversário, comunicados, avisos…) */}
       {cardsDestaque.length > 0 && (
         <Section className="reveal reveal-3 mt-4 hsm:mt-3" title="Notícias">
           <Carrossel itens={cardsDestaque} />
+        </Section>
+      )}
+
+      {/* Escala da semana — só pra quem tem acesso (teste) */}
+      {usuario?.podeEscala && (
+        <Section className="mt-4 hsm:mt-3" title="Escala da semana">
+          <Link to="/escala" className="block tap">
+            <Card className="p-3">
+              <div className="hstack gap-1.5">
+                {(escalaSemana || Array.from({ length: 7 })).map((dia, i) => {
+                  const hoje = dia && dia.data === isoLocal(new Date())
+                  return (
+                    <div key={i} className={cn('flex-1 rounded-lg border py-1.5 text-center', hoje ? 'border-accent bg-accent-soft' : 'border-line')}>
+                      <div className={cn('text-[9px] font-bold uppercase', hoje ? 'text-accent' : 'text-muted-2')}>{DIAS_ABREV[i]}</div>
+                      <div className="mt-0.5 flex h-4 items-center justify-center text-[11px] font-bold">
+                        {!escalaSemana ? (
+                          <span className="h-2.5 w-6 animate-pulse rounded bg-fill" />
+                        ) : dia?.folga ? (
+                          <Coffee size={12} className="text-muted" />
+                        ) : dia?.definido ? (
+                          String(dia.entrada).slice(0, 2) + 'h'
+                        ) : (
+                          <span className="text-muted-2">—</span>
+                        )}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </Card>
+          </Link>
         </Section>
       )}
 
