@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import {
   DndContext,
@@ -41,6 +41,23 @@ import {
   Layers,
   AtSign,
   List,
+  Circle,
+  Upload,
+  Pencil,
+  KanbanSquare,
+  ClipboardList,
+  Rocket,
+  Target,
+  ShoppingCart,
+  UtensilsCrossed,
+  Wrench,
+  Lightbulb,
+  Star,
+  Flag,
+  Briefcase,
+  Truck,
+  Heart,
+  PartyPopper,
 } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Voltar } from '../components/Voltar.jsx'
@@ -57,6 +74,30 @@ import { supabase } from '../lib/supabase.js'
 
 const CORES = ['#2f7d4f', '#d98a2b', '#c2453f', '#3b6fb3', '#7a4fb3', '#0f766e', '#64748b']
 const TABELAS_RT = ['cards', 'colunas', 'etiquetas', 'membros', 'card_comentarios', 'card_checklist']
+
+// Ícones pré-definidos para diferenciar os quadros
+const ICONES_QUADRO = {
+  quadro: KanbanSquare,
+  lista: ClipboardList,
+  foguete: Rocket,
+  alvo: Target,
+  agenda: CalendarDays,
+  equipe: Users,
+  compras: ShoppingCart,
+  cozinha: UtensilsCrossed,
+  manutencao: Wrench,
+  ideia: Lightbulb,
+  estrela: Star,
+  bandeira: Flag,
+  maleta: Briefcase,
+  entrega: Truck,
+  coracao: Heart,
+  festa: PartyPopper,
+}
+const iconeQuadro = (chave) => ICONES_QUADRO[chave] || KanbanSquare
+
+// Ações do quadro compartilhadas com os cartões/colunas (evita threading de props)
+const QuadroCtx = createContext(null)
 const ACOES = {
   quadro_criado: 'criou o quadro',
   quadro_arquivado: 'arquivou o quadro',
@@ -197,14 +238,16 @@ function ListaQuadros({ quadros, onAbrir, onMudou, selecionadoId }) {
           </div>
         ) : (
           <div className="mt-2 flex flex-col gap-2.5">
-            {quadros.map((q) => (
+            {quadros.map((q) => {
+              const Ic = iconeQuadro(q.icone)
+              return (
               <button
                 key={q.id}
                 onClick={() => onAbrir(q.id)}
                 className={cn('card hstack gap-3 px-4 py-3.5 text-left tap', selecionadoId === q.id && 'ring-2 ring-accent')}
               >
                 <div className="grid h-10 w-10 place-items-center rounded-card bg-accent-soft text-accent">
-                  <Columns3 size={19} />
+                  <Ic size={19} />
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="truncate font-display text-sm font-bold">{q.nome}</div>
@@ -219,7 +262,8 @@ function ListaQuadros({ quadros, onAbrir, onMudou, selecionadoId }) {
                   </div>
                 </div>
               </button>
-            ))}
+              )
+            })}
           </div>
         )}
 
@@ -356,6 +400,23 @@ function VisaoQuadro({ quadroId, onVoltar, emCanvas }) {
   function novoCard(colId) {
     setCardAberto({ modo: 'criar', colunaId: colId })
   }
+  async function concluirCard(card) {
+    try {
+      await call('kanban_card_concluir', { p_id: card.id, p_concluido: !card.concluido })
+      await recarregar()
+    } catch (e) {
+      avisarErro(e)
+    }
+  }
+  async function arquivarLista(colId) {
+    if (!window.confirm('Arquivar TODOS os cartões desta lista? Eles saem do quadro.')) return
+    try {
+      await call('kanban_coluna_arquivar_cards', { p_coluna: colId })
+      await recarregar()
+    } catch (e) {
+      avisarErro(e)
+    }
+  }
 
   if (!board) {
     const loader = (
@@ -366,11 +427,13 @@ function VisaoQuadro({ quadroId, onVoltar, emCanvas }) {
     return emCanvas ? <div className="flex h-full flex-col">{loader}</div> : <><Header title="Quadro" />{loader}</>
   }
 
+  const IconeBoard = iconeQuadro(board.icone)
   const barra = (
     <div className="hstack gap-2 px-5 pt-1">
       <button onClick={onVoltar} aria-label="Voltar" className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-surface text-muted tap">
         <ChevronLeft size={18} />
       </button>
+      <IconeBoard size={18} className="shrink-0 text-accent" />
       <div className="min-w-0 flex-1">
         <div className="truncate font-display text-lg font-bold leading-tight">{board.nome}</div>
       </div>
@@ -419,6 +482,9 @@ function VisaoQuadro({ quadroId, onVoltar, emCanvas }) {
     ) : (
       kanbanEl
     )
+  const conteudoProvido = (
+    <QuadroCtx.Provider value={{ admin, onConcluir: concluirCard, onArquivarLista: arquivarLista }}>{conteudo}</QuadroCtx.Provider>
+  )
 
   const overlays = (
     <>
@@ -429,6 +495,8 @@ function VisaoQuadro({ quadroId, onVoltar, emCanvas }) {
       {sheet === 'membros' && <MembrosSheet board={board} admin={admin} onClose={() => setSheet(null)} onFeito={recarregar} />}
       {sheet === 'etiquetas' && <EtiquetasSheet board={board} onClose={() => setSheet(null)} onFeito={recarregar} />}
       {sheet === 'colunas' && <ColunasSheet board={board} onClose={() => setSheet(null)} onFeito={recarregar} />}
+      {sheet === 'importar' && <ImportSheet board={board} onClose={() => setSheet(null)} onFeito={recarregar} />}
+      {sheet === 'editar' && <EditarQuadroSheet board={board} onClose={() => setSheet(null)} onFeito={recarregar} />}
       {sheet === 'menu' && (
         <MenuGerenciar board={board} admin={admin} vista={vista} setVista={setVista} onClose={() => setSheet(null)} onEscolher={(s) => setSheet(s)} onArquivou={() => { setSheet(null); onVoltar() }} />
       )}
@@ -440,7 +508,7 @@ function VisaoQuadro({ quadroId, onVoltar, emCanvas }) {
       <div className="flex h-full flex-col bg-bg pt-3">
         {barra}
         {toolbar}
-        <div className="min-h-0 flex-1 overflow-y-auto">{conteudo}</div>
+        <div className="min-h-0 flex-1 overflow-y-auto">{conteudoProvido}</div>
         {overlays}
       </div>
     )
@@ -450,14 +518,15 @@ function VisaoQuadro({ quadroId, onVoltar, emCanvas }) {
       <Header title="Quadros" />
       {barra}
       {toolbar}
-      {conteudo}
+      {conteudoProvido}
       {overlays}
     </>
   )
 }
 
 // ── Rosto do cartão (visual puro) ────────────────────────────────────────────
-function CardFace({ card, etiquetaPorId, onOpen, handle }) {
+function CardFace({ card, etiquetaPorId, onOpen, handle, semAcoes }) {
+  const ctx = useContext(QuadroCtx)
   const etqs = (card.etiquetas || []).map((id) => etiquetaPorId[id]).filter(Boolean)
   const resp = card.responsaveis || []
   const chk = card.checklist || []
@@ -466,9 +535,21 @@ function CardFace({ card, etiquetaPorId, onOpen, handle }) {
   const vencido = card.data_conclusao && card.data_conclusao < hojeISO()
   const temMeta = card.data_conclusao || chk.length > 0 || nCom > 0 || resp.length > 0
   return (
-    <div className="rounded-xl border border-line bg-surface p-2.5 shadow-sm">
+    <div className={cn('rounded-xl border border-line bg-surface p-2.5 shadow-sm', card.concluido && 'opacity-70')}>
       <div className="hstack items-start gap-1.5">
         {handle}
+        {!semAcoes && ctx?.onConcluir && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation()
+              ctx.onConcluir(card)
+            }}
+            aria-label={card.concluido ? 'Reabrir cartão' : 'Concluir cartão'}
+            className={cn('mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full border tap', card.concluido ? 'border-accent bg-accent text-black' : 'border-line text-muted-2')}
+          >
+            {card.concluido && <Check size={12} />}
+          </button>
+        )}
         <button onClick={onOpen} className="min-w-0 flex-1 text-left tap">
           {etqs.length > 0 && (
             <div className="mb-1.5 hstack flex-wrap gap-1">
@@ -477,7 +558,7 @@ function CardFace({ card, etiquetaPorId, onOpen, handle }) {
               ))}
             </div>
           )}
-          <div className="text-sm font-semibold leading-snug">{card.titulo}</div>
+          <div className={cn('text-sm font-semibold leading-snug', card.concluido && 'text-muted line-through')}>{card.titulo}</div>
           {temMeta && (
             <div className="mt-2 hstack flex-wrap items-center gap-2 text-[11px]">
               {card.data_conclusao && (
@@ -508,12 +589,18 @@ function CardFace({ card, etiquetaPorId, onOpen, handle }) {
   )
 }
 
-function ColunaFace({ col, isOver, bodyRef, children, onNovoCard, podeAdicionar }) {
+function ColunaFace({ col, isOver, bodyRef, children, onNovoCard, podeAdicionar, semArquivar }) {
+  const ctx = useContext(QuadroCtx)
   return (
     <section className="flex w-[80vw] max-w-[300px] shrink-0 snap-start flex-col self-start rounded-2xl bg-surface/60 p-2">
       <div className="hstack gap-1 px-1 py-1">
         <span className="min-w-0 flex-1 truncate text-sm font-bold">{col.nome}</span>
         <span className="rounded-pill bg-fill px-1.5 text-[11px] font-semibold text-muted">{col.cards.length}</span>
+        {!semArquivar && ctx?.admin && ctx?.onArquivarLista && col.cards.length > 0 && (
+          <button onClick={() => ctx.onArquivarLista(col.id)} aria-label="Arquivar todos os cartões da lista" className="grid h-6 w-6 shrink-0 place-items-center text-muted-2 tap">
+            <Archive size={13} />
+          </button>
+        )}
       </div>
       <div ref={bodyRef} className={cn('flex min-h-[8px] flex-col gap-2 rounded-xl p-0.5', isOver && 'bg-accent-soft/40')}>
         {children}
@@ -541,7 +628,7 @@ function BoardStatic({ cols, grupos, etiquetaPorId, podeAdicionar, onAbrirCard, 
             </div>
             <div className="flex items-start gap-3 overflow-x-auto no-scrollbar snap-x">
               {g.cols.map((col) => (
-                <ColunaFace key={col.id} col={col} podeAdicionar={false}>
+                <ColunaFace key={col.id} col={col} podeAdicionar={false} semArquivar>
                   {col.cards.map((card) => (
                     <CardFace key={card.id} card={card} etiquetaPorId={etiquetaPorId} onOpen={() => onAbrirCard(col.id, card)} />
                   ))}
@@ -570,6 +657,7 @@ function BoardStatic({ cols, grupos, etiquetaPorId, podeAdicionar, onAbrirCard, 
 const GRUPO_CORES = ['#3b6fb3', '#7a4fb3', '#2f7d4f', '#d98a2b', '#c2453f', '#0f766e', '#64748b']
 
 function ListaView({ cols, etiquetaPorId, onAbrirCard }) {
+  const ctx = useContext(QuadroCtx)
   const vazio = cols.every((c) => c.cards.length === 0)
   return (
     <div className="mt-3 flex flex-col gap-5 px-5 pb-24">
@@ -606,8 +694,20 @@ function ListaView({ cols, etiquetaPorId, onAbrirCard }) {
                         <td className="py-2 pr-2">
                           <div className="hstack items-start gap-2">
                             <span className="h-8 w-1 shrink-0 rounded-full" style={{ backgroundColor: cor }} />
+                            {ctx?.onConcluir && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  ctx.onConcluir(card)
+                                }}
+                                aria-label={card.concluido ? 'Reabrir' : 'Concluir'}
+                                className={cn('mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full border tap', card.concluido ? 'border-accent bg-accent text-black' : 'border-line text-muted-2')}
+                              >
+                                {card.concluido && <Check size={12} />}
+                              </button>
+                            )}
                             <div className="min-w-0">
-                              <div className="font-semibold leading-snug">{card.titulo}</div>
+                              <div className={cn('font-semibold leading-snug', card.concluido && 'text-muted line-through')}>{card.titulo}</div>
                               {(chk.length > 0 || nCom > 0) && (
                                 <div className="mt-0.5 hstack gap-2 text-[11px] text-muted-2">
                                   {chk.length > 0 && (
@@ -887,7 +987,7 @@ function BoardDnD({ cols, setCols, quadroId, etiquetaPorId, onAbrirCard, onNovoC
       <DragOverlay>
         {ativo ? (
           <div className="rotate-2 shadow-lg">
-            <CardFace card={ativo} etiquetaPorId={etiquetaPorId} onOpen={() => {}} />
+            <CardFace card={ativo} etiquetaPorId={etiquetaPorId} onOpen={() => {}} semAcoes />
           </div>
         ) : null}
       </DragOverlay>
@@ -1015,6 +1115,17 @@ function CardModal({ estado, card, board, admin, onClose, onFeito, onRefresh }) 
         <input value={titulo} onChange={(e) => setTitulo(e.target.value)} placeholder="Título do cartão" className="w-full bg-transparent pr-8 font-display text-lg font-bold outline-none placeholder:text-muted-2" aria-label="Título do cartão" />
       ) : (
         <div className="pr-8 font-display text-lg font-bold">{base.titulo}</div>
+      )}
+
+      {existe && (
+        <button
+          onClick={() => sub('kanban_card_concluir', { p_id: card.id, p_concluido: !card.concluido })}
+          disabled={busy}
+          className={cn('mt-3 hstack w-full justify-center gap-2 rounded-card py-2.5 text-sm font-semibold tap disabled:opacity-40', card.concluido ? 'bg-accent text-black' : 'border border-line text-muted')}
+        >
+          {card.concluido ? <Check size={16} /> : <Circle size={16} />}
+          {card.concluido ? 'Concluído' : 'Concluir cartão'}
+        </button>
       )}
 
       {board.etiquetas.length > 0 && (
@@ -1305,6 +1416,9 @@ function MenuGerenciar({ board, admin, vista, setVista, onClose, onEscolher, onA
         <>
           <div className="mt-4 text-[11px] font-semibold uppercase tracking-wide text-muted">Gerenciar quadro</div>
           <div className="mt-2 flex flex-col gap-2">
+            <button className={item} onClick={() => onEscolher('editar')}>
+              <Pencil size={17} className="text-accent" /> Editar quadro (nome e ícone)
+            </button>
             <button className={item} onClick={() => onEscolher('membros')}>
               <Users size={17} className="text-accent" /> Membros
             </button>
@@ -1313,6 +1427,9 @@ function MenuGerenciar({ board, admin, vista, setVista, onClose, onEscolher, onA
             </button>
             <button className={item} onClick={() => onEscolher('colunas')}>
               <Columns3 size={17} className="text-accent" /> Colunas
+            </button>
+            <button className={item} onClick={() => onEscolher('importar')}>
+              <Upload size={17} className="text-accent" /> Importar cartões
             </button>
             <button onClick={arquivarQuadro} disabled={busy} className={cn(item, 'text-danger disabled:opacity-40')}>
               {busy ? <Loader2 size={17} className="animate-spin" /> : <Archive size={17} />} Arquivar quadro
@@ -1558,6 +1675,101 @@ function ColunasSheet({ board, onClose, onFeito }) {
       )}
       <button onClick={salvar} disabled={salvando} className="btn-primary mt-4 hstack w-full justify-center gap-2 py-3 text-sm disabled:opacity-40">
         {salvando ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />} Salvar colunas
+      </button>
+    </Sheet>
+  )
+}
+
+// ── Importar cartões ─────────────────────────────────────────────────────────
+function ImportSheet({ board, onClose, onFeito }) {
+  const [texto, setTexto] = useState('')
+  const [colId, setColId] = useState(board.colunas[0]?.id || '')
+  const [salvando, setSalvando] = useState(false)
+  const linhas = texto.split('\n').map((l) => l.trim()).filter(Boolean)
+  async function importar() {
+    if (!linhas.length || !colId) return
+    setSalvando(true)
+    try {
+      await call('kanban_importar_cartoes', { p_quadro: board.id, p_coluna: colId, p_titulos: linhas })
+      await onFeito()
+      onClose()
+    } catch (e) {
+      avisarErro(e)
+      setSalvando(false)
+    }
+  }
+  return (
+    <Sheet onClose={onClose}>
+      <div className="font-display text-lg font-bold">Importar cartões</div>
+      <div className="mt-1 text-xs text-muted">Cole a sua lista — um cartão por linha. Cada linha vira um cartão.</div>
+      <div className="mt-3">
+        <div className="text-[11px] font-semibold uppercase tracking-wide text-muted">Lista de destino</div>
+        <select value={colId} onChange={(e) => setColId(e.target.value)} className="mt-2 w-full rounded-card border border-line bg-surface px-3 py-2 text-sm outline-none">
+          {board.colunas.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.nome}
+            </option>
+          ))}
+        </select>
+      </div>
+      <textarea
+        rows={8}
+        value={texto}
+        onChange={(e) => setTexto(e.target.value)}
+        placeholder={'Ex.:\nRevisar cardápio\nComprar hashi\nTreinar equipe'}
+        className="mt-3 w-full resize-none rounded-card border border-line bg-surface px-3 py-2 text-sm outline-none placeholder:text-muted-2"
+      />
+      <div className="mt-1 text-[11px] text-muted-2">
+        {linhas.length} {linhas.length === 1 ? 'cartão' : 'cartões'} para importar
+      </div>
+      <button onClick={importar} disabled={salvando || !linhas.length} className="btn-primary mt-4 hstack w-full justify-center gap-2 py-3 text-sm disabled:opacity-40">
+        {salvando ? <Loader2 size={16} className="animate-spin" /> : <Upload size={16} />} Importar {linhas.length || ''}
+      </button>
+    </Sheet>
+  )
+}
+
+// ── Editar quadro (nome + ícone) ─────────────────────────────────────────────
+function EditarQuadroSheet({ board, onClose, onFeito }) {
+  const [nome, setNome] = useState(board.nome)
+  const [icone, setIcone] = useState(board.icone || 'quadro')
+  const [salvando, setSalvando] = useState(false)
+  async function salvar() {
+    if (!nome.trim()) return
+    setSalvando(true)
+    try {
+      await call('kanban_quadro_set', { p_quadro: board.id, p_nome: nome.trim(), p_icone: icone })
+      await onFeito()
+      onClose()
+    } catch (e) {
+      avisarErro(e)
+      setSalvando(false)
+    }
+  }
+  return (
+    <Sheet onClose={onClose}>
+      <div className="font-display text-lg font-bold">Editar quadro</div>
+      <div className="mt-3">
+        <div className="text-[11px] font-semibold uppercase tracking-wide text-muted">Nome</div>
+        <input value={nome} onChange={(e) => setNome(e.target.value)} className="mt-2 w-full rounded-card border border-line bg-surface px-3 py-2 text-sm outline-none" aria-label="Nome do quadro" />
+      </div>
+      <div className="mt-4">
+        <div className="text-[11px] font-semibold uppercase tracking-wide text-muted">Ícone</div>
+        <div className="mt-2 grid grid-cols-6 gap-2">
+          {Object.entries(ICONES_QUADRO).map(([chave, Ic]) => (
+            <button
+              key={chave}
+              onClick={() => setIcone(chave)}
+              aria-label={chave}
+              className={cn('grid aspect-square place-items-center rounded-card border tap', icone === chave ? 'border-accent bg-accent-soft text-accent' : 'border-line text-muted')}
+            >
+              <Ic size={20} />
+            </button>
+          ))}
+        </div>
+      </div>
+      <button onClick={salvar} disabled={salvando || !nome.trim()} className="btn-primary mt-5 hstack w-full justify-center gap-2 py-3 text-sm disabled:opacity-40">
+        {salvando ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />} Salvar
       </button>
     </Sheet>
   )
