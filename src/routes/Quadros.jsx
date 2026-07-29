@@ -567,57 +567,101 @@ function BoardStatic({ cols, grupos, etiquetaPorId, podeAdicionar, onAbrirCard, 
   )
 }
 
-// ── Visualização em Lista ────────────────────────────────────────────────────
+// ── Visualização em Lista (tabela, estilo Monday) ────────────────────────────
+const GRUPO_CORES = ['#3b6fb3', '#7a4fb3', '#2f7d4f', '#d98a2b', '#c2453f', '#0f766e', '#64748b']
+
 function ListaView({ cols, etiquetaPorId, onAbrirCard }) {
   const vazio = cols.every((c) => c.cards.length === 0)
   return (
-    <div className="mt-3 flex flex-col gap-4 px-5 pb-24">
+    <div className="mt-3 flex flex-col gap-5 px-5 pb-24">
       {vazio && <div className="py-10 text-center text-sm text-muted">Nenhum cartão.</div>}
-      {cols.map((col) =>
-        col.cards.length === 0 ? null : (
+      {cols.map((col, ci) => {
+        if (col.cards.length === 0) return null
+        const cor = GRUPO_CORES[ci % GRUPO_CORES.length]
+        return (
           <div key={col.id}>
-            <div className="mb-1.5 hstack gap-2 text-[11px] font-bold uppercase tracking-wide text-muted">
-              <Columns3 size={12} /> {col.nome}
-              <span className="rounded-pill bg-fill px-1.5 text-[10px] text-muted">{col.cards.length}</span>
+            <div className="mb-2 hstack gap-2">
+              <span className="h-3.5 w-1 rounded-full" style={{ backgroundColor: cor }} />
+              <span className="text-sm font-bold" style={{ color: cor }}>{col.nome}</span>
+              <span className="rounded-pill bg-fill px-1.5 text-[10px] font-semibold text-muted">{col.cards.length}</span>
             </div>
-            <div className="flex flex-col gap-1.5">
-              {col.cards.map((card) => {
-                const etqs = (card.etiquetas || []).map((id) => etiquetaPorId[id]).filter(Boolean)
-                const vencido = card.data_conclusao && card.data_conclusao < hojeISO()
-                const chk = card.checklist || []
-                const feitos = chk.filter((c) => c.feito).length
-                return (
-                  <button key={card.id} onClick={() => onAbrirCard(col.id, card)} className="hstack items-start gap-3 rounded-card border border-line bg-surface px-3 py-2.5 text-left tap">
-                    <div className="min-w-0 flex-1">
-                      {etqs.length > 0 && (
-                        <div className="mb-1 hstack flex-wrap gap-1">
-                          {etqs.map((e) => (
-                            <span key={e.id} className="h-1.5 w-6 rounded-pill" style={{ backgroundColor: e.cor }} title={e.nome} />
-                          ))}
-                        </div>
-                      )}
-                      <div className="text-sm font-semibold leading-snug">{card.titulo}</div>
-                      <div className="mt-1 hstack flex-wrap items-center gap-2 text-[11px]">
-                        {card.data_conclusao && (
-                          <span className={cn('hstack gap-1 rounded-pill px-1.5 py-0.5 font-semibold', vencido ? 'bg-danger/15 text-danger' : 'bg-warn/15 text-warn')}>
-                            <CalendarDays size={11} /> {fmtPrazo(card.data_conclusao)}
-                          </span>
-                        )}
-                        {chk.length > 0 && (
-                          <span className={cn('hstack gap-1 text-muted', feitos === chk.length && 'text-accent')}>
-                            <ListChecks size={12} /> {feitos}/{chk.length}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                    <PilhaAvatares membros={card.responsaveis} size={24} />
-                  </button>
-                )
-              })}
+            <div className="overflow-x-auto no-scrollbar rounded-card border border-line">
+              <table className="w-full min-w-[520px] border-collapse text-sm">
+                <thead>
+                  <tr className="bg-surface/60 text-[10px] font-semibold uppercase tracking-wide text-muted-2">
+                    <th className="px-3 py-2 text-left">Tarefa</th>
+                    <th className="px-2 py-2 text-center">Resp.</th>
+                    <th className="px-2 py-2 text-left">Etiquetas</th>
+                    <th className="px-3 py-2 text-center">Prazo</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {col.cards.map((card) => {
+                    const etqs = (card.etiquetas || []).map((id) => etiquetaPorId[id]).filter(Boolean)
+                    const vencido = card.data_conclusao && card.data_conclusao < hojeISO()
+                    const chk = card.checklist || []
+                    const feitos = chk.filter((c) => c.feito).length
+                    const nCom = (card.comentarios || []).length
+                    return (
+                      <tr key={card.id} onClick={() => onAbrirCard(col.id, card)} className="cursor-pointer border-t border-line align-middle hover:bg-surface">
+                        <td className="py-2 pr-2">
+                          <div className="hstack items-start gap-2">
+                            <span className="h-8 w-1 shrink-0 rounded-full" style={{ backgroundColor: cor }} />
+                            <div className="min-w-0">
+                              <div className="font-semibold leading-snug">{card.titulo}</div>
+                              {(chk.length > 0 || nCom > 0) && (
+                                <div className="mt-0.5 hstack gap-2 text-[11px] text-muted-2">
+                                  {chk.length > 0 && (
+                                    <span className={cn('hstack gap-1', feitos === chk.length && 'text-accent')}>
+                                      <ListChecks size={11} /> {feitos}/{chk.length}
+                                    </span>
+                                  )}
+                                  {nCom > 0 && (
+                                    <span className="hstack gap-1">
+                                      <MessageSquare size={11} /> {nCom}
+                                    </span>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-2 py-2">
+                          <div className="grid place-items-center">
+                            {card.responsaveis?.length ? <PilhaAvatares membros={card.responsaveis} size={24} /> : <span className="text-muted-2">—</span>}
+                          </div>
+                        </td>
+                        <td className="px-2 py-2">
+                          {etqs.length ? (
+                            <div className="hstack flex-wrap gap-1">
+                              {etqs.map((e) => (
+                                <span key={e.id} className="rounded-pill px-2 py-0.5 text-[11px] font-semibold text-white" style={{ backgroundColor: e.cor }}>
+                                  {e.nome}
+                                </span>
+                              ))}
+                            </div>
+                          ) : (
+                            <span className="text-muted-2">—</span>
+                          )}
+                        </td>
+                        <td className="px-3 py-2 text-center">
+                          {card.data_conclusao ? (
+                            <span className={cn('inline-block rounded-pill px-2 py-0.5 text-[11px] font-semibold', vencido ? 'bg-danger/15 text-danger' : 'bg-warn/15 text-warn')}>
+                              {fmtPrazo(card.data_conclusao)}
+                            </span>
+                          ) : (
+                            <span className="text-muted-2">—</span>
+                          )}
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
             </div>
           </div>
-        ),
-      )}
+        )
+      })}
     </div>
   )
 }
