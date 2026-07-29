@@ -4,7 +4,6 @@ import {
   DndContext,
   DragOverlay,
   PointerSensor,
-  TouchSensor,
   KeyboardSensor,
   useSensor,
   useSensors,
@@ -815,9 +814,11 @@ function BoardDnD({ cols, setCols, quadroId, etiquetaPorId, onAbrirCard, onNovoC
     colsRef.current = next
     setCols(next)
   }
+  // Ponteiro cobre mouse e toque: começa a arrastar após um pequeno movimento
+  // na alça (que tem touch-action:none) — sem precisar segurar. O corpo do
+  // cartão continua rolando a coluna normalmente.
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
-    useSensor(TouchSensor, { activationConstraint: { delay: 160, tolerance: 8 } }),
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   )
   const cardById = (id) => {
@@ -1041,7 +1042,7 @@ function CardModal({ estado, card, board, admin, onClose, onFeito, onRefresh }) 
             const on = resp.has(p.matricula)
             return (
               <button key={p.matricula} disabled={!editavel} onClick={() => toggle(setResp, p.matricula)} className={cn('hstack gap-1.5 rounded-pill border px-2 py-1 text-xs font-semibold tap', on ? 'border-accent bg-accent-soft text-carbon dark:text-accent' : 'border-line text-muted')}>
-                <Avatar name={p.nome} size={18} />
+                <Avatar name={p.nome} src={p.avatar} size={18} />
                 {primeiro(p.nome)}
                 {on && <Check size={13} />}
               </button>
@@ -1138,7 +1139,7 @@ function CardModal({ estado, card, board, admin, onClose, onFeito, onRefresh }) 
             <div className="mt-2 flex flex-col gap-2">
               {comentarios.map((c) => (
                 <div key={c.id} className="hstack items-start gap-2">
-                  <Avatar name={c.nome} size={24} />
+                  <Avatar name={c.nome} src={c.avatar} size={24} />
                   <div className="min-w-0 flex-1 rounded-card bg-surface px-3 py-2">
                     <div className="hstack justify-between gap-2">
                       <div className="truncate text-[11px] font-semibold text-muted">{c.nome}</div>
@@ -1252,7 +1253,7 @@ function FiltrosSheet({ board, filtros, setFiltros, onClose }) {
             const on = filtros.filtroResp.has(p.matricula)
             return (
               <button key={p.matricula} onClick={() => toggleSet('filtroResp', p.matricula)} className={cn('hstack gap-1.5', chip(on))}>
-                <Avatar name={p.nome} size={18} />
+                <Avatar name={p.nome} src={p.avatar} size={18} />
                 {primeiro(p.nome)}
               </button>
             )
@@ -1332,6 +1333,11 @@ function MembrosSheet({ board, admin, onClose, onFeito }) {
     for (const p of board.membros || []) m[p.matricula] = p.nome
     return m
   })
+  const [avatares, setAvatares] = useState(() => {
+    const m = {}
+    for (const p of board.membros || []) m[p.matricula] = p.avatar
+    return m
+  })
   const [q, setQ] = useState('')
   const [res, setRes] = useState([])
   const [buscando, setBuscando] = useState(false)
@@ -1358,9 +1364,10 @@ function MembrosSheet({ board, admin, onClose, onFeito }) {
   }, [q, admin])
 
   const total = adminMats.length + sel.size
-  function toggle(mat, nome) {
+  function toggle(mat, nome, avatar) {
     if (adminMats.includes(mat)) return
     setNomes((n) => ({ ...n, [mat]: nome || n[mat] }))
+    setAvatares((a) => ({ ...a, [mat]: avatar ?? a[mat] }))
     setSel((s) => {
       const n = new Set(s)
       if (n.has(mat)) n.delete(mat)
@@ -1396,14 +1403,14 @@ function MembrosSheet({ board, admin, onClose, onFeito }) {
           .filter((m) => m.papel === 'admin')
           .map((m) => (
             <div key={m.matricula} className="hstack gap-3 rounded-card border border-line px-3 py-2">
-              <Avatar name={m.nome} size={30} />
+              <Avatar name={m.nome} src={m.avatar} size={30} />
               <span className="flex-1 text-sm font-semibold">{m.nome}</span>
               <span className="text-[11px] font-semibold text-accent">admin</span>
             </div>
           ))}
         {selecionados.map((mt) => (
           <div key={mt} className="hstack gap-3 rounded-card border border-accent bg-accent-soft px-3 py-2">
-            <Avatar name={nomes[mt] || mt} size={30} />
+            <Avatar name={nomes[mt] || mt} src={avatares[mt]} size={30} />
             <span className="flex-1 text-sm font-semibold">{nomes[mt] || `Matrícula ${mt}`}</span>
             {admin && (
               <button onClick={() => toggle(mt)} aria-label="Remover" className="text-muted-2 tap">
@@ -1425,8 +1432,8 @@ function MembrosSheet({ board, admin, onClose, onFeito }) {
             {res
               .filter((p) => !adminMats.includes(p.matricula) && !sel.has(p.matricula))
               .map((p) => (
-                <button key={p.matricula} onClick={() => toggle(p.matricula, p.nome)} className="hstack gap-3 rounded-card px-3 py-2 text-left tap hover:bg-surface">
-                  <Avatar name={p.nome} size={28} />
+                <button key={p.matricula} onClick={() => toggle(p.matricula, p.nome, p.avatar)} className="hstack gap-3 rounded-card px-3 py-2 text-left tap hover:bg-surface">
+                  <Avatar name={p.nome} src={p.avatar} size={28} />
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-sm font-semibold">{p.nome}</span>
                     {p.cargo && <span className="block truncate text-[11px] text-muted">{p.cargo}</span>}
@@ -1579,7 +1586,7 @@ function PilhaAvatares({ membros, size = 20 }) {
     <span className="hstack">
       {list.slice(0, 3).map((p, i) => (
         <span key={p.matricula} className={cn('rounded-full ring-2 ring-bg', i > 0 && '-ml-1.5')}>
-          <Avatar name={p.nome} size={size} />
+          <Avatar name={p.nome} src={p.avatar} size={size} />
         </span>
       ))}
       {list.length > 3 && (
