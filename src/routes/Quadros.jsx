@@ -1128,9 +1128,9 @@ function CardModal({ estado, card, board, admin, onClose, onFeito, onRefresh }) 
 
   return (
     <>
-      <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center" role="dialog" aria-modal="true">
+      <div className="fixed inset-0 z-50 flex flex-col justify-end sm:items-center sm:justify-center" role="dialog" aria-modal="true">
         <button aria-label="Fechar" onClick={onClose} className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
-        <div className="relative flex max-h-[92vh] w-full max-w-[580px] flex-col overflow-hidden rounded-t-2xl border border-line bg-surface shadow-xl sm:rounded-2xl">
+        <div className="relative flex max-h-[90dvh] w-full flex-col overflow-hidden rounded-t-2xl border border-line bg-surface shadow-xl sm:max-w-[580px] sm:rounded-2xl">
           <div className="mx-auto mt-2.5 h-1 w-9 shrink-0 rounded-full bg-line sm:hidden" />
 
           {/* Cabeçalho: sobrancelha (lista) + título */}
