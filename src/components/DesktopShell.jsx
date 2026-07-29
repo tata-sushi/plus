@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { lazy, Suspense, useState } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import {
   Home,
@@ -10,6 +10,7 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   X,
+  Loader2,
 } from 'lucide-react'
 import { cn } from '../lib/cn'
 import { useAuth } from '../lib/AuthContext.jsx'
@@ -18,6 +19,9 @@ import { resolveIcon } from '../lib/icons.js'
 import { Ouvidoria } from '../routes/Ouvidoria.jsx'
 import { AdminRecompensas } from '../routes/AdminRecompensas.jsx'
 import { GovFrame } from './GovFrame.jsx'
+
+// Board Kanban aberto na área grande — carregado sob demanda (mesmo chunk da rota).
+const QuadroCanvas = lazy(() => import('../routes/Quadros.jsx').then((m) => ({ default: m.QuadroCanvas })))
 
 // Páginas que ocupam a área principal (só para quem tem Governança).
 const CANVAS = {
@@ -270,6 +274,11 @@ export function DesktopShell() {
                   allow="clipboard-write; fullscreen"
                   className="h-full w-full"
                 />
+              )}
+              {canvas.tipo === 'quadro' && (
+                <Suspense fallback={<div className="grid h-full place-items-center text-muted"><Loader2 size={22} className="animate-spin" /></div>}>
+                  <QuadroCanvas quadroId={canvas.quadroId} onVoltar={() => setCanvas(null)} />
+                </Suspense>
               )}
             </div>
           )}
