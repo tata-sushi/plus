@@ -14,6 +14,7 @@ import {
   Pin,
   Search,
   KanbanSquare,
+  CalendarClock,
 } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Section } from '../components/Section.jsx'
@@ -39,6 +40,7 @@ const itens = [
   { to: '/ouvidoria', label: 'Ouvidoria', icon: MessageSquareWarning, gov: true },
   { to: '/cardapio', label: 'Cardápio', icon: UtensilsCrossed },
   { to: '/quadros', label: 'Quadros', icon: KanbanSquare, quadros: true },
+  { to: '/escala', label: 'Escala', icon: CalendarClock, escala: true },
   { to: '/manutencao', label: 'Painel de Ajustes', icon: Wrench },
   { to: '/atalhos-governanca', label: 'Atalhos', icon: Pin, gov: true },
 ]
@@ -56,7 +58,10 @@ export function Mais() {
   // Ouvidoria e Gerenciar atalhos só para quem tem acesso à Governança.
   // Quadros só aparece para quem foi liberado no painel de admin.
   const navItens = itens.filter(
-    (i) => (!i.gov || usuario?.governanca?.tem) && (!i.quadros || usuario?.podeQuadros),
+    (i) =>
+      (!i.gov || usuario?.governanca?.tem) &&
+      (!i.quadros || usuario?.podeQuadros) &&
+      (!i.escala || usuario?.podeEscala),
   )
 
   const inputFoto = useRef(null)
