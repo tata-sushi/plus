@@ -11,6 +11,7 @@ import {
   PanelLeftOpen,
   X,
   Loader2,
+  KanbanSquare,
 } from 'lucide-react'
 import { cn } from '../lib/cn'
 import { useAuth } from '../lib/AuthContext.jsx'
@@ -38,6 +39,7 @@ export function DesktopShell() {
   const location = useLocation()
   const { usuario } = useAuth()
   const gov = !!usuario?.governanca?.tem
+  const podeQuadros = !!usuario?.podeQuadros
   const primeiroNome = usuario?.primeiroNome || (usuario?.nome || '').trim().split(/\s+/)[0] || ''
 
   const [aberto, setAberto] = useState(() => localStorage.getItem('tp_painel') !== '0')
@@ -83,6 +85,7 @@ export function DesktopShell() {
     gov
       ? { canvasKey: 'portal', label: 'Governança', Icon: ShieldCheck }
       : { canvasKey: 'ouvidoria', label: 'Ouvidoria', Icon: Ear },
+    ...(podeQuadros ? [{ to: '/quadros', label: 'Quadros', Icon: KanbanSquare }] : []),
     { to: '/mais', label: 'Mais', Icon: Menu },
   ]
 
