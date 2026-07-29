@@ -44,6 +44,7 @@ import {
   Circle,
   Upload,
   Pencil,
+  ArrowRightLeft,
   KanbanSquare,
   ClipboardList,
   Rocket,
@@ -497,6 +498,7 @@ function VisaoQuadro({ quadroId, onVoltar, emCanvas }) {
       {sheet === 'colunas' && <ColunasSheet board={board} onClose={() => setSheet(null)} onFeito={recarregar} />}
       {sheet === 'importar' && <ImportSheet board={board} onClose={() => setSheet(null)} onFeito={recarregar} />}
       {sheet === 'editar' && <EditarQuadroSheet board={board} onClose={() => setSheet(null)} onFeito={recarregar} />}
+      {sheet === 'modelos' && <ModelosSheet board={board} onClose={() => setSheet(null)} />}
       {sheet === 'menu' && (
         <MenuGerenciar board={board} admin={admin} vista={vista} setVista={setVista} onClose={() => setSheet(null)} onEscolher={(s) => setSheet(s)} onArquivou={() => { setSheet(null); onVoltar() }} />
       )}
@@ -1013,6 +1015,11 @@ function CardModal({ estado, card, board, admin, onClose, onFeito, onRefresh }) 
   const [novoComent, setNovoComent] = useState('')
   const [frag, setFrag] = useState(null) // fragmento após @ (ou null)
 
+  // modelos de checklist + mover para outro quadro
+  const [modelos, setModelos] = useState([])
+  const [modelosAbertos, setModelosAbertos] = useState(false)
+  const [moverQuadro, setMoverQuadro] = useState(false)
+
   // histórico do cartão
   const [hist, setHist] = useState(null)
   const recarregarHist = useCallback(() => {
@@ -1024,6 +1031,12 @@ function CardModal({ estado, card, board, admin, onClose, onFeito, onRefresh }) 
   useEffect(() => {
     recarregarHist()
   }, [recarregarHist])
+  useEffect(() => {
+    if (!existe) return
+    call('kanban_modelos_checklist', { p_quadro: board.id })
+      .then((d) => setModelos(Array.isArray(d) ? d : []))
+      .catch(() => {})
+  }, [existe, board.id])
 
   function toggle(setState, valor) {
     setState((s) => {
@@ -1039,7 +1052,7 @@ function CardModal({ estado, card, board, admin, onClose, onFeito, onRefresh }) 
     try {
       const args = {
         p_quadro: board.id,
-        p_coluna: estado.colunaId,
+        p_coluna: estado.modo === 'editar' && card?.coluna_id ? card.coluna_id : estado.colunaId,
         p_titulo: titulo.trim(),
         p_descricao: descricao.trim() || null,
         p_data_conclusao: prazo || null,
@@ -1110,6 +1123,7 @@ function CardModal({ estado, card, board, admin, onClose, onFeito, onRefresh }) 
   const comentarios = card?.comentarios || []
 
   return (
+    <>
     <Sheet onClose={onClose}>
       {editavel ? (
         <input value={titulo} onChange={(e) => setTitulo(e.target.value)} placeholder="Título do cartão" className="w-full bg-transparent pr-8 font-display text-lg font-bold outline-none placeholder:text-muted-2" aria-label="Título do cartão" />
@@ -1126,6 +1140,30 @@ function CardModal({ estado, card, board, admin, onClose, onFeito, onRefresh }) 
           {card.concluido ? <Check size={16} /> : <Circle size={16} />}
           {card.concluido ? 'Concluído' : 'Concluir cartão'}
         </button>
+      )}
+
+      {existe && (
+        <div className="mt-4">
+          <div className="text-[11px] font-semibold uppercase tracking-wide text-muted">Mover para lista</div>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {board.colunas.map((c) => {
+              const atual = c.id === card.coluna_id
+              return (
+                <button
+                  key={c.id}
+                  disabled={atual || busy}
+                  onClick={() => sub('kanban_card_mover_lista', { p_id: card.id, p_coluna: c.id })}
+                  className={cn('rounded-pill border px-3 py-1.5 text-xs font-semibold tap disabled:opacity-100', atual ? 'border-accent bg-accent-soft text-accent' : 'border-line text-muted')}
+                >
+                  {c.nome}
+                </button>
+              )
+            })}
+          </div>
+          <button onClick={() => setMoverQuadro(true)} className="mt-2 hstack gap-1.5 text-xs font-semibold text-accent tap">
+            <ArrowRightLeft size={13} /> Mover para outro quadro
+          </button>
+        </div>
       )}
 
       {board.etiquetas.length > 0 && (
@@ -1210,8 +1248,31 @@ function CardModal({ estado, card, board, admin, onClose, onFeito, onRefresh }) 
           <div className="mt-6">
             <div className="hstack justify-between">
               <div className="text-[11px] font-semibold uppercase tracking-wide text-muted">Checklist</div>
-              {checklist.length > 0 && <div className="text-[11px] font-semibold text-muted">{feitos}/{checklist.length}</div>}
+              <div className="hstack gap-3">
+                {modelos.length > 0 && (
+                  <button onClick={() => setModelosAbertos((v) => !v)} className="hstack gap-1 text-[11px] font-semibold text-accent tap">
+                    <ListChecks size={12} /> Usar pronto
+                  </button>
+                )}
+                {checklist.length > 0 && <div className="text-[11px] font-semibold text-muted">{feitos}/{checklist.length}</div>}
+              </div>
             </div>
+            {modelosAbertos && modelos.length > 0 && (
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {modelos.map((m) => (
+                  <button
+                    key={m.id}
+                    onClick={() => {
+                      sub('kanban_checklist_aplicar', { p_card: card.id, p_modelo: m.id })
+                      setModelosAbertos(false)
+                    }}
+                    className="rounded-pill border border-line px-2.5 py-1 text-xs font-semibold text-muted tap"
+                  >
+                    + {m.nome} <span className="text-muted-2">({(m.itens || []).length})</span>
+                  </button>
+                ))}
+              </div>
+            )}
             <div className="mt-2 flex flex-col gap-1.5">
               {checklist.map((it) => (
                 <div key={it.id} className="hstack gap-2">
@@ -1321,6 +1382,8 @@ function CardModal({ estado, card, board, admin, onClose, onFeito, onRefresh }) 
         </>
       )}
     </Sheet>
+    {moverQuadro && <MoverQuadroSheet board={board} card={card} onClose={() => setMoverQuadro(false)} onFeito={onFeito} />}
+    </>
   )
 }
 
@@ -1427,6 +1490,9 @@ function MenuGerenciar({ board, admin, vista, setVista, onClose, onEscolher, onA
             </button>
             <button className={item} onClick={() => onEscolher('colunas')}>
               <Columns3 size={17} className="text-accent" /> Colunas
+            </button>
+            <button className={item} onClick={() => onEscolher('modelos')}>
+              <ListChecks size={17} className="text-accent" /> Checklists prontos
             </button>
             <button className={item} onClick={() => onEscolher('importar')}>
               <Upload size={17} className="text-accent" /> Importar cartões
@@ -1771,6 +1837,155 @@ function EditarQuadroSheet({ board, onClose, onFeito }) {
       <button onClick={salvar} disabled={salvando || !nome.trim()} className="btn-primary mt-5 hstack w-full justify-center gap-2 py-3 text-sm disabled:opacity-40">
         {salvando ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />} Salvar
       </button>
+    </Sheet>
+  )
+}
+
+// ── Mover cartão para outro quadro ───────────────────────────────────────────
+function MoverQuadroSheet({ board, card, onClose, onFeito }) {
+  const [quadros, setQuadros] = useState(null)
+  const [destino, setDestino] = useState(null)
+  const [colunas, setColunas] = useState([])
+  const [colId, setColId] = useState('')
+  const [salvando, setSalvando] = useState(false)
+  useEffect(() => {
+    call('kanban_meus_quadros')
+      .then((d) => setQuadros((Array.isArray(d) ? d : []).filter((q) => q.id !== board.id)))
+      .catch(() => setQuadros([]))
+  }, [board.id])
+  async function escolherDestino(q) {
+    setDestino(q)
+    setColunas([])
+    setColId('')
+    try {
+      const cols = await call('kanban_quadro_colunas', { p_quadro: q.id })
+      setColunas(Array.isArray(cols) ? cols : [])
+      setColId(cols?.[0]?.id || '')
+    } catch (e) {
+      avisarErro(e)
+    }
+  }
+  async function mover() {
+    if (!destino || !colId) return
+    setSalvando(true)
+    try {
+      await call('kanban_card_mover_quadro', { p_id: card.id, p_quadro_dest: destino.id, p_coluna_dest: colId })
+      await onFeito()
+    } catch (e) {
+      avisarErro(e)
+      setSalvando(false)
+    }
+  }
+  return (
+    <Sheet onClose={onClose}>
+      <div className="font-display text-lg font-bold">Mover para outro quadro</div>
+      <div className="mt-1 text-xs text-muted">O cartão sai deste quadro. As etiquetas são removidas e ficam só os responsáveis que também são membros do destino.</div>
+      {quadros == null ? (
+        <div className="grid place-items-center py-8 text-muted">
+          <Loader2 size={20} className="animate-spin" />
+        </div>
+      ) : quadros.length === 0 ? (
+        <div className="py-6 text-center text-sm text-muted">Você não participa de outro quadro.</div>
+      ) : (
+        <>
+          <div className="mt-3 text-[11px] font-semibold uppercase tracking-wide text-muted">Quadro de destino</div>
+          <div className="mt-2 flex flex-col gap-1.5">
+            {quadros.map((q) => {
+              const Ic = iconeQuadro(q.icone)
+              return (
+                <button key={q.id} onClick={() => escolherDestino(q)} className={cn('hstack gap-3 rounded-card border px-3 py-2 text-left tap', destino?.id === q.id ? 'border-accent bg-accent-soft' : 'border-line')}>
+                  <Ic size={18} className="text-accent" />
+                  <span className="flex-1 text-sm font-semibold">{q.nome}</span>
+                  {destino?.id === q.id && <Check size={16} className="text-accent" />}
+                </button>
+              )
+            })}
+          </div>
+          {destino && (
+            <div className="mt-3">
+              <div className="text-[11px] font-semibold uppercase tracking-wide text-muted">Lista de destino</div>
+              <select value={colId} onChange={(e) => setColId(e.target.value)} className="mt-2 w-full rounded-card border border-line bg-surface px-3 py-2 text-sm outline-none">
+                {colunas.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.nome}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+          <button onClick={mover} disabled={!destino || !colId || salvando} className="btn-primary mt-4 hstack w-full justify-center gap-2 py-3 text-sm disabled:opacity-40">
+            {salvando ? <Loader2 size={16} className="animate-spin" /> : <ArrowRightLeft size={16} />} Mover cartão
+          </button>
+        </>
+      )}
+    </Sheet>
+  )
+}
+
+// ── Checklists prontos (modelos) ─────────────────────────────────────────────
+function ModelosSheet({ board, onClose }) {
+  const [draft, setDraft] = useState(null)
+  const [salvando, setSalvando] = useState(false)
+  useEffect(() => {
+    call('kanban_modelos_checklist', { p_quadro: board.id })
+      .then((d) => setDraft((Array.isArray(d) ? d : []).map((m) => ({ id: m.id, nome: m.nome, itens: (m.itens || []).join('\n') }))))
+      .catch(() => setDraft([]))
+  }, [board.id])
+  function up(i, patch) {
+    setDraft((d) => d.map((m, j) => (j === i ? { ...m, ...patch } : m)))
+  }
+  function add() {
+    setDraft((d) => (d.length >= 3 ? d : [...d, { nome: 'Novo checklist', itens: '' }]))
+  }
+  function remover(i) {
+    setDraft((d) => d.filter((_, j) => j !== i))
+  }
+  async function salvar() {
+    setSalvando(true)
+    try {
+      await call('kanban_modelo_checklist_set', {
+        p_quadro: board.id,
+        p_modelos: draft.map((m, i) => ({ id: m.id || null, nome: m.nome, itens: m.itens.split('\n').map((t) => t.trim()).filter(Boolean), ordem: i })),
+      })
+      onClose()
+    } catch (e) {
+      avisarErro(e)
+      setSalvando(false)
+    }
+  }
+  return (
+    <Sheet onClose={onClose}>
+      <div className="font-display text-lg font-bold">Checklists prontos</div>
+      <div className="mt-1 text-xs text-muted">Até 3 modelos por quadro, um item por linha. Aplique num cartão pelo botão “Usar pronto”.</div>
+      {draft == null ? (
+        <div className="grid place-items-center py-8 text-muted">
+          <Loader2 size={20} className="animate-spin" />
+        </div>
+      ) : (
+        <>
+          <div className="mt-3 flex flex-col gap-3">
+            {draft.map((m, i) => (
+              <div key={m.id || `n${i}`} className="rounded-card border border-line bg-surface p-3">
+                <div className="hstack gap-2">
+                  <input value={m.nome} onChange={(e) => up(i, { nome: e.target.value })} className="min-w-0 flex-1 bg-transparent text-sm font-bold outline-none" aria-label="Nome do checklist" />
+                  <button onClick={() => remover(i)} aria-label="Remover" className="text-muted-2 tap">
+                    <Trash2 size={15} />
+                  </button>
+                </div>
+                <textarea rows={4} value={m.itens} onChange={(e) => up(i, { itens: e.target.value })} placeholder={'Documentos\nExame admissional\nAssinar contrato'} className="mt-2 w-full resize-none rounded-card border border-line bg-bg px-3 py-2 text-sm outline-none placeholder:text-muted-2" />
+              </div>
+            ))}
+          </div>
+          {draft.length < 3 && (
+            <button onClick={add} className="mt-2 hstack gap-1 rounded-card border border-dashed border-line px-3 py-2 text-xs font-semibold text-muted tap">
+              <Plus size={14} /> Adicionar checklist
+            </button>
+          )}
+          <button onClick={salvar} disabled={salvando} className="btn-primary mt-4 hstack w-full justify-center gap-2 py-3 text-sm disabled:opacity-40">
+            {salvando ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />} Salvar
+          </button>
+        </>
+      )}
     </Sheet>
   )
 }
