@@ -1133,8 +1133,19 @@ function CardModal({ estado, card, board, admin, onClose, onFeito, onRefresh }) 
         <div className="relative flex max-h-[90dvh] w-full flex-col overflow-hidden rounded-t-2xl border border-line bg-surface shadow-xl sm:max-w-[580px] sm:rounded-2xl">
           <div className="mx-auto mt-2.5 h-1 w-9 shrink-0 rounded-full bg-line sm:hidden" />
 
-          {/* Cabeçalho: sobrancelha (lista) + título */}
-          <div className="flex shrink-0 items-start justify-between gap-3 border-b border-line px-5 py-3">
+          {/* Cabeçalho: [concluir] sobrancelha+título [arquivar] [excluir] [fechar] */}
+          <div className="flex shrink-0 items-start gap-2.5 border-b border-line px-5 py-3">
+            {existe && (
+              <button
+                onClick={() => sub('kanban_card_concluir', { p_id: card.id, p_concluido: !card.concluido })}
+                disabled={busy}
+                aria-label={card.concluido ? 'Reabrir cartão' : 'Concluir cartão'}
+                title={card.concluido ? 'Concluído' : 'Concluir'}
+                className={cn('mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full border tap', card.concluido ? 'border-[#35383F] ' + ctaEscuro : 'border-line text-muted-2')}
+              >
+                {card.concluido && <Check size={14} />}
+              </button>
+            )}
             <div className="min-w-0 flex-1">
               <div className={lbl}>{colunaNome}</div>
               {editavel ? (
@@ -1144,21 +1155,33 @@ function CardModal({ estado, card, board, admin, onClose, onFeito, onRefresh }) 
                 <div className={cn('mt-0.5 text-[18px] font-bold leading-tight tracking-[-0.3px] text-carbon dark:text-text', card?.concluido && 'text-muted line-through')}>{base.titulo}</div>
               )}
             </div>
-            <button onClick={onClose} aria-label="Fechar" className="shrink-0 text-muted hover:text-carbon dark:hover:text-text">
-              <X size={18} />
-            </button>
+            <div className="hstack shrink-0 gap-0.5">
+              {estado.modo === 'editar' && admin && card?.id && (
+                <>
+                  <button onClick={() => acaoCard('kanban_card_arquivar', { p_id: card.id, p_arquivar: true })} disabled={salvando} aria-label="Arquivar" title="Arquivar" className="grid h-8 w-8 place-items-center rounded-full text-muted hover:bg-fill tap disabled:opacity-40">
+                    <Archive size={16} />
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (window.confirm('Excluir este cartão? Esta ação não pode ser desfeita.')) acaoCard('kanban_card_excluir', { p_id: card.id })
+                    }}
+                    disabled={salvando}
+                    aria-label="Excluir"
+                    title="Excluir"
+                    className="grid h-8 w-8 place-items-center rounded-full text-danger hover:bg-fill tap disabled:opacity-40"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </>
+              )}
+              <button onClick={onClose} aria-label="Fechar" className="grid h-8 w-8 place-items-center rounded-full text-muted hover:bg-fill tap">
+                <X size={18} />
+              </button>
+            </div>
           </div>
 
           {/* Corpo rolável */}
           <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain px-5 py-4">
-            {existe && (
-              <button onClick={() => sub('kanban_card_concluir', { p_id: card.id, p_concluido: !card.concluido })} disabled={busy}
-                className={cn('hstack w-full justify-center gap-2 rounded-lg py-2.5 font-mono text-[10px] font-medium uppercase tracking-[0.6px] tap disabled:opacity-40', card.concluido ? ctaEscuro : 'border border-line text-muted')}>
-                {card.concluido ? <Check size={14} /> : <Circle size={14} />}
-                {card.concluido ? 'Concluído' : 'Concluir cartão'}
-              </button>
-            )}
-
             {existe && (
               <div>
                 <div className={lbl}>Mover para lista</div>
@@ -1342,25 +1365,12 @@ function CardModal({ estado, card, board, admin, onClose, onFeito, onRefresh }) 
               </div>
             )}
 
-            {estado.modo === 'editar' && admin && card?.id && (
-              <div className="hstack gap-2 border-t border-line pt-3">
-                <button onClick={() => acaoCard('kanban_card_arquivar', { p_id: card.id, p_arquivar: true })} disabled={salvando} className="hstack flex-1 justify-center gap-2 rounded-lg border border-line py-2.5 font-mono text-[10px] font-medium uppercase tracking-[0.5px] text-muted tap disabled:opacity-40">
-                  <Archive size={14} /> Arquivar
-                </button>
-                <button onClick={() => { if (window.confirm('Excluir este cartão? Esta ação não pode ser desfeita.')) acaoCard('kanban_card_excluir', { p_id: card.id }) }} disabled={salvando} className="hstack flex-1 justify-center gap-2 rounded-lg border border-line py-2.5 font-mono text-[10px] font-medium uppercase tracking-[0.5px] text-danger tap disabled:opacity-40">
-                  <Trash2 size={14} /> Excluir
-                </button>
-              </div>
-            )}
           </div>
 
-          {/* Rodapé */}
+          {/* Rodapé: só Salvar (fechar = cancelar) */}
           {editavel && (
-            <div className="flex shrink-0 gap-2 border-t border-line bg-surface px-5 py-3 pb-6">
-              <button onClick={onClose} className="h-10 flex-1 rounded-lg border border-line bg-bg font-mono text-[10px] font-medium uppercase tracking-[0.6px] text-muted tap">
-                Cancelar
-              </button>
-              <button onClick={salvar} disabled={salvando || !titulo.trim()} className={cn('hstack h-10 flex-1 items-center justify-center gap-2 rounded-lg font-mono text-[10px] font-medium uppercase tracking-[0.6px] tap disabled:opacity-40', ctaEscuro)}>
+            <div className="flex shrink-0 border-t border-line bg-surface px-5 py-3 pb-6">
+              <button onClick={salvar} disabled={salvando || !titulo.trim()} className={cn('hstack h-10 w-full items-center justify-center gap-2 rounded-lg font-mono text-[10px] font-medium uppercase tracking-[0.6px] tap disabled:opacity-40', ctaEscuro)}>
                 {salvando ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
                 {estado.modo === 'criar' ? 'Criar' : 'Salvar'}
               </button>
