@@ -1121,268 +1121,254 @@ function CardModal({ estado, card, board, admin, onClose, onFeito, onRefresh }) 
   const checklist = card?.checklist || []
   const feitos = checklist.filter((c) => c.feito).length
   const comentarios = card?.comentarios || []
+  const colunaNome = board.colunas.find((c) => c.id === (card?.coluna_id || estado.colunaId))?.nome || 'Cartão'
+  const lbl = 'font-mono text-[9px] font-medium uppercase tracking-[0.12em] text-muted'
+  const chipSel = 'border-accent bg-accent-soft text-carbon dark:text-accent'
+  const ctaEscuro = 'bg-[#35383F] text-[#CFFF00]'
 
   return (
     <>
-    <Sheet onClose={onClose}>
-      {editavel ? (
-        <input value={titulo} onChange={(e) => setTitulo(e.target.value)} placeholder="Título do cartão" className="w-full bg-transparent pr-8 font-display text-lg font-bold outline-none placeholder:text-muted-2" aria-label="Título do cartão" />
-      ) : (
-        <div className="pr-8 font-display text-lg font-bold">{base.titulo}</div>
-      )}
+      <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center" role="dialog" aria-modal="true">
+        <button aria-label="Fechar" onClick={onClose} className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
+        <div className="relative flex max-h-[92vh] w-full max-w-[580px] flex-col overflow-hidden rounded-t-2xl border border-line bg-surface shadow-xl sm:rounded-2xl">
+          <div className="mx-auto mt-2.5 h-1 w-9 shrink-0 rounded-full bg-line sm:hidden" />
 
-      {existe && (
-        <button
-          onClick={() => sub('kanban_card_concluir', { p_id: card.id, p_concluido: !card.concluido })}
-          disabled={busy}
-          className={cn('mt-3 hstack w-full justify-center gap-2 rounded-card py-2.5 text-sm font-semibold tap disabled:opacity-40', card.concluido ? 'bg-accent text-black' : 'border border-line text-muted')}
-        >
-          {card.concluido ? <Check size={16} /> : <Circle size={16} />}
-          {card.concluido ? 'Concluído' : 'Concluir cartão'}
-        </button>
-      )}
-
-      {existe && (
-        <div className="mt-4">
-          <div className="text-[11px] font-semibold uppercase tracking-wide text-muted">Mover para lista</div>
-          <div className="mt-2 flex flex-wrap gap-2">
-            {board.colunas.map((c) => {
-              const atual = c.id === card.coluna_id
-              return (
-                <button
-                  key={c.id}
-                  disabled={atual || busy}
-                  onClick={() => sub('kanban_card_mover_lista', { p_id: card.id, p_coluna: c.id })}
-                  className={cn('rounded-pill border px-3 py-1.5 text-xs font-semibold tap disabled:opacity-100', atual ? 'border-accent bg-accent-soft text-accent' : 'border-line text-muted')}
-                >
-                  {c.nome}
-                </button>
-              )
-            })}
-          </div>
-          <button onClick={() => setMoverQuadro(true)} className="mt-2 hstack gap-1.5 text-xs font-semibold text-accent tap">
-            <ArrowRightLeft size={13} /> Mover para outro quadro
-          </button>
-        </div>
-      )}
-
-      {board.etiquetas.length > 0 && (
-        <div className="mt-4">
-          <div className="text-[11px] font-semibold uppercase tracking-wide text-muted">Etiquetas</div>
-          <div className="mt-2 flex flex-wrap gap-2">
-            {board.etiquetas.map((e) => {
-              const on = etqs.has(e.id)
-              return (
-                <button key={e.id} disabled={!editavel} onClick={() => toggle(setEtqs, e.id)} className={cn('hstack gap-1.5 rounded-pill border px-2.5 py-1 text-xs font-semibold tap', on ? 'text-white' : 'border-line text-muted')} style={on ? { backgroundColor: e.cor, borderColor: e.cor } : undefined}>
-                  <span className="h-2 w-2 rounded-full" style={{ backgroundColor: on ? '#fff' : e.cor }} />
-                  {e.nome}
-                  {on && <Check size={12} />}
-                </button>
-              )
-            })}
-          </div>
-        </div>
-      )}
-
-      <div className="mt-4">
-        <div className="text-[11px] font-semibold uppercase tracking-wide text-muted">Responsáveis</div>
-        <div className="mt-2 flex flex-wrap gap-2">
-          {board.membros.map((p) => {
-            const on = resp.has(p.matricula)
-            return (
-              <button key={p.matricula} disabled={!editavel} onClick={() => toggle(setResp, p.matricula)} className={cn('hstack gap-1.5 rounded-pill border px-2 py-1 text-xs font-semibold tap', on ? 'border-accent bg-accent-soft text-carbon dark:text-accent' : 'border-line text-muted')}>
-                <Avatar name={p.nome} src={p.avatar} size={18} />
-                {primeiro(p.nome)}
-                {on && <Check size={13} />}
-              </button>
-            )
-          })}
-        </div>
-      </div>
-
-      <div className="mt-4">
-        <div className="text-[11px] font-semibold uppercase tracking-wide text-muted">Prazo de conclusão</div>
-        {editavel ? (
-          <input type="date" value={prazo || ''} onChange={(e) => setPrazo(e.target.value)} className="mt-2 rounded-card border border-line bg-surface px-3 py-2 text-sm outline-none" />
-        ) : (
-          <div className="mt-2 text-sm">{prazo ? fmtPrazo(prazo) : '—'}</div>
-        )}
-      </div>
-
-      <div className="mt-4">
-        <div className="text-[11px] font-semibold uppercase tracking-wide text-muted">Descrição</div>
-        {editavel ? (
-          <textarea rows={3} value={descricao} onChange={(e) => setDescricao(e.target.value)} placeholder="Detalhe a tarefa…" className="mt-2 w-full resize-none rounded-card border border-line bg-surface px-3 py-2 text-sm outline-none placeholder:text-muted-2" />
-        ) : (
-          <div className="mt-2 whitespace-pre-wrap text-sm text-muted">{base.descricao || '—'}</div>
-        )}
-      </div>
-
-      {editavel && (
-        <button onClick={salvar} disabled={salvando || !titulo.trim()} className="btn-primary mt-6 hstack w-full justify-center gap-2 py-3 text-sm disabled:opacity-40">
-          {salvando ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
-          {estado.modo === 'criar' ? 'Criar cartão' : 'Salvar'}
-        </button>
-      )}
-
-      {estado.modo === 'editar' && admin && card?.id && (
-        <div className="mt-2 hstack gap-2">
-          <button onClick={() => acaoCard('kanban_card_arquivar', { p_id: card.id, p_arquivar: true })} disabled={salvando} className="hstack flex-1 justify-center gap-2 rounded-card bg-surface p-3 text-sm font-semibold text-muted tap disabled:opacity-40">
-            <Archive size={16} /> Arquivar
-          </button>
-          <button
-            onClick={() => {
-              if (window.confirm('Excluir este cartão? Esta ação não pode ser desfeita.')) acaoCard('kanban_card_excluir', { p_id: card.id })
-            }}
-            disabled={salvando}
-            className="hstack flex-1 justify-center gap-2 rounded-card bg-surface p-3 text-sm font-semibold text-danger tap disabled:opacity-40"
-          >
-            <Trash2 size={16} /> Excluir
-          </button>
-        </div>
-      )}
-
-      {existe && (
-        <>
-          {/* Checklist */}
-          <div className="mt-6">
-            <div className="hstack justify-between">
-              <div className="text-[11px] font-semibold uppercase tracking-wide text-muted">Checklist</div>
-              <div className="hstack gap-3">
-                {modelos.length > 0 && (
-                  <button onClick={() => setModelosAbertos((v) => !v)} className="hstack gap-1 text-[11px] font-semibold text-accent tap">
-                    <ListChecks size={12} /> Usar pronto
-                  </button>
-                )}
-                {checklist.length > 0 && <div className="text-[11px] font-semibold text-muted">{feitos}/{checklist.length}</div>}
-              </div>
-            </div>
-            {modelosAbertos && modelos.length > 0 && (
-              <div className="mt-2 flex flex-wrap gap-1.5">
-                {modelos.map((m) => (
-                  <button
-                    key={m.id}
-                    onClick={() => {
-                      sub('kanban_checklist_aplicar', { p_card: card.id, p_modelo: m.id })
-                      setModelosAbertos(false)
-                    }}
-                    className="rounded-pill border border-line px-2.5 py-1 text-xs font-semibold text-muted tap"
-                  >
-                    + {m.nome} <span className="text-muted-2">({(m.itens || []).length})</span>
-                  </button>
-                ))}
-              </div>
-            )}
-            <div className="mt-2 flex flex-col gap-1.5">
-              {checklist.map((it) => (
-                <div key={it.id} className="hstack gap-2">
-                  <button onClick={() => sub('kanban_checklist_toggle', { p_item: it.id, p_feito: !it.feito })} disabled={busy} aria-label={it.feito ? 'Desmarcar' : 'Marcar'} className={cn('grid h-5 w-5 shrink-0 place-items-center rounded-md border tap', it.feito ? 'border-accent bg-accent text-black' : 'border-line')}>
-                    {it.feito && <Check size={13} />}
-                  </button>
-                  <span className={cn('min-w-0 flex-1 text-sm', it.feito && 'text-muted line-through')}>{it.texto}</span>
-                  <button onClick={() => sub('kanban_checklist_excluir', { p_item: it.id })} disabled={busy} aria-label="Remover item" className="shrink-0 text-muted-2 tap">
-                    <X size={14} />
-                  </button>
-                </div>
-              ))}
-            </div>
-            <div className="mt-2 hstack gap-2">
-              <input
-                value={novoItem}
-                onChange={(e) => setNovoItem(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && novoItem.trim()) {
-                    sub('kanban_checklist_add', { p_card: card.id, p_texto: novoItem.trim() })
-                    setNovoItem('')
-                  }
-                }}
-                placeholder="Adicionar item…"
-                className="min-w-0 flex-1 rounded-card border border-line bg-surface px-3 py-2 text-sm outline-none placeholder:text-muted-2"
-              />
-              <button onClick={() => { if (novoItem.trim()) { sub('kanban_checklist_add', { p_card: card.id, p_texto: novoItem.trim() }); setNovoItem('') } }} disabled={busy || !novoItem.trim()} className="btn-primary px-3 py-2 text-xs disabled:opacity-40">
-                <Plus size={14} />
-              </button>
-            </div>
-          </div>
-
-          {/* Comentários (com @menção) */}
-          <div className="mt-6">
-            <div className="text-[11px] font-semibold uppercase tracking-wide text-muted">Comentários</div>
-            <div className="mt-2 flex flex-col gap-2">
-              {comentarios.map((c) => (
-                <div key={c.id} className="hstack items-start gap-2">
-                  <Avatar name={c.nome} src={c.avatar} size={24} />
-                  <div className="min-w-0 flex-1 rounded-card bg-surface px-3 py-2">
-                    <div className="hstack justify-between gap-2">
-                      <div className="truncate text-[11px] font-semibold text-muted">{c.nome}</div>
-                      <div className="shrink-0 text-[10px] text-muted-2">{fmtQuando(c.created_at)}</div>
-                    </div>
-                    <div className="text-sm">{c.texto}</div>
-                  </div>
-                </div>
-              ))}
-              {comentarios.length === 0 && <div className="text-xs text-muted-2">Sem comentários ainda.</div>}
-            </div>
-
-            {sugestoes.length > 0 && (
-              <div className="mt-2 overflow-hidden rounded-card border border-line bg-surface">
-                <div className="hstack gap-1 border-b border-line px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wide text-muted-2">
-                  <AtSign size={11} /> Marcar alguém
-                </div>
-                {sugestoes.map((p) => (
-                  <button key={p.matricula} onClick={() => escolherMencao(p)} className="hstack w-full gap-2 px-3 py-2 text-left tap hover:bg-fill">
-                    <Avatar name={p.nome} size={22} />
-                    <span className="min-w-0 flex-1 truncate text-sm">
-                      <span className="font-semibold">@{primeiro(p.nome)}</span> <span className="text-muted">· {p.nome}</span>
-                    </span>
-                  </button>
-                ))}
-              </div>
-            )}
-
-            <div className="mt-2 hstack gap-2">
-              <input
-                value={novoComent}
-                onChange={onComentChange}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && frag == null) enviarComentario()
-                }}
-                placeholder="Comente e use @ para marcar…"
-                className="min-w-0 flex-1 rounded-card border border-line bg-surface px-3 py-2 text-sm outline-none placeholder:text-muted-2"
-              />
-              <button onClick={enviarComentario} disabled={busy || !novoComent.trim()} className="btn-primary px-3 py-2 text-xs disabled:opacity-40">
-                <Send size={14} />
-              </button>
-            </div>
-          </div>
-
-          {/* Histórico do cartão */}
-          <div className="mt-6">
-            <div className="hstack gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted">
-              <History size={12} /> Histórico
-            </div>
-            <div className="mt-2 flex flex-col gap-2">
-              {hist == null ? (
-                <div className="text-xs text-muted-2">Carregando…</div>
-              ) : hist.length === 0 ? (
-                <div className="text-xs text-muted-2">Sem histórico.</div>
+          {/* Cabeçalho: sobrancelha (lista) + título */}
+          <div className="flex shrink-0 items-start justify-between gap-3 border-b border-line px-5 py-3">
+            <div className="min-w-0 flex-1">
+              <div className={lbl}>{colunaNome}</div>
+              {editavel ? (
+                <input value={titulo} onChange={(e) => setTitulo(e.target.value)} placeholder="Título do cartão" aria-label="Título do cartão"
+                  className="mt-0.5 w-full bg-transparent text-[18px] font-bold leading-tight tracking-[-0.3px] text-carbon outline-none placeholder:text-muted-2 dark:text-text" />
               ) : (
-                hist.map((a) => (
-                  <div key={a.id} className="hstack items-start gap-2 text-[12px]">
-                    <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-line" />
-                    <div className="min-w-0 flex-1">
-                      <span className="font-semibold">{primeiro(a.nome)}</span> <span className="text-muted">{ACOES[a.acao] || a.acao}</span>
-                      <span className="ml-1 text-[10px] text-muted-2">{fmtQuando(a.created_at)}</span>
-                    </div>
-                  </div>
-                ))
+                <div className={cn('mt-0.5 text-[18px] font-bold leading-tight tracking-[-0.3px] text-carbon dark:text-text', card?.concluido && 'text-muted line-through')}>{base.titulo}</div>
               )}
             </div>
+            <button onClick={onClose} aria-label="Fechar" className="shrink-0 text-muted hover:text-carbon dark:hover:text-text">
+              <X size={18} />
+            </button>
           </div>
-        </>
-      )}
-    </Sheet>
-    {moverQuadro && <MoverQuadroSheet board={board} card={card} onClose={() => setMoverQuadro(false)} onFeito={onFeito} />}
+
+          {/* Corpo rolável */}
+          <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain px-5 py-4">
+            {existe && (
+              <button onClick={() => sub('kanban_card_concluir', { p_id: card.id, p_concluido: !card.concluido })} disabled={busy}
+                className={cn('hstack w-full justify-center gap-2 rounded-lg py-2.5 font-mono text-[10px] font-medium uppercase tracking-[0.6px] tap disabled:opacity-40', card.concluido ? ctaEscuro : 'border border-line text-muted')}>
+                {card.concluido ? <Check size={14} /> : <Circle size={14} />}
+                {card.concluido ? 'Concluído' : 'Concluir cartão'}
+              </button>
+            )}
+
+            {existe && (
+              <div>
+                <div className={lbl}>Mover para lista</div>
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {board.colunas.map((c) => {
+                    const atual = c.id === card.coluna_id
+                    return (
+                      <button key={c.id} disabled={atual || busy} onClick={() => sub('kanban_card_mover_lista', { p_id: card.id, p_coluna: c.id })}
+                        className={cn('rounded-md border px-2.5 py-1 text-xs font-semibold tap disabled:opacity-100', atual ? chipSel : 'border-line text-muted')}>
+                        {c.nome}
+                      </button>
+                    )
+                  })}
+                </div>
+                <button onClick={() => setMoverQuadro(true)} className="mt-2 hstack gap-1.5 font-mono text-[10px] font-medium uppercase tracking-[0.5px] text-carbon dark:text-accent tap">
+                  <ArrowRightLeft size={12} /> Mover para outro quadro
+                </button>
+              </div>
+            )}
+
+            {board.etiquetas.length > 0 && (
+              <div>
+                <div className={lbl}>Etiquetas</div>
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {board.etiquetas.map((e) => {
+                    const on = etqs.has(e.id)
+                    return (
+                      <button key={e.id} disabled={!editavel} onClick={() => toggle(setEtqs, e.id)} className={cn('hstack gap-1.5 rounded-md border px-2.5 py-1 text-xs font-semibold tap', on ? 'text-white' : 'border-line text-muted')} style={on ? { backgroundColor: e.cor, borderColor: e.cor } : undefined}>
+                        <span className="h-2 w-2 rounded-full" style={{ backgroundColor: on ? '#fff' : e.cor }} />
+                        {e.nome}
+                        {on && <Check size={12} />}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+
+            <div>
+              <div className={lbl}>Responsáveis</div>
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {board.membros.map((p) => {
+                  const on = resp.has(p.matricula)
+                  return (
+                    <button key={p.matricula} disabled={!editavel} onClick={() => toggle(setResp, p.matricula)} className={cn('hstack gap-1.5 rounded-md border px-2 py-1 text-xs font-semibold tap', on ? chipSel : 'border-line text-muted')}>
+                      <Avatar name={p.nome} src={p.avatar} size={18} />
+                      {primeiro(p.nome)}
+                      {on && <Check size={13} />}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+
+            <div>
+              <div className={lbl}>Prazo de conclusão</div>
+              {editavel ? (
+                <input type="date" value={prazo || ''} onChange={(e) => setPrazo(e.target.value)} className="mt-2 rounded-lg border border-line bg-bg px-3 py-2 text-sm outline-none" />
+              ) : (
+                <div className="mt-1.5 text-sm">{prazo ? fmtPrazo(prazo) : '—'}</div>
+              )}
+            </div>
+
+            <div>
+              <div className={lbl}>Descrição</div>
+              {editavel ? (
+                <textarea rows={3} value={descricao} onChange={(e) => setDescricao(e.target.value)} placeholder="Detalhe a tarefa…" className="mt-2 w-full resize-none rounded-lg border border-line bg-bg px-3 py-2 text-sm outline-none placeholder:text-muted-2" />
+              ) : (
+                <div className="mt-1.5 whitespace-pre-wrap text-sm text-muted">{base.descricao || '—'}</div>
+              )}
+            </div>
+
+            {existe && (
+              <div>
+                <div className="hstack justify-between">
+                  <div className={lbl}>Checklist</div>
+                  <div className="hstack gap-3">
+                    {modelos.length > 0 && (
+                      <button onClick={() => setModelosAbertos((v) => !v)} className="hstack gap-1 font-mono text-[9px] font-medium uppercase tracking-[0.5px] text-carbon dark:text-accent tap">
+                        <ListChecks size={11} /> Usar pronto
+                      </button>
+                    )}
+                    {checklist.length > 0 && <div className="font-mono text-[10px] text-muted">{feitos}/{checklist.length}</div>}
+                  </div>
+                </div>
+                {modelosAbertos && modelos.length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    {modelos.map((m) => (
+                      <button key={m.id} onClick={() => { sub('kanban_checklist_aplicar', { p_card: card.id, p_modelo: m.id }); setModelosAbertos(false) }} className="rounded-md border border-line px-2.5 py-1 text-xs font-semibold text-muted tap">
+                        + {m.nome} <span className="text-muted-2">({(m.itens || []).length})</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+                <div className="mt-2 flex flex-col gap-1.5">
+                  {checklist.map((it) => (
+                    <div key={it.id} className="hstack gap-2">
+                      <button onClick={() => sub('kanban_checklist_toggle', { p_item: it.id, p_feito: !it.feito })} disabled={busy} aria-label={it.feito ? 'Desmarcar' : 'Marcar'} className={cn('grid h-5 w-5 shrink-0 place-items-center rounded border tap', it.feito ? 'border-[#35383F] ' + ctaEscuro : 'border-line')}>
+                        {it.feito && <Check size={13} />}
+                      </button>
+                      <span className={cn('min-w-0 flex-1 text-sm', it.feito && 'text-muted line-through')}>{it.texto}</span>
+                      <button onClick={() => sub('kanban_checklist_excluir', { p_item: it.id })} disabled={busy} aria-label="Remover item" className="shrink-0 text-muted-2 tap">
+                        <X size={14} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-2 hstack gap-2">
+                  <input value={novoItem} onChange={(e) => setNovoItem(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter' && novoItem.trim()) { sub('kanban_checklist_add', { p_card: card.id, p_texto: novoItem.trim() }); setNovoItem('') } }} placeholder="Adicionar item…" className="min-w-0 flex-1 rounded-lg border border-line bg-bg px-3 py-2 text-sm outline-none placeholder:text-muted-2" />
+                  <button onClick={() => { if (novoItem.trim()) { sub('kanban_checklist_add', { p_card: card.id, p_texto: novoItem.trim() }); setNovoItem('') } }} disabled={busy || !novoItem.trim()} className={cn('grid h-9 w-9 shrink-0 place-items-center rounded-lg tap disabled:opacity-40', ctaEscuro)}>
+                    <Plus size={15} />
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {existe && (
+              <div>
+                <div className={lbl}>Comentários</div>
+                <div className="mt-2 flex flex-col gap-2">
+                  {comentarios.map((c) => (
+                    <div key={c.id} className="hstack items-start gap-2">
+                      <Avatar name={c.nome} src={c.avatar} size={24} />
+                      <div className="min-w-0 flex-1 rounded-lg border border-line bg-bg px-3 py-2">
+                        <div className="hstack justify-between gap-2">
+                          <div className="truncate font-mono text-[10px] uppercase tracking-[0.4px] text-muted">{c.nome}</div>
+                          <div className="shrink-0 font-mono text-[9px] text-muted-2">{fmtQuando(c.created_at)}</div>
+                        </div>
+                        <div className="mt-0.5 text-sm">{c.texto}</div>
+                      </div>
+                    </div>
+                  ))}
+                  {comentarios.length === 0 && <div className="text-xs text-muted-2">Sem comentários ainda.</div>}
+                </div>
+                {sugestoes.length > 0 && (
+                  <div className="mt-2 overflow-hidden rounded-lg border border-line bg-surface">
+                    <div className={cn('hstack gap-1 border-b border-line px-3 py-1.5', lbl)}>
+                      <AtSign size={11} /> Marcar alguém
+                    </div>
+                    {sugestoes.map((p) => (
+                      <button key={p.matricula} onClick={() => escolherMencao(p)} className="hstack w-full gap-2 px-3 py-2 text-left tap hover:bg-fill">
+                        <Avatar name={p.nome} src={p.avatar} size={22} />
+                        <span className="min-w-0 flex-1 truncate text-sm">
+                          <span className="font-semibold">@{primeiro(p.nome)}</span> <span className="text-muted">· {p.nome}</span>
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+                <div className="mt-2 hstack gap-2">
+                  <input value={novoComent} onChange={onComentChange} onKeyDown={(e) => { if (e.key === 'Enter' && frag == null) enviarComentario() }} placeholder="Comente e use @ para marcar…" className="min-w-0 flex-1 rounded-lg border border-line bg-bg px-3 py-2 text-sm outline-none placeholder:text-muted-2" />
+                  <button onClick={enviarComentario} disabled={busy || !novoComent.trim()} className={cn('grid h-9 w-9 shrink-0 place-items-center rounded-lg tap disabled:opacity-40', ctaEscuro)}>
+                    <Send size={15} />
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {existe && (
+              <div>
+                <div className={cn('hstack gap-1.5', lbl)}>
+                  <History size={11} /> Histórico
+                </div>
+                <div className="mt-2 flex flex-col gap-1.5">
+                  {hist == null ? (
+                    <div className="text-xs text-muted-2">Carregando…</div>
+                  ) : hist.length === 0 ? (
+                    <div className="text-xs text-muted-2">Sem histórico.</div>
+                  ) : (
+                    hist.map((a) => (
+                      <div key={a.id} className="hstack items-start gap-2 text-[12px]">
+                        <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-muted-2" />
+                        <div className="min-w-0 flex-1">
+                          <span className="font-semibold">{primeiro(a.nome)}</span> <span className="text-muted">{ACOES[a.acao] || a.acao}</span>
+                          <span className="ml-1 font-mono text-[9px] text-muted-2">{fmtQuando(a.created_at)}</span>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            )}
+
+            {estado.modo === 'editar' && admin && card?.id && (
+              <div className="hstack gap-2 border-t border-line pt-3">
+                <button onClick={() => acaoCard('kanban_card_arquivar', { p_id: card.id, p_arquivar: true })} disabled={salvando} className="hstack flex-1 justify-center gap-2 rounded-lg border border-line py-2.5 font-mono text-[10px] font-medium uppercase tracking-[0.5px] text-muted tap disabled:opacity-40">
+                  <Archive size={14} /> Arquivar
+                </button>
+                <button onClick={() => { if (window.confirm('Excluir este cartão? Esta ação não pode ser desfeita.')) acaoCard('kanban_card_excluir', { p_id: card.id }) }} disabled={salvando} className="hstack flex-1 justify-center gap-2 rounded-lg border border-line py-2.5 font-mono text-[10px] font-medium uppercase tracking-[0.5px] text-danger tap disabled:opacity-40">
+                  <Trash2 size={14} /> Excluir
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Rodapé */}
+          {editavel && (
+            <div className="flex shrink-0 gap-2 border-t border-line bg-surface px-5 py-3 pb-6">
+              <button onClick={onClose} className="h-10 flex-1 rounded-lg border border-line bg-bg font-mono text-[10px] font-medium uppercase tracking-[0.6px] text-muted tap">
+                Cancelar
+              </button>
+              <button onClick={salvar} disabled={salvando || !titulo.trim()} className={cn('hstack h-10 flex-1 items-center justify-center gap-2 rounded-lg font-mono text-[10px] font-medium uppercase tracking-[0.6px] tap disabled:opacity-40', ctaEscuro)}>
+                {salvando ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
+                {estado.modo === 'criar' ? 'Criar' : 'Salvar'}
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+      {moverQuadro && <MoverQuadroSheet board={board} card={card} onClose={() => setMoverQuadro(false)} onFeito={onFeito} />}
     </>
   )
 }
