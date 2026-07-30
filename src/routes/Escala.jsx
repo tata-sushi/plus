@@ -183,7 +183,7 @@ function Calendario() {
             <div
               key={iso}
               className={cn(
-                'flex aspect-square flex-col items-center justify-center gap-0.5 rounded-lg border text-[11px]',
+                'relative flex aspect-square flex-col items-center justify-center gap-0.5 rounded-lg border text-[11px]',
                 !noMes
                   ? 'border-transparent text-muted-2/40'
                   : isHoje
@@ -195,6 +195,13 @@ function Calendario() {
                         : 'border-line',
               )}
             >
+              {/* dia passado de trabalho: ✓ validou o check / ✗ não pontuou */}
+              {noMes && trab && iso < hoje &&
+                (info.validado ? (
+                  <Check size={9} strokeWidth={3} className="absolute right-0.5 top-0.5 text-accent" />
+                ) : (
+                  <X size={9} strokeWidth={3} className="absolute right-0.5 top-0.5 text-muted-2/70" />
+                ))}
               <span className={cn('font-bold', isHoje ? 'text-accent' : trab ? 'text-carbon dark:text-accent' : '')}>{d.getDate()}</span>
               {noMes && folga && <Coffee size={9} className="text-muted-2" />}
               {noMes && trab && hm(info.entrada) && <span className="text-[8px] font-semibold text-muted">{hm(info.entrada)}</span>}
@@ -217,6 +224,12 @@ function Calendario() {
             <Coffee size={8} className="text-muted-2" />
           </span>
           Folga
+        </span>
+        <span className="hstack gap-1.5">
+          <Check size={13} strokeWidth={3} className="text-accent" /> Validou
+        </span>
+        <span className="hstack gap-1.5">
+          <X size={13} strokeWidth={3} className="text-muted-2/70" /> Não pontuou
         </span>
       </div>
     </div>

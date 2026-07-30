@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Flag, Gift, Star, Network, Coffee, Check } from 'lucide-react'
+import { Flag, Gift, Star, Network, Coffee, Check, X } from 'lucide-react'
 import { cn } from '../lib/cn'
 import { Header } from '../components/Header.jsx'
 import { Section } from '../components/Section.jsx'
@@ -290,7 +290,12 @@ export function Home() {
                       }
                       return (
                         <div key={i} className={cn('relative flex-1 rounded-lg border py-1.5 text-center', hoje ? 'border-accent bg-accent-soft' : 'border-line')}>
-                          {dia?.validado && dia?.data < isoLocal(new Date()) && <Check size={9} strokeWidth={3} className="absolute right-0.5 top-0.5 text-accent" />}
+                          {dia?.definido && !dia?.folga && dia?.data < isoLocal(new Date()) &&
+                            (dia.validado ? (
+                              <Check size={9} strokeWidth={3} className="absolute right-0.5 top-0.5 text-accent" />
+                            ) : (
+                              <X size={9} strokeWidth={3} className="absolute right-0.5 top-0.5 text-muted-2" />
+                            ))}
                           {miolo}
                         </div>
                       )
