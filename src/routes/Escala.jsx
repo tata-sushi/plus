@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Navigate } from 'react-router-dom'
-import { Loader2, ChevronLeft, ChevronRight, CalendarClock, Check, X, Trash2, Copy, Coffee } from 'lucide-react'
+import { Loader2, ChevronLeft, ChevronRight, CalendarClock, Check, X, Coffee, Repeat, Pencil, RotateCcw } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Voltar } from '../components/Voltar.jsx'
 import { Avatar } from '../components/Avatar.jsx'
@@ -10,8 +10,13 @@ import { useAuth } from '../lib/AuthContext.jsx'
 import { supabase } from '../lib/supabase.js'
 
 // ── Escala de trabalho (teste — liberado pelo painel de admin) ────────────────
+// Modelo novo (schema dp_rh): cada colaborador tem um PADRÃO recorrente (com
+// revezamento e "vale a partir de"), que o backend materializa semana a semana.
+// O líder pode fazer um ajuste PONTUAL num dia (override manual) sem mexer no molde.
 const DIAS = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom']
-const PRESETS = ['08:00-16:00', '10:00-18:00', '11:00-15:00', '14:00-22:00', '16:00-00:00', '18:00-00:00']
+const PRESETS = ['08:00-16:00', '09:00-18:00', '10:00-18:00', '11:00-15:00', '14:00-22:00', '16:00-00:00']
+const CICLOS = [1, 2, 3, 4]
+const letra = (i) => String.fromCharCode(65 + i) // 0→A, 1→B…
 
 const pad = (n) => String(n).padStart(2, '0')
 const isoLocal = (d) => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate())
@@ -160,8 +165,8 @@ function Montar({ inicio, dias }) {
   const [unidades, setUnidades] = useState(null)
   const [unidade, setUnidade] = useState('')
   const [equipe, setEquipe] = useState(null)
-  const [editar, setEditar] = useState(null) // { matricula, nome, data, dia }
-  const [copiando, setCopiando] = useState(false)
+  const [editarDia, setEditarDia] = useState(null) // ajuste pontual { matricula, nome, data, dia }
+  const [editarPadrao, setEditarPadrao] = useState(null) // molde { matricula, nome, unidade }
 
   useEffect(() => {
     call('escala_unidades')
@@ -187,29 +192,13 @@ function Montar({ inicio, dias }) {
     carregar()
   }, [carregar])
 
-  async function copiarAnterior() {
-    if (!window.confirm('Copiar a escala da semana anterior para esta?')) return
-    const dt = new Date(inicio + 'T00:00:00')
-    dt.setDate(dt.getDate() - 7)
-    setCopiando(true)
-    try {
-      await call('escala_copiar_semana', { p_unidade: unidade, p_origem: isoLocal(dt), p_destino: inicio })
-      carregar()
-    } catch (e) {
-      avisar(e)
-    } finally {
-      setCopiando(false)
-    }
-  }
-
   return (
     <div className="pt-3 pb-24">
-      {/* seletor de unidade + copiar */}
-      <div className="hstack gap-2 px-5">
+      <div className="px-5">
         {unidades == null ? (
-          <div className="h-9 flex-1 animate-pulse rounded-card bg-fill" />
+          <div className="h-9 w-full animate-pulse rounded-card bg-fill" />
         ) : (
-          <select value={unidade} onChange={(e) => setUnidade(e.target.value)} className="min-w-0 flex-1 rounded-card border border-line bg-surface px-3 py-2 text-sm font-semibold outline-none">
+          <select value={unidade} onChange={(e) => setUnidade(e.target.value)} className="w-full rounded-card border border-line bg-surface px-3 py-2 text-sm font-semibold outline-none">
             {unidades.map((u) => (
               <option key={u} value={u}>
                 {u}
@@ -217,9 +206,9 @@ function Montar({ inicio, dias }) {
             ))}
           </select>
         )}
-        <button onClick={copiarAnterior} disabled={copiando || !unidade} className="hstack shrink-0 gap-1.5 rounded-card border border-line px-3 py-2 text-xs font-semibold text-muted tap disabled:opacity-40">
-          {copiando ? <Loader2 size={14} className="animate-spin" /> : <Copy size={14} />} Copiar semana ant.
-        </button>
+        <p className="mt-2 text-[11px] leading-snug text-muted-2">
+          Toque no <b className="font-semibold text-muted">nome</b> pra definir o padrão (repete sozinho toda semana). Toque num <b className="font-semibold text-muted">dia</b> pra um ajuste pontual.
+        </p>
       </div>
 
       {equipe == null ? (
@@ -248,24 +237,34 @@ function Montar({ inicio, dias }) {
             <tbody>
               {equipe.map((p) => (
                 <tr key={p.matricula}>
-                  <td className="sticky left-0 z-10 bg-bg pr-2">
-                    <div className="hstack w-[104px] gap-2">
-                      <Avatar name={p.nome} src={p.avatar} size={26} />
-                      <span className="min-w-0 truncate text-xs font-semibold">{(p.nome || '').split(' ')[0]}</span>
-                    </div>
+                  <td className="sticky left-0 z-10 bg-bg pr-2 align-top">
+                    <button
+                      onClick={() => setEditarPadrao({ matricula: p.matricula, nome: p.nome, unidade })}
+                      className="flex w-[116px] flex-col items-start gap-1 rounded-lg py-1 text-left tap"
+                    >
+                      <span className="hstack gap-2">
+                        <Avatar name={p.nome} src={p.avatar} size={26} />
+                        <span className="min-w-0 truncate text-xs font-semibold">{(p.nome || '').split(' ')[0]}</span>
+                      </span>
+                      <span className="hstack gap-1 rounded-pill border border-line px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-muted-2">
+                        <Pencil size={9} /> Padrão
+                      </span>
+                    </button>
                   </td>
                   {(p.dias || []).map((dia) => {
                     const hoje = dia.data === hojeISO()
+                    const manual = dia.origem === 'manual'
                     return (
-                      <td key={dia.data} className="p-0">
+                      <td key={dia.data} className="p-0 align-top">
                         <button
-                          onClick={() => setEditar({ matricula: p.matricula, nome: p.nome, data: dia.data, dia })}
+                          onClick={() => setEditarDia({ matricula: p.matricula, nome: p.nome, data: dia.data, dia })}
                           className={cn(
-                            'grid h-12 w-[58px] place-items-center rounded-lg border text-center tap',
+                            'relative grid h-12 w-[58px] place-items-center rounded-lg border text-center tap',
                             dia.folga ? 'border-line bg-fill text-muted' : dia.definido ? 'border-accent/50 bg-accent-soft text-carbon dark:text-accent' : 'border-dashed border-line text-muted-2',
                             hoje && 'ring-1 ring-accent',
                           )}
                         >
+                          {manual && <span className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-[#35383F] dark:bg-accent" title="Ajuste manual" />}
                           {dia.folga ? (
                             <Coffee size={14} />
                           ) : dia.definido ? (
@@ -287,12 +286,23 @@ function Montar({ inicio, dias }) {
         </div>
       )}
 
-      {editar && (
+      {editarDia && (
         <EditarTurno
-          alvo={editar}
-          onClose={() => setEditar(null)}
+          alvo={editarDia}
+          onClose={() => setEditarDia(null)}
           onFeito={() => {
-            setEditar(null)
+            setEditarDia(null)
+            carregar()
+          }}
+        />
+      )}
+      {editarPadrao && (
+        <EditarPadrao
+          alvo={editarPadrao}
+          inicioView={inicio}
+          onClose={() => setEditarPadrao(null)}
+          onFeito={() => {
+            setEditarPadrao(null)
             carregar()
           }}
         />
@@ -301,8 +311,26 @@ function Montar({ inicio, dias }) {
   )
 }
 
-// ── Editor de um turno (líder) ────────────────────────────────────────────────
+// Bottom-sheet no mobile, card centralizado no desktop (mesmo formato dos modais).
+function Folha({ children, onClose }) {
+  return createPortal(
+    <div className="fixed inset-0 z-50 flex flex-col justify-end sm:items-center sm:justify-center" role="dialog" aria-modal="true">
+      <button aria-label="Fechar" onClick={onClose} className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
+      <div className="relative max-h-[90dvh] w-full overflow-y-auto overscroll-contain rounded-t-2xl border border-line bg-bg px-5 pb-8 pt-4 shadow-xl sm:max-w-[520px] sm:rounded-2xl">
+        <div className="mx-auto mb-3 h-1 w-9 rounded-full bg-line sm:hidden" />
+        <button onClick={onClose} aria-label="Fechar" className="absolute right-4 top-4 grid h-8 w-8 place-items-center rounded-full bg-surface text-muted tap">
+          <X size={16} />
+        </button>
+        {children}
+      </div>
+    </div>,
+    document.body,
+  )
+}
+
+// ── Ajuste pontual de um dia (override manual sobre o padrão) ──────────────────
 function EditarTurno({ alvo, onClose, onFeito }) {
+  const manual = alvo.dia?.origem === 'manual'
   const [entrada, setEntrada] = useState(alvo.dia.folga ? '' : hm(alvo.dia.entrada))
   const [saida, setSaida] = useState(alvo.dia.folga ? '' : hm(alvo.dia.saida))
   const [salvando, setSalvando] = useState(false)
@@ -310,7 +338,7 @@ function EditarTurno({ alvo, onClose, onFeito }) {
   async function salvar(folga) {
     setSalvando(true)
     try {
-      await call('escala_set', {
+      await call('escala_dia_set', {
         p_matricula: alvo.matricula,
         p_data: alvo.data,
         p_entrada: folga ? null : entrada || null,
@@ -323,10 +351,10 @@ function EditarTurno({ alvo, onClose, onFeito }) {
       setSalvando(false)
     }
   }
-  async function limpar() {
+  async function voltarPadrao() {
     setSalvando(true)
     try {
-      await call('escala_limpar', { p_matricula: alvo.matricula, p_data: alvo.data })
+      await call('escala_dia_reset', { p_matricula: alvo.matricula, p_data: alvo.data })
       await onFeito()
     } catch (e) {
       avisar(e)
@@ -334,70 +362,234 @@ function EditarTurno({ alvo, onClose, onFeito }) {
     }
   }
 
-  return createPortal(
-    <div className="fixed inset-0 z-50 flex flex-col justify-end" role="dialog" aria-modal="true">
-      <button aria-label="Fechar" onClick={onClose} className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
-      <div className="relative max-h-[88vh] overflow-y-auto overscroll-contain rounded-t-3xl border-t border-line bg-bg px-5 pb-8 pt-4">
-        <div className="mx-auto mb-3 h-1 w-10 rounded-pill bg-line" />
-        <button onClick={onClose} aria-label="Fechar" className="absolute right-4 top-4 grid h-8 w-8 place-items-center rounded-full bg-surface text-muted tap">
-          <X size={16} />
-        </button>
-
-        <div className="hstack gap-3">
-          <Avatar name={alvo.nome} size={34} />
-          <div className="min-w-0">
-            <div className="truncate font-display text-base font-bold">{(alvo.nome || '').split(' ').slice(0, 2).join(' ')}</div>
-            <div className="text-xs text-muted">{ddmm(alvo.data)}</div>
-          </div>
-        </div>
-
-        <div className="mt-4 text-[11px] font-semibold uppercase tracking-wide text-muted">Turnos rápidos</div>
-        <div className="mt-2 flex flex-wrap gap-2">
-          {PRESETS.map((p) => {
-            const [e, s] = p.split('-')
-            const on = e === entrada && s === saida
-            return (
-              <button
-                key={p}
-                onClick={() => {
-                  setEntrada(e)
-                  setSaida(s)
-                }}
-                className={cn('rounded-pill border px-3 py-1.5 text-xs font-semibold tap', on ? 'border-accent bg-accent-soft text-carbon dark:text-accent' : 'border-line text-muted')}
-              >
-                {e}–{s}
-              </button>
-            )
-          })}
-        </div>
-
-        <div className="mt-4 hstack gap-3">
-          <label className="flex-1">
-            <div className="text-[11px] font-semibold uppercase tracking-wide text-muted">Entrada</div>
-            <input type="time" value={entrada} onChange={(e) => setEntrada(e.target.value)} className="mt-1 w-full rounded-card border border-line bg-surface px-3 py-2 text-sm outline-none" />
-          </label>
-          <label className="flex-1">
-            <div className="text-[11px] font-semibold uppercase tracking-wide text-muted">Saída</div>
-            <input type="time" value={saida} onChange={(e) => setSaida(e.target.value)} className="mt-1 w-full rounded-card border border-line bg-surface px-3 py-2 text-sm outline-none" />
-          </label>
-        </div>
-
-        <button onClick={() => salvar(false)} disabled={salvando || !entrada || !saida} className="btn-primary mt-5 hstack w-full justify-center gap-2 py-3 text-sm disabled:opacity-40">
-          {salvando ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />} Salvar turno
-        </button>
-
-        <div className="mt-2 hstack gap-2">
-          <button onClick={() => salvar(true)} disabled={salvando} className="hstack flex-1 justify-center gap-2 rounded-card border border-line py-2.5 text-sm font-semibold text-muted tap disabled:opacity-40">
-            <Coffee size={15} /> Marcar folga
-          </button>
-          {alvo.dia.definido && (
-            <button onClick={limpar} disabled={salvando} className="hstack flex-1 justify-center gap-2 rounded-card border border-line py-2.5 text-sm font-semibold text-danger tap disabled:opacity-40">
-              <Trash2 size={15} /> Limpar
-            </button>
-          )}
+  return (
+    <Folha onClose={onClose}>
+      <div className="hstack gap-3">
+        <Avatar name={alvo.nome} size={34} />
+        <div className="min-w-0">
+          <div className="truncate font-display text-base font-bold">{(alvo.nome || '').split(' ').slice(0, 2).join(' ')}</div>
+          <div className="text-xs text-muted">Ajuste pontual · {ddmm(alvo.data)}</div>
         </div>
       </div>
-    </div>
+
+      <div className="mt-4 text-[11px] font-semibold uppercase tracking-wide text-muted">Turnos rápidos</div>
+      <div className="mt-2 flex flex-wrap gap-2">
+        {PRESETS.map((p) => {
+          const [e, s] = p.split('-')
+          const on = e === entrada && s === saida
+          return (
+            <button
+              key={p}
+              onClick={() => {
+                setEntrada(e)
+                setSaida(s)
+              }}
+              className={cn('rounded-pill border px-3 py-1.5 text-xs font-semibold tap', on ? 'border-accent bg-accent-soft text-carbon dark:text-accent' : 'border-line text-muted')}
+            >
+              {e}–{s}
+            </button>
+          )
+        })}
+      </div>
+
+      <div className="mt-4 hstack gap-3">
+        <label className="flex-1">
+          <div className="text-[11px] font-semibold uppercase tracking-wide text-muted">Entrada</div>
+          <input type="time" value={entrada} onChange={(e) => setEntrada(e.target.value)} className="mt-1 w-full rounded-card border border-line bg-surface px-3 py-2 text-sm outline-none" />
+        </label>
+        <label className="flex-1">
+          <div className="text-[11px] font-semibold uppercase tracking-wide text-muted">Saída</div>
+          <input type="time" value={saida} onChange={(e) => setSaida(e.target.value)} className="mt-1 w-full rounded-card border border-line bg-surface px-3 py-2 text-sm outline-none" />
+        </label>
+      </div>
+
+      <button onClick={() => salvar(false)} disabled={salvando || !entrada || !saida} className="btn-primary mt-5 hstack w-full justify-center gap-2 py-3 text-sm disabled:opacity-40">
+        {salvando ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />} Salvar ajuste
+      </button>
+
+      <div className="mt-2 hstack gap-2">
+        <button onClick={() => salvar(true)} disabled={salvando} className="hstack flex-1 justify-center gap-2 rounded-card border border-line py-2.5 text-sm font-semibold text-muted tap disabled:opacity-40">
+          <Coffee size={15} /> Marcar folga
+        </button>
+        {manual && (
+          <button onClick={voltarPadrao} disabled={salvando} className="hstack flex-1 justify-center gap-2 rounded-card border border-line py-2.5 text-sm font-semibold text-muted tap disabled:opacity-40">
+            <RotateCcw size={15} /> Voltar ao padrão
+          </button>
+        )}
+      </div>
+    </Folha>
+  )
+}
+
+// ── Editor do PADRÃO (molde recorrente, com revezamento + vigência) ────────────
+const diaVazio = (dow) => (dow <= 4 ? { entrada: '09:00', saida: '18:00', folga: false } : { entrada: '', saida: '', folga: true })
+function novasSemanas(n) {
+  return Array.from({ length: n }, () => Array.from({ length: 7 }, (_, dow) => diaVazio(dow)))
+}
+function montarSemanas(n, dias) {
+  const w = Array.from({ length: n }, () => Array.from({ length: 7 }, () => ({ entrada: '', saida: '', folga: false })))
+  ;(dias || []).forEach((d) => {
+    const sc = d.semana_ciclo ?? 0
+    const dow = d.dia_semana
+    if (sc >= 0 && sc < n && dow >= 0 && dow < 7) w[sc][dow] = { entrada: hm(d.entrada), saida: hm(d.saida), folga: !!d.folga }
+  })
+  return w
+}
+
+function EditarPadrao({ alvo, inicioView, onClose, onFeito }) {
+  const [efetivo, setEfetivo] = useState(inicioView)
+  const [ciclo, setCiclo] = useState(1)
+  const [semanas, setSemanas] = useState(null) // [sc][dow] = { entrada, saida, folga }
+  const [salvando, setSalvando] = useState(false)
+
+  useEffect(() => {
+    let a = true
+    call('escala_padrao_get', { p_matricula: alvo.matricula })
+      .then((p) => {
+        if (!a) return
+        if (p && Array.isArray(p.dias) && p.dias.length) {
+          const n = p.semanas_ciclo || 1
+          setCiclo(n)
+          setSemanas(montarSemanas(n, p.dias))
+        } else {
+          setSemanas(novasSemanas(1))
+        }
+      })
+      .catch(() => a && setSemanas(novasSemanas(1)))
+    return () => {
+      a = false
+    }
+  }, [alvo.matricula])
+
+  function mudarCiclo(n) {
+    setCiclo(n)
+    setSemanas((w) => {
+      const cur = w || novasSemanas(1)
+      return Array.from({ length: n }, (_, i) => (cur[i] ? cur[i].map((x) => ({ ...x })) : cur[0].map((x) => ({ ...x }))))
+    })
+  }
+  function setDia(sc, dow, patch) {
+    setSemanas((w) => w.map((wk, i) => (i === sc ? wk.map((d, j) => (j === dow ? { ...d, ...patch } : d)) : wk)))
+  }
+  function aplicarPreset(sc, e, s) {
+    setSemanas((w) => w.map((wk, i) => (i === sc ? wk.map((d, dow) => (dow <= 4 ? { entrada: e, saida: s, folga: false } : { entrada: '', saida: '', folga: true })) : wk)))
+  }
+
+  async function salvar() {
+    const dias = []
+    semanas.forEach((wk, sc) =>
+      wk.forEach((d, dow) => {
+        dias.push({
+          semana_ciclo: sc,
+          dia_semana: dow,
+          entrada: d.folga ? null : d.entrada || null,
+          saida: d.folga ? null : d.saida || null,
+          folga: !!d.folga,
+        })
+      }),
+    )
+    setSalvando(true)
+    try {
+      await call('escala_padrao_set', {
+        p_matricula: alvo.matricula,
+        p_efetivo_desde: efetivo,
+        p_semanas_ciclo: ciclo,
+        p_dias: dias,
+        p_unidade: alvo.unidade || null,
+      })
+      await onFeito()
+    } catch (e) {
+      avisar(e)
+      setSalvando(false)
+    }
+  }
+
+  return (
+    <Folha onClose={onClose}>
+      <div className="hstack gap-3">
+        <Avatar name={alvo.nome} size={34} />
+        <div className="min-w-0">
+          <div className="truncate font-display text-base font-bold">{(alvo.nome || '').split(' ').slice(0, 2).join(' ')}</div>
+          <div className="text-xs text-muted">Padrão de escala</div>
+        </div>
+      </div>
+
+      {semanas == null ? (
+        <div className="grid place-items-center py-12 text-muted">
+          <Loader2 size={20} className="animate-spin" />
+        </div>
+      ) : (
+        <>
+          {/* vigência + revezamento */}
+          <div className="mt-4 grid grid-cols-2 items-start gap-3">
+            <label>
+              <div className="text-[11px] font-semibold uppercase tracking-wide text-muted">Vale a partir de</div>
+              <input type="date" value={efetivo} onChange={(e) => setEfetivo(e.target.value)} className="mt-1 w-full rounded-card border border-line bg-surface px-3 py-2 text-sm outline-none" />
+            </label>
+            <div>
+              <div className="hstack gap-1 text-[11px] font-semibold uppercase tracking-wide text-muted">
+                <Repeat size={11} /> Revezamento
+              </div>
+              <div className="mt-1 hstack flex-wrap gap-1.5">
+                {CICLOS.map((n) => (
+                  <button
+                    key={n}
+                    onClick={() => mudarCiclo(n)}
+                    className={cn('rounded-pill border px-2.5 py-1 text-xs font-semibold tap', ciclo === n ? 'border-accent bg-accent-soft text-carbon dark:text-accent' : 'border-line text-muted')}
+                  >
+                    {n === 1 ? 'Fixo' : `${n} sem`}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* grade por semana do ciclo */}
+          {semanas.map((wk, sc) => (
+            <div key={sc} className="mt-4">
+              {ciclo > 1 && <div className="text-xs font-bold text-accent">Semana {letra(sc)}</div>}
+              <div className="mt-1 flex flex-wrap gap-1.5">
+                {PRESETS.slice(0, 4).map((p) => {
+                  const [e, s] = p.split('-')
+                  return (
+                    <button key={p} onClick={() => aplicarPreset(sc, e, s)} className="rounded-pill border border-line px-2 py-0.5 text-[10px] font-semibold text-muted-2 tap">
+                      Seg–Sex {e}–{s}
+                    </button>
+                  )
+                })}
+              </div>
+              <div className="mt-2 flex flex-col gap-1.5">
+                {wk.map((d, dow) => (
+                  <div key={dow} className="hstack gap-2">
+                    <span className="w-9 shrink-0 text-xs font-bold uppercase text-muted">{DIAS[dow]}</span>
+                    <button
+                      onClick={() => setDia(sc, dow, { folga: !d.folga })}
+                      className={cn('w-20 shrink-0 rounded-pill border px-2 py-1.5 text-[11px] font-semibold tap', d.folga ? 'border-line bg-fill text-muted' : 'border-accent/50 bg-accent-soft text-carbon dark:text-accent')}
+                    >
+                      {d.folga ? 'Folga' : 'Trabalha'}
+                    </button>
+                    {!d.folga && (
+                      <div className="hstack min-w-0 flex-1 gap-1.5">
+                        <input type="time" value={d.entrada} onChange={(e) => setDia(sc, dow, { entrada: e.target.value })} className="min-w-0 flex-1 rounded-card border border-line bg-surface px-2 py-1.5 text-sm outline-none" />
+                        <span className="text-muted-2">–</span>
+                        <input type="time" value={d.saida} onChange={(e) => setDia(sc, dow, { saida: e.target.value })} className="min-w-0 flex-1 rounded-card border border-line bg-surface px-2 py-1.5 text-sm outline-none" />
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+
+          <button onClick={salvar} disabled={salvando} className="btn-primary mt-5 hstack w-full justify-center gap-2 py-3 text-sm disabled:opacity-40">
+            {salvando ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />} Salvar padrão
+          </button>
+          <p className="mt-2 text-center text-[11px] text-muted-2">
+            Repete toda semana a partir de {ddmm(efetivo)}, até você mudar.
+          </p>
+        </>
+      )}
+    </Folha>
   )
 }
 
