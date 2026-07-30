@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Navigate } from 'react-router-dom'
-import { Loader2, ChevronLeft, ChevronRight, CalendarClock, Check, X, Coffee, Repeat, Pencil, RotateCcw } from 'lucide-react'
+import { Loader2, ChevronLeft, ChevronRight, CalendarClock, Check, X, Coffee, Repeat, Pencil, RotateCcw, Coins, CircleCheck } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Voltar } from '../components/Voltar.jsx'
 import { Avatar } from '../components/Avatar.jsx'
@@ -111,6 +111,8 @@ function Painel() {
 // ── Minha escala (usuário) ────────────────────────────────────────────────────
 function MinhaEscala({ inicio, dias }) {
   const [semana, setSemana] = useState(null)
+  const [chk, setChk] = useState(null) // { tem_hoje, confirmado }
+  const [confirmando, setConfirmando] = useState(false)
   useEffect(() => {
     let a = true
     call('escala_minha_semana', { p_inicio: inicio })
@@ -120,9 +122,47 @@ function MinhaEscala({ inicio, dias }) {
       a = false
     }
   }, [inicio])
+  useEffect(() => {
+    let a = true
+    call('escala_check_status')
+      .then((d) => a && setChk(d || null))
+      .catch(() => {})
+    return () => {
+      a = false
+    }
+  }, [])
+
+  async function confirmarHoje() {
+    setConfirmando(true)
+    try {
+      await call('escala_check')
+      setChk((c) => ({ ...(c || {}), tem_hoje: true, confirmado: true }))
+    } catch (e) {
+      avisar(e)
+    } finally {
+      setConfirmando(false)
+    }
+  }
 
   return (
     <div className="px-5 pt-4 pb-24">
+      {/* Check diário — engajamento (+5 pts) */}
+      {chk?.tem_hoje &&
+        (chk.confirmado ? (
+          <div className="mb-3 hstack gap-2 rounded-card border border-accent/40 bg-accent-soft px-4 py-3 text-sm font-semibold text-carbon dark:text-accent">
+            <CircleCheck size={18} /> Escala de hoje confirmada
+          </div>
+        ) : (
+          <button onClick={confirmarHoje} disabled={confirmando} className="mb-3 hstack w-full items-center justify-between rounded-card border border-line bg-surface px-4 py-3 tap disabled:opacity-50">
+            <span className="hstack gap-2 text-sm font-semibold">
+              {confirmando ? <Loader2 size={18} className="animate-spin text-muted-2" /> : <CircleCheck size={18} className="text-muted-2" />}
+              Confirmar minha escala de hoje
+            </span>
+            <span className="hstack shrink-0 gap-1 rounded-pill bg-accent-soft px-2 py-0.5 text-xs font-bold text-accent">
+              <Coins size={12} /> +5
+            </span>
+          </button>
+        ))}
       {semana == null ? (
         <div className="grid place-items-center py-16 text-muted">
           <Loader2 size={22} className="animate-spin" />
@@ -167,6 +207,8 @@ function Montar({ inicio, dias }) {
   const [equipe, setEquipe] = useState(null)
   const [editarDia, setEditarDia] = useState(null) // ajuste pontual { matricula, nome, data, dia }
   const [editarPadrao, setEditarPadrao] = useState(null) // molde { matricula, nome, unidade }
+  const [confirmandoSemana, setConfirmandoSemana] = useState(false)
+  const [resSemana, setResSemana] = useState(null) // feedback do "confirmar semana"
 
   useEffect(() => {
     call('escala_unidades')
@@ -191,6 +233,25 @@ function Montar({ inicio, dias }) {
   useEffect(() => {
     carregar()
   }, [carregar])
+  useEffect(() => {
+    setResSemana(null)
+  }, [inicio, unidade])
+
+  async function confirmarSemana() {
+    setConfirmandoSemana(true)
+    try {
+      const r = await call('escala_semana_confirmar', { p_inicio: inicio, p_unidade: unidade })
+      setResSemana(
+        r?.creditados > 0
+          ? `Semana confirmada! +${r.pontos} pts (${r.creditados} ${r.creditados === 1 ? 'pessoa' : 'pessoas'}).`
+          : 'Semana já confirmada — sem novos pontos.',
+      )
+    } catch (e) {
+      avisar(e)
+    } finally {
+      setConfirmandoSemana(false)
+    }
+  }
 
   return (
     <div className="pt-3 pb-24">
@@ -209,6 +270,20 @@ function Montar({ inicio, dias }) {
         <p className="mt-2 text-[11px] leading-snug text-muted-2">
           Toque no <b className="font-semibold text-muted">nome</b> pra definir o padrão (repete sozinho toda semana). Toque num <b className="font-semibold text-muted">dia</b> pra um ajuste pontual.
         </p>
+        <button
+          onClick={confirmarSemana}
+          disabled={confirmandoSemana || !unidade}
+          className="mt-2 hstack w-full items-center justify-between rounded-card border border-line bg-surface px-4 py-2.5 tap disabled:opacity-40"
+        >
+          <span className="hstack gap-2 text-sm font-semibold">
+            {confirmandoSemana ? <Loader2 size={16} className="animate-spin text-muted-2" /> : <CircleCheck size={16} className="text-muted-2" />}
+            Confirmar semana
+          </span>
+          <span className="hstack shrink-0 gap-1 rounded-pill bg-accent-soft px-2 py-0.5 text-xs font-bold text-accent">
+            <Coins size={12} /> +10/pessoa
+          </span>
+        </button>
+        {resSemana && <div className="mt-2 rounded-card border border-accent/40 bg-accent-soft px-3 py-2 text-xs font-semibold text-carbon dark:text-accent">{resSemana}</div>}
       </div>
 
       {equipe == null ? (
