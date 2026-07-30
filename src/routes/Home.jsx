@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Flag, Gift, Star, Network, Coffee, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Flag, Gift, Star, Network, Coffee, Check } from 'lucide-react'
 import { cn } from '../lib/cn'
 import { Header } from '../components/Header.jsx'
 import { Section } from '../components/Section.jsx'
@@ -34,23 +34,6 @@ function mondayISO() {
   const x = new Date(h.getFullYear(), h.getMonth(), h.getDate())
   x.setDate(x.getDate() - ((x.getDay() + 6) % 7))
   return isoLocal(x)
-}
-// Segunda-feira da semana atual + offset*7 (offset negativo = passado).
-function mondayOffsetISO(off) {
-  const h = new Date()
-  const x = new Date(h.getFullYear(), h.getMonth(), h.getDate())
-  x.setDate(x.getDate() - ((x.getDay() + 6) % 7) + off * 7)
-  return isoLocal(x)
-}
-const ddmmH = (iso) => {
-  const p = String(iso).split('-')
-  return p.length === 3 ? `${p[2]}/${p[1]}` : iso
-}
-function labelSemana(off) {
-  const start = mondayOffsetISO(off)
-  const e = new Date(start + 'T00:00:00')
-  e.setDate(e.getDate() + 6)
-  return `${ddmmH(start)} – ${ddmmH(isoLocal(e))}`
 }
 
 const sugestoesCards = [
@@ -99,22 +82,60 @@ export function Home() {
       ativo = false
     }
   }, [])
-  // Escala da semana (teste — só pra quem tem acesso liberado no painel de admin)
-  // Desliza ±3 semanas (passado/futuro).
-  const [escOffset, setEscOffset] = useState(0)
+  // Escala da semana (teste) — vira o 2º slide do card do topo.
+  const podeEsc = !!usuario?.podeEscala
   const [escalaSemana, setEscalaSemana] = useState(null)
   useEffect(() => {
-    if (!usuario?.podeEscala) return
+    if (!podeEsc) return
     let ativo = true
-    setEscalaSemana(null)
-    supabase.rpc('escala_minha_semana', { p_inicio: mondayOffsetISO(escOffset) }).then(({ data }) => {
+    supabase.rpc('escala_minha_semana', { p_inicio: mondayISO() }).then(({ data }) => {
       if (ativo) setEscalaSemana(Array.isArray(data) ? data : [])
     })
     return () => {
       ativo = false
     }
-  }, [usuario?.podeEscala, escOffset])
-  const escTouch = useMemo(() => ({ x: 0 }), [])
+  }, [podeEsc])
+  // Carrossel do topo: 0 = identificação, 1 = escala. Sem indicador: ao abrir o
+  // app, "espia" a escala sozinho por ~1,5s e volta (uma vez por sessão), só pra
+  // dar a dica de que tem conteúdo ali. Depois é só deslizar.
+  const [heroSlide, setHeroSlide] = useState(0)
+  const heroTouch = useMemo(() => ({ x: 0, tocou: false }), [])
+  useEffect(() => {
+    if (!podeEsc) return
+    try {
+      if (sessionStorage.getItem('tp_esc_peek')) return
+    } catch (e) { /* ignore */ }
+    const t1 = setTimeout(() => {
+      if (!heroTouch.tocou) setHeroSlide(1)
+    }, 2600)
+    const t2 = setTimeout(() => {
+      if (!heroTouch.tocou) setHeroSlide(0)
+      try {
+        sessionStorage.setItem('tp_esc_peek', '1')
+      } catch (e) { /* ignore */ }
+    }, 4200)
+    return () => {
+      clearTimeout(t1)
+      clearTimeout(t2)
+    }
+  }, [podeEsc, heroTouch])
+  // Validação de presença do dia (tocar no dia de hoje no card do topo → +5).
+  const [chk, setChk] = useState(null)
+  useEffect(() => {
+    if (!podeEsc) return
+    let ativo = true
+    supabase.rpc('escala_check_status').then(({ data }) => {
+      if (ativo) setChk(data || null)
+    })
+    return () => {
+      ativo = false
+    }
+  }, [podeEsc])
+  async function validarHoje() {
+    if (!chk?.tem_hoje || chk?.confirmado) return
+    const { error } = await supabase.rpc('escala_check')
+    if (!error) setChk((c) => ({ ...(c || {}), confirmado: true }))
+  }
 
   const cargo = usuario?.cargo || ''
   const loja = usuario?.loja || ''
@@ -181,35 +202,106 @@ export function Home() {
     <>
       <Header />
 
-      {/* Card de identificação — compacto, com anel de progresso dos desafios */}
+      {/* Topo: carrossel [identificação · escala] — sem indicador. Espia a escala
+          sozinho ao abrir e volta; depois é só deslizar. */}
       <div className="px-5 pt-2 hxs:pt-1">
-        <div className="hero-card reveal hstack gap-3 p-4 hsm:p-3">
-          {carregandoPerfil ? (
-            <span className="h-12 w-12 shrink-0 animate-pulse rounded-full bg-fill" />
-          ) : (
-            <Avatar name={nome} src={usuario?.avatarUrl} size={48} />
-          )}
-          <div className="min-w-0 flex-1">
-            {carregandoPerfil ? (
-              <>
-                <span className="block h-5 w-36 max-w-[70%] animate-pulse rounded bg-fill" />
-                <span className="mt-2 block h-3 w-24 max-w-[45%] animate-pulse rounded bg-fill" />
-              </>
-            ) : (
-              <>
-                <div className="font-display text-lg font-bold">Olá, {primeiroNome}!</div>
-                <div className="mt-0.5 truncate text-xs text-muted">
-                  {cargo}
-                  {loja ? ` · ${loja}` : ''}
+        <div
+          className="overflow-hidden"
+          onTouchStart={(e) => {
+            heroTouch.x = e.touches[0].clientX
+          }}
+          onTouchEnd={(e) => {
+            if (!podeEsc) return
+            const dx = e.changedTouches[0].clientX - heroTouch.x
+            if (Math.abs(dx) > 45) {
+              heroTouch.tocou = true
+              setHeroSlide(dx < 0 ? 1 : 0)
+            }
+          }}
+        >
+          <div className="flex transition-transform duration-500 ease-out" style={{ transform: `translateX(-${heroSlide * 100}%)` }}>
+            {/* slide 0 — identificação */}
+            <div className="w-full shrink-0">
+              <div className="hero-card reveal hstack gap-3 p-4 hsm:p-3">
+                {carregandoPerfil ? (
+                  <span className="h-12 w-12 shrink-0 animate-pulse rounded-full bg-fill" />
+                ) : (
+                  <Avatar name={nome} src={usuario?.avatarUrl} size={48} />
+                )}
+                <div className="min-w-0 flex-1">
+                  {carregandoPerfil ? (
+                    <>
+                      <span className="block h-5 w-36 max-w-[70%] animate-pulse rounded bg-fill" />
+                      <span className="mt-2 block h-3 w-24 max-w-[45%] animate-pulse rounded bg-fill" />
+                    </>
+                  ) : (
+                    <>
+                      <div className="font-display text-lg font-bold">Olá, {primeiroNome}!</div>
+                      <div className="mt-0.5 truncate text-xs text-muted">
+                        {cargo}
+                        {loja ? ` · ${loja}` : ''}
+                      </div>
+                    </>
+                  )}
                 </div>
-              </>
+                {carregandoPerfil ? (
+                  <span className="h-[54px] w-[54px] shrink-0 animate-pulse rounded-full bg-fill" />
+                ) : (
+                  <ProgressRing value={(progresso?.pct ?? 0) / 100} size={54} stroke={5} />
+                )}
+              </div>
+            </div>
+
+            {/* slide 1 — escala da semana (toque no dia de hoje valida presença +5) */}
+            {podeEsc && (
+              <div className="w-full shrink-0">
+                <div className="hero-card hstack items-center gap-3 p-4 hsm:p-3">
+                  <div className="shrink-0 leading-tight">
+                    <div className="text-[10px] font-bold uppercase tracking-wide text-muted-2">Escala</div>
+                    <div className="font-display text-sm font-bold">da semana</div>
+                  </div>
+                  <div className="hstack min-w-0 flex-1 gap-1">
+                    {(escalaSemana || Array.from({ length: 7 })).map((dia, i) => {
+                      const hoje = dia && dia.data === isoLocal(new Date())
+                      const conteudo = !escalaSemana ? (
+                        <span className="h-2 w-4 animate-pulse rounded bg-fill" />
+                      ) : dia?.folga ? (
+                        <Coffee size={11} className="text-muted" />
+                      ) : dia?.definido ? (
+                        dia.entrada ? String(dia.entrada).slice(0, 2) + 'h' : 'T'
+                      ) : (
+                        <span className="text-muted-2">—</span>
+                      )
+                      const miolo = (
+                        <>
+                          <div className={cn('text-[8px] font-bold uppercase', hoje ? 'text-accent' : 'text-muted-2')}>{DIAS_ABREV[i]}</div>
+                          <div className="mt-0.5 flex h-3.5 items-center justify-center text-[10px] font-bold">{conteudo}</div>
+                        </>
+                      )
+                      if (hoje && chk?.tem_hoje) {
+                        return (
+                          <button
+                            key={i}
+                            onClick={validarHoje}
+                            aria-label={chk?.confirmado ? 'Presença confirmada' : 'Validar presença de hoje'}
+                            className={cn('relative flex-1 rounded-lg border py-1 text-center tap', chk?.confirmado ? 'border-accent bg-accent text-black' : 'border-accent bg-accent-soft')}
+                          >
+                            {chk?.confirmado && <Check size={9} strokeWidth={3} className="absolute right-0.5 top-0.5" />}
+                            {miolo}
+                          </button>
+                        )
+                      }
+                      return (
+                        <div key={i} className={cn('flex-1 rounded-lg border py-1 text-center', hoje ? 'border-accent bg-accent-soft' : 'border-line')}>
+                          {miolo}
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              </div>
             )}
           </div>
-          {carregandoPerfil ? (
-            <span className="h-[54px] w-[54px] shrink-0 animate-pulse rounded-full bg-fill" />
-          ) : (
-            <ProgressRing value={(progresso?.pct ?? 0) / 100} size={54} stroke={5} />
-          )}
         </div>
       </div>
 
@@ -253,57 +345,6 @@ export function Home() {
       {cardsDestaque.length > 0 && (
         <Section className="reveal reveal-3 mt-4 hsm:mt-3" title="Notícias">
           <Carrossel itens={cardsDestaque} />
-        </Section>
-      )}
-
-      {/* Escala da semana — só pra quem tem acesso (teste). Desliza ±3 semanas. */}
-      {usuario?.podeEscala && (
-        <Section className="mt-4 hsm:mt-3" title="Escala da semana">
-          <Card className="p-3">
-            <div
-              onTouchStart={(e) => {
-                escTouch.x = e.touches[0].clientX
-              }}
-              onTouchEnd={(e) => {
-                const dx = e.changedTouches[0].clientX - escTouch.x
-                if (dx > 45) setEscOffset((o) => Math.max(-3, o - 1))
-                else if (dx < -45) setEscOffset((o) => Math.min(3, o + 1))
-              }}
-            >
-              <div className="mb-2 hstack items-center justify-between">
-                <button onClick={() => setEscOffset((o) => Math.max(-3, o - 1))} disabled={escOffset <= -3} aria-label="Semana anterior" className="grid h-6 w-6 place-items-center rounded-full text-muted tap disabled:opacity-30">
-                  <ChevronLeft size={15} />
-                </button>
-                <span className="text-[11px] font-semibold text-muted">{escOffset === 0 ? 'Esta semana' : labelSemana(escOffset)}</span>
-                <button onClick={() => setEscOffset((o) => Math.min(3, o + 1))} disabled={escOffset >= 3} aria-label="Próxima semana" className="grid h-6 w-6 place-items-center rounded-full text-muted tap disabled:opacity-30">
-                  <ChevronRight size={15} />
-                </button>
-              </div>
-              <Link to="/escala" className="block tap">
-                <div className="hstack gap-1.5">
-                  {(escalaSemana || Array.from({ length: 7 })).map((dia, i) => {
-                    const hoje = dia && dia.data === isoLocal(new Date())
-                    return (
-                      <div key={i} className={cn('flex-1 rounded-lg border py-1.5 text-center', hoje ? 'border-accent bg-accent-soft' : 'border-line')}>
-                        <div className={cn('text-[9px] font-bold uppercase', hoje ? 'text-accent' : 'text-muted-2')}>{DIAS_ABREV[i]}</div>
-                        <div className="mt-0.5 flex h-4 items-center justify-center text-[11px] font-bold">
-                          {!escalaSemana ? (
-                            <span className="h-2.5 w-6 animate-pulse rounded bg-fill" />
-                          ) : dia?.folga ? (
-                            <Coffee size={12} className="text-muted" />
-                          ) : dia?.definido ? (
-                            dia.entrada ? String(dia.entrada).slice(0, 2) + 'h' : 'T'
-                          ) : (
-                            <span className="text-muted-2">—</span>
-                          )}
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
-              </Link>
-            </div>
-          </Card>
         </Section>
       )}
 
