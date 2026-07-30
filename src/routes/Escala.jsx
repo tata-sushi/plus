@@ -57,7 +57,9 @@ function Escala() {
 }
 
 function Painel() {
-  const [aba, setAba] = useState('minha') // 'minha' | 'montar'
+  const { usuario } = useAuth()
+  const podeGerir = !!usuario?.podeEscala // líder (monta escala); colaborador só vê calendário
+  const [aba, setAba] = useState(podeGerir ? 'minha' : 'calendario')
   const [offset, setOffset] = useState(0)
   const inicio = useMemo(() => isoLocal(segunda(offset)), [offset])
   const dias = useMemo(() => {
@@ -74,19 +76,21 @@ function Painel() {
       <Header title="Escala" />
       <Voltar />
 
-      <div className="px-5 pt-1">
-        <div className="hstack rounded-pill border border-line bg-surface p-0.5 text-xs font-semibold">
-          <button onClick={() => setAba('minha')} className={cn('flex-1 rounded-pill py-1.5 tap', aba === 'minha' ? 'bg-accent-soft text-accent' : 'text-muted')}>
-            Minha escala
-          </button>
-          <button onClick={() => setAba('montar')} className={cn('flex-1 rounded-pill py-1.5 tap', aba === 'montar' ? 'bg-accent-soft text-accent' : 'text-muted')}>
-            Montar
-          </button>
-          <button onClick={() => setAba('calendario')} className={cn('flex-1 rounded-pill py-1.5 tap', aba === 'calendario' ? 'bg-accent-soft text-accent' : 'text-muted')}>
-            Calendário
-          </button>
+      {podeGerir && (
+        <div className="px-5 pt-1">
+          <div className="hstack rounded-pill border border-line bg-surface p-0.5 text-xs font-semibold">
+            <button onClick={() => setAba('minha')} className={cn('flex-1 rounded-pill py-1.5 tap', aba === 'minha' ? 'bg-accent-soft text-accent' : 'text-muted')}>
+              Minha escala
+            </button>
+            <button onClick={() => setAba('montar')} className={cn('flex-1 rounded-pill py-1.5 tap', aba === 'montar' ? 'bg-accent-soft text-accent' : 'text-muted')}>
+              Montar
+            </button>
+            <button onClick={() => setAba('calendario')} className={cn('flex-1 rounded-pill py-1.5 tap', aba === 'calendario' ? 'bg-accent-soft text-accent' : 'text-muted')}>
+              Calendário
+            </button>
+          </div>
         </div>
-      </div>
+      )}
 
       <div className={cn('mt-3 hstack justify-between px-5', aba === 'calendario' && 'hidden')}>
         <button onClick={() => setOffset((o) => o - 1)} aria-label="Semana anterior" className="grid h-8 w-8 place-items-center rounded-full bg-surface text-muted tap">
@@ -308,7 +312,17 @@ function MinhaEscala({ inicio, dias }) {
                     <span className="text-sm text-muted-2">—</span>
                   )}
                 </div>
-                {hoje && <span className="rounded-pill bg-accent px-2 py-0.5 text-[10px] font-bold text-black">Hoje</span>}
+                {hoje ? (
+                  <span className="shrink-0 rounded-pill bg-accent px-2 py-0.5 text-[10px] font-bold text-black">Hoje</span>
+                ) : dia.data < hojeISO() && dia.definido ? (
+                  dia.validado ? (
+                    <span className="hstack shrink-0 gap-1 rounded-pill bg-accent-soft px-2 py-0.5 text-[10px] font-bold text-accent">
+                      <Check size={11} /> Validou
+                    </span>
+                  ) : (
+                    <span className="shrink-0 rounded-pill bg-fill px-2 py-0.5 text-[10px] font-semibold text-muted-2">Não validou</span>
+                  )
+                ) : null}
               </div>
             )
           })}
