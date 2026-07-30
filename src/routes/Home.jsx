@@ -254,7 +254,7 @@ export function Home() {
             {/* slide 1 — escala da semana (toque no dia de hoje valida presença +5) */}
             {podeEsc && (
               <div className="flex w-full shrink-0">
-                <div className="hero-card flex h-full w-full flex-col justify-center gap-2 p-4 hsm:p-3">
+                <div className="card flex h-full w-full flex-col justify-center gap-2 p-4 hsm:p-3">
                   <div className="text-xs font-bold text-muted">Escala da semana</div>
                   <div className="hstack gap-1.5">
                     {(escalaSemana || Array.from({ length: 7 })).map((dia, i) => {
