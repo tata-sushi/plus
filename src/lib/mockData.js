@@ -94,7 +94,7 @@ export const redesSociais = [
 export const MAX_PAGINAS_FIXADAS = 10
 
 export const governancaCatalogo = [
-  { id: 'gov_escala', label: 'Controle de Escala', icon: 'CalendarClock', url: 'https://escalas.tatasushi.tech/index.html' },
+  { id: 'gov_escala', label: 'Controle de Escala', icon: 'CalendarClock', url: 'https://lideres.tatasushi.tech/compliance/kpis/rh/escala.html' },
   { id: 'gov_caixa', label: 'Caixa', icon: 'Banknote', url: 'https://lideres.tatasushi.tech/compliance/kpis/caixa/index.html' },
   { id: 'gov_compras', label: 'Compras', icon: 'ShoppingCart', url: 'https://lideres.tatasushi.tech/compliance/kpis/compras/abastecimento.html' },
   { id: 'gov_manutencao', label: 'Manutenção', icon: 'Wrench', url: 'https://lideres.tatasushi.tech/compliance/kpis/manutencao/index.html' },
