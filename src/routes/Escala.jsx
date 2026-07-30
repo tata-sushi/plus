@@ -59,7 +59,7 @@ function Escala() {
 function Painel() {
   const { usuario } = useAuth()
   const podeGerir = !!usuario?.podeEscala // líder (monta escala); colaborador só vê calendário
-  const [aba, setAba] = useState(podeGerir ? 'minha' : 'calendario')
+  const [aba, setAba] = useState(podeGerir ? 'montar' : 'calendario')
   const [offset, setOffset] = useState(0)
   const inicio = useMemo(() => isoLocal(segunda(offset)), [offset])
   const dias = useMemo(() => {
@@ -79,9 +79,6 @@ function Painel() {
       {podeGerir && (
         <div className="px-5 pt-1">
           <div className="hstack rounded-pill border border-line bg-surface p-0.5 text-xs font-semibold">
-            <button onClick={() => setAba('minha')} className={cn('flex-1 rounded-pill py-1.5 tap', aba === 'minha' ? 'bg-accent-soft text-accent' : 'text-muted')}>
-              Minha escala
-            </button>
             <button onClick={() => setAba('montar')} className={cn('flex-1 rounded-pill py-1.5 tap', aba === 'montar' ? 'bg-accent-soft text-accent' : 'text-muted')}>
               Montar
             </button>
@@ -110,7 +107,7 @@ function Painel() {
         </button>
       </div>
 
-      {aba === 'minha' ? <MinhaEscala inicio={inicio} dias={dias} /> : aba === 'montar' ? <Montar inicio={inicio} dias={dias} /> : <Calendario />}
+      {aba === 'montar' ? <Montar inicio={inicio} dias={dias} /> : <Calendario />}
     </>
   )
 }
@@ -222,112 +219,6 @@ function Calendario() {
           Folga
         </span>
       </div>
-    </div>
-  )
-}
-
-// ── Minha escala (usuário) ────────────────────────────────────────────────────
-function MinhaEscala({ inicio, dias }) {
-  const [semana, setSemana] = useState(null)
-  const [chk, setChk] = useState(null) // { tem_hoje, confirmado }
-  const [confirmando, setConfirmando] = useState(false)
-  useEffect(() => {
-    let a = true
-    call('escala_minha_semana', { p_inicio: inicio })
-      .then((d) => a && setSemana(Array.isArray(d) ? d : []))
-      .catch(() => a && setSemana([]))
-    return () => {
-      a = false
-    }
-  }, [inicio])
-  useEffect(() => {
-    let a = true
-    call('escala_check_status')
-      .then((d) => a && setChk(d || null))
-      .catch(() => {})
-    return () => {
-      a = false
-    }
-  }, [])
-
-  async function confirmarHoje() {
-    setConfirmando(true)
-    try {
-      await call('escala_check')
-      setChk((c) => ({ ...(c || {}), tem_hoje: true, confirmado: true }))
-    } catch (e) {
-      avisar(e)
-    } finally {
-      setConfirmando(false)
-    }
-  }
-
-  return (
-    <div className="px-5 pt-4 pb-24">
-      {/* Check diário — engajamento (+5 pts) */}
-      {chk?.tem_hoje &&
-        (chk.confirmado ? (
-          <div className="mb-3 hstack gap-2 rounded-card border border-accent/40 bg-accent-soft px-4 py-3 text-sm font-semibold text-carbon dark:text-accent">
-            <CircleCheck size={18} /> Escala de hoje confirmada
-          </div>
-        ) : (
-          <button onClick={confirmarHoje} disabled={confirmando} className="mb-3 hstack w-full items-center justify-between rounded-card border border-line bg-surface px-4 py-3 tap disabled:opacity-50">
-            <span className="hstack gap-2 text-sm font-semibold">
-              {confirmando ? <Loader2 size={18} className="animate-spin text-muted-2" /> : <CircleCheck size={18} className="text-muted-2" />}
-              Confirmar minha escala de hoje
-            </span>
-            <span className="hstack shrink-0 gap-1 rounded-pill bg-accent-soft px-2 py-0.5 text-xs font-bold text-accent">
-              <Coins size={12} /> +5
-            </span>
-          </button>
-        ))}
-      {semana == null ? (
-        <div className="grid place-items-center py-16 text-muted">
-          <Loader2 size={22} className="animate-spin" />
-        </div>
-      ) : (
-        <div className="flex flex-col gap-2">
-          {semana.map((dia, i) => {
-            const hoje = dia.data === hojeISO()
-            return (
-              <div key={dia.data || i} className={cn('hstack gap-3 rounded-card border px-4 py-3', hoje ? 'border-accent bg-accent-soft/40' : 'border-line')}>
-                <div className="w-12 shrink-0">
-                  <div className={cn('text-xs font-bold uppercase', hoje ? 'text-accent' : 'text-muted')}>{DIAS[i]}</div>
-                  <div className="text-[11px] text-muted-2">{ddmm(dia.data)}</div>
-                </div>
-                <div className="flex-1">
-                  {dia.folga ? (
-                    <span className="hstack gap-1.5 text-sm font-semibold text-muted">
-                      <Coffee size={14} /> Folga
-                    </span>
-                  ) : dia.definido ? (
-                    hm(dia.entrada) ? (
-                      <span className="text-sm font-bold">
-                        {hm(dia.entrada)} <span className="text-muted-2">–</span> {hm(dia.saida)}
-                      </span>
-                    ) : (
-                      <span className="text-sm font-bold">Trabalha</span>
-                    )
-                  ) : (
-                    <span className="text-sm text-muted-2">—</span>
-                  )}
-                </div>
-                {hoje ? (
-                  <span className="shrink-0 rounded-pill bg-accent px-2 py-0.5 text-[10px] font-bold text-black">Hoje</span>
-                ) : dia.data < hojeISO() && dia.definido ? (
-                  dia.validado ? (
-                    <span className="hstack shrink-0 gap-1 rounded-pill bg-accent-soft px-2 py-0.5 text-[10px] font-bold text-accent">
-                      <Check size={11} /> Validou
-                    </span>
-                  ) : (
-                    <span className="shrink-0 rounded-pill bg-fill px-2 py-0.5 text-[10px] font-semibold text-muted-2">Não validou</span>
-                  )
-                ) : null}
-              </div>
-            )
-          })}
-        </div>
-      )}
     </div>
   )
 }
