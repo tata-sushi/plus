@@ -95,29 +95,29 @@ export function Home() {
       ativo = false
     }
   }, [podeEsc])
-  // Carrossel do topo: 0 = identificação, 1 = escala. Sem indicador: ao abrir o
-  // app, "espia" a escala sozinho por ~1,5s e volta (uma vez por sessão), só pra
-  // dar a dica de que tem conteúdo ali. Depois é só deslizar.
+  // Carrossel do topo: 0 = identificação, 1 = escala. Sem indicador.
   const [heroSlide, setHeroSlide] = useState(0)
+  const [heroPing, setHeroPing] = useState(0) // bump = interação (reinicia o auto-retorno)
   const heroTouch = useMemo(() => ({ x: 0, tocou: false }), [])
+  // Entrada automática: 1,5s depois de abrir o app, mostra a escala UMA vez por
+  // sessão (só pra dar a dica). Depois não se move mais sozinho — é só deslizar.
   useEffect(() => {
     if (!podeEsc) return
     try {
       if (sessionStorage.getItem('tp_esc_peek')) return
-      sessionStorage.setItem('tp_esc_peek', '1') // roda uma vez por sessão (ao entrar no app)
+      sessionStorage.setItem('tp_esc_peek', '1')
     } catch (e) { /* ignore */ }
-    // Espia a escala 1,5s depois de entrar, fica ~1,6s e volta. Só uma vez.
-    const t1 = setTimeout(() => {
+    const t = setTimeout(() => {
       if (!heroTouch.tocou) setHeroSlide(1)
     }, 1500)
-    const t2 = setTimeout(() => {
-      if (!heroTouch.tocou) setHeroSlide(0)
-    }, 3100)
-    return () => {
-      clearTimeout(t1)
-      clearTimeout(t2)
-    }
+    return () => clearTimeout(t)
   }, [podeEsc, heroTouch])
+  // Auto-retorno: parado na escala por 8s sem interagir → volta pra identificação.
+  useEffect(() => {
+    if (heroSlide !== 1) return
+    const t = setTimeout(() => setHeroSlide(0), 8000)
+    return () => clearTimeout(t)
+  }, [heroSlide, heroPing])
   // Validação de presença do dia (tocar no dia de hoje no card do topo → +5).
   const [chk, setChk] = useState(null)
   useEffect(() => {
@@ -131,6 +131,7 @@ export function Home() {
     }
   }, [podeEsc])
   async function validarHoje() {
+    setHeroPing((p) => p + 1) // interagiu → reinicia o timer de 8s
     if (!chk?.tem_hoje || chk?.confirmado) return
     const { error } = await supabase.rpc('escala_check')
     if (!error) setChk((c) => ({ ...(c || {}), confirmado: true }))
@@ -214,6 +215,7 @@ export function Home() {
             const dx = e.changedTouches[0].clientX - heroTouch.x
             if (Math.abs(dx) > 45) {
               heroTouch.tocou = true
+              setHeroPing((p) => p + 1)
               setHeroSlide(dx < 0 ? 1 : 0)
             }
           }}
