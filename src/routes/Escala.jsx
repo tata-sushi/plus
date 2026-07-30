@@ -80,12 +80,15 @@ function Painel() {
             Minha escala
           </button>
           <button onClick={() => setAba('montar')} className={cn('flex-1 rounded-pill py-1.5 tap', aba === 'montar' ? 'bg-accent-soft text-accent' : 'text-muted')}>
-            Montar escala
+            Montar
+          </button>
+          <button onClick={() => setAba('calendario')} className={cn('flex-1 rounded-pill py-1.5 tap', aba === 'calendario' ? 'bg-accent-soft text-accent' : 'text-muted')}>
+            Calendário
           </button>
         </div>
       </div>
 
-      <div className="mt-3 hstack justify-between px-5">
+      <div className={cn('mt-3 hstack justify-between px-5', aba === 'calendario' && 'hidden')}>
         <button onClick={() => setOffset((o) => o - 1)} aria-label="Semana anterior" className="grid h-8 w-8 place-items-center rounded-full bg-surface text-muted tap">
           <ChevronLeft size={16} />
         </button>
@@ -103,8 +106,119 @@ function Painel() {
         </button>
       </div>
 
-      {aba === 'minha' ? <MinhaEscala inicio={inicio} dias={dias} /> : <Montar inicio={inicio} dias={dias} />}
+      {aba === 'minha' ? <MinhaEscala inicio={inicio} dias={dias} /> : aba === 'montar' ? <Montar inicio={inicio} dias={dias} /> : <Calendario />}
     </>
+  )
+}
+
+// ── Calendário (consulta do mês — visão do colaborador) ───────────────────────
+const MESES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro']
+function Calendario() {
+  const [mesOffset, setMesOffset] = useState(0)
+  const [mapa, setMapa] = useState(null) // { 'YYYY-MM-DD': { entrada, saida, folga } }
+  const base = useMemo(() => {
+    const h = new Date()
+    return new Date(h.getFullYear(), h.getMonth() + mesOffset, 1)
+  }, [mesOffset])
+  const ano = base.getFullYear()
+  const mes = base.getMonth()
+  const grid = useMemo(() => {
+    const first = new Date(ano, mes, 1)
+    const start = new Date(first)
+    start.setDate(1 - ((first.getDay() + 6) % 7)) // segunda na/antes da 1ª
+    const last = new Date(ano, mes + 1, 0)
+    const end = new Date(last)
+    end.setDate(last.getDate() + (6 - ((last.getDay() + 6) % 7))) // domingo na/depois da última
+    const days = []
+    for (const d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) days.push(new Date(d))
+    return { days, startISO: isoLocal(start), endISO: isoLocal(end) }
+  }, [ano, mes])
+
+  useEffect(() => {
+    let a = true
+    setMapa(null)
+    call('escala_meu_periodo', { p_inicio: grid.startISO, p_fim: grid.endISO })
+      .then((d) => a && setMapa(d && typeof d === 'object' ? d : {}))
+      .catch(() => a && setMapa({}))
+    return () => {
+      a = false
+    }
+  }, [grid.startISO, grid.endISO])
+
+  const hoje = hojeISO()
+  return (
+    <div className="px-5 pt-4 pb-24">
+      <div className="hstack justify-between">
+        <button onClick={() => setMesOffset((o) => o - 1)} aria-label="Mês anterior" className="grid h-8 w-8 place-items-center rounded-full bg-surface text-muted tap">
+          <ChevronLeft size={16} />
+        </button>
+        <div className="hstack gap-2 text-sm font-bold">
+          {MESES[mes]} {ano}
+          {mesOffset !== 0 && (
+            <button onClick={() => setMesOffset(0)} className="rounded-pill border border-line px-2 py-0.5 text-[10px] font-semibold text-muted tap">
+              hoje
+            </button>
+          )}
+        </div>
+        <button onClick={() => setMesOffset((o) => o + 1)} aria-label="Próximo mês" className="grid h-8 w-8 place-items-center rounded-full bg-surface text-muted tap">
+          <ChevronRight size={16} />
+        </button>
+      </div>
+
+      <div className="mt-4 grid grid-cols-7 gap-1 text-center text-[10px] font-bold uppercase text-muted-2">
+        {DIAS.map((d) => (
+          <div key={d}>{d}</div>
+        ))}
+      </div>
+      <div className="relative mt-1 grid grid-cols-7 gap-1">
+        {grid.days.map((d) => {
+          const iso = isoLocal(d)
+          const noMes = d.getMonth() === mes
+          const info = mapa?.[iso]
+          const isHoje = iso === hoje
+          const folga = !!info?.folga
+          const trab = !!info && !info.folga
+          return (
+            <div
+              key={iso}
+              className={cn(
+                'flex aspect-square flex-col items-center justify-center gap-0.5 rounded-lg border text-[11px]',
+                !noMes
+                  ? 'border-transparent text-muted-2/40'
+                  : isHoje
+                    ? 'border-accent ring-1 ring-accent'
+                    : trab
+                      ? 'border-accent/30 bg-accent-soft'
+                      : folga
+                        ? 'border-line bg-fill'
+                        : 'border-line',
+              )}
+            >
+              <span className={cn('font-bold', isHoje ? 'text-accent' : trab ? 'text-carbon dark:text-accent' : '')}>{d.getDate()}</span>
+              {noMes && folga && <Coffee size={9} className="text-muted-2" />}
+              {noMes && trab && hm(info.entrada) && <span className="text-[8px] font-semibold text-muted">{hm(info.entrada)}</span>}
+            </div>
+          )
+        })}
+        {mapa == null && (
+          <div className="absolute inset-0 grid place-items-center bg-bg/50">
+            <Loader2 size={20} className="animate-spin text-muted" />
+          </div>
+        )}
+      </div>
+
+      <div className="mt-4 hstack flex-wrap gap-4 text-[11px] text-muted">
+        <span className="hstack gap-1.5">
+          <span className="h-3.5 w-3.5 rounded border border-accent/30 bg-accent-soft" /> Trabalho
+        </span>
+        <span className="hstack gap-1.5">
+          <span className="grid h-3.5 w-3.5 place-items-center rounded border border-line bg-fill">
+            <Coffee size={8} className="text-muted-2" />
+          </span>
+          Folga
+        </span>
+      </div>
+    </div>
   )
 }
 
