@@ -104,16 +104,15 @@ export function Home() {
     if (!podeEsc) return
     try {
       if (sessionStorage.getItem('tp_esc_peek')) return
+      sessionStorage.setItem('tp_esc_peek', '1') // roda uma vez por sessão (ao entrar no app)
     } catch (e) { /* ignore */ }
+    // Espia a escala 1,5s depois de entrar, fica ~1,6s e volta. Só uma vez.
     const t1 = setTimeout(() => {
       if (!heroTouch.tocou) setHeroSlide(1)
-    }, 2600)
+    }, 1500)
     const t2 = setTimeout(() => {
       if (!heroTouch.tocou) setHeroSlide(0)
-      try {
-        sessionStorage.setItem('tp_esc_peek', '1')
-      } catch (e) { /* ignore */ }
-    }, 4200)
+    }, 3100)
     return () => {
       clearTimeout(t1)
       clearTimeout(t2)
@@ -219,10 +218,10 @@ export function Home() {
             }
           }}
         >
-          <div className="flex transition-transform duration-500 ease-out" style={{ transform: `translateX(-${heroSlide * 100}%)` }}>
+          <div className="flex items-stretch transition-transform duration-500 ease-out" style={{ transform: `translateX(-${heroSlide * 100}%)` }}>
             {/* slide 0 — identificação */}
-            <div className="w-full shrink-0">
-              <div className="hero-card reveal hstack gap-3 p-4 hsm:p-3">
+            <div className="flex w-full shrink-0">
+              <div className="hero-card reveal hstack h-full w-full gap-3 p-4 hsm:p-3">
                 {carregandoPerfil ? (
                   <span className="h-12 w-12 shrink-0 animate-pulse rounded-full bg-fill" />
                 ) : (
@@ -254,19 +253,16 @@ export function Home() {
 
             {/* slide 1 — escala da semana (toque no dia de hoje valida presença +5) */}
             {podeEsc && (
-              <div className="w-full shrink-0">
-                <div className="hero-card hstack items-center gap-3 p-4 hsm:p-3">
-                  <div className="shrink-0 leading-tight">
-                    <div className="text-[10px] font-bold uppercase tracking-wide text-muted-2">Escala</div>
-                    <div className="font-display text-sm font-bold">da semana</div>
-                  </div>
-                  <div className="hstack min-w-0 flex-1 gap-1">
+              <div className="flex w-full shrink-0">
+                <div className="hero-card flex h-full w-full flex-col justify-center gap-2 p-4 hsm:p-3">
+                  <div className="text-xs font-bold text-muted">Escala da semana</div>
+                  <div className="hstack gap-1.5">
                     {(escalaSemana || Array.from({ length: 7 })).map((dia, i) => {
                       const hoje = dia && dia.data === isoLocal(new Date())
                       const conteudo = !escalaSemana ? (
-                        <span className="h-2 w-4 animate-pulse rounded bg-fill" />
+                        <span className="h-2.5 w-6 animate-pulse rounded bg-fill" />
                       ) : dia?.folga ? (
-                        <Coffee size={11} className="text-muted" />
+                        <Coffee size={12} className="text-muted" />
                       ) : dia?.definido ? (
                         dia.entrada ? String(dia.entrada).slice(0, 2) + 'h' : 'T'
                       ) : (
@@ -274,8 +270,8 @@ export function Home() {
                       )
                       const miolo = (
                         <>
-                          <div className={cn('text-[8px] font-bold uppercase', hoje ? 'text-accent' : 'text-muted-2')}>{DIAS_ABREV[i]}</div>
-                          <div className="mt-0.5 flex h-3.5 items-center justify-center text-[10px] font-bold">{conteudo}</div>
+                          <div className={cn('text-[9px] font-bold uppercase', hoje ? 'text-accent' : 'text-muted-2')}>{DIAS_ABREV[i]}</div>
+                          <div className="mt-0.5 flex h-4 items-center justify-center text-[11px] font-bold">{conteudo}</div>
                         </>
                       )
                       if (hoje && chk?.tem_hoje) {
@@ -284,15 +280,15 @@ export function Home() {
                             key={i}
                             onClick={validarHoje}
                             aria-label={chk?.confirmado ? 'Presença confirmada' : 'Validar presença de hoje'}
-                            className={cn('relative flex-1 rounded-lg border py-1 text-center tap', chk?.confirmado ? 'border-accent bg-accent text-black' : 'border-accent bg-accent-soft')}
+                            className={cn('relative flex-1 rounded-lg border py-1.5 text-center tap', chk?.confirmado ? 'border-accent bg-accent text-black' : 'border-accent bg-accent-soft')}
                           >
-                            {chk?.confirmado && <Check size={9} strokeWidth={3} className="absolute right-0.5 top-0.5" />}
+                            {chk?.confirmado && <Check size={10} strokeWidth={3} className="absolute right-0.5 top-0.5" />}
                             {miolo}
                           </button>
                         )
                       }
                       return (
-                        <div key={i} className={cn('flex-1 rounded-lg border py-1 text-center', hoje ? 'border-accent bg-accent-soft' : 'border-line')}>
+                        <div key={i} className={cn('flex-1 rounded-lg border py-1.5 text-center', hoje ? 'border-accent bg-accent-soft' : 'border-line')}>
                           {miolo}
                         </div>
                       )
