@@ -146,13 +146,6 @@ function MinhaEscala({ inicio, dias }) {
 
   return (
     <div className="px-5 pt-4 pb-24">
-      {chk?.controla === false && (
-        <div className="rounded-card border border-dashed border-line px-4 py-10 text-center text-sm text-muted">
-          Você não tem controle de escala/horário.
-        </div>
-      )}
-      {chk?.controla !== false && (
-      <>
       {/* Check diário — engajamento (+5 pts) */}
       {chk?.tem_hoje &&
         (chk.confirmado ? (
@@ -190,9 +183,13 @@ function MinhaEscala({ inicio, dias }) {
                       <Coffee size={14} /> Folga
                     </span>
                   ) : dia.definido ? (
-                    <span className="text-sm font-bold">
-                      {hm(dia.entrada)} <span className="text-muted-2">–</span> {hm(dia.saida)}
-                    </span>
+                    hm(dia.entrada) ? (
+                      <span className="text-sm font-bold">
+                        {hm(dia.entrada)} <span className="text-muted-2">–</span> {hm(dia.saida)}
+                      </span>
+                    ) : (
+                      <span className="text-sm font-bold">Trabalha</span>
+                    )
                   ) : (
                     <span className="text-sm text-muted-2">—</span>
                   )}
@@ -202,8 +199,6 @@ function MinhaEscala({ inicio, dias }) {
             )
           })}
         </div>
-      )}
-      </>
       )}
     </div>
   )
@@ -335,13 +330,7 @@ function Montar({ inicio, dias }) {
                       </span>
                     </button>
                   </td>
-                  {p.controla === false ? (
-                    <td colSpan={7} className="p-0 align-top">
-                      <div className="grid h-12 place-items-center rounded-lg border border-dashed border-line px-3 text-[11px] font-semibold text-muted-2">
-                        Sem controle de horário
-                      </div>
-                    </td>
-                  ) : (p.dias || []).map((dia) => {
+                  {(p.dias || []).map((dia) => {
                     const hoje = dia.data === hojeISO()
                     const manual = dia.origem === 'manual'
                     return (
@@ -358,10 +347,14 @@ function Montar({ inicio, dias }) {
                           {dia.folga ? (
                             <Coffee size={14} />
                           ) : dia.definido ? (
-                            <span className="leading-tight">
-                              <span className="block text-[11px] font-bold">{hm(dia.entrada)}</span>
-                              <span className="block text-[10px] text-muted">{hm(dia.saida)}</span>
-                            </span>
+                            hm(dia.entrada) ? (
+                              <span className="leading-tight">
+                                <span className="block text-[11px] font-bold">{hm(dia.entrada)}</span>
+                                <span className="block text-[10px] text-muted">{hm(dia.saida)}</span>
+                              </span>
+                            ) : (
+                              <span className="text-[11px] font-bold">Trab.</span>
+                            )
                           ) : (
                             <span className="text-base">+</span>
                           )}
@@ -572,27 +565,25 @@ function EditarPadrao({ alvo, inicioView, onClose, onFeito }) {
     setSalvando(true)
     try {
       await call('escala_pessoa_set', { p_matricula: alvo.matricula, p_controla: controla })
-      if (controla) {
-        const dias = []
-        semanas.forEach((wk, sc) =>
-          wk.forEach((d, dow) => {
-            dias.push({
-              semana_ciclo: sc,
-              dia_semana: dow,
-              entrada: d.folga ? null : d.entrada || null,
-              saida: d.folga ? null : d.saida || null,
-              folga: !!d.folga,
-            })
-          }),
-        )
-        await call('escala_padrao_set', {
-          p_matricula: alvo.matricula,
-          p_efetivo_desde: efetivo,
-          p_semanas_ciclo: ciclo,
-          p_dias: dias,
-          p_unidade: alvo.unidade || null,
-        })
-      }
+      const dias = []
+      semanas.forEach((wk, sc) =>
+        wk.forEach((d, dow) => {
+          dias.push({
+            semana_ciclo: sc,
+            dia_semana: dow,
+            entrada: controla && !d.folga ? d.entrada || null : null,
+            saida: controla && !d.folga ? d.saida || null : null,
+            folga: !!d.folga,
+          })
+        }),
+      )
+      await call('escala_padrao_set', {
+        p_matricula: alvo.matricula,
+        p_efetivo_desde: efetivo,
+        p_semanas_ciclo: ciclo,
+        p_dias: dias,
+        p_unidade: alvo.unidade || null,
+      })
       await onFeito()
     } catch (e) {
       avisar(e)
@@ -630,13 +621,9 @@ function EditarPadrao({ alvo, inicioView, onClose, onFeito }) {
           </div>
 
           {!controla && (
-            <div className="mt-3 rounded-card border border-dashed border-line px-4 py-6 text-center text-sm text-muted">
-              Sem controle de escala/horário. Não entra na montagem semanal nem no check diário.
-            </div>
+            <div className="mt-2 text-[11px] leading-snug text-muted-2">Só dias de trabalho e folga, sem horário fixo. A pessoa ainda vê a escala e valida presença.</div>
           )}
 
-          {controla && (
-          <>
           {/* vigência + revezamento */}
           <div className="mt-4 grid grid-cols-2 items-start gap-3">
             <label>
@@ -665,16 +652,18 @@ function EditarPadrao({ alvo, inicioView, onClose, onFeito }) {
           {semanas.map((wk, sc) => (
             <div key={sc} className="mt-4">
               {ciclo > 1 && <div className="text-xs font-bold text-accent">Semana {letra(sc)}</div>}
-              <div className="mt-1 flex flex-wrap gap-1.5">
-                {PRESETS.slice(0, 4).map((p) => {
-                  const [e, s] = p.split('-')
-                  return (
-                    <button key={p} onClick={() => aplicarPreset(sc, e, s)} className="rounded-pill border border-line px-2 py-0.5 text-[10px] font-semibold text-muted-2 tap">
-                      Seg–Sex {e}–{s}
-                    </button>
-                  )
-                })}
-              </div>
+              {controla && (
+                <div className="mt-1 flex flex-wrap gap-1.5">
+                  {PRESETS.slice(0, 4).map((p) => {
+                    const [e, s] = p.split('-')
+                    return (
+                      <button key={p} onClick={() => aplicarPreset(sc, e, s)} className="rounded-pill border border-line px-2 py-0.5 text-[10px] font-semibold text-muted-2 tap">
+                        Seg–Sex {e}–{s}
+                      </button>
+                    )
+                  })}
+                </div>
+              )}
               <div className="mt-2 flex flex-col gap-1.5">
                 {wk.map((d, dow) => (
                   <div key={dow} className="hstack gap-2">
@@ -685,7 +674,7 @@ function EditarPadrao({ alvo, inicioView, onClose, onFeito }) {
                     >
                       {d.folga ? 'Folga' : 'Trabalha'}
                     </button>
-                    {!d.folga && (
+                    {controla && !d.folga && (
                       <div className="hstack min-w-0 flex-1 gap-1.5">
                         <input type="time" value={d.entrada} onChange={(e) => setDia(sc, dow, { entrada: e.target.value })} className="min-w-0 flex-1 rounded-card border border-line bg-surface px-2 py-1.5 text-sm outline-none" />
                         <span className="text-muted-2">–</span>
@@ -697,17 +686,13 @@ function EditarPadrao({ alvo, inicioView, onClose, onFeito }) {
               </div>
             </div>
           ))}
-          </>
-          )}
 
           <button onClick={salvar} disabled={salvando} className="btn-primary mt-5 hstack w-full justify-center gap-2 py-3 text-sm disabled:opacity-40">
-            {salvando ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />} {controla ? 'Salvar padrão' : 'Salvar'}
+            {salvando ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />} Salvar padrão
           </button>
-          {controla && (
-            <p className="mt-2 text-center text-[11px] text-muted-2">
-              Repete toda semana a partir de {ddmm(efetivo)}, até você mudar.
-            </p>
-          )}
+          <p className="mt-2 text-center text-[11px] text-muted-2">
+            Repete toda semana a partir de {ddmm(efetivo)}, até você mudar.
+          </p>
         </>
       )}
     </Folha>
