@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Flag, Gift, Star, Network, Coffee, Check, X } from 'lucide-react'
+import { Flag, Gift, Star, Network, Sun, Check, X } from 'lucide-react'
 import { cn } from '../lib/cn'
 import { Header } from '../components/Header.jsx'
 import { Section } from '../components/Section.jsx'
@@ -263,16 +263,9 @@ export function Home() {
                       const conteudo = !escalaSemana ? (
                         <span className="h-2.5 w-6 animate-pulse rounded bg-fill" />
                       ) : dia?.folga ? (
-                        <Coffee size={12} className="text-muted" />
+                        <Sun size={12} className="text-muted" />
                       ) : dia?.definido ? (
-                        dia.entrada ? (
-                          <>
-                            {String(dia.entrada).slice(0, 2) + 'h'}
-                            {Array.isArray(dia.marcacoes) && dia.marcacoes.length > 1 && <span className="text-accent">·{dia.marcacoes.length}</span>}
-                          </>
-                        ) : (
-                          'T'
-                        )
+                        dia.entrada ? String(dia.entrada).slice(0, 2) + 'h' : 'T'
                       ) : (
                         <span className="text-muted-2">—</span>
                       )
@@ -295,16 +288,24 @@ export function Home() {
                           </button>
                         )
                       }
-                      return (
-                        <div key={i} className={cn('relative flex-1 rounded-lg border py-1.5 text-center', hoje ? 'border-accent bg-accent-soft' : 'border-line')}>
-                          {dia?.definido && !dia?.folga && dia?.data < isoLocal(new Date()) &&
-                            (dia.validado ? (
-                              <Check size={9} strokeWidth={3} className="absolute right-0.5 top-0.5 text-accent" />
-                            ) : (
-                              <X size={9} strokeWidth={3} className="absolute right-0.5 top-0.5 text-muted-2" />
-                            ))}
+                      const cls = cn('relative flex-1 rounded-lg border py-1.5 text-center', hoje ? 'border-accent bg-accent-soft' : 'border-line')
+                      const marca = dia?.definido && !dia?.folga && dia?.data < isoLocal(new Date()) &&
+                        (dia.validado ? (
+                          <Check size={9} strokeWidth={3} className="absolute right-0.5 top-0.5 text-accent" />
+                        ) : (
+                          <X size={9} strokeWidth={3} className="absolute right-0.5 top-0.5 text-muted-2" />
+                        ))
+                      // Dia que não é hoje: toque leva pro calendário. Hoje sem check: só exibe.
+                      return hoje ? (
+                        <div key={i} className={cls}>
+                          {marca}
                           {miolo}
                         </div>
+                      ) : (
+                        <Link key={i} to="/escala" className={cn(cls, 'tap')}>
+                          {marca}
+                          {miolo}
+                        </Link>
                       )
                     })}
                   </div>
