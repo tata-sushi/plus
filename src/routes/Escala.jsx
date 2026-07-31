@@ -267,7 +267,7 @@ function Calendario() {
           <div className="mt-4">
             {det.info.folga ? (
               <div className="hstack gap-2 rounded-card border border-line bg-fill px-4 py-3 text-sm font-semibold text-muted">
-                <Coffee size={16} /> Folga
+                <Coffee size={16} /> {det.info.tipo_folga || 'Folga'}
               </div>
             ) : paresDe(det.info).length ? (
               <div className="flex flex-col gap-2">
