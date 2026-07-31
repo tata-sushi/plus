@@ -170,10 +170,7 @@ function Calendario() {
               <span className={cn('font-bold', isHoje ? 'text-accent' : trab ? 'text-carbon dark:text-accent' : '')}>{d.getDate()}</span>
               {noMes && folga && <Sun size={9} className="text-muted-2" />}
               {noMes && trab && pares.length > 0 && (
-                <span className="text-[8px] font-semibold text-muted">
-                  {pares[0][0]}
-                  {pares.length > 1 && <span className="text-accent"> ·{pares.length}</span>}
-                </span>
+                <span className="text-[8px] font-semibold text-muted">{pares[0][0]}</span>
               )}
             </button>
           )
@@ -226,7 +223,7 @@ function Calendario() {
                 {paresDe(det.info).map((p, i) => (
                   <div key={i} className="hstack items-center justify-between rounded-card border border-line px-4 py-3">
                     <span className="text-[11px] font-semibold uppercase tracking-wide text-muted-2">
-                      {paresDe(det.info).length > 1 ? `Marcação ${i + 1}` : 'Horário'}
+                      {paresDe(det.info).length > 1 ? `Turno ${i + 1}` : 'Horário'}
                     </span>
                     <span className="text-sm font-bold">
                       {p[0]} <span className="text-muted-2">–</span> {p[1]}
