@@ -114,11 +114,7 @@ function PostCard({ post, matricula, admin, meuNome, meuAvatar, onCurtir, onExcl
           <Avatar name={post.autor_nome || '—'} src={post.autor_avatar} size={40} />
           <div className="min-w-0 flex-1">
             <div className="text-sm font-semibold">{soPrimeiro(post.autor_nome)}</div>
-            <div className="text-[11px] text-muted">
-              {post.autor_cargo}
-              {post.autor_cargo ? ' · ' : ''}
-              {tempoRelativo(post.created_at)}
-            </div>
+            <div className="text-[11px] text-muted">{tempoRelativo(post.created_at)}</div>
           </div>
         </button>
         {podeExcluir && (
