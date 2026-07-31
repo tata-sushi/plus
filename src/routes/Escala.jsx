@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Navigate } from 'react-router-dom'
-import { Loader2, ChevronLeft, ChevronRight, CalendarClock, Check, X, Sun } from 'lucide-react'
+import { Loader2, ChevronLeft, ChevronRight, CalendarClock, Check, X, Sun, CircleCheck, Coins } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Voltar } from '../components/Voltar.jsx'
 import { Avatar } from '../components/Avatar.jsx'
@@ -76,6 +76,23 @@ function Calendario() {
   const [mesOffset, setMesOffset] = useState(0)
   const [mapa, setMapa] = useState(null) // { 'YYYY-MM-DD': { entrada, saida, folga, marcacoes } }
   const [det, setDet] = useState(null) // { info, dia } — detalhe do dia (marcações)
+  const [checando, setChecando] = useState(false)
+
+  // Valida a presença de HOJE (+5) de dentro do modal — mesma ação do card da Home.
+  async function validarDetalhe() {
+    if (!det) return
+    setChecando(true)
+    try {
+      await call('escala_check')
+      const iso = isoLocal(det.dia)
+      setDet((c) => (c ? { ...c, info: { ...c.info, validado: true } } : c))
+      setMapa((m) => (m ? { ...m, [iso]: { ...(m[iso] || {}), validado: true } } : m))
+    } catch (e) {
+      avisar(e)
+    } finally {
+      setChecando(false)
+    }
+  }
   const base = useMemo(() => {
     const h = new Date()
     return new Date(h.getFullYear(), h.getMonth() + mesOffset, 1)
@@ -237,6 +254,25 @@ function Calendario() {
               </div>
             )}
           </div>
+          {isoLocal(det.dia) === hoje && det.info && !det.info.folga && (
+            det.info.validado ? (
+              <div className="mt-3 hstack justify-center gap-2 rounded-card border border-accent/40 bg-accent-soft px-4 py-3 text-sm font-semibold text-carbon dark:text-accent">
+                <CircleCheck size={18} /> Presença confirmada
+              </div>
+            ) : (
+              <button
+                onClick={validarDetalhe}
+                disabled={checando}
+                className="btn-primary mt-3 hstack w-full items-center justify-center gap-2 py-3 text-sm disabled:opacity-50"
+              >
+                {checando ? <Loader2 size={16} className="animate-spin" /> : <CircleCheck size={16} />}
+                Validar presença de hoje
+                <span className="hstack shrink-0 gap-1 rounded-pill bg-black/15 px-2 py-0.5 text-xs font-bold">
+                  <Coins size={12} /> +5
+                </span>
+              </button>
+            )
+          )}
         </Folha>
       )}
     </div>
