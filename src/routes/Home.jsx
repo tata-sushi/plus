@@ -265,7 +265,14 @@ export function Home() {
                       ) : dia?.folga ? (
                         <Coffee size={12} className="text-muted" />
                       ) : dia?.definido ? (
-                        dia.entrada ? String(dia.entrada).slice(0, 2) + 'h' : 'T'
+                        dia.entrada ? (
+                          <>
+                            {String(dia.entrada).slice(0, 2) + 'h'}
+                            {Array.isArray(dia.marcacoes) && dia.marcacoes.length > 1 && <span className="text-accent">·{dia.marcacoes.length}</span>}
+                          </>
+                        ) : (
+                          'T'
+                        )
                       ) : (
                         <span className="text-muted-2">—</span>
                       )

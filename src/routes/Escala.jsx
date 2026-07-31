@@ -114,9 +114,16 @@ function Painel() {
 
 // ── Calendário (consulta do mês — visão do colaborador) ───────────────────────
 const MESES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro']
+// Pares [entrada, saida] de um dia (até 3 marcações); cai no par único se não houver lista.
+function paresDe(info) {
+  if (!info) return []
+  if (Array.isArray(info.marcacoes) && info.marcacoes.length) return info.marcacoes.map((m) => [hm(m.entrada), hm(m.saida)])
+  return hm(info.entrada) ? [[hm(info.entrada), hm(info.saida)]] : []
+}
 function Calendario() {
   const [mesOffset, setMesOffset] = useState(0)
-  const [mapa, setMapa] = useState(null) // { 'YYYY-MM-DD': { entrada, saida, folga } }
+  const [mapa, setMapa] = useState(null) // { 'YYYY-MM-DD': { entrada, saida, folga, marcacoes } }
+  const [det, setDet] = useState(null) // { info, dia } — detalhe do dia (marcações)
   const base = useMemo(() => {
     const h = new Date()
     return new Date(h.getFullYear(), h.getMonth() + mesOffset, 1)
@@ -179,11 +186,17 @@ function Calendario() {
           const isHoje = iso === hoje
           const folga = !!info?.folga
           const trab = !!info && !info.folga
+          const pares = paresDe(info)
+          const clicavel = noMes && !!info
           return (
-            <div
+            <button
               key={iso}
+              type="button"
+              onClick={clicavel ? () => setDet({ info, dia: d }) : undefined}
+              disabled={!clicavel}
               className={cn(
                 'relative flex aspect-square flex-col items-center justify-center gap-0.5 rounded-lg border text-[11px]',
+                clicavel && 'tap',
                 !noMes
                   ? 'border-transparent text-muted-2/40'
                   : isHoje
@@ -204,8 +217,13 @@ function Calendario() {
                 ))}
               <span className={cn('font-bold', isHoje ? 'text-accent' : trab ? 'text-carbon dark:text-accent' : '')}>{d.getDate()}</span>
               {noMes && folga && <Coffee size={9} className="text-muted-2" />}
-              {noMes && trab && hm(info.entrada) && <span className="text-[8px] font-semibold text-muted">{hm(info.entrada)}</span>}
-            </div>
+              {noMes && trab && pares.length > 0 && (
+                <span className="text-[8px] font-semibold text-muted">
+                  {pares[0][0]}
+                  {pares.length > 1 && <span className="text-accent"> ·{pares.length}</span>}
+                </span>
+              )}
+            </button>
           )
         })}
         {mapa == null && (
@@ -232,6 +250,46 @@ function Calendario() {
           <X size={13} strokeWidth={3} className="text-muted-2/70" /> Não pontuou
         </span>
       </div>
+
+      {det && (
+        <Folha onClose={() => setDet(null)}>
+          <div className="hstack gap-3">
+            <span className="grid h-10 w-10 place-items-center rounded-full bg-accent-soft text-accent">
+              <CalendarClock size={18} />
+            </span>
+            <div>
+              <div className="font-display text-base font-bold">
+                {det.dia.getDate()} de {MESES[det.dia.getMonth()]}
+              </div>
+              <div className="text-xs text-muted">{DIAS[(det.dia.getDay() + 6) % 7]}</div>
+            </div>
+          </div>
+          <div className="mt-4">
+            {det.info.folga ? (
+              <div className="hstack gap-2 rounded-card border border-line bg-fill px-4 py-3 text-sm font-semibold text-muted">
+                <Coffee size={16} /> Folga
+              </div>
+            ) : paresDe(det.info).length ? (
+              <div className="flex flex-col gap-2">
+                {paresDe(det.info).map((p, i) => (
+                  <div key={i} className="hstack items-center justify-between rounded-card border border-line px-4 py-3">
+                    <span className="text-[11px] font-semibold uppercase tracking-wide text-muted-2">
+                      {paresDe(det.info).length > 1 ? `Marcação ${i + 1}` : 'Horário'}
+                    </span>
+                    <span className="text-sm font-bold">
+                      {p[0]} <span className="text-muted-2">–</span> {p[1]}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="rounded-card border border-line px-4 py-3 text-sm font-bold">
+                Trabalha <span className="font-normal text-muted-2">· sem horário definido</span>
+              </div>
+            )}
+          </div>
+        </Folha>
+      )}
     </div>
   )
 }
