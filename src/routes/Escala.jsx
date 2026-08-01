@@ -250,7 +250,7 @@ function Calendario() {
               </div>
             ) : (
               <div className="rounded-card border border-line px-4 py-3 text-sm font-bold">
-                Trabalha <span className="font-normal text-muted-2">· sem horário definido</span>
+                Liderança <span className="font-normal text-muted-2">· Sem controle de ponto</span>
               </div>
             )}
           </div>
