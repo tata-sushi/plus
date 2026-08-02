@@ -23,6 +23,7 @@ import { GerenciarAtalhos } from './routes/GerenciarAtalhos.jsx'
 import { QuestionarioDisc } from './routes/QuestionarioDisc.jsx'
 import { PainelExterno } from './routes/PainelExterno.jsx'
 import { BuscarPessoas } from './routes/BuscarPessoas.jsx'
+import { Carteira } from './routes/Carteira.jsx'
 
 // Painel Kanban (Quadros) — carregado sob demanda (poucos têm acesso), pra não
 // pesar o bundle de todo mundo com a lib de drag-and-drop.
@@ -53,6 +54,7 @@ export function App() {
         <Route path="/comunicados" element={<Comunicados />} />
         <Route path="/treinamentos" element={<Treinamentos />} />
         <Route path="/mais" element={<Mais />} />
+        <Route path="/carteira" element={<Carteira />} />
         <Route path="/jornada" element={<Jornada />} />
         <Route path="/perfil/:id" element={<Perfil />} />
         <Route path="/buscar" element={<BuscarPessoas />} />
