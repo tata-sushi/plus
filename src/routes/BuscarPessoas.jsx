@@ -79,8 +79,8 @@ export function BuscarPessoas() {
                 <div className="min-w-0 flex-1">
                   <div className="truncate text-sm font-semibold">{c.nome}</div>
                   <div className="truncate text-[11px] text-muted">
-                    {c.cargo}
-                    {c.cargo && c.unidade ? ' · ' : ''}
+                    {c.departamento}
+                    {c.departamento && c.unidade ? ' · ' : ''}
                     {c.unidade}
                   </div>
                 </div>
