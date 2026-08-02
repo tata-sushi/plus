@@ -3,13 +3,13 @@ import { Check } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { cn } from '../lib/cn'
 import { tapHaptic } from '../lib/haptics.js'
+import { supabase } from '../lib/supabase.js'
 
 // Ouvidoria nativa — replica o formulário/design da página externa
 // (ouvidoria.tatasushi.tech). As cores são as MESMAS do HTML original, fixas
 // nos dois temas (claro/escuro): card branco, texto escuro, botão carbon+citric.
-// Envia um POST (no-cors) ao mesmo Web App do Apps Script (planilha "Ouvidoria").
-const OUVIDORIA_URL =
-  'https://script.google.com/macros/s/AKfycbwVPDROxvIfl4yaIZqNPlRdl5-UTtVSUeUMd5H9GdPn0wXnyaMKtwaLSvn1TdvTMw3Xnw/exec'
+// Grava no Supabase via RPC pública ouvidoria_registrar (schema public),
+// que insere em dp_rh.ouvidoria. Anônimo permitido: não envia matrícula.
 
 // paleta do HTML original
 const CARBON = '#35383F'
@@ -68,6 +68,7 @@ export function Ouvidoria() {
   const [contato, setContato] = useState('')
   const [enviando, setEnviando] = useState(false)
   const [enviado, setEnviado] = useState(false)
+  const [erro, setErro] = useState('')
 
   const mostraNome = identificacao === 'Sim'
   const mostraForma = devolutiva === 'Sim'
@@ -87,27 +88,26 @@ export function Ouvidoria() {
     e.preventDefault()
     if (!podeEnviar) return
     tapHaptic()
+    setErro('')
     setEnviando(true)
+    // Mapeia os campos do form para os nomes esperados pela RPC ouvidoria_registrar.
+    // Ouvidoria pode ser anônima: não enviamos matrícula do usuário logado.
     const payload = {
-      identificacao,
+      identificado: identificacao,
       nome: mostraNome ? nome.trim() : '',
-      data,
+      data_ocorrido: data,
       descricao: descricao.trim(),
-      devolutiva,
-      forma: mostraForma ? forma : '',
+      quer_devolutiva: devolutiva,
+      forma_devolutiva: mostraForma ? forma : '',
       contato: mostraContato ? contato.trim() : '',
     }
-    try {
-      await fetch(OUVIDORIA_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'text/plain' },
-        body: JSON.stringify(payload),
-      })
-    } catch {
-      /* no-cors: resposta opaca; segue para o sucesso mesmo assim */
-    }
+    const { error } = await supabase.schema('public').rpc('ouvidoria_registrar', { payload })
     setEnviando(false)
+    if (error) {
+      console.error('Erro ao registrar ouvidoria:', error)
+      setErro('Não foi possível enviar seu relato agora. Tente novamente em instantes.')
+      return
+    }
     setEnviado(true)
   }
 
@@ -271,6 +271,10 @@ export function Ouvidoria() {
                   className={inputCls}
                 />
               </div>
+            )}
+
+            {erro && (
+              <p className="text-[13px] font-medium text-[#D32F2F]">{erro}</p>
             )}
 
             <button
