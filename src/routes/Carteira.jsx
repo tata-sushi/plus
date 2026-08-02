@@ -86,7 +86,8 @@ export function Carteira() {
             <p className="text-sm">Nenhuma transação ainda. Conclua desafios pra pontuar!</p>
           </div>
         ) : (
-          <div className="card overflow-hidden">
+          <>
+            <div className="card overflow-hidden">
             {itens.map((t, i) => {
               const m = metaOrigem(t.origem)
               const pos = (t.pontos ?? 0) >= 0
@@ -103,8 +104,15 @@ export function Carteira() {
                   </span>
                   <div className="min-w-0 flex-1">
                     <div className="truncate text-sm font-medium">{t.descricao || m.label}</div>
-                    <div className="text-[11px] text-muted">
-                      {m.label} · {fmtData(t.created_at)}
+                    <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-muted">
+                      <span>
+                        {m.label} · {fmtData(t.created_at)}
+                      </span>
+                      {t.conta_ranking === false && (
+                        <span className="rounded bg-surface-2 px-1.5 py-px text-[9px] font-medium uppercase tracking-wide text-muted-2">
+                          só carteira
+                        </span>
+                      )}
                     </div>
                   </div>
                   <div
@@ -119,7 +127,14 @@ export function Carteira() {
                 </div>
               )
             })}
-          </div>
+            </div>
+            {itens.some((t) => t.conta_ranking === false) && (
+              <p className="mt-3 px-1 text-[11px] leading-relaxed text-muted-2">
+                <span className="font-semibold">Só carteira</span>: mexe no seu saldo, mas não
+                conta pontos no ranking.
+              </p>
+            )}
+          </>
         )}
       </Section>
     </>
