@@ -44,6 +44,8 @@ import {
   List,
   Circle,
   Upload,
+  Paperclip,
+  FileText,
   Pencil,
   KanbanSquare,
   ClipboardList,
@@ -1041,6 +1043,9 @@ function CardModal({ estado, card, board, admin, onClose, onFeito, onRefresh }) 
   const [novoComent, setNovoComent] = useState('')
   const [frag, setFrag] = useState(null) // fragmento após @ (ou null)
 
+  // anexos
+  const [anexando, setAnexando] = useState(false)
+
   // modelos de checklist + outros quadros (mover)
   const [modelos, setModelos] = useState([])
   const [modelosAbertos, setModelosAbertos] = useState(false)
@@ -1134,6 +1139,56 @@ function CardModal({ estado, card, board, admin, onClose, onFeito, onRefresh }) 
     }
   }
 
+  // anexos — sobe pro bucket kanban (<quadro>/<card>/<uuid>) e grava metadado
+  async function enviarAnexo(file) {
+    if (!file || !card?.id) return
+    if (file.size > 15 * 1024 * 1024) {
+      avisarErro(new Error('Arquivo muito grande (máx. 15 MB).'))
+      return
+    }
+    setAnexando(true)
+    try {
+      const ext = (file.name.split('.').pop() || 'bin').toLowerCase()
+      const caminho = `${board.id}/${card.id}/${crypto.randomUUID()}.${ext}`
+      const { error: upErr } = await supabase.storage
+        .from('kanban')
+        .upload(caminho, file, { contentType: file.type || undefined, cacheControl: '3600' })
+      if (upErr) throw upErr
+      const url = supabase.storage.from('kanban').getPublicUrl(caminho).data.publicUrl
+      await call('kanban_anexo_add', {
+        p_card: card.id,
+        p_nome: file.name,
+        p_url: url,
+        p_mime: file.type || null,
+        p_tamanho: file.size,
+      })
+      await onRefresh()
+      recarregarHist()
+    } catch (e) {
+      avisarErro(e)
+    } finally {
+      setAnexando(false)
+    }
+  }
+  async function removerAnexo(a) {
+    setBusy(true)
+    try {
+      await call('kanban_anexo_excluir', { p_id: a.id })
+      try {
+        const path = a.url.split('/kanban/')[1]?.split('?')[0]
+        if (path) await supabase.storage.from('kanban').remove([decodeURIComponent(path)])
+      } catch {
+        /* arquivo órfão no storage é inofensivo */
+      }
+      await onRefresh()
+      recarregarHist()
+    } catch (e) {
+      avisarErro(e)
+    } finally {
+      setBusy(false)
+    }
+  }
+
   // @menção: detecta o fragmento após "@" até o cursor
   function onComentChange(e) {
     const v = e.target.value
@@ -1165,6 +1220,9 @@ function CardModal({ estado, card, board, admin, onClose, onFeito, onRefresh }) 
   const checklist = card?.checklist || []
   const feitos = checklist.filter((c) => c.feito).length
   const comentarios = card?.comentarios || []
+  const anexos = card?.anexos || []
+  const ehImagem = (a) =>
+    /^image\//.test(a.mime || '') || /\.(png|jpe?g|gif|webp|avif|bmp|svg)$/i.test(a.nome || '')
   const etqSel = board.etiquetas.find((e) => etqs.has(e.id)) // categoria é única (uma por vez)
   const lbl = 'font-mono text-[9px] font-medium uppercase tracking-[0.12em] text-muted'
   const chipSel = 'border-[#35383F] bg-[#35383F] text-white'
@@ -1372,6 +1430,64 @@ function CardModal({ estado, card, board, admin, onClose, onFeito, onRefresh }) 
                 )}
               </div>
             </div>
+
+            {/* Anexos */}
+            {existe && (
+              <div>
+                <div className={lbl}>Anexos</div>
+                <label
+                  className={cn(
+                    'mt-2 hstack w-full cursor-pointer items-center justify-center gap-2 rounded-lg border border-dashed border-line px-3 py-2.5 text-xs font-semibold text-muted tap',
+                    (anexando || busy) && 'pointer-events-none opacity-50',
+                  )}
+                >
+                  {anexando ? <Loader2 size={14} className="animate-spin" /> : <Paperclip size={14} />}
+                  {anexando ? 'Enviando…' : 'Anexar arquivo'}
+                  <input
+                    type="file"
+                    className="hidden"
+                    disabled={anexando || busy}
+                    onChange={(e) => {
+                      const f = e.target.files?.[0]
+                      if (f) enviarAnexo(f)
+                      e.target.value = ''
+                    }}
+                  />
+                </label>
+                {anexos.length > 0 && (
+                  <div className="mt-2 grid grid-cols-2 gap-2">
+                    {anexos.map((a) => (
+                      <div key={a.id} className="relative overflow-hidden rounded-lg border border-line bg-bg">
+                        {ehImagem(a) ? (
+                          <a href={a.url} target="_blank" rel="noreferrer" title={a.nome}>
+                            <img src={a.url} alt={a.nome} loading="lazy" className="h-24 w-full object-cover" />
+                          </a>
+                        ) : (
+                          <a
+                            href={a.url}
+                            target="_blank"
+                            rel="noreferrer"
+                            title={a.nome}
+                            className="hstack h-24 items-center gap-2 px-3"
+                          >
+                            <FileText size={20} className="shrink-0 text-muted" />
+                            <span className="min-w-0 flex-1 truncate text-xs font-medium">{a.nome}</span>
+                          </a>
+                        )}
+                        <button
+                          onClick={() => removerAnexo(a)}
+                          disabled={busy}
+                          aria-label="Remover anexo"
+                          className="absolute right-1 top-1 grid h-6 w-6 place-items-center rounded-full bg-black/55 text-white tap disabled:opacity-40"
+                        >
+                          <X size={13} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Comentários — campo de escrever fica em cima da lista */}
             {existe && (
