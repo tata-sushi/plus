@@ -195,7 +195,11 @@ export function Ouvidoria() {
             <RadioGroup
               label="Você deseja identificar-se?"
               value={identificacao}
-              onChange={setIdentificacao}
+              onChange={(v) => {
+                setIdentificacao(v)
+                // Ao se identificar, já puxa o nome do cadastro (continua editável).
+                if (v === 'Sim' && !nome.trim() && usuario?.nome) setNome(usuario.nome)
+              }}
               options={[
                 { v: 'Sim', label: 'Sim' },
                 { v: 'Não', label: 'Não (permanecer anônimo)' },
@@ -211,6 +215,11 @@ export function Ouvidoria() {
                   placeholder="Seu nome completo"
                   className={inputCls}
                 />
+                {usuario?.nome && (
+                  <p className="mt-1.5 text-[12px] text-[#9a9a9a]">
+                    Preenchido do seu cadastro — ajuste se precisar.
+                  </p>
+                )}
               </div>
             )}
 
