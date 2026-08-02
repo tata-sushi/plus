@@ -2037,7 +2037,7 @@ function ColunasSheet({ board, onClose, onFeito }) {
     <Sheet onClose={onClose}>
       <div className="font-display text-lg font-bold">Colunas</div>
       <div className="mt-1 text-xs text-muted">
-        Até 5 colunas. É obrigatório manter uma coluna <b>“Concluído”</b> — é onde o responsável joga a tarefa feita.
+        Até 5 colunas. É obrigatório manter uma coluna <b>“Concluídos”</b> — é onde o responsável joga a tarefa feita.
       </div>
       <div className="mt-3 flex flex-col gap-2">
         {draft.map((c, i) => {
@@ -2061,7 +2061,7 @@ function ColunasSheet({ board, onClose, onFeito }) {
         </button>
       )}
       {!temConcluido && (
-        <p className="mt-2 text-[11px] font-medium text-danger">O quadro precisa de uma coluna “Concluído”.</p>
+        <p className="mt-2 text-[11px] font-medium text-danger">O quadro precisa de uma coluna “Concluídos”.</p>
       )}
       <button onClick={salvar} disabled={salvando || !temConcluido} className="btn-primary mt-4 hstack w-full justify-center gap-2 py-3 text-sm disabled:opacity-40">
         {salvando ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />} Salvar colunas
