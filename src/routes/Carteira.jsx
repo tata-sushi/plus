@@ -1,32 +1,22 @@
 import { useEffect, useState } from 'react'
-import {
-  Loader2,
-  Wallet,
-  Trophy,
-  CalendarCheck2,
-  ClipboardCheck,
-  Gift,
-  ArrowLeftRight,
-  History,
-  Receipt,
-} from 'lucide-react'
+import { Loader2, Wallet, Trophy, CalendarCheck2, Gift, ArrowLeftRight, Coins, Receipt } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Voltar } from '../components/Voltar.jsx'
 import { Section } from '../components/Section.jsx'
+import { IntroDesafio } from '../components/IntroDesafio.jsx'
 import { supabase } from '../lib/supabase.js'
 import { cn } from '../lib/cn'
 
-// Rótulo + ícone amigável por origem do lançamento.
-const ORIGEM = {
-  treinamento: { label: 'Desafio concluído', Icon: Trophy },
-  escala_check: { label: 'Escala confirmada', Icon: CalendarCheck2 },
-  escala_lider: { label: 'Revisão de escala', Icon: ClipboardCheck },
-  resgate: { label: 'Resgate', Icon: Gift },
+// Ícone + rótulo por categoria — um padrão pra tudo, diferenciando só as
+// principais (desafio, escala, recompensa, transferência). O resto usa o padrão.
+const CATEG = {
+  desafio: { label: 'Desafio', Icon: Trophy },
+  escala: { label: 'Escala', Icon: CalendarCheck2 },
+  recompensa: { label: 'Recompensa', Icon: Gift },
   transferencia: { label: 'Transferência', Icon: ArrowLeftRight },
-  historico: { label: 'Histórico', Icon: History },
 }
-function metaOrigem(o) {
-  return ORIGEM[o] || { label: 'Lançamento', Icon: Wallet }
+function metaCateg(cat) {
+  return CATEG[cat] || { label: 'Lançamento', Icon: Coins }
 }
 function fmtData(iso) {
   try {
@@ -63,16 +53,15 @@ export function Carteira() {
       <Header />
       <Voltar to="/mais" />
 
+      {/* Topo — mesmo padrão da capa dos desafios */}
       <div className="px-5 pt-3">
-        <div className="card flex flex-col items-center gap-1 p-6 text-center">
-          <div className="hstack gap-1.5 text-[11px] font-semibold uppercase tracking-widest text-muted">
-            <Wallet size={13} /> Saldo atual
-          </div>
-          <div className="font-display text-4xl font-bold text-accent">
-            {saldo == null ? '—' : saldo.toLocaleString('pt-BR')}
-            <span className="ml-1 text-lg font-semibold">pts</span>
-          </div>
-        </div>
+        <IntroDesafio
+          Icone={Wallet}
+          titulo={saldo == null ? '—' : `${saldo.toLocaleString('pt-BR')} pts`}
+          frase={'Junte pontos e troque por recompensas.'}
+          variante={0}
+          fraseEscuraNoClaro
+        />
       </div>
 
       <Section className="mt-5 pb-24" title="Histórico de transações">
@@ -86,10 +75,9 @@ export function Carteira() {
             <p className="text-sm">Nenhuma transação ainda. Conclua desafios pra pontuar!</p>
           </div>
         ) : (
-          <>
-            <div className="card overflow-hidden">
+          <div className="card overflow-hidden">
             {itens.map((t, i) => {
-              const m = metaOrigem(t.origem)
+              const m = metaCateg(t.categoria)
               const pos = (t.pontos ?? 0) >= 0
               return (
                 <div
@@ -127,14 +115,7 @@ export function Carteira() {
                 </div>
               )
             })}
-            </div>
-            {itens.some((t) => t.conta_ranking === false) && (
-              <p className="mt-3 px-1 text-[11px] leading-relaxed text-muted-2">
-                <span className="font-semibold">Só carteira</span>: mexe no seu saldo, mas não
-                conta pontos no ranking.
-              </p>
-            )}
-          </>
+          </div>
         )}
       </Section>
     </>
