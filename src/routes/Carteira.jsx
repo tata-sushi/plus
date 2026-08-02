@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Loader2, Trophy, CalendarCheck2, Gift, ArrowLeftRight, Coins, Receipt } from 'lucide-react'
+import { Loader2, Trophy, CalendarCheck2, Gift, ArrowLeftRight, Coins, Receipt, KanbanSquare } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Voltar } from '../components/Voltar.jsx'
 import { Section } from '../components/Section.jsx'
@@ -14,6 +14,7 @@ const CATEG = {
   escala: { label: 'Escala', Icon: CalendarCheck2 },
   recompensa: { label: 'Recompensa', Icon: Gift },
   transferencia: { label: 'Transferência', Icon: ArrowLeftRight },
+  kanban: { label: 'Kanban', Icon: KanbanSquare },
 }
 function metaCateg(cat) {
   return CATEG[cat] || { label: 'Lançamento', Icon: Coins }

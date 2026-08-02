@@ -507,7 +507,7 @@ function VisaoQuadro({ quadroId, onVoltar, emCanvas }) {
       kanbanEl
     )
   const conteudoProvido = (
-    <QuadroCtx.Provider value={{ admin, onConcluir: concluirCard, onArquivarLista: arquivarLista }}>{conteudo}</QuadroCtx.Provider>
+    <QuadroCtx.Provider value={{ admin, pontua: !!board.pontua, onConcluir: concluirCard, onArquivarLista: arquivarLista }}>{conteudo}</QuadroCtx.Provider>
   )
 
   const overlays = (
@@ -523,7 +523,7 @@ function VisaoQuadro({ quadroId, onVoltar, emCanvas }) {
       {sheet === 'editar' && <EditarQuadroSheet board={board} onClose={() => setSheet(null)} onFeito={recarregar} />}
       {sheet === 'modelos' && <ModelosSheet board={board} onClose={() => setSheet(null)} />}
       {sheet === 'menu' && (
-        <MenuGerenciar board={board} admin={admin} vista={vista} setVista={setVista} onClose={() => setSheet(null)} onEscolher={(s) => setSheet(s)} onArquivou={() => { setSheet(null); onVoltar() }} />
+        <MenuGerenciar board={board} admin={admin} vista={vista} setVista={setVista} onClose={() => setSheet(null)} onEscolher={(s) => setSheet(s)} onArquivou={() => { setSheet(null); onVoltar() }} onFeito={recarregar} />
       )}
     </>
   )
@@ -564,13 +564,14 @@ function CardFace({ card, etiquetaPorId, onOpen, handle, semAcoes }) {
     <div className={cn('rounded-xl border border-line bg-surface p-2.5 shadow-sm', card.concluido && 'opacity-70')}>
       <div className="hstack items-start gap-1.5">
         {handle}
-        {!semAcoes && ctx?.onConcluir && (
+        {!semAcoes && ctx?.onConcluir && (!ctx.pontua || ctx.admin) && (
           <button
             onClick={(e) => {
               e.stopPropagation()
               ctx.onConcluir(card)
             }}
             aria-label={card.concluido ? 'Reabrir cartão' : 'Concluir cartão'}
+            title={ctx.pontua ? (card.concluido ? 'Entrega confirmada (+5)' : 'Confirmar entrega (+5)') : undefined}
             className={cn('mt-1 grid h-3.5 w-3.5 shrink-0 place-items-center rounded-full border tap', card.concluido ? 'border-accent bg-accent text-black' : 'border-line text-muted-2')}
           >
             {card.concluido && <Check size={9} />}
@@ -728,7 +729,7 @@ function ListaView({ cols, etiquetaPorId, onAbrirCard }) {
                         <td className="py-2 pr-2">
                           <div className="hstack items-start gap-2">
                             <span className="h-8 w-1 shrink-0 rounded-full" style={{ backgroundColor: cor }} />
-                            {ctx?.onConcluir && (
+                            {ctx?.onConcluir && (!ctx.pontua || ctx.admin) && (
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation()
@@ -1258,12 +1259,12 @@ function CardModal({ estado, card, board, admin, minhaMat, onClose, onFeito, onR
 
           {/* Cabeçalho: [concluir] sobrancelha+título [arquivar] [excluir] [fechar] */}
           <div className="flex shrink-0 items-start gap-2.5 border-b border-line px-5 py-3">
-            {existe && (
+            {existe && (!board.pontua || admin) && (
               <button
                 onClick={() => sub('kanban_card_concluir', { p_id: card.id, p_concluido: !card.concluido })}
                 disabled={busy}
                 aria-label={card.concluido ? 'Reabrir cartão' : 'Concluir cartão'}
-                title={card.concluido ? 'Concluído' : 'Concluir'}
+                title={board.pontua ? (card.concluido ? 'Entrega confirmada (+5)' : 'Confirmar entrega (+5)') : card.concluido ? 'Concluído' : 'Concluir'}
                 className={cn('mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full border tap', card.concluido ? 'border-[#35383F] ' + ctaEscuro : 'border-line text-muted-2')}
               >
                 {card.concluido && <Check size={14} />}
@@ -1652,8 +1653,20 @@ function FiltrosSheet({ board, filtros, setFiltros, onClose }) {
 }
 
 // ── Menu de gerenciamento (admin) ────────────────────────────────────────────
-function MenuGerenciar({ board, admin, vista, setVista, onClose, onEscolher, onArquivou }) {
+function MenuGerenciar({ board, admin, vista, setVista, onClose, onEscolher, onArquivou, onFeito }) {
   const [busy, setBusy] = useState(false)
+  const [pontua, setPontua] = useState(!!board.pontua)
+  async function togglePontua() {
+    const novo = !pontua
+    setPontua(novo)
+    try {
+      await call('kanban_quadro_pontua_set', { p_quadro: board.id, p_pontua: novo })
+      onFeito && onFeito()
+    } catch (e) {
+      setPontua(!novo)
+      avisarErro(e)
+    }
+  }
   async function arquivarQuadro() {
     if (!window.confirm('Arquivar o quadro inteiro? Ele sai da sua lista.')) return
     setBusy(true)
@@ -1704,6 +1717,20 @@ function MenuGerenciar({ board, admin, vista, setVista, onClose, onEscolher, onA
             <button className={item} onClick={() => onEscolher('modelos')}>
               <ListChecks size={17} className="text-accent" /> Checklists prontos
             </button>
+            <div className="hstack w-full gap-3 rounded-card border border-line px-4 py-3">
+              <Star size={17} className="shrink-0 text-accent" />
+              <div className="min-w-0 flex-1">
+                <div className="text-sm font-semibold">Pontuação</div>
+                <div className="text-[11px] text-muted">+5 pts por card entregue · só membros · conta no ranking</div>
+              </div>
+              <button
+                onClick={togglePontua}
+                aria-label={pontua ? 'Desativar pontuação' : 'Ativar pontuação'}
+                className={cn('relative h-6 w-10 shrink-0 rounded-full transition-colors tap', pontua ? 'bg-accent' : 'bg-surface-2')}
+              >
+                <span className={cn('absolute top-0.5 h-5 w-5 rounded-full bg-white transition-all', pontua ? 'left-[18px]' : 'left-0.5')} />
+              </button>
+            </div>
             <button onClick={arquivarQuadro} disabled={busy} className={cn(item, 'text-danger disabled:opacity-40')}>
               {busy ? <Loader2 size={17} className="animate-spin" /> : <Archive size={17} />} Arquivar quadro
             </button>
