@@ -33,7 +33,7 @@ export function IntroDesafio({ titulo, frase, variante = 0, Icone, fraseEscuraNo
   )
 }
 
-function Fundo({ variante }) {
+export function Fundo({ variante }) {
   const v = variante % 3
   return (
     <div aria-hidden className="pointer-events-none absolute inset-0">

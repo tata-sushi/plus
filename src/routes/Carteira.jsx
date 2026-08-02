@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
-import { Loader2, Wallet, Trophy, CalendarCheck2, Gift, ArrowLeftRight, Coins, Receipt } from 'lucide-react'
+import { Loader2, Trophy, CalendarCheck2, Gift, ArrowLeftRight, Coins, Receipt } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Voltar } from '../components/Voltar.jsx'
 import { Section } from '../components/Section.jsx'
-import { IntroDesafio } from '../components/IntroDesafio.jsx'
+import { Fundo } from '../components/IntroDesafio.jsx'
 import { supabase } from '../lib/supabase.js'
 import { cn } from '../lib/cn'
 
@@ -53,15 +53,20 @@ export function Carteira() {
       <Header />
       <Voltar to="/mais" />
 
-      {/* Topo — mesmo padrão da capa dos desafios */}
+      {/* Topo — só o fundo dos desafios + saldo simples (sem ícone/frase) */}
       <div className="px-5 pt-3">
-        <IntroDesafio
-          Icone={Wallet}
-          titulo={saldo == null ? '—' : `${saldo.toLocaleString('pt-BR')} pts`}
-          frase={'Junte pontos e troque por recompensas.'}
-          variante={0}
-          fraseEscuraNoClaro
-        />
+        <div className="relative overflow-hidden rounded-2xl border border-line bg-surface px-6 py-7 text-center">
+          <Fundo variante={0} />
+          <div className="relative">
+            <div className="text-[11px] font-semibold uppercase tracking-widest text-muted">
+              Saldo atual
+            </div>
+            <div className="mt-1 font-display text-4xl font-bold text-accent">
+              {saldo == null ? '—' : saldo.toLocaleString('pt-BR')}
+              <span className="ml-1 text-lg font-semibold">pts</span>
+            </div>
+          </div>
+        </div>
       </div>
 
       <Section className="mt-5 pb-24" title="Histórico de transações">
