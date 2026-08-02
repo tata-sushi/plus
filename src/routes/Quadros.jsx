@@ -140,6 +140,17 @@ function fmtQuando(iso) {
 }
 const primeiro = (n) => (n || '').trim().split(/\s+/)[0] || ''
 
+// Texto legível (preto/branco) sobre uma cor de fundo, pela luminância percebida.
+function corTexto(hex) {
+  const h = String(hex || '').replace('#', '')
+  if (h.length !== 6) return '#fff'
+  const r = parseInt(h.slice(0, 2), 16)
+  const g = parseInt(h.slice(2, 4), 16)
+  const b = parseInt(h.slice(4, 6), 16)
+  const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255
+  return lum > 0.6 ? '#1a1a1a' : '#fff'
+}
+
 // ── Entrada / gate ───────────────────────────────────────────────────────────
 function Quadros() {
   const { usuario } = useAuth()
@@ -500,7 +511,7 @@ function VisaoQuadro({ quadroId, onVoltar, emCanvas }) {
   const overlays = (
     <>
       {cardAberto && (
-        <CardModal key={cardAberto.cardId || 'novo'} estado={cardAberto} card={cardLive} board={board} admin={admin} onClose={() => setCardAberto(null)} onRefresh={recarregar} onFeito={async () => { setCardAberto(null); await recarregar() }} />
+        <CardModal key={cardAberto.cardId || 'novo'} estado={cardAberto} card={cardLive} board={board} admin={admin} minhaMat={mat} onClose={() => setCardAberto(null)} onRefresh={recarregar} onFeito={async () => { setCardAberto(null); await recarregar() }} />
       )}
       {sheet === 'filtros' && <FiltrosSheet board={board} filtros={filtros} setFiltros={setFiltros} onClose={() => setSheet(null)} />}
       {sheet === 'membros' && <MembrosSheet board={board} admin={admin} onClose={() => setSheet(null)} onFeito={recarregar} />}
@@ -749,7 +760,7 @@ function ListaView({ cols, etiquetaPorId, onAbrirCard }) {
                           {etqs.length ? (
                             <div className="hstack flex-wrap gap-1">
                               {etqs.map((e) => (
-                                <span key={e.id} className="rounded-pill px-2 py-0.5 text-[11px] font-semibold text-white" style={{ backgroundColor: e.cor }}>
+                                <span key={e.id} className="rounded-pill px-2 py-0.5 text-[11px] font-semibold" style={{ backgroundColor: e.cor, color: corTexto(e.cor) }}>
                                   {e.nome}
                                 </span>
                               ))}
@@ -1026,7 +1037,7 @@ function MenuFlutuante({ aberto, onClose, children }) {
 }
 
 // ── Modal do cartão ──────────────────────────────────────────────────────────
-function CardModal({ estado, card, board, admin, onClose, onFeito, onRefresh }) {
+function CardModal({ estado, card, board, admin, minhaMat, onClose, onFeito, onRefresh }) {
   const existe = estado.modo !== 'criar' && !!card
   const editavel = estado.modo === 'criar' || (estado.modo === 'editar' && admin)
   const base = card || {}
@@ -1173,13 +1184,14 @@ function CardModal({ estado, card, board, admin, onClose, onFeito, onRefresh }) 
   async function removerAnexo(a) {
     setBusy(true)
     try {
-      await call('kanban_anexo_excluir', { p_id: a.id })
-      try {
-        const path = a.url.split('/kanban/')[1]?.split('?')[0]
-        if (path) await supabase.storage.from('kanban').remove([decodeURIComponent(path)])
-      } catch {
-        /* arquivo órfão no storage é inofensivo */
+      // Apaga o arquivo no storage ANTES do registro: a policy de exclusão do
+      // bucket confere a linha em card_anexos pra saber se é o dono (ou admin).
+      const path = a.url.split('/kanban/')[1]?.split('?')[0]
+      if (path) {
+        const { error: rmErr } = await supabase.storage.from('kanban').remove([decodeURIComponent(path)])
+        if (rmErr) throw rmErr
       }
+      await call('kanban_anexo_excluir', { p_id: a.id })
       await onRefresh()
       recarregarHist()
     } catch (e) {
@@ -1326,11 +1338,9 @@ function CardModal({ estado, card, board, admin, onClose, onFeito, onRefresh }) 
                     <button
                       disabled={!editavel}
                       onClick={() => setEtqAberto((v) => !v)}
-                      className={cn('hstack gap-1.5 rounded-md border border-line px-2.5 py-1 text-xs font-semibold tap disabled:opacity-100', etqSel ? 'text-carbon dark:text-text' : 'text-muted')}
+                      className={cn('hstack gap-1.5 rounded-md border px-2.5 py-1 text-xs font-semibold tap disabled:opacity-100', etqSel ? 'border-transparent' : 'border-line text-muted')}
+                      style={etqSel ? { backgroundColor: etqSel.cor, color: corTexto(etqSel.cor) } : undefined}
                     >
-                      <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={etqSel ? { backgroundColor: etqSel.cor } : undefined}>
-                        {!etqSel && <span className="block h-full w-full rounded-full bg-muted-2" />}
-                      </span>
                       {etqSel ? etqSel.nome : 'Etiqueta'}
                     </button>
                     <MenuFlutuante aberto={etqAberto && editavel} onClose={() => setEtqAberto(false)}>
@@ -1338,8 +1348,10 @@ function CardModal({ estado, card, board, admin, onClose, onFeito, onRefresh }) 
                         const on = etqs.has(e.id)
                         return (
                           <button key={e.id} onClick={() => { setEtqs(new Set(on ? [] : [e.id])); setEtqAberto(false) }} className="hstack w-full items-center gap-2 px-3 py-2 text-left text-xs font-semibold tap hover:bg-fill">
-                            <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: e.cor }} />
-                            <span className="min-w-0 flex-1 truncate">{e.nome}</span>
+                            <span className="rounded-pill px-2 py-0.5 text-[11px] font-semibold" style={{ backgroundColor: e.cor, color: corTexto(e.cor) }}>
+                              {e.nome}
+                            </span>
+                            <span className="flex-1" />
                             {on && <Check size={13} className="shrink-0 text-carbon dark:text-text" />}
                           </button>
                         )
@@ -1474,14 +1486,16 @@ function CardModal({ estado, card, board, admin, onClose, onFeito, onRefresh }) 
                             <span className="min-w-0 flex-1 truncate text-xs font-medium">{a.nome}</span>
                           </a>
                         )}
-                        <button
-                          onClick={() => removerAnexo(a)}
-                          disabled={busy}
-                          aria-label="Remover anexo"
-                          className="absolute right-1 top-1 grid h-6 w-6 place-items-center rounded-full bg-black/55 text-white tap disabled:opacity-40"
-                        >
-                          <X size={13} />
-                        </button>
+                        {(admin || a.matricula === minhaMat) && (
+                          <button
+                            onClick={() => removerAnexo(a)}
+                            disabled={busy}
+                            aria-label="Remover anexo"
+                            className="absolute right-1 top-1 grid h-6 w-6 place-items-center rounded-full bg-black/55 text-white tap disabled:opacity-40"
+                          >
+                            <X size={13} />
+                          </button>
+                        )}
                       </div>
                     ))}
                   </div>
