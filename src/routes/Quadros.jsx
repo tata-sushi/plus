@@ -76,7 +76,7 @@ import { supabase } from '../lib/supabase.js'
 // admin. Tempo real via realtime do Supabase. Notificação só por @menção.
 
 const CORES = ['#2f7d4f', '#d98a2b', '#c2453f', '#3b6fb3', '#7a4fb3', '#0f766e', '#64748b']
-const TABELAS_RT = ['cards', 'colunas', 'etiquetas', 'membros', 'card_comentarios', 'card_checklist']
+const TABELAS_RT = ['cards', 'colunas', 'etiquetas', 'membros', 'card_comentarios', 'card_checklist', 'card_anexos']
 
 // Ícones pré-definidos para diferenciar os quadros
 const ICONES_QUADRO = {
@@ -555,8 +555,9 @@ function CardFace({ card, etiquetaPorId, onOpen, handle, semAcoes }) {
   const chk = card.checklist || []
   const feitos = chk.filter((c) => c.feito).length
   const nCom = (card.comentarios || []).length
+  const nAnexos = (card.anexos || []).length
   const vencido = card.data_conclusao && card.data_conclusao < hojeISO()
-  const temMeta = card.data_conclusao || chk.length > 0 || nCom > 0 || resp.length > 0
+  const temMeta = card.data_conclusao || chk.length > 0 || nCom > 0 || nAnexos > 0 || resp.length > 0
   return (
     <div className={cn('rounded-xl border border-line bg-surface p-2.5 shadow-sm', card.concluido && 'opacity-70')}>
       <div className="hstack items-start gap-1.5">
@@ -600,6 +601,11 @@ function CardFace({ card, etiquetaPorId, onOpen, handle, semAcoes }) {
               {nCom > 0 && (
                 <span className="hstack gap-1 text-muted">
                   <MessageSquare size={12} /> {nCom}
+                </span>
+              )}
+              {nAnexos > 0 && (
+                <span className="hstack gap-1 text-muted">
+                  <Paperclip size={12} /> {nAnexos}
                 </span>
               )}
               {resp.length > 0 && (
