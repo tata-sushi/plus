@@ -43,7 +43,6 @@ import {
   AtSign,
   List,
   Circle,
-  Upload,
   Paperclip,
   FileText,
   Pencil,
@@ -473,6 +472,9 @@ function VisaoQuadro({ quadroId, onVoltar, emCanvas }) {
           <Layers size={16} />
         </button>
       )}
+      <button onClick={() => setSheet('arquivados')} aria-label="Cartões arquivados" className={cn(btnQuadro, btnOff)}>
+        <Archive size={16} />
+      </button>
       <button onClick={() => setSheet('menu')} aria-label="Opções do quadro" className={cn(btnQuadro, btnOff)}>
         <Settings2 size={16} />
       </button>
@@ -517,7 +519,7 @@ function VisaoQuadro({ quadroId, onVoltar, emCanvas }) {
       {sheet === 'membros' && <MembrosSheet board={board} admin={admin} onClose={() => setSheet(null)} onFeito={recarregar} />}
       {sheet === 'etiquetas' && <EtiquetasSheet board={board} onClose={() => setSheet(null)} onFeito={recarregar} />}
       {sheet === 'colunas' && <ColunasSheet board={board} onClose={() => setSheet(null)} onFeito={recarregar} />}
-      {sheet === 'importar' && <ImportSheet board={board} onClose={() => setSheet(null)} onFeito={recarregar} />}
+      {sheet === 'arquivados' && <ArquivadosSheet board={board} admin={admin} onClose={() => setSheet(null)} onFeito={recarregar} />}
       {sheet === 'editar' && <EditarQuadroSheet board={board} onClose={() => setSheet(null)} onFeito={recarregar} />}
       {sheet === 'modelos' && <ModelosSheet board={board} onClose={() => setSheet(null)} />}
       {sheet === 'menu' && (
@@ -646,6 +648,57 @@ function ColunaFace({ col, isOver, bodyRef, children, onNovoCard, podeAdicionar,
   )
 }
 
+// Rolagem lateral por arrasto do dedo/mouse em QUALQUER ponto do board — inclusive
+// nas áreas vazias abaixo das colunas (onde o toque não iniciava o scroll nativo no
+// iPad). touch-action: pan-y deixa a rolagem vertical da página nativa e entrega o
+// horizontal pro JS. Um toque sem arrasto continua abrindo o card; arrastar não abre.
+function useDragScroll() {
+  const ref = useRef(null)
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    let down = false, moved = false, sx = 0, sl = 0
+    const onDown = (e) => {
+      if (e.pointerType === 'mouse' && e.button !== 0) return
+      if (e.target.closest && e.target.closest('[data-drag-handle]')) return // arrastar card usa a alça
+      down = true; moved = false; sx = e.clientX; sl = el.scrollLeft
+    }
+    const onMove = (e) => {
+      if (!down) return
+      const dx = e.clientX - sx
+      if (!moved) {
+        if (Math.abs(dx) <= 5) return
+        moved = true
+        try { el.setPointerCapture(e.pointerId) } catch { /* ok */ }
+      }
+      el.scrollLeft = sl - dx
+    }
+    const onUp = () => { down = false }
+    const onClick = (e) => { if (moved) { e.stopPropagation(); e.preventDefault(); moved = false } }
+    el.addEventListener('pointerdown', onDown)
+    el.addEventListener('pointermove', onMove)
+    el.addEventListener('pointerup', onUp)
+    el.addEventListener('pointercancel', onUp)
+    el.addEventListener('click', onClick, true)
+    return () => {
+      el.removeEventListener('pointerdown', onDown)
+      el.removeEventListener('pointermove', onMove)
+      el.removeEventListener('pointerup', onUp)
+      el.removeEventListener('pointercancel', onUp)
+      el.removeEventListener('click', onClick, true)
+    }
+  }, [])
+  return ref
+}
+function HScroll({ className, children }) {
+  const ref = useDragScroll()
+  return (
+    <div ref={ref} className={className} style={{ touchAction: 'pan-y' }}>
+      {children}
+    </div>
+  )
+}
+
 function BoardStatic({ cols, grupos, etiquetaPorId, podeAdicionar, onAbrirCard, onNovoCard }) {
   if (grupos) {
     return (
@@ -658,7 +711,7 @@ function BoardStatic({ cols, grupos, etiquetaPorId, podeAdicionar, onAbrirCard, 
               {g.nome}
               <span className="h-px flex-1 bg-line" />
             </div>
-            <div className="flex items-start gap-3 overflow-x-auto no-scrollbar snap-x">
+            <HScroll className="flex items-start gap-3 overflow-x-auto no-scrollbar snap-x">
               {g.cols.map((col) => (
                 <ColunaFace key={col.id} col={col} podeAdicionar={false} semArquivar>
                   {col.cards.map((card) => (
@@ -666,14 +719,14 @@ function BoardStatic({ cols, grupos, etiquetaPorId, podeAdicionar, onAbrirCard, 
                   ))}
                 </ColunaFace>
               ))}
-            </div>
+            </HScroll>
           </div>
         ))}
       </div>
     )
   }
   return (
-    <div className="mt-3 flex items-start gap-3 overflow-x-auto px-5 pb-24 no-scrollbar snap-x">
+    <HScroll className="mt-3 flex items-start gap-3 overflow-x-auto px-5 pb-24 no-scrollbar snap-x">
       {cols.map((col) => (
         <ColunaFace key={col.id} col={col} podeAdicionar={podeAdicionar} onNovoCard={() => onNovoCard(col.id)}>
           {col.cards.map((card) => (
@@ -681,7 +734,7 @@ function BoardStatic({ cols, grupos, etiquetaPorId, podeAdicionar, onAbrirCard, 
           ))}
         </ColunaFace>
       ))}
-    </div>
+    </HScroll>
   )
 }
 
@@ -914,7 +967,7 @@ function CardDnD({ card, etiquetaPorId, onOpen }) {
         etiquetaPorId={etiquetaPorId}
         onOpen={onOpen}
         handle={
-          <button {...attributes} {...listeners} aria-label="Arrastar" className="mt-0.5 shrink-0 touch-none text-muted-2 tap">
+          <button {...attributes} {...listeners} data-drag-handle aria-label="Arrastar" className="mt-0.5 shrink-0 touch-none text-muted-2 tap">
             <GripVertical size={15} />
           </button>
         }
@@ -1011,11 +1064,11 @@ function BoardDnD({ cols, setCols, quadroId, etiquetaPorId, onAbrirCard, onNovoC
   }
   return (
     <DndContext sensors={sensors} collisionDetection={closestCorners} onDragStart={({ active }) => setAtivo(cardById(active.id))} onDragOver={onDragOver} onDragEnd={onDragEnd} onDragCancel={() => setAtivo(null)}>
-      <div className="mt-3 flex items-start gap-3 overflow-x-auto px-5 pb-24 no-scrollbar snap-x">
+      <HScroll className="mt-3 flex items-start gap-3 overflow-x-auto px-5 pb-24 no-scrollbar snap-x">
         {cols.map((col) => (
           <ColunaDnD key={col.id} col={col} etiquetaPorId={etiquetaPorId} onAbrirCard={onAbrirCard} onNovoCard={() => onNovoCard(col.id)} />
         ))}
-      </div>
+      </HScroll>
       <DragOverlay>
         {ativo ? (
           <div className="rotate-2 shadow-lg">
@@ -1688,7 +1741,7 @@ function MenuGerenciar({ board, admin, vista, setVista, onClose, onEscolher, onA
           <div className="mt-4 text-[11px] font-semibold uppercase tracking-wide text-muted">Gerenciar quadro</div>
           <div className="mt-2 flex flex-col gap-2">
             <button className={item} onClick={() => onEscolher('editar')}>
-              <Pencil size={17} className="text-accent" /> Editar quadro (nome e ícone)
+              <Pencil size={17} className="text-accent" /> Editar nome e ícone do quadro
             </button>
             <button className={item} onClick={() => onEscolher('membros')}>
               <Users size={17} className="text-accent" /> Membros
@@ -1702,15 +1755,91 @@ function MenuGerenciar({ board, admin, vista, setVista, onClose, onEscolher, onA
             <button className={item} onClick={() => onEscolher('modelos')}>
               <ListChecks size={17} className="text-accent" /> Checklists prontos
             </button>
-            <button className={item} onClick={() => onEscolher('importar')}>
-              <Upload size={17} className="text-accent" /> Importar cartões
-            </button>
             <button onClick={arquivarQuadro} disabled={busy} className={cn(item, 'text-danger disabled:opacity-40')}>
               {busy ? <Loader2 size={17} className="animate-spin" /> : <Archive size={17} />} Arquivar quadro
             </button>
           </div>
         </>
       )}
+    </Sheet>
+  )
+}
+
+// ── Cartões arquivados ───────────────────────────────────────────────────────
+function ArquivadosSheet({ board, admin, onClose, onFeito }) {
+  const [itens, setItens] = useState(null)
+  const [busca, setBusca] = useState('')
+  const [busy, setBusy] = useState(false)
+  useEffect(() => {
+    call('kanban_arquivados', { p_quadro: board.id })
+      .then((d) => setItens(d || []))
+      .catch(() => setItens([]))
+  }, [board.id])
+  async function restaurar(id) {
+    setBusy(true)
+    try {
+      await call('kanban_card_arquivar', { p_id: id, p_arquivar: false })
+      setItens((l) => l.filter((c) => c.id !== id))
+      onFeito()
+    } catch (e) {
+      avisarErro(e)
+    } finally {
+      setBusy(false)
+    }
+  }
+  const q = busca.trim().toLowerCase()
+  const filtrados = (itens || []).filter((c) => !q || (c.titulo || '').toLowerCase().includes(q))
+  return (
+    <Sheet onClose={onClose}>
+      <div className="hstack gap-2">
+        <Archive size={18} className="text-accent" />
+        <div className="font-display text-lg font-bold">Cartões arquivados</div>
+        {itens && <span className="rounded-pill bg-fill px-2 py-0.5 text-[11px] font-semibold text-muted">{itens.length}</span>}
+      </div>
+      {itens && itens.length > 0 && (
+        <div className="mt-3 hstack gap-2 rounded-pill border border-line bg-surface px-3 py-1.5">
+          <Search size={14} className="shrink-0 text-muted-2" />
+          <input value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Buscar arquivado…" className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-2" />
+        </div>
+      )}
+      <div className="mt-3 flex flex-col gap-2">
+        {itens == null ? (
+          <div className="hstack justify-center py-8 text-muted-2"><Loader2 size={20} className="animate-spin" /></div>
+        ) : filtrados.length === 0 ? (
+          <div className="py-8 text-center text-sm text-muted">{itens.length === 0 ? 'Nenhum cartão arquivado.' : 'Nada encontrado.'}</div>
+        ) : (
+          filtrados.slice(0, 300).map((c) => (
+            <div key={c.id} className="rounded-card border border-line p-3">
+              <div className="hstack items-start gap-2">
+                <div className="min-w-0 flex-1">
+                  <div className="text-sm font-semibold">{c.titulo}</div>
+                  <div className="mt-1 hstack flex-wrap items-center gap-1.5 text-[11px] text-muted">
+                    <span>{c.coluna}</span>
+                    <span>· {fmtQuando(c.created_at)}</span>
+                    {c.ncom > 0 && <span className="hstack gap-0.5"><MessageSquare size={11} /> {c.ncom}</span>}
+                    {c.nchk > 0 && <span className="hstack gap-0.5"><ListChecks size={11} /> {c.nchk}</span>}
+                  </div>
+                  {(c.etiquetas || []).length > 0 && (
+                    <div className="mt-1.5 hstack flex-wrap gap-1">
+                      {c.etiquetas.map((e, i) => (
+                        <span key={i} className="rounded-pill px-2 py-0.5 text-[10px] font-semibold" style={{ backgroundColor: e.cor, color: corTexto(e.cor) }}>{e.nome}</span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                {admin && (
+                  <button onClick={() => restaurar(c.id)} disabled={busy} className="shrink-0 rounded-lg border border-line px-2.5 py-1 text-xs font-semibold text-accent tap disabled:opacity-40">
+                    Restaurar
+                  </button>
+                )}
+              </div>
+            </div>
+          ))
+        )}
+        {filtrados.length > 300 && (
+          <div className="py-2 text-center text-[11px] text-muted-2">Mostrando 300 de {filtrados.length} — refine a busca.</div>
+        )}
+      </div>
     </Sheet>
   )
 }
@@ -1949,55 +2078,6 @@ function ColunasSheet({ board, onClose, onFeito }) {
       )}
       <button onClick={salvar} disabled={salvando} className="btn-primary mt-4 hstack w-full justify-center gap-2 py-3 text-sm disabled:opacity-40">
         {salvando ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />} Salvar colunas
-      </button>
-    </Sheet>
-  )
-}
-
-// ── Importar cartões ─────────────────────────────────────────────────────────
-function ImportSheet({ board, onClose, onFeito }) {
-  const [texto, setTexto] = useState('')
-  const [colId, setColId] = useState(board.colunas[0]?.id || '')
-  const [salvando, setSalvando] = useState(false)
-  const linhas = texto.split('\n').map((l) => l.trim()).filter(Boolean)
-  async function importar() {
-    if (!linhas.length || !colId) return
-    setSalvando(true)
-    try {
-      await call('kanban_importar_cartoes', { p_quadro: board.id, p_coluna: colId, p_titulos: linhas })
-      await onFeito()
-      onClose()
-    } catch (e) {
-      avisarErro(e)
-      setSalvando(false)
-    }
-  }
-  return (
-    <Sheet onClose={onClose}>
-      <div className="font-display text-lg font-bold">Importar cartões</div>
-      <div className="mt-1 text-xs text-muted">Cole a sua lista — um cartão por linha. Cada linha vira um cartão.</div>
-      <div className="mt-3">
-        <div className="text-[11px] font-semibold uppercase tracking-wide text-muted">Lista de destino</div>
-        <select value={colId} onChange={(e) => setColId(e.target.value)} className="mt-2 w-full rounded-card border border-line bg-surface px-3 py-2 text-sm outline-none">
-          {board.colunas.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.nome}
-            </option>
-          ))}
-        </select>
-      </div>
-      <textarea
-        rows={8}
-        value={texto}
-        onChange={(e) => setTexto(e.target.value)}
-        placeholder={'Ex.:\nRevisar cardápio\nComprar hashi\nTreinar equipe'}
-        className="mt-3 w-full resize-none rounded-card border border-line bg-surface px-3 py-2 text-sm outline-none placeholder:text-muted-2"
-      />
-      <div className="mt-1 text-[11px] text-muted-2">
-        {linhas.length} {linhas.length === 1 ? 'cartão' : 'cartões'} para importar
-      </div>
-      <button onClick={importar} disabled={salvando || !linhas.length} className="btn-primary mt-4 hstack w-full justify-center gap-2 py-3 text-sm disabled:opacity-40">
-        {salvando ? <Loader2 size={16} className="animate-spin" /> : <Upload size={16} />} Importar {linhas.length || ''}
       </button>
     </Sheet>
   )
