@@ -154,12 +154,21 @@ export function Mais() {
                 {cargo}
                 {loja ? ` · ${loja}` : ''}
               </div>
-              <div className="mt-1 text-xs">
+              <button
+                type="button"
+                onClick={() => {
+                  tapHaptic()
+                  navigate('/carteira')
+                }}
+                className="mt-1 inline-flex items-center gap-1 text-xs tap"
+                aria-label="Ver histórico de transações"
+              >
                 <span className="text-muted">Carteira · </span>
                 <span className="font-semibold text-accent">
                   {saldo == null ? '—' : `${saldo.toLocaleString('pt-BR')} pts`}
                 </span>
-              </div>
+                <ChevronRight size={12} className="text-muted-2" />
+              </button>
             </div>
             <ProgressRing value={(progresso?.pct ?? 0) / 100} size={54} stroke={5} />
           </div>
