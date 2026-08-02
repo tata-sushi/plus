@@ -1721,7 +1721,7 @@ function MenuGerenciar({ board, admin, vista, setVista, onClose, onEscolher, onA
               <Star size={17} className="shrink-0 text-accent" />
               <div className="min-w-0 flex-1">
                 <div className="text-sm font-semibold">Pontuação</div>
-                <div className="text-[11px] text-muted">+5 pts por card entregue · só membros · conta no ranking</div>
+                <div className="text-[11px] text-muted">+5 pontos para cada tarefa concluída (por responsável)</div>
               </div>
               <button
                 onClick={togglePontua}
