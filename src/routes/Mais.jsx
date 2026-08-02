@@ -47,6 +47,18 @@ const itens = [
 
 const TAM_MAX = 8 * 1024 * 1024 // 8 MB
 
+// Abrevia os nomes do meio pra caber numa linha (mantém 1º e último inteiros):
+// "Victor Augusto Di Sessa Carvalho" -> "Victor A. D. S. Carvalho".
+function abreviarNome(nome) {
+  const partes = String(nome || '')
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+  if (partes.length <= 2) return partes.join(' ')
+  const meio = partes.slice(1, -1).map((p) => p.charAt(0).toUpperCase() + '.')
+  return [partes[0], ...meio, partes[partes.length - 1]].join(' ')
+}
+
 export function Mais() {
   const navigate = useNavigate()
   const { usuario, signOut, definirAvatar } = useAuth()
@@ -125,10 +137,29 @@ export function Mais() {
       <Header title="Mais" />
 
       <div className="px-5 pt-3">
-        <div className="card p-4">
+        <div
+          role="button"
+          tabIndex={0}
+          onClick={() => {
+            tapHaptic()
+            navigate('/carteira')
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault()
+              tapHaptic()
+              navigate('/carteira')
+            }
+          }}
+          aria-label="Abrir carteira"
+          className="card cursor-pointer p-4 tap"
+        >
           <div className="hstack gap-3">
             <button
-              onClick={() => inputFoto.current?.click()}
+              onClick={(e) => {
+                e.stopPropagation()
+                inputFoto.current?.click()
+              }}
               className="relative tap"
               aria-label="Trocar foto de perfil"
             >
@@ -149,26 +180,18 @@ export function Mais() {
               className="hidden"
             />
             <div className="min-w-0 flex-1">
-              <div className="font-display text-base font-bold">{nome}</div>
-              <div className="text-xs text-muted">
+              <div className="truncate font-display text-base font-bold">{abreviarNome(nome)}</div>
+              <div className="truncate text-xs text-muted">
                 {cargo}
                 {loja ? ` · ${loja}` : ''}
               </div>
-              <button
-                type="button"
-                onClick={() => {
-                  tapHaptic()
-                  navigate('/carteira')
-                }}
-                className="mt-1 inline-flex items-center gap-1 text-xs tap"
-                aria-label="Ver histórico de transações"
-              >
+              <div className="mt-1 inline-flex items-center gap-1 text-xs">
                 <span className="text-muted">Carteira · </span>
                 <span className="font-semibold text-accent">
                   {saldo == null ? '—' : `${saldo.toLocaleString('pt-BR')} pts`}
                 </span>
                 <ChevronRight size={12} className="text-muted-2" />
-              </button>
+              </div>
             </div>
             <ProgressRing value={(progresso?.pct ?? 0) / 100} size={54} stroke={5} />
           </div>
