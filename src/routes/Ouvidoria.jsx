@@ -212,14 +212,10 @@ export function Ouvidoria() {
                 <input
                   value={nome}
                   onChange={(e) => setNome(e.target.value)}
+                  readOnly={!!usuario?.nome}
                   placeholder="Seu nome completo"
-                  className={inputCls}
+                  className={cn(inputCls, usuario?.nome && 'bg-[#F2F2F2] text-[#555555]')}
                 />
-                {usuario?.nome && (
-                  <p className="mt-1.5 text-[12px] text-[#9a9a9a]">
-                    Preenchido do seu cadastro — ajuste se precisar.
-                  </p>
-                )}
               </div>
             )}
 
