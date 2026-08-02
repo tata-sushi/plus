@@ -2005,9 +2005,12 @@ function EtiquetasSheet({ board, onClose, onFeito }) {
 }
 
 // ── Colunas ──────────────────────────────────────────────────────────────────
+const ehConcluido = (nome) => /^\s*conclu/i.test(nome || '')
 function ColunasSheet({ board, onClose, onFeito }) {
   const [draft, setDraft] = useState(() => (board.colunas || []).map((c) => ({ id: c.id, nome: c.nome })))
   const [salvando, setSalvando] = useState(false)
+  const nConcluido = draft.filter((c) => ehConcluido(c.nome)).length
+  const temConcluido = nConcluido > 0
   function up(i, nome) {
     setDraft((d) => d.map((c, j) => (j === i ? { ...c, nome } : c)))
   }
@@ -2033,26 +2036,34 @@ function ColunasSheet({ board, onClose, onFeito }) {
   return (
     <Sheet onClose={onClose}>
       <div className="font-display text-lg font-bold">Colunas</div>
-      <div className="mt-1 text-xs text-muted">Até 5 colunas. Remova só colunas vazias.</div>
+      <div className="mt-1 text-xs text-muted">
+        Até 5 colunas. É obrigatório manter uma coluna <b>“Concluído”</b> — é onde o responsável joga a tarefa feita.
+      </div>
       <div className="mt-3 flex flex-col gap-2">
-        {draft.map((c, i) => (
-          <div key={c.id || `n${i}`} className="hstack gap-2 rounded-card border border-line bg-surface px-2.5 py-2">
-            <Columns3 size={15} className="shrink-0 text-muted-2" />
-            <input value={c.nome} onChange={(ev) => up(i, ev.target.value)} className="min-w-0 flex-1 bg-transparent text-sm font-semibold outline-none" aria-label="Nome da coluna" />
-            {draft.length > 1 && (
-              <button onClick={() => remover(i)} aria-label="Remover coluna" className="shrink-0 text-muted-2 tap">
-                <Trash2 size={15} />
-              </button>
-            )}
-          </div>
-        ))}
+        {draft.map((c, i) => {
+          const fixa = ehConcluido(c.nome) && nConcluido === 1 // não deixa remover a única "Concluído"
+          return (
+            <div key={c.id || `n${i}`} className="hstack gap-2 rounded-card border border-line bg-surface px-2.5 py-2">
+              <Columns3 size={15} className="shrink-0 text-muted-2" />
+              <input value={c.nome} onChange={(ev) => up(i, ev.target.value)} className="min-w-0 flex-1 bg-transparent text-sm font-semibold outline-none" aria-label="Nome da coluna" />
+              {draft.length > 1 && !fixa && (
+                <button onClick={() => remover(i)} aria-label="Remover coluna" className="shrink-0 text-muted-2 tap">
+                  <Trash2 size={15} />
+                </button>
+              )}
+            </div>
+          )
+        })}
       </div>
       {draft.length < 5 && (
         <button onClick={add} className="mt-2 hstack gap-1 rounded-card border border-dashed border-line px-3 py-2 text-xs font-semibold text-muted tap">
           <Plus size={14} /> Adicionar coluna
         </button>
       )}
-      <button onClick={salvar} disabled={salvando} className="btn-primary mt-4 hstack w-full justify-center gap-2 py-3 text-sm disabled:opacity-40">
+      {!temConcluido && (
+        <p className="mt-2 text-[11px] font-medium text-danger">O quadro precisa de uma coluna “Concluído”.</p>
+      )}
+      <button onClick={salvar} disabled={salvando || !temConcluido} className="btn-primary mt-4 hstack w-full justify-center gap-2 py-3 text-sm disabled:opacity-40">
         {salvando ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />} Salvar colunas
       </button>
     </Sheet>
