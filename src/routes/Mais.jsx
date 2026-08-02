@@ -39,7 +39,7 @@ const itens = [
   { to: '/comunicados', label: 'Comunicados', icon: Megaphone },
   { to: '/ouvidoria', label: 'Ouvidoria', icon: MessageSquareWarning, gov: true },
   { to: '/cardapio', label: 'Cardápio', icon: UtensilsCrossed },
-  { to: '/quadros', label: 'Quadros', icon: KanbanSquare, quadros: true },
+  { to: '/quadros', label: 'Kanban Tatá (beta)', icon: KanbanSquare, quadros: true },
   { to: '/escala', label: 'Escala', icon: CalendarClock, escala: true },
   { to: '/manutencao', label: 'Painel de Ajustes', icon: Wrench },
   { to: '/atalhos-governanca', label: 'Atalhos', icon: Pin, gov: true },
