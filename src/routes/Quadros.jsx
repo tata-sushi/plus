@@ -648,57 +648,6 @@ function ColunaFace({ col, isOver, bodyRef, children, onNovoCard, podeAdicionar,
   )
 }
 
-// Rolagem lateral por arrasto do dedo/mouse em QUALQUER ponto do board — inclusive
-// nas áreas vazias abaixo das colunas (onde o toque não iniciava o scroll nativo no
-// iPad). touch-action: pan-y deixa a rolagem vertical da página nativa e entrega o
-// horizontal pro JS. Um toque sem arrasto continua abrindo o card; arrastar não abre.
-function useDragScroll() {
-  const ref = useRef(null)
-  useEffect(() => {
-    const el = ref.current
-    if (!el) return
-    let down = false, moved = false, sx = 0, sl = 0
-    const onDown = (e) => {
-      if (e.pointerType === 'mouse' && e.button !== 0) return
-      if (e.target.closest && e.target.closest('[data-drag-handle]')) return // arrastar card usa a alça
-      down = true; moved = false; sx = e.clientX; sl = el.scrollLeft
-    }
-    const onMove = (e) => {
-      if (!down) return
-      const dx = e.clientX - sx
-      if (!moved) {
-        if (Math.abs(dx) <= 5) return
-        moved = true
-        try { el.setPointerCapture(e.pointerId) } catch { /* ok */ }
-      }
-      el.scrollLeft = sl - dx
-    }
-    const onUp = () => { down = false }
-    const onClick = (e) => { if (moved) { e.stopPropagation(); e.preventDefault(); moved = false } }
-    el.addEventListener('pointerdown', onDown)
-    el.addEventListener('pointermove', onMove)
-    el.addEventListener('pointerup', onUp)
-    el.addEventListener('pointercancel', onUp)
-    el.addEventListener('click', onClick, true)
-    return () => {
-      el.removeEventListener('pointerdown', onDown)
-      el.removeEventListener('pointermove', onMove)
-      el.removeEventListener('pointerup', onUp)
-      el.removeEventListener('pointercancel', onUp)
-      el.removeEventListener('click', onClick, true)
-    }
-  }, [])
-  return ref
-}
-function HScroll({ className, children }) {
-  const ref = useDragScroll()
-  return (
-    <div ref={ref} className={className} style={{ touchAction: 'pan-y' }}>
-      {children}
-    </div>
-  )
-}
-
 function BoardStatic({ cols, grupos, etiquetaPorId, podeAdicionar, onAbrirCard, onNovoCard }) {
   if (grupos) {
     return (
@@ -711,7 +660,7 @@ function BoardStatic({ cols, grupos, etiquetaPorId, podeAdicionar, onAbrirCard, 
               {g.nome}
               <span className="h-px flex-1 bg-line" />
             </div>
-            <HScroll className="flex items-start gap-3 overflow-x-auto no-scrollbar snap-x">
+            <div className="flex items-start gap-3 overflow-x-auto no-scrollbar snap-x">
               {g.cols.map((col) => (
                 <ColunaFace key={col.id} col={col} podeAdicionar={false} semArquivar>
                   {col.cards.map((card) => (
@@ -719,14 +668,14 @@ function BoardStatic({ cols, grupos, etiquetaPorId, podeAdicionar, onAbrirCard, 
                   ))}
                 </ColunaFace>
               ))}
-            </HScroll>
+            </div>
           </div>
         ))}
       </div>
     )
   }
   return (
-    <HScroll className="mt-3 flex items-start gap-3 overflow-x-auto px-5 pb-24 no-scrollbar snap-x">
+    <div className="mt-3 flex items-start gap-3 overflow-x-auto px-5 pb-24 no-scrollbar snap-x">
       {cols.map((col) => (
         <ColunaFace key={col.id} col={col} podeAdicionar={podeAdicionar} onNovoCard={() => onNovoCard(col.id)}>
           {col.cards.map((card) => (
@@ -734,7 +683,7 @@ function BoardStatic({ cols, grupos, etiquetaPorId, podeAdicionar, onAbrirCard, 
           ))}
         </ColunaFace>
       ))}
-    </HScroll>
+    </div>
   )
 }
 
@@ -967,7 +916,7 @@ function CardDnD({ card, etiquetaPorId, onOpen }) {
         etiquetaPorId={etiquetaPorId}
         onOpen={onOpen}
         handle={
-          <button {...attributes} {...listeners} data-drag-handle aria-label="Arrastar" className="mt-0.5 shrink-0 touch-none text-muted-2 tap">
+          <button {...attributes} {...listeners} aria-label="Arrastar" className="mt-0.5 shrink-0 touch-none text-muted-2 tap">
             <GripVertical size={15} />
           </button>
         }
@@ -1064,11 +1013,11 @@ function BoardDnD({ cols, setCols, quadroId, etiquetaPorId, onAbrirCard, onNovoC
   }
   return (
     <DndContext sensors={sensors} collisionDetection={closestCorners} onDragStart={({ active }) => setAtivo(cardById(active.id))} onDragOver={onDragOver} onDragEnd={onDragEnd} onDragCancel={() => setAtivo(null)}>
-      <HScroll className="mt-3 flex items-start gap-3 overflow-x-auto px-5 pb-24 no-scrollbar snap-x">
+      <div className="mt-3 flex items-start gap-3 overflow-x-auto px-5 pb-24 no-scrollbar snap-x">
         {cols.map((col) => (
           <ColunaDnD key={col.id} col={col} etiquetaPorId={etiquetaPorId} onAbrirCard={onAbrirCard} onNovoCard={() => onNovoCard(col.id)} />
         ))}
-      </HScroll>
+      </div>
       <DragOverlay>
         {ativo ? (
           <div className="rotate-2 shadow-lg">
