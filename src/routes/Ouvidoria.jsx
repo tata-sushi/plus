@@ -3,13 +3,15 @@ import { Check } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { cn } from '../lib/cn'
 import { tapHaptic } from '../lib/haptics.js'
+import { supabase } from '../lib/supabase.js'
+import { useAuth } from '../lib/AuthContext.jsx'
 
 // Ouvidoria nativa — replica o formulário/design da página externa
 // (ouvidoria.tatasushi.tech). As cores são as MESMAS do HTML original, fixas
 // nos dois temas (claro/escuro): card branco, texto escuro, botão carbon+citric.
-// Envia um POST (no-cors) ao mesmo Web App do Apps Script (planilha "Ouvidoria").
-const OUVIDORIA_URL =
-  'https://script.google.com/macros/s/AKfycbwVPDROxvIfl4yaIZqNPlRdl5-UTtVSUeUMd5H9GdPn0wXnyaMKtwaLSvn1TdvTMw3Xnw/exec'
+// Grava direto no Supabase (RPC public.ouvidoria_registrar → dp_rh.ouvidoria).
+// Quando a pessoa se identifica, anexamos a matrícula de quem está logado pra o
+// RH poder ligar ao cadastro; no modo anônimo nenhuma identidade é enviada.
 
 // paleta do HTML original
 const CARBON = '#35383F'
@@ -59,6 +61,7 @@ function RadioGroup({ label, value, onChange, options }) {
 }
 
 export function Ouvidoria() {
+  const { usuario } = useAuth()
   const [identificacao, setIdentificacao] = useState('')
   const [nome, setNome] = useState('')
   const [data, setData] = useState('')
@@ -68,6 +71,7 @@ export function Ouvidoria() {
   const [contato, setContato] = useState('')
   const [enviando, setEnviando] = useState(false)
   const [enviado, setEnviado] = useState(false)
+  const [erro, setErro] = useState('')
 
   const mostraNome = identificacao === 'Sim'
   const mostraForma = devolutiva === 'Sim'
@@ -87,27 +91,25 @@ export function Ouvidoria() {
     e.preventDefault()
     if (!podeEnviar) return
     tapHaptic()
+    setErro('')
     setEnviando(true)
+    // Só anexa nome/matrícula quando a pessoa opta por se identificar.
     const payload = {
-      identificacao,
+      identificado: identificacao, // 'Sim' | 'Não' — a RPC converte pra boolean
       nome: mostraNome ? nome.trim() : '',
-      data,
+      matricula: mostraNome ? usuario?.matricula || '' : '',
+      data_ocorrido: data,
       descricao: descricao.trim(),
-      devolutiva,
-      forma: mostraForma ? forma : '',
+      quer_devolutiva: devolutiva, // 'Sim' | 'Não'
+      forma_devolutiva: mostraForma ? forma : '',
       contato: mostraContato ? contato.trim() : '',
     }
-    try {
-      await fetch(OUVIDORIA_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'text/plain' },
-        body: JSON.stringify(payload),
-      })
-    } catch {
-      /* no-cors: resposta opaca; segue para o sucesso mesmo assim */
-    }
+    const { error } = await supabase.rpc('ouvidoria_registrar', { payload })
     setEnviando(false)
+    if (error) {
+      setErro('Não foi possível enviar seu relato. Tente novamente.')
+      return
+    }
     setEnviado(true)
   }
 
@@ -284,6 +286,10 @@ export function Ouvidoria() {
             >
               {enviando ? 'Enviando...' : 'Enviar relato'}
             </button>
+
+            {erro && (
+              <p className="-mt-2 text-center text-[13px] font-medium text-[#D32F2F]">{erro}</p>
+            )}
           </form>
         </div>
       </div>
