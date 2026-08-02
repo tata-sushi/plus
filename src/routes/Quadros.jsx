@@ -236,7 +236,7 @@ function ListaQuadros({ quadros, onAbrir, onMudou, selecionadoId }) {
 
   return (
     <>
-      <Header title="Quadros" />
+      <Header title="Kanban Tatá" />
       <Voltar />
       <div className="px-5 pt-2 pb-24">
         {quadros == null ? (
@@ -540,7 +540,7 @@ function VisaoQuadro({ quadroId, onVoltar, emCanvas }) {
   }
   return (
     <>
-      <Header title="Quadros" />
+      <Header title="Kanban Tatá" />
       {barra}
       {toolbar}
       {conteudoProvido}

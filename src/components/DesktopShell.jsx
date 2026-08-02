@@ -85,7 +85,7 @@ export function DesktopShell() {
     gov
       ? { canvasKey: 'portal', label: 'Governança', Icon: ShieldCheck }
       : { canvasKey: 'ouvidoria', label: 'Ouvidoria', Icon: Ear },
-    ...(podeQuadros ? [{ to: '/quadros', label: 'Quadros', Icon: KanbanSquare }] : []),
+    ...(podeQuadros ? [{ to: '/quadros', label: 'Kanban Tatá (beta)', Icon: KanbanSquare }] : []),
     { to: '/mais', label: 'Mais', Icon: Menu },
   ]
 
