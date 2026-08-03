@@ -93,7 +93,7 @@ export function AvaliacaoDia({ dia }) {
           <div className="font-display text-base font-bold">O que achou da refeição de hoje?</div>
           {!enviado && !liberada ? (
             <div className="mx-auto mt-2 max-w-xs text-xs text-muted">
-              A avaliação abre ao meio-dia (horário de Brasília). Volte depois do almoço 😊
+              A avaliação abre ao meio-dia
             </div>
           ) : (
             <>
