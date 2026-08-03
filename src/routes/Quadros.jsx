@@ -30,7 +30,7 @@ import {
   Loader2,
   Tag,
   Archive,
-  Settings2,
+  MoreVertical,
   ChevronLeft,
   Columns3,
   Search,
@@ -442,14 +442,13 @@ function VisaoQuadro({ quadroId, onVoltar, emCanvas }) {
   }
 
   const IconeBoard = iconeQuadro(board.icone)
-  // Todos os controles do quadro numa única linha, com o mesmo padrão de botão
-  // (círculo em branco; ativo = accent). Ordem: membros · filtros · busca ·
-  // camadas · opções.
+  // Barra enxuta no mobile: só nome + participantes + um "⋮" que abre todas as
+  // ações e opções (busca, filtros, agrupar, arquivados, gerenciar). Assim o
+  // nome do quadro respira. Um pontinho no ⋮ avisa que há filtro/busca ativos.
   const btnQuadro = 'grid h-8 w-8 shrink-0 place-items-center rounded-full tap'
   const btnOff = 'bg-surface text-muted'
-  const btnOn = 'bg-accent-soft text-accent'
   const barra = (
-    <div className="hstack gap-1.5 px-5 pt-1">
+    <div className="hstack gap-2 px-5 pt-1">
       <button onClick={onVoltar} aria-label="Voltar" className={cn(btnQuadro, btnOff)}>
         <ChevronLeft size={18} />
       </button>
@@ -457,26 +456,13 @@ function VisaoQuadro({ quadroId, onVoltar, emCanvas }) {
       <div className="min-w-0 flex-1">
         <div className="truncate font-display text-lg font-bold leading-tight">{board.nome}</div>
       </div>
-      <button onClick={() => setSheet('membros')} aria-label="Membros do quadro" className="hstack h-8 shrink-0 gap-1.5 rounded-pill border border-line px-2.5 text-xs font-semibold text-muted tap">
+      <button onClick={() => setSheet('membros')} aria-label="Participantes do quadro" className="hstack h-8 shrink-0 gap-1.5 rounded-pill border border-line px-2.5 text-xs font-semibold text-muted tap">
         <PilhaAvatares membros={board.membros} />
         <Users size={14} />
       </button>
-      <button onClick={() => setSheet('filtros')} aria-label="Filtros" className={cn(btnQuadro, temFiltro ? btnOn : btnOff)}>
-        <SlidersHorizontal size={16} />
-      </button>
-      <button onClick={() => setBuscaAberta((v) => !v)} aria-label="Buscar" className={cn(btnQuadro, buscaAberta || busca ? btnOn : btnOff)}>
-        <Search size={16} />
-      </button>
-      {vista === 'kanban' && (
-        <button onClick={() => setAgrupar((a) => !a)} aria-label="Agrupar por responsável" className={cn(btnQuadro, agrupar ? btnOn : btnOff)}>
-          <Layers size={16} />
-        </button>
-      )}
-      <button onClick={() => setSheet('arquivados')} aria-label="Cartões arquivados" className={cn(btnQuadro, btnOff)}>
-        <Archive size={16} />
-      </button>
-      <button onClick={() => setSheet('menu')} aria-label="Opções do quadro" className={cn(btnQuadro, btnOff)}>
-        <Settings2 size={16} />
+      <button onClick={() => setSheet('menu')} aria-label="Opções do quadro" className={cn(btnQuadro, 'relative', btnOff)}>
+        <MoreVertical size={18} />
+        {(temFiltro || busca) && <span className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-accent ring-2 ring-bg" />}
       </button>
     </div>
   )
@@ -523,7 +509,20 @@ function VisaoQuadro({ quadroId, onVoltar, emCanvas }) {
       {sheet === 'editar' && <EditarQuadroSheet board={board} onClose={() => setSheet(null)} onFeito={recarregar} />}
       {sheet === 'modelos' && <ModelosSheet board={board} onClose={() => setSheet(null)} />}
       {sheet === 'menu' && (
-        <MenuGerenciar board={board} admin={admin} vista={vista} setVista={setVista} onClose={() => setSheet(null)} onEscolher={(s) => setSheet(s)} onArquivou={() => { setSheet(null); onVoltar() }} onFeito={recarregar} />
+        <MenuGerenciar
+          board={board}
+          admin={admin}
+          vista={vista}
+          setVista={setVista}
+          temFiltro={temFiltro}
+          agrupar={agrupar}
+          setAgrupar={setAgrupar}
+          onBuscar={() => { setSheet(null); setBuscaAberta(true) }}
+          onClose={() => setSheet(null)}
+          onEscolher={(s) => setSheet(s)}
+          onArquivou={() => { setSheet(null); onVoltar() }}
+          onFeito={recarregar}
+        />
       )}
     </>
   )
@@ -1653,7 +1652,7 @@ function FiltrosSheet({ board, filtros, setFiltros, onClose }) {
 }
 
 // ── Menu de gerenciamento (admin) ────────────────────────────────────────────
-function MenuGerenciar({ board, admin, vista, setVista, onClose, onEscolher, onArquivou, onFeito }) {
+function MenuGerenciar({ board, admin, vista, setVista, temFiltro, agrupar, setAgrupar, onBuscar, onClose, onEscolher, onArquivou, onFeito }) {
   const [busy, setBusy] = useState(false)
   const [pontua, setPontua] = useState(!!board.pontua)
   async function togglePontua() {
@@ -1688,7 +1687,27 @@ function MenuGerenciar({ board, admin, vista, setVista, onClose, onEscolher, onA
     <Sheet onClose={onClose}>
       <div className="font-display text-lg font-bold">Opções do quadro</div>
 
-      <div className="mt-3 text-[11px] font-semibold uppercase tracking-wide text-muted">Visualização</div>
+      <div className="mt-3 text-[11px] font-semibold uppercase tracking-wide text-muted">Ações</div>
+      <div className="mt-2 flex flex-col gap-2">
+        <button className={item} onClick={onBuscar}>
+          <Search size={17} className="text-accent" /> Buscar cartão
+        </button>
+        <button className={item} onClick={() => onEscolher('filtros')}>
+          <SlidersHorizontal size={17} className="text-accent" /> Filtros
+          {temFiltro && <span className="ml-auto rounded-pill bg-accent-soft px-2 py-0.5 text-[10px] font-bold uppercase text-accent">ativo</span>}
+        </button>
+        {vista === 'kanban' && (
+          <button className={item} onClick={() => { setAgrupar((a) => !a); onClose() }}>
+            <Layers size={17} className="text-accent" /> Agrupar por responsável
+            {agrupar && <Check size={16} className="ml-auto text-accent" />}
+          </button>
+        )}
+        <button className={item} onClick={() => onEscolher('arquivados')}>
+          <Archive size={17} className="text-accent" /> Cartões arquivados
+        </button>
+      </div>
+
+      <div className="mt-4 text-[11px] font-semibold uppercase tracking-wide text-muted">Visualização</div>
       <div className="mt-2 flex flex-col gap-2">
         {VISUALIZACOES.map(([v, label, Ic]) => (
           <button key={v} onClick={() => { setVista(v); onClose() }} className={cn(item, vista === v && 'border-accent bg-accent-soft text-accent')}>
