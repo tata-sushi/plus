@@ -29,8 +29,11 @@ export function Cardapio() {
     )
 
   const hj = isoLocal(new Date())
-  // Cardápio da semana = de hoje em diante (próximos dias)
-  const proximos = (semana || []).filter((d) => d.data >= hj)
+  // Cardápio da semana = de hoje em diante, só os dias que já têm cardápio
+  // definido. Dia sem menu não vira cartão "a definir" nem abre a avaliação de
+  // hoje (não dá pra avaliar um prato que não existe).
+  const temCardapio = (d) => !!(d.resumo || (d.itens && d.itens.length))
+  const proximos = (semana || []).filter((d) => d.data >= hj && temCardapio(d))
 
   return (
     <>
