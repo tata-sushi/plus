@@ -382,7 +382,7 @@ function EditorPessoa({ pessoa, catalogo, catalogoAbas, onFechar, onSalvo }) {
             <div className="min-w-0 flex-1">
               <div className="text-sm font-semibold">Resetar senha de acesso</div>
               <div className="text-xs text-muted">
-                Volta para a padrão <b className="text-text">tata@123</b>. {(pessoa.nome || '').trim().split(/\s+/)[0]} vai receber o aviso de Segurança para trocar a senha quando entrar.
+                A senha volta para a padrão <b className="text-text">tata@123</b>.
               </div>
             </div>
           </div>
