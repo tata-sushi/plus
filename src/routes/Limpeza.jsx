@@ -34,6 +34,7 @@ export default function Limpeza() {
   const [fotoObrig, setFotoObrig] = useState(null) // { file, preview }
   const [fotoOpcional, setFotoOpcional] = useState(null)
   const [ultimo, setUltimo] = useState(null)
+  const [itens, setItens] = useState({}) // respostas do checklist: chave -> bool
 
   // Deep link: QR abriu o app em /limpeza?b=<token>
   useEffect(() => {
@@ -49,6 +50,8 @@ export default function Limpeza() {
       const { data, error } = await supabase.rpc('limpeza_preparar', { p_token: tk })
       if (error) throw error
       setDados(data)
+      // checklist começa todo "SIM" (feito); a pessoa marca NÃO nas exceções
+      setItens(Object.fromEntries((data.itens || []).map((i) => [i.chave, true])))
     } catch (e) {
       setErro(traduzir(e)); setFase('erro')
     }
@@ -77,6 +80,7 @@ export default function Limpeza() {
       const { error } = await supabase.rpc('limpeza_registrar', {
         p_token: token, p_foto_url: fotoUrl,
         p_observacao: obs.trim() || null, p_foto_obs_url: fotoObsUrl,
+        p_itens: dados?.itens?.length ? itens : null,
       })
       if (error) throw error
       tapHaptic()
@@ -122,7 +126,7 @@ export default function Limpeza() {
 
         {fase === 'prep' && dados && (
           <TelaConfirmar
-            dados={dados} obs={obs} setObs={setObs}
+            dados={dados} itens={itens} setItens={setItens} obs={obs} setObs={setObs}
             fotoObrig={fotoObrig} setFotoObrig={setFotoObrig}
             fotoOpcional={fotoOpcional} setFotoOpcional={setFotoOpcional}
             erro={erro} onConfirmar={confirmar} onCancelar={recomecar}
@@ -264,7 +268,7 @@ function FotoInput({ label, valor, onChange, capture }) {
 }
 
 // ── Tela de confirmação ──────────────────────────────────────────────────────
-function TelaConfirmar({ dados, obs, setObs, fotoObrig, setFotoObrig, fotoOpcional, setFotoOpcional, erro, onConfirmar, onCancelar }) {
+function TelaConfirmar({ dados, itens, setItens, obs, setObs, fotoObrig, setFotoObrig, fotoOpcional, setFotoOpcional, erro, onConfirmar, onCancelar }) {
   const ehSelfie = dados.foto_tipo === 'selfie'
   return (
     <div className="mt-4 flex flex-col gap-4">
@@ -277,6 +281,28 @@ function TelaConfirmar({ dados, obs, setObs, fotoObrig, setFotoObrig, fotoOpcion
           {dados.banheiro.unidade && <div className="text-xs text-muted">{dados.banheiro.unidade}</div>}
         </div>
       </Card>
+
+      {dados.itens?.length > 0 && (
+        <div>
+          <div className="mb-1.5 text-[11px] font-bold uppercase tracking-widest text-muted">Checklist da limpeza</div>
+          <Card className="flex flex-col divide-y divide-line !p-0">
+            {dados.itens.map((it) => {
+              const sim = itens[it.chave] !== false
+              return (
+                <div key={it.chave} className="hstack items-center gap-2 px-3 py-2.5">
+                  <span className="min-w-0 flex-1 text-sm">{it.label}</span>
+                  <div className="hstack shrink-0 overflow-hidden rounded-lg border border-line">
+                    <button type="button" onClick={() => setItens((m) => ({ ...m, [it.chave]: true }))}
+                      className={cn('px-3 py-1 text-xs font-bold tap', sim ? 'bg-accent text-black' : 'text-muted')}>SIM</button>
+                    <button type="button" onClick={() => setItens((m) => ({ ...m, [it.chave]: false }))}
+                      className={cn('border-l border-line px-3 py-1 text-xs font-bold tap', !sim ? 'bg-danger text-white' : 'text-muted')}>NÃO</button>
+                  </div>
+                </div>
+              )
+            })}
+          </Card>
+        </div>
+      )}
 
       {dados.foto_requerida && (
         <Card className="border-warn/40">
