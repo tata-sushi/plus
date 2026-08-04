@@ -60,9 +60,11 @@ import {
   Heart,
   Flame,
   Zap,
+  SprayCan,
 } from 'lucide-react'
 
 export const iconMap = {
+  SprayCan,
   Megaphone,
   GraduationCap,
   ClipboardList,

@@ -111,4 +111,6 @@ export const governancaCatalogo = [
   { id: 'gov_performance', label: 'Performance', icon: 'Target', url: 'https://lideres.tatasushi.tech/compliance/kpis/rh/performance.html', admin: true },
   { id: 'gov_cardapio', label: 'Cardápio Tatá House', icon: 'BookOpen', url: 'https://lideres.tatasushi.tech/compliance/kpis/tatahouse/cardapio.html' },
   { id: 'gov_report_semanal', label: 'Report semanal', icon: 'LineChart', url: 'https://lideres.tatasushi.tech/compliance/kpis/rh/semanal.html', admin: true },
+  // Rota interna do app (não é link do portal). 'need' = campo de acesso em `usuario`.
+  { id: 'app_limpeza', label: 'Limpeza de banheiros', icon: 'SprayCan', url: '/limpeza', app: true, need: 'podeLimpeza' },
 ]

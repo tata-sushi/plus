@@ -39,8 +39,9 @@ export function GerenciarAtalhos() {
     })
   }
 
-  const gerais = governancaCatalogo.filter((c) => !c.admin)
-  const doAdmin = governancaCatalogo.filter((c) => c.admin)
+  const visiveis = governancaCatalogo.filter((c) => !c.need || usuario?.[c.need])
+  const gerais = visiveis.filter((c) => !c.admin)
+  const doAdmin = visiveis.filter((c) => c.admin)
 
   const renderLista = (itens) => (
     <div className="card overflow-hidden">

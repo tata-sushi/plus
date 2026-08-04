@@ -37,7 +37,7 @@ export function AtalhosGovernanca() {
   const fixadas = pinned
     .map((id) => governancaCatalogo.find((c) => c.id === id))
     .filter(Boolean)
-    .filter((p) => isAdmin || !p.admin)
+    .filter((p) => (isAdmin || !p.admin) && (!p.need || usuario?.[p.need]))
   const desktop = useDesktop()
   const { abrirAba } = useDesktopCanvas()
 
@@ -54,6 +54,14 @@ export function AtalhosGovernanca() {
                 <span className="min-w-0 flex-1 truncate text-xs font-semibold">{p.label}</span>
               </>
             )
+            // Atalho de rota interna do app (ex.: Limpeza) navega direto.
+            if (p.app) {
+              return (
+                <Link key={p.id} to={p.url} onClick={tapHaptic} className={cls}>
+                  {inner}
+                </Link>
+              )
+            }
             // No desktop o atalho abre como ABA (rail lateral, estilo navegador);
             // no celular navega pra tela cheia.
             return desktop ? (
