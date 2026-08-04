@@ -102,6 +102,7 @@ export const governancaCatalogo = [
   { id: 'gov_bancohoras', label: 'Banco de Horas', icon: 'Clock', url: 'https://lideres.tatasushi.tech/compliance/kpis/rh/bancodehoras.html' },
   { id: 'gov_beneficios', label: 'Benefícios', icon: 'HandCoins', url: 'https://lideres.tatasushi.tech/compliance/kpis/rh/beneficios.html' },
   { id: 'gov_uniformes', label: 'Uniformes', icon: 'Shirt', url: 'https://lideres.tatasushi.tech/compliance/kpis/rh/estoqueadm.html' },
+  { id: 'gov_estoque_semanal', label: 'Estoque Semanal', icon: 'Boxes', url: 'https://lideres.tatasushi.tech/compliance/kpis/estoque/estoque_semanal.html' },
   { id: 'gov_experiencia', label: 'Experiência', icon: 'Smile', url: 'https://lideres.tatasushi.tech/compliance/kpis/rh/experiencias.html' },
   { id: 'gov_feriados', label: 'Feriados', icon: 'CalendarDays', url: 'https://lideres.tatasushi.tech/compliance/kpis/rh/feriados.html' },
   { id: 'gov_recrutamento', label: 'Recrutamento', icon: 'UserPlus', url: 'https://lideres.tatasushi.tech/compliance/kpis/rh/recrutamento.html' },
