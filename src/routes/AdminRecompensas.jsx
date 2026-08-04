@@ -24,6 +24,7 @@ import {
   Megaphone,
   ShieldCheck,
   SprayCan,
+  Smartphone,
 } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Section } from '../components/Section.jsx'
@@ -51,6 +52,7 @@ const TITULOS = {
   conquistas: 'Conquistas',
   comunicados: 'Anúncios',
   governanca: 'Governança',
+  aplicativo: 'Aplicativo',
   banheiros: 'Banheiros',
 }
 
@@ -492,7 +494,10 @@ export function AdminRecompensas() {
       : []),
     {
       titulo: 'Acessos',
-      itens: [{ id: 'governanca', label: 'Governança', icon: ShieldCheck }],
+      itens: [
+        { id: 'governanca', label: 'Governança', icon: ShieldCheck },
+        { id: 'aplicativo', label: 'Aplicativo', icon: Smartphone },
+      ],
     },
   ]
 
@@ -507,8 +512,10 @@ export function AdminRecompensas() {
           <BackBar titulo={TITULOS[aba]} onVoltar={() => setAba('menu')} />
           {aba === 'banheiros' ? (
         <AdminBanheiros />
+      ) : aba === 'aplicativo' ? (
+        <AdminGovernanca scope="app" />
       ) : aba === 'governanca' ? (
-        <AdminGovernanca />
+        <AdminGovernanca scope="governanca" />
       ) : aba === 'conquistas' ? (
         <AdminConquistas />
       ) : aba === 'comunicados' ? (

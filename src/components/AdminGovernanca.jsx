@@ -26,8 +26,11 @@ function agrupar(catalogo) {
 // Editor de acesso de uma pessoa: páginas (checkbox) e, por página, as abas
 // (liberadas por padrão; toque pra bloquear) e os botões da barra lateral
 // (ocultos por padrão; toque pra liberar pra esta pessoa).
-function EditorPessoa({ pessoa, catalogo, catalogoAbas, onFechar, onSalvo }) {
+function EditorPessoa({ pessoa, scope = 'governanca', catalogo, catalogoAbas, onFechar, onSalvo }) {
+  const ehApp = scope === 'app'
   const grupos = useMemo(() => agrupar(catalogo), [catalogo])
+  // Ids de página dentro do escopo aberto (p/ contar no rodapé sem misturar escopos).
+  const escopoPaginaIds = useMemo(() => new Set((catalogo || []).map((p) => p.pagina_id)), [catalogo])
   // Agrupa por página e separa em abas (tipo='aba') e botões (tipo='botao').
   const itensPorPagina = useMemo(() => {
     const m = {}
@@ -269,7 +272,7 @@ function EditorPessoa({ pessoa, catalogo, catalogoAbas, onFechar, onSalvo }) {
 
       {/* Corpo */}
       <div className="flex-1 overflow-y-auto px-5 py-4">
-        {pessoa.is_admin ? (
+        {!ehApp && pessoa.is_admin ? (
           <Card className="hstack gap-3">
             <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-accent-soft text-accent">
               <ShieldCheck size={20} />
@@ -373,53 +376,55 @@ function EditorPessoa({ pessoa, catalogo, catalogoAbas, onFechar, onSalvo }) {
           </div>
         )}
 
-        {/* Reset de senha — fica no final: as páginas de acesso são prioridade */}
-        <Card className="mt-4">
-          <div className="hstack gap-3">
-            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-warn/15 text-warn">
-              <KeyRound size={18} />
-            </span>
-            <div className="min-w-0 flex-1">
-              <div className="text-sm font-semibold">Resetar senha de acesso</div>
-              <div className="text-xs text-muted">
-                A senha volta para a padrão <b className="text-text">tata@123</b>.
+        {/* Reset de senha — só no escopo "Aplicativo" (é ação do app, não governança) */}
+        {ehApp && (
+          <Card className="mt-4">
+            <div className="hstack gap-3">
+              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-warn/15 text-warn">
+                <KeyRound size={18} />
+              </span>
+              <div className="min-w-0 flex-1">
+                <div className="text-sm font-semibold">Resetar senha de acesso</div>
+                <div className="text-xs text-muted">
+                  A senha volta para a padrão <b className="text-text">tata@123</b>.
+                </div>
               </div>
             </div>
-          </div>
-          <div className="mt-3">
-            {reset.fase === 'done' ? (
-              <div className="hstack gap-2 text-sm font-semibold text-accent">
-                <Check size={16} /> Senha resetada para tata@123.
-              </div>
-            ) : reset.fase === 'confirm' ? (
-              <div className="hstack gap-2">
-                <button onClick={resetarSenha} className="btn-primary flex-1 py-2 text-sm">
-                  Confirmar reset
-                </button>
+            <div className="mt-3">
+              {reset.fase === 'done' ? (
+                <div className="hstack gap-2 text-sm font-semibold text-accent">
+                  <Check size={16} /> Senha resetada para tata@123.
+                </div>
+              ) : reset.fase === 'confirm' ? (
+                <div className="hstack gap-2">
+                  <button onClick={resetarSenha} className="btn-primary flex-1 py-2 text-sm">
+                    Confirmar reset
+                  </button>
+                  <button
+                    onClick={() => setReset({ fase: 'idle' })}
+                    className="shrink-0 rounded-lg border border-line px-3 py-2 text-sm font-semibold text-muted tap"
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              ) : (
                 <button
-                  onClick={() => setReset({ fase: 'idle' })}
-                  className="shrink-0 rounded-lg border border-line px-3 py-2 text-sm font-semibold text-muted tap"
+                  onClick={() => setReset({ fase: 'confirm' })}
+                  disabled={reset.fase === 'loading'}
+                  className="hstack w-full justify-center gap-2 rounded-lg border border-line py-2 text-sm font-semibold tap disabled:opacity-50"
                 >
-                  Cancelar
+                  {reset.fase === 'loading' ? <Loader2 size={16} className="animate-spin" /> : <KeyRound size={16} />}
+                  Resetar senha para padrão
                 </button>
-              </div>
-            ) : (
-              <button
-                onClick={() => setReset({ fase: 'confirm' })}
-                disabled={reset.fase === 'loading'}
-                className="hstack w-full justify-center gap-2 rounded-lg border border-line py-2 text-sm font-semibold tap disabled:opacity-50"
-              >
-                {reset.fase === 'loading' ? <Loader2 size={16} className="animate-spin" /> : <KeyRound size={16} />}
-                Resetar senha para padrão
-              </button>
-            )}
-            {reset.fase === 'error' && <div className="mt-2 text-xs font-medium text-danger">{reset.msg}</div>}
-          </div>
-        </Card>
+              )}
+              {reset.fase === 'error' && <div className="mt-2 text-xs font-medium text-danger">{reset.msg}</div>}
+            </div>
+          </Card>
+        )}
       </div>
 
       {/* Rodapé */}
-      {!pessoa.is_admin && ids !== null && (
+      {(ehApp || !pessoa.is_admin) && ids !== null && (
         <div className="safe-bottom shrink-0 border-t border-line bg-surface px-5 py-3">
           <button
             onClick={salvar}
@@ -429,9 +434,19 @@ function EditorPessoa({ pessoa, catalogo, catalogoAbas, onFechar, onSalvo }) {
             {salvando ? (
               <Loader2 size={18} className="animate-spin" />
             ) : (
-              `Salvar acesso (${ids.size} ${ids.size === 1 ? 'página' : 'páginas'}${
-                contagem.abasOff ? ` · ${contagem.abasOff} aba(s) off` : ''
-              }${contagem.botoesOn ? ` · ${contagem.botoesOn} botão(ões) liberado(s)` : ''})`
+              (() => {
+                const n = [...ids].filter((id) => escopoPaginaIds.has(id)).length
+                const palavra = ehApp
+                  ? n === 1 ? 'recurso' : 'recursos'
+                  : n === 1 ? 'página' : 'páginas'
+                // abas/botões só existem nas páginas de governança — não no escopo App.
+                const extra = ehApp
+                  ? ''
+                  : `${contagem.abasOff ? ` · ${contagem.abasOff} aba(s) off` : ''}${
+                      contagem.botoesOn ? ` · ${contagem.botoesOn} botão(ões) liberado(s)` : ''
+                    }`
+                return `Salvar acesso (${n} ${palavra}${extra})`
+              })()
             )}
           </button>
         </div>
@@ -441,9 +456,15 @@ function EditorPessoa({ pessoa, catalogo, catalogoAbas, onFechar, onSalvo }) {
   )
 }
 
-// Aba "Governança" do painel admin: libera, por colaborador, quais páginas do
-// portal de líderes ele enxerga — e, por página, quais abas ficam bloqueadas.
-export function AdminGovernanca() {
+// Seção de acesso do painel admin. Dois escopos, mesma máquina:
+//  · scope='governanca' → páginas do portal de líderes (seção ≠ App).
+//    Admin enxerga tudo automaticamente (bypass).
+//  · scope='app' → recursos do próprio app (seção 'App': Kanban, Escala,
+//    Limpeza) + reset de senha. Não há bypass: até admin precisa de liberação.
+// O editor sempre carrega/salva o conjunto COMPLETO de acessos; o escopo só
+// muda o que aparece — então separar as telas nunca apaga o acesso do outro lado.
+export function AdminGovernanca({ scope = 'governanca' }) {
+  const ehApp = scope === 'app'
   const [pessoas, setPessoas] = useState(null)
   const [catalogo, setCatalogo] = useState([])
   const [catalogoAbas, setCatalogoAbas] = useState([])
@@ -462,6 +483,12 @@ export function AdminGovernanca() {
     })
   }
   useEffect(carregar, [])
+
+  // Catálogo do escopo: App traz só a seção 'App'; governança, todo o resto.
+  const catalogoEscopo = useMemo(
+    () => catalogo.filter((p) => (ehApp ? p.secao === 'App' : p.secao !== 'App')),
+    [catalogo, ehApp],
+  )
 
   const filtradas = useMemo(() => {
     const t = busca.trim().toLowerCase()
@@ -505,7 +532,9 @@ export function AdminGovernanca() {
           </div>
         </Card>
         <p className="mt-2 px-1 text-xs text-muted">
-          {comAcesso} com acesso · {catalogo.length} páginas no catálogo
+          {ehApp
+            ? `${catalogoEscopo.length} recursos do app · liberação por colaborador`
+            : `${comAcesso} com acesso · ${catalogoEscopo.length} páginas no catálogo`}
         </p>
       </div>
 
@@ -529,7 +558,7 @@ export function AdminGovernanca() {
                     {p.unidade ? ` · ${p.unidade}` : ''}
                   </div>
                 </div>
-                {p.is_admin ? (
+                {ehApp ? null : p.is_admin ? (
                   <span className="pill shrink-0 bg-accent-soft text-[10px] uppercase text-accent">
                     <ShieldCheck size={11} /> Vê tudo
                   </span>
@@ -555,7 +584,8 @@ export function AdminGovernanca() {
       {sel && (
         <EditorPessoa
           pessoa={sel}
-          catalogo={catalogo}
+          scope={scope}
+          catalogo={catalogoEscopo}
           catalogoAbas={catalogoAbas}
           onFechar={() => setSel(null)}
           onSalvo={(qtd) => aoSalvar(sel.matricula, qtd)}
