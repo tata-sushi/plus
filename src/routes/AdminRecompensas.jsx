@@ -16,6 +16,14 @@ import {
   FileText,
   Archive,
   ArchiveRestore,
+  ChevronRight,
+  Gift,
+  ShoppingBag,
+  FileCheck2,
+  Trophy,
+  Megaphone,
+  ShieldCheck,
+  SprayCan,
 } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Section } from '../components/Section.jsx'
@@ -26,6 +34,7 @@ import { PhotoCropper } from '../components/PhotoCropper.jsx'
 import { AdminPublicacoes } from '../components/AdminPublicacoes.jsx'
 import { AdminConquistas } from '../components/AdminConquistas.jsx'
 import { AdminGovernanca } from '../components/AdminGovernanca.jsx'
+import { AdminBanheiros } from '../components/AdminBanheiros.jsx'
 import { cn } from '../lib/cn'
 import { tapHaptic } from '../lib/haptics.js'
 import { useAuth } from '../lib/AuthContext.jsx'
@@ -33,6 +42,78 @@ import { supabase } from '../lib/supabase.js'
 
 const fmt = (n) => Number(n || 0).toLocaleString('pt-BR')
 const TAM_MAX = 15 * 1024 * 1024 // 15 MB
+
+// Título mostrado na barra de volta ao abrir cada seção do painel.
+const TITULOS = {
+  catalogo: 'Recompensas',
+  pedidos: 'Pedidos',
+  envios: 'Envios',
+  conquistas: 'Conquistas',
+  comunicados: 'Anúncios',
+  governanca: 'Governança',
+  banheiros: 'Banheiros',
+}
+
+// Hub do painel: menu de navegação (padrão do "Mais"), agrupado por seção.
+function MenuHub({ grupos, onAbrir, onSair }) {
+  return (
+    <>
+      <div className="hstack gap-2 px-5 pt-1 text-sm">
+        <button onClick={onSair} className="hstack gap-1 text-muted tap">
+          <ArrowLeft size={16} /> Mais
+        </button>
+      </div>
+      <div className="flex flex-col gap-5 px-5 pb-24 pt-3">
+        {grupos.map((g) => (
+          <div key={g.titulo}>
+            <div className="mb-1.5 px-1 text-[11px] font-semibold uppercase tracking-wide text-muted-2">
+              {g.titulo}
+            </div>
+            <div className="card overflow-hidden">
+              {g.itens.map((it, idx) => {
+                const Icon = it.icon
+                return (
+                  <button
+                    key={it.id}
+                    onClick={() => onAbrir(it.id)}
+                    className={cn(
+                      'hstack w-full gap-3 px-4 py-3.5 text-left tap',
+                      idx > 0 && 'border-t border-line',
+                    )}
+                  >
+                    <div className="grid h-9 w-9 place-items-center rounded-full bg-accent-soft text-accent">
+                      <Icon size={18} />
+                    </div>
+                    <span className="flex-1 text-sm font-semibold">{it.label}</span>
+                    {it.badge > 0 && (
+                      <span className="grid h-5 min-w-5 place-items-center rounded-full bg-warn/20 px-1 text-[11px] font-bold text-warn">
+                        {it.badge}
+                      </span>
+                    )}
+                    <ChevronRight size={16} className="text-carbon" />
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        ))}
+      </div>
+    </>
+  )
+}
+
+// Barra de volta ao topo de cada seção aberta.
+function BackBar({ titulo, onVoltar }) {
+  return (
+    <div className="hstack items-center gap-2 px-5 pt-1 text-sm">
+      <button onClick={onVoltar} className="hstack gap-1 text-muted tap">
+        <ArrowLeft size={16} /> Painel
+      </button>
+      <ChevronRight size={14} className="text-muted-2" />
+      <span className="font-semibold">{titulo}</span>
+    </div>
+  )
+}
 
 // filtro (lista suspensa) no padrão da aba Avisos
 const filtroCls =
@@ -84,8 +165,10 @@ export function AdminRecompensas() {
   const navigate = useNavigate()
   const { usuario } = useAuth()
   const admin = usuario?.podePublicar
+  const isAdminPerfil = (usuario?.perfil || '').toLowerCase() === 'admin'
 
-  const [aba, setAba] = useState('catalogo') // 'catalogo' | 'pedidos'
+  // 'menu' = hub (padrão) · demais = seção aberta
+  const [aba, setAba] = useState('menu')
   const [filtroCat, setFiltroCat] = useState('todas') // todas | ativas | inativas
   const [filtroPed, setFiltroPed] = useState('todos') // todos | solicitado | entregue | cancelado
   const [filtroEnv, setFiltroEnv] = useState('todos') // todos | pendente | aprovado | reprovado
@@ -387,97 +470,44 @@ export function AdminRecompensas() {
     )
   }
 
+  // Menu do hub (padrão do "Mais"): grupos de seções. Banheiros só p/ perfil admin.
+  const grupos = [
+    {
+      titulo: 'Loja & Pontos',
+      itens: [
+        { id: 'catalogo', label: 'Recompensas', icon: Gift },
+        { id: 'pedidos', label: 'Pedidos', icon: ShoppingBag, badge: pendentes },
+        { id: 'envios', label: 'Envios', icon: FileCheck2, badge: enviosPendentes },
+      ],
+    },
+    {
+      titulo: 'Reconhecimento',
+      itens: [
+        { id: 'conquistas', label: 'Conquistas', icon: Trophy },
+        { id: 'comunicados', label: 'Anúncios', icon: Megaphone },
+      ],
+    },
+    ...(isAdminPerfil
+      ? [{ titulo: 'Operação', itens: [{ id: 'banheiros', label: 'Banheiros', icon: SprayCan }] }]
+      : []),
+    {
+      titulo: 'Acessos',
+      itens: [{ id: 'governanca', label: 'Governança', icon: ShieldCheck }],
+    },
+  ]
+
   return (
     <>
       <Header title="Administração" />
 
-      <div className="hstack gap-2 px-5 pt-1 text-sm">
-        <button onClick={() => navigate('/mais')} className="hstack gap-1 text-muted tap">
-          <ArrowLeft size={16} /> Mais
-        </button>
-      </div>
-
-      {/* Abas */}
-      <div className="px-5 pt-3">
-        <div className="card flex gap-1 overflow-x-auto p-1.5 no-scrollbar">
-          <button
-            onClick={() => setAba('comunicados')}
-            className={cn(
-              'shrink-0 rounded-2xl px-4 py-2.5 text-xs font-semibold tap',
-              aba === 'comunicados' ? 'bg-accent text-black' : 'text-muted',
-            )}
-          >
-            Anúncios
-          </button>
-          <button
-            onClick={() => setAba('catalogo')}
-            className={cn(
-              'shrink-0 rounded-2xl px-4 py-2.5 text-xs font-semibold tap',
-              aba === 'catalogo' ? 'bg-accent text-black' : 'text-muted',
-            )}
-          >
-            Recompensas
-          </button>
-          <button
-            onClick={() => setAba('pedidos')}
-            className={cn(
-              'hstack shrink-0 justify-center gap-1 rounded-2xl px-4 py-2.5 text-xs font-semibold tap',
-              aba === 'pedidos' ? 'bg-accent text-black' : 'text-muted',
-            )}
-          >
-            Pedidos
-            {pendentes > 0 && (
-              <span
-                className={cn(
-                  'grid h-5 min-w-5 place-items-center rounded-full px-1 text-[11px] font-bold',
-                  aba === 'pedidos' ? 'bg-black/15 text-black' : 'bg-warn/20 text-warn',
-                )}
-              >
-                {pendentes}
-              </span>
-            )}
-          </button>
-          <button
-            onClick={() => setAba('envios')}
-            className={cn(
-              'hstack shrink-0 justify-center gap-1 rounded-2xl px-4 py-2.5 text-xs font-semibold tap',
-              aba === 'envios' ? 'bg-accent text-black' : 'text-muted',
-            )}
-          >
-            Envios
-            {enviosPendentes > 0 && (
-              <span
-                className={cn(
-                  'grid h-5 min-w-5 place-items-center rounded-full px-1 text-[11px] font-bold',
-                  aba === 'envios' ? 'bg-black/15 text-black' : 'bg-warn/20 text-warn',
-                )}
-              >
-                {enviosPendentes}
-              </span>
-            )}
-          </button>
-          <button
-            onClick={() => setAba('conquistas')}
-            className={cn(
-              'shrink-0 rounded-2xl px-4 py-2.5 text-xs font-semibold tap',
-              aba === 'conquistas' ? 'bg-accent text-black' : 'text-muted',
-            )}
-          >
-            Conquistas
-          </button>
-          <button
-            onClick={() => setAba('governanca')}
-            className={cn(
-              'shrink-0 rounded-2xl px-4 py-2.5 text-xs font-semibold tap',
-              aba === 'governanca' ? 'bg-accent text-black' : 'text-muted',
-            )}
-          >
-            Governança
-          </button>
-        </div>
-      </div>
-
-      {aba === 'governanca' ? (
+      {aba === 'menu' ? (
+        <MenuHub grupos={grupos} onAbrir={setAba} onSair={() => navigate('/mais')} />
+      ) : (
+        <>
+          <BackBar titulo={TITULOS[aba]} onVoltar={() => setAba('menu')} />
+          {aba === 'banheiros' ? (
+        <AdminBanheiros />
+      ) : aba === 'governanca' ? (
         <AdminGovernanca />
       ) : aba === 'conquistas' ? (
         <AdminConquistas />
@@ -835,6 +865,8 @@ export function AdminRecompensas() {
           )}
         </Section>
           )}
+        </>
+      )}
         </>
       )}
 

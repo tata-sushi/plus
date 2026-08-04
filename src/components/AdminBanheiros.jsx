@@ -1,16 +1,15 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Navigate } from 'react-router-dom'
-import { Loader2, Plus, Pencil, QrCode, Check, X, Power, Download, SprayCan, GripVertical } from 'lucide-react'
-import { Header } from '../components/Header.jsx'
-import { Voltar } from '../components/Voltar.jsx'
-import { Card } from '../components/Card.jsx'
+import { Loader2, Plus, Pencil, QrCode, Check, X, Power, Download } from 'lucide-react'
+import { Card } from './Card.jsx'
 import { useAuth } from '../lib/AuthContext.jsx'
 import { supabase } from '../lib/supabase.js'
 import { cn } from '../lib/cn'
 
 const DEEP = 'https://plus.tatasushi.tech/limpeza?b='
 
-export default function LimpezaAdmin() {
+// Admin de banheiros (Limpeza) — embutido no painel de administração.
+// Sem Header/Voltar próprios: o hub do painel cuida da navegação.
+export function AdminBanheiros() {
   const { usuario } = useAuth()
   const isAdmin = (usuario?.perfil || '').toLowerCase() === 'admin'
   const [tab, setTab] = useState('banheiros')
@@ -37,82 +36,75 @@ export default function LimpezaAdmin() {
     return m
   }, [banheiros])
 
-  if (!usuario || usuario.perfilPendente) {
-    return <div className="grid place-items-center py-24 text-muted-2"><Loader2 size={22} className="animate-spin" /></div>
-  }
-  if (!isAdmin) return <Navigate to="/" replace />
+  if (!isAdmin) return null
 
   const carregando = banheiros == null || itens == null
 
   return (
-    <>
-      <Header title="Limpeza — Gerenciar" />
-      <Voltar />
-      <div className="px-5 pb-24 pt-2">
-        {/* Tabs */}
-        <div className="hstack gap-2">
-          {[['banheiros', 'Banheiros'], ['checklist', 'Checklist']].map(([k, l]) => (
-            <button key={k} onClick={() => setTab(k)}
-              className={cn('rounded-pill px-4 py-1.5 text-sm font-semibold tap', tab === k ? 'bg-accent text-black' : 'border border-line text-muted')}>
-              {l}
-            </button>
+    <div className="px-5 pb-24 pt-3">
+      {/* Tabs */}
+      <div className="hstack gap-2">
+        {[['banheiros', 'Banheiros'], ['checklist', 'Checklist']].map(([k, l]) => (
+          <button key={k} onClick={() => setTab(k)}
+            className={cn('rounded-pill px-4 py-1.5 text-sm font-semibold tap', tab === k ? 'bg-accent text-black' : 'border border-line text-muted')}>
+            {l}
+          </button>
+        ))}
+      </div>
+
+      {carregando ? (
+        <div className="grid place-items-center py-20 text-muted-2"><Loader2 size={22} className="animate-spin" /></div>
+      ) : tab === 'banheiros' ? (
+        <div className="mt-4 flex flex-col gap-4">
+          <button onClick={() => setModal({ tipo: 'banheiro', dados: null })}
+            className="btn-primary hstack w-full justify-center gap-2 py-3 text-sm">
+            <Plus size={18} /> Novo banheiro
+          </button>
+          {Object.entries(porUnidade).map(([uni, list]) => (
+            <div key={uni}>
+              <div className="mb-1.5 text-[11px] font-bold uppercase tracking-widest text-muted">{uni}</div>
+              <Card className="flex flex-col divide-y divide-line !p-0">
+                {list.map((b) => (
+                  <div key={b.id} className="hstack items-center gap-2 px-3 py-2.5">
+                    <div className="min-w-0 flex-1">
+                      <div className={cn('truncate text-sm font-semibold', !b.ativo && 'text-muted-2 line-through')}>{b.nome}</div>
+                      <div className="text-[11px] text-muted">{b.checks} check{b.checks === 1 ? '' : 's'}</div>
+                    </div>
+                    <IconBtn title="QR" onClick={() => setModal({ tipo: 'qr', dados: b })}><QrCode size={16} /></IconBtn>
+                    <IconBtn title="Editar" onClick={() => setModal({ tipo: 'banheiro', dados: b })}><Pencil size={16} /></IconBtn>
+                    <IconBtn title={b.ativo ? 'Desativar' : 'Ativar'} ativo={b.ativo}
+                      onClick={async () => { await supabase.rpc('limpeza_admin_banheiro_toggle', { p_id: b.id, p_ativo: !b.ativo }); carregar() }}>
+                      <Power size={16} />
+                    </IconBtn>
+                  </div>
+                ))}
+              </Card>
+            </div>
           ))}
         </div>
-
-        {carregando ? (
-          <div className="grid place-items-center py-20 text-muted-2"><Loader2 size={22} className="animate-spin" /></div>
-        ) : tab === 'banheiros' ? (
-          <div className="mt-4 flex flex-col gap-4">
-            <button onClick={() => setModal({ tipo: 'banheiro', dados: null })}
-              className="btn-primary hstack w-full justify-center gap-2 py-3 text-sm">
-              <Plus size={18} /> Novo banheiro
-            </button>
-            {Object.entries(porUnidade).map(([uni, list]) => (
-              <div key={uni}>
-                <div className="mb-1.5 text-[11px] font-bold uppercase tracking-widest text-muted">{uni}</div>
-                <Card className="flex flex-col divide-y divide-line !p-0">
-                  {list.map((b) => (
-                    <div key={b.id} className="hstack items-center gap-2 px-3 py-2.5">
-                      <div className="min-w-0 flex-1">
-                        <div className={cn('truncate text-sm font-semibold', !b.ativo && 'text-muted-2 line-through')}>{b.nome}</div>
-                        <div className="text-[11px] text-muted">{b.checks} check{b.checks === 1 ? '' : 's'}</div>
-                      </div>
-                      <IconBtn title="QR" onClick={() => setModal({ tipo: 'qr', dados: b })}><QrCode size={16} /></IconBtn>
-                      <IconBtn title="Editar" onClick={() => setModal({ tipo: 'banheiro', dados: b })}><Pencil size={16} /></IconBtn>
-                      <IconBtn title={b.ativo ? 'Desativar' : 'Ativar'} ativo={b.ativo}
-                        onClick={async () => { await supabase.rpc('limpeza_admin_banheiro_toggle', { p_id: b.id, p_ativo: !b.ativo }); carregar() }}>
-                        <Power size={16} />
-                      </IconBtn>
-                    </div>
-                  ))}
-                </Card>
+      ) : (
+        <div className="mt-4 flex flex-col gap-3">
+          <button onClick={() => setModal({ tipo: 'item', dados: null })}
+            className="btn-primary hstack w-full justify-center gap-2 py-3 text-sm">
+            <Plus size={18} /> Novo item
+          </button>
+          <Card className="flex flex-col divide-y divide-line !p-0">
+            {(itens || []).map((it) => (
+              <div key={it.id} className="hstack items-center gap-2 px-3 py-2.5">
+                <span className="min-w-0 flex-1">
+                  <span className={cn('text-sm', !it.ativo && 'text-muted-2 line-through')}>{it.label}</span>
+                </span>
+                <IconBtn title="Editar" onClick={() => setModal({ tipo: 'item', dados: it })}><Pencil size={16} /></IconBtn>
+                <IconBtn title={it.ativo ? 'Desativar' : 'Ativar'} ativo={it.ativo}
+                  onClick={async () => { await supabase.rpc('limpeza_admin_item_toggle', { p_id: it.id, p_ativo: !it.ativo }); carregar() }}>
+                  <Power size={16} />
+                </IconBtn>
               </div>
             ))}
-          </div>
-        ) : (
-          <div className="mt-4 flex flex-col gap-3">
-            <button onClick={() => setModal({ tipo: 'item', dados: null })}
-              className="btn-primary hstack w-full justify-center gap-2 py-3 text-sm">
-              <Plus size={18} /> Novo item
-            </button>
-            <Card className="flex flex-col divide-y divide-line !p-0">
-              {(itens || []).map((it) => (
-                <div key={it.id} className="hstack items-center gap-2 px-3 py-2.5">
-                  <span className="min-w-0 flex-1">
-                    <span className={cn('text-sm', !it.ativo && 'text-muted-2 line-through')}>{it.label}</span>
-                  </span>
-                  <IconBtn title="Editar" onClick={() => setModal({ tipo: 'item', dados: it })}><Pencil size={16} /></IconBtn>
-                  <IconBtn title={it.ativo ? 'Desativar' : 'Ativar'} ativo={it.ativo}
-                    onClick={async () => { await supabase.rpc('limpeza_admin_item_toggle', { p_id: it.id, p_ativo: !it.ativo }); carregar() }}>
-                    <Power size={16} />
-                  </IconBtn>
-                </div>
-              ))}
-            </Card>
-            <p className="px-1 text-[11px] text-muted-2">Itens desativados somem do checklist novo, mas continuam nos checks já feitos.</p>
-          </div>
-        )}
-      </div>
+          </Card>
+          <p className="px-1 text-[11px] text-muted-2">Itens desativados somem do checklist novo, mas continuam nos checks já feitos.</p>
+        </div>
+      )}
 
       {modal?.tipo === 'banheiro' && (
         <BanheiroForm banheiro={modal.dados} unidades={Object.keys(porUnidade)} onClose={() => setModal(null)} onSalvo={() => { setModal(null); carregar() }} />
@@ -121,7 +113,7 @@ export default function LimpezaAdmin() {
         <ItemForm item={modal.dados} onClose={() => setModal(null)} onSalvo={() => { setModal(null); carregar() }} />
       )}
       {modal?.tipo === 'qr' && <QrModal banheiro={modal.dados} onClose={() => setModal(null)} />}
-    </>
+    </div>
   )
 }
 
