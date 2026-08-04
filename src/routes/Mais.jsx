@@ -16,6 +16,7 @@ import {
   KanbanSquare,
   CalendarClock,
   SprayCan,
+  Settings2,
 } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Section } from '../components/Section.jsx'
@@ -34,6 +35,7 @@ const ROTA_CANVAS = { '/ouvidoria': 'ouvidoria' }
 
 // gov: true → só aparece para quem tem acesso à Governança.
 // quadros: true → só para quem tem acesso a Quadros (liberado no painel de admin).
+// admin: true → só para perfil admin.
 const itens = [
   { to: '/jornada', label: 'Meu perfil', icon: UserRound },
   { to: '/buscar', label: 'Buscar colaborador', icon: Search },
@@ -43,6 +45,7 @@ const itens = [
   { to: '/quadros', label: 'Kanban Tatá (beta)', icon: KanbanSquare, quadros: true },
   { to: '/escala', label: 'Escala', icon: CalendarClock, escala: true },
   { to: '/limpeza', label: 'Limpeza de banheiros', icon: SprayCan, limpeza: true },
+  { to: '/limpeza-admin', label: 'Gerenciar banheiros', icon: Settings2, admin: true },
   { to: '/manutencao', label: 'Painel de Ajustes', icon: Wrench },
   { to: '/atalhos-governanca', label: 'Atalhos', icon: Pin, gov: true },
 ]
@@ -71,12 +74,14 @@ export function Mais() {
   const loja = usuario?.loja || ''
   // Ouvidoria e Gerenciar atalhos só para quem tem acesso à Governança.
   // Quadros só aparece para quem foi liberado no painel de admin.
+  const ehAdmin = (usuario?.perfil || '').toLowerCase() === 'admin'
   const navItens = itens.filter(
     (i) =>
       (!i.gov || usuario?.governanca?.tem) &&
       (!i.quadros || usuario?.podeQuadros) &&
       (!i.escala || usuario?.podeEscala) &&
-      (!i.limpeza || usuario?.podeLimpeza),
+      (!i.limpeza || usuario?.podeLimpeza) &&
+      (!i.admin || ehAdmin),
   )
 
   const inputFoto = useRef(null)

@@ -32,6 +32,8 @@ const Quadros = lazy(() => import('./routes/Quadros.jsx'))
 const Escala = lazy(() => import('./routes/Escala.jsx'))
 // Limpeza de banheiros — check via QR, carregada sob demanda.
 const Limpeza = lazy(() => import('./routes/Limpeza.jsx'))
+// Admin da Limpeza — CRUD de banheiros + checklist (só admin), sob demanda.
+const LimpezaAdmin = lazy(() => import('./routes/LimpezaAdmin.jsx'))
 
 function Splash() {
   return (
@@ -95,6 +97,14 @@ export function App() {
           element={
             <Suspense fallback={<Splash />}>
               <Limpeza />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/limpeza-admin"
+          element={
+            <Suspense fallback={<Splash />}>
+              <LimpezaAdmin />
             </Suspense>
           }
         />
