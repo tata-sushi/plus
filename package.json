@@ -13,8 +13,10 @@
     "@dnd-kit/sortable": "^8.0.0",
     "@dnd-kit/utilities": "^3.2.2",
     "@supabase/supabase-js": "^2.110.3",
+    "jsqr": "^1.4.0",
     "lucide-react": "^0.454.0",
     "pdfjs-dist": "^6.1.200",
+    "qrcode": "^1.5.4",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.28.0"

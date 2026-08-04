@@ -18,6 +18,7 @@ export function AuthProvider({ children }) {
   const [podePublicar, setPodePublicar] = useState(false)
   const [podeQuadros, setPodeQuadros] = useState(null) // acesso a Quadros: null = verificando
   const [podeEscala, setPodeEscala] = useState(null) // acesso a Escala (líder): null = verificando
+  const [podeLimpeza, setPodeLimpeza] = useState(null) // acesso a Limpeza de banheiros: null = verificando
   const [govTipo, setGovTipo] = useState(null) // tipo de acesso à governança (ou null)
   const [loading, setLoading] = useState(true)
   const [motivoBloqueio, setMotivoBloqueio] = useState('') // '' | 'inativo'
@@ -109,6 +110,7 @@ export function AuthProvider({ children }) {
       setPodePublicar(false)
       setPodeQuadros(null)
       setPodeEscala(null)
+      setPodeLimpeza(null)
       setGovTipo(null)
       return
     }
@@ -129,6 +131,9 @@ export function AuthProvider({ children }) {
     })
     supabase.rpc('escala_pode_gerir').then(({ data }) => {
       if (ativo) setPodeEscala(data === true)
+    })
+    supabase.rpc('limpeza_pode_acessar').then(({ data }) => {
+      if (ativo) setPodeLimpeza(data === true)
     })
     supabase.rpc('acesso_governanca').then(({ data }) => {
       if (ativo) setGovTipo(data || null)
@@ -163,6 +168,7 @@ export function AuthProvider({ children }) {
         podePublicar,
         podeQuadros,
         podeEscala,
+        podeLimpeza,
         governanca: { tem: !!govTipo, tipo: govTipo },
       }
     : session?.user

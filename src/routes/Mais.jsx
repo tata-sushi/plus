@@ -15,6 +15,7 @@ import {
   Search,
   KanbanSquare,
   CalendarClock,
+  SprayCan,
 } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Section } from '../components/Section.jsx'
@@ -41,6 +42,7 @@ const itens = [
   { to: '/cardapio', label: 'Cardápio', icon: UtensilsCrossed },
   { to: '/quadros', label: 'Kanban Tatá (beta)', icon: KanbanSquare, quadros: true },
   { to: '/escala', label: 'Escala', icon: CalendarClock, escala: true },
+  { to: '/limpeza', label: 'Limpeza de banheiros', icon: SprayCan, limpeza: true },
   { to: '/manutencao', label: 'Painel de Ajustes', icon: Wrench },
   { to: '/atalhos-governanca', label: 'Atalhos', icon: Pin, gov: true },
 ]
@@ -73,7 +75,8 @@ export function Mais() {
     (i) =>
       (!i.gov || usuario?.governanca?.tem) &&
       (!i.quadros || usuario?.podeQuadros) &&
-      (!i.escala || usuario?.podeEscala),
+      (!i.escala || usuario?.podeEscala) &&
+      (!i.limpeza || usuario?.podeLimpeza),
   )
 
   const inputFoto = useRef(null)
