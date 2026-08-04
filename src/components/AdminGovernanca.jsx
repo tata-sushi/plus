@@ -161,7 +161,10 @@ function EditorPessoa({ pessoa, scope = 'governanca', catalogo, catalogoAbas, on
       }),
     ])
     setSalvando(false)
-    if (!r1.error && !r2.error && !r3.error) onSalvo(ids.size)
+    if (!r1.error && !r2.error && !r3.error) {
+      const escopo = [...ids].filter((id) => escopoPaginaIds.has(id)).length
+      onSalvo({ total: ids.size, escopo })
+    }
   }
 
   // Bloco recolhível de abas ou botões dentro de uma página. Mesma UX pros dois —
@@ -502,10 +505,15 @@ export function AdminGovernanca({ scope = 'governanca' }) {
     )
   }, [pessoas, busca])
 
-  const comAcesso = (pessoas || []).filter((p) => p.is_admin || p.qtd > 0).length
+  const comAcesso = (pessoas || []).filter((p) =>
+    ehApp ? (p.qtd_app || 0) > 0 : p.is_admin || (p.qtd_gov || 0) > 0,
+  ).length
 
-  function aoSalvar(matricula, qtd) {
-    setPessoas((prev) => prev.map((p) => (p.matricula === matricula ? { ...p, qtd } : p)))
+  function aoSalvar(matricula, { total, escopo }) {
+    const campo = ehApp ? 'qtd_app' : 'qtd_gov'
+    setPessoas((prev) =>
+      prev.map((p) => (p.matricula === matricula ? { ...p, qtd: total, [campo]: escopo } : p)),
+    )
     setSel(null)
   }
 
@@ -533,7 +541,7 @@ export function AdminGovernanca({ scope = 'governanca' }) {
         </Card>
         <p className="mt-2 px-1 text-xs text-muted">
           {ehApp
-            ? `${catalogoEscopo.length} recursos do app · liberação por colaborador`
+            ? `${comAcesso} com acesso · ${catalogoEscopo.length} recursos do app`
             : `${comAcesso} com acesso · ${catalogoEscopo.length} páginas no catálogo`}
         </p>
       </div>
@@ -558,13 +566,13 @@ export function AdminGovernanca({ scope = 'governanca' }) {
                     {p.unidade ? ` · ${p.unidade}` : ''}
                   </div>
                 </div>
-                {ehApp ? null : p.is_admin ? (
+                {!ehApp && p.is_admin ? (
                   <span className="pill shrink-0 bg-accent-soft text-[10px] uppercase text-accent">
                     <ShieldCheck size={11} /> Vê tudo
                   </span>
-                ) : p.qtd > 0 ? (
+                ) : (ehApp ? p.qtd_app || 0 : p.qtd_gov || 0) > 0 ? (
                   <span className="shrink-0 rounded-pill bg-accent-soft px-2.5 py-1 text-[11px] font-bold text-accent">
-                    {p.qtd}
+                    {ehApp ? p.qtd_app : p.qtd_gov}
                   </span>
                 ) : (
                   <span className="shrink-0 text-[11px] font-medium text-muted-2">sem acesso</span>
@@ -588,7 +596,7 @@ export function AdminGovernanca({ scope = 'governanca' }) {
           catalogo={catalogoEscopo}
           catalogoAbas={catalogoAbas}
           onFechar={() => setSel(null)}
-          onSalvo={(qtd) => aoSalvar(sel.matricula, qtd)}
+          onSalvo={(dados) => aoSalvar(sel.matricula, dados)}
         />
       )}
     </>
