@@ -2034,7 +2034,7 @@ function ColunasSheet({ board, onClose, onFeito }) {
     setDraft((d) => d.map((c, j) => (j === i ? { ...c, nome } : c)))
   }
   function add() {
-    if (draft.length >= 5) return
+    if (draft.length >= 7) return
     setDraft((d) => [...d, { nome: 'Nova coluna' }])
   }
   function remover(i) {
@@ -2056,7 +2056,7 @@ function ColunasSheet({ board, onClose, onFeito }) {
     <Sheet onClose={onClose}>
       <div className="font-display text-lg font-bold">Colunas</div>
       <div className="mt-1 text-xs text-muted">
-        Até 5 colunas. É obrigatório manter uma coluna <b>“Concluídos”</b> — é onde o responsável joga a tarefa feita.
+        Até 7 colunas. É obrigatório manter uma coluna <b>“Concluídos”</b> — é onde o responsável joga a tarefa feita.
       </div>
       <div className="mt-3 flex flex-col gap-2">
         {draft.map((c, i) => {
@@ -2074,7 +2074,7 @@ function ColunasSheet({ board, onClose, onFeito }) {
           )
         })}
       </div>
-      {draft.length < 5 && (
+      {draft.length < 7 && (
         <button onClick={add} className="mt-2 hstack gap-1 rounded-card border border-dashed border-line px-3 py-2 text-xs font-semibold text-muted tap">
           <Plus size={14} /> Adicionar coluna
         </button>
