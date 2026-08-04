@@ -44,6 +44,7 @@ import {
   List,
   Circle,
   Paperclip,
+  ExternalLink,
   FileText,
   Pencil,
   KanbanSquare,
@@ -1389,9 +1390,11 @@ function CardModal({ estado, card, board, admin, minhaMat, onClose, onFeito, onR
             <div>
               <div className={lbl}>Descrição</div>
               {editavel ? (
-                <textarea rows={3} value={descricao} onChange={(e) => setDescricao(e.target.value)} placeholder="Detalhe a tarefa…" className="mt-2 w-full resize-none rounded-lg border border-line bg-bg px-3 py-2 text-sm outline-none placeholder:text-muted-2" />
+                <textarea rows={7} value={descricao} onChange={(e) => setDescricao(e.target.value)} placeholder="Detalhe a tarefa…" className="mt-2 min-h-[8.5rem] w-full resize-y rounded-lg border border-line bg-bg px-3 py-2 text-sm leading-relaxed outline-none placeholder:text-muted-2" />
+              ) : base.descricao ? (
+                <div className="mt-2 max-h-80 overflow-y-auto whitespace-pre-wrap rounded-lg border border-line bg-bg px-3 py-2.5 text-sm leading-relaxed">{base.descricao}</div>
               ) : (
-                <div className="mt-1.5 whitespace-pre-wrap text-sm text-muted">{base.descricao || '—'}</div>
+                <div className="mt-1.5 text-sm text-muted-2">—</div>
               )}
             </div>
 
@@ -1475,33 +1478,39 @@ function CardModal({ estado, card, board, admin, minhaMat, onClose, onFeito, onR
                   />
                 </label>
                 {anexos.length > 0 && (
-                  <div className="mt-2 grid grid-cols-2 gap-2">
+                  <div className="mt-2 flex flex-col gap-1.5">
                     {anexos.map((a) => (
-                      <div key={a.id} className="relative overflow-hidden rounded-lg border border-line bg-bg">
-                        {ehImagem(a) ? (
-                          <a href={a.url} target="_blank" rel="noreferrer" title={a.nome}>
-                            <img src={a.url} alt={a.nome} loading="lazy" className="h-24 w-full object-cover" />
-                          </a>
-                        ) : (
-                          <a
-                            href={a.url}
-                            target="_blank"
-                            rel="noreferrer"
-                            title={a.nome}
-                            className="hstack h-24 items-center gap-2 px-3"
-                          >
-                            <FileText size={20} className="shrink-0 text-muted" />
-                            <span className="min-w-0 flex-1 truncate text-xs font-medium">{a.nome}</span>
-                          </a>
-                        )}
+                      <div key={a.id} className="hstack items-center gap-3 rounded-lg border border-line bg-bg p-2">
+                        <a href={a.url} target="_blank" rel="noreferrer" title={a.nome} className="shrink-0">
+                          {ehImagem(a) ? (
+                            <img src={a.url} alt={a.nome} loading="lazy" className="h-11 w-11 rounded-md border border-line object-cover" />
+                          ) : (
+                            <span className="grid h-11 w-11 place-items-center rounded-md bg-fill text-muted">
+                              <FileText size={18} />
+                            </span>
+                          )}
+                        </a>
+                        <a href={a.url} target="_blank" rel="noreferrer" title={a.nome} className="min-w-0 flex-1">
+                          <div className="truncate text-sm font-semibold">{a.nome}</div>
+                          <div className="mt-0.5 text-[11px] text-muted">Adicionado em {fmtQuando(a.created_at)}</div>
+                        </a>
+                        <a
+                          href={a.url}
+                          target="_blank"
+                          rel="noreferrer"
+                          aria-label="Abrir anexo"
+                          className="grid h-8 w-8 shrink-0 place-items-center rounded-lg border border-line text-muted tap"
+                        >
+                          <ExternalLink size={14} />
+                        </a>
                         {(admin || a.matricula === minhaMat) && (
                           <button
                             onClick={() => removerAnexo(a)}
                             disabled={busy}
                             aria-label="Remover anexo"
-                            className="absolute right-1 top-1 grid h-6 w-6 place-items-center rounded-full bg-black/55 text-white tap disabled:opacity-40"
+                            className="grid h-8 w-8 shrink-0 place-items-center rounded-lg text-muted-2 tap disabled:opacity-40"
                           >
-                            <X size={13} />
+                            <Trash2 size={14} />
                           </button>
                         )}
                       </div>
