@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Loader2, Search, ChevronRight, ChevronDown, Check, ShieldCheck, X, Layers } from 'lucide-react'
+import { Loader2, Search, ChevronRight, ChevronDown, Check, ShieldCheck, X, Layers, KeyRound } from 'lucide-react'
 import { Section } from './Section.jsx'
 import { Card } from './Card.jsx'
 import { Avatar } from './Avatar.jsx'
@@ -45,6 +45,20 @@ function EditorPessoa({ pessoa, catalogo, catalogoAbas, onFechar, onSalvo }) {
   const [abasAbertas, setAbasAbertas] = useState(new Set()) // pagina_id com abas expandidas
   const [botoesAbertas, setBotoesAbertas] = useState(new Set()) // pagina_id com botões expandidos
   const [salvando, setSalvando] = useState(false)
+
+  // Reset de senha (admin): volta pra padrão tata@123 e força troca no próximo login.
+  const [reset, setReset] = useState({ fase: 'idle' }) // idle | confirm | loading | done | error
+  async function resetarSenha() {
+    setReset({ fase: 'loading' })
+    try {
+      const { error } = await supabase.rpc('admin_resetar_senha', { p_matricula: pessoa.matricula })
+      if (error) throw error
+      tapHaptic()
+      setReset({ fase: 'done' })
+    } catch (e) {
+      setReset({ fase: 'error', msg: e?.message || 'Não foi possível resetar a senha.' })
+    }
+  }
 
   // Contagem pro rodapé: abas desligadas (opt-out) e botões liberados (opt-in).
   const contagem = useMemo(() => {
@@ -255,6 +269,50 @@ function EditorPessoa({ pessoa, catalogo, catalogoAbas, onFechar, onSalvo }) {
 
       {/* Corpo */}
       <div className="flex-1 overflow-y-auto px-5 py-4">
+        {/* Reset de senha — disponível para qualquer pessoa */}
+        <Card className="mb-4">
+          <div className="hstack gap-3">
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-warn/15 text-warn">
+              <KeyRound size={18} />
+            </span>
+            <div className="min-w-0 flex-1">
+              <div className="text-sm font-semibold">Resetar senha de acesso</div>
+              <div className="text-xs text-muted">
+                Volta para a padrão <b className="text-text">tata@123</b> e obriga {(pessoa.nome || '').trim().split(/\s+/)[0]} a trocar no próximo login.
+              </div>
+            </div>
+          </div>
+          <div className="mt-3">
+            {reset.fase === 'done' ? (
+              <div className="hstack gap-2 text-sm font-semibold text-accent">
+                <Check size={16} /> Senha resetada para tata@123.
+              </div>
+            ) : reset.fase === 'confirm' ? (
+              <div className="hstack gap-2">
+                <button onClick={resetarSenha} className="btn-primary flex-1 py-2 text-sm">
+                  Confirmar reset
+                </button>
+                <button
+                  onClick={() => setReset({ fase: 'idle' })}
+                  className="shrink-0 rounded-lg border border-line px-3 py-2 text-sm font-semibold text-muted tap"
+                >
+                  Cancelar
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => setReset({ fase: 'confirm' })}
+                disabled={reset.fase === 'loading'}
+                className="hstack w-full justify-center gap-2 rounded-lg border border-line py-2 text-sm font-semibold tap disabled:opacity-50"
+              >
+                {reset.fase === 'loading' ? <Loader2 size={16} className="animate-spin" /> : <KeyRound size={16} />}
+                Resetar senha para padrão
+              </button>
+            )}
+            {reset.fase === 'error' && <div className="mt-2 text-xs font-medium text-danger">{reset.msg}</div>}
+          </div>
+        </Card>
+
         {pessoa.is_admin ? (
           <Card className="hstack gap-3">
             <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-accent-soft text-accent">
