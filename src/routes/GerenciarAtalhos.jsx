@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Plus, Check, ShieldCheck } from 'lucide-react'
+import { Plus, Check, ShieldCheck, Smartphone } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Voltar } from '../components/Voltar.jsx'
 import { Section } from '../components/Section.jsx'
@@ -40,8 +40,9 @@ export function GerenciarAtalhos() {
   }
 
   const visiveis = governancaCatalogo.filter((c) => !c.need || usuario?.[c.need])
-  const gerais = visiveis.filter((c) => !c.admin)
-  const doAdmin = visiveis.filter((c) => c.admin)
+  const apps = visiveis.filter((c) => c.app)
+  const gerais = visiveis.filter((c) => !c.admin && !c.app)
+  const doAdmin = visiveis.filter((c) => c.admin && !c.app)
 
   const renderLista = (itens) => (
     <div className="card overflow-hidden">
@@ -96,6 +97,19 @@ export function GerenciarAtalhos() {
           </span>
         </div>
         {renderLista(gerais)}
+
+        {/* App — rotas internas do app (ex.: Checklist de limpeza), pra quem tem o acesso */}
+        {apps.length > 0 && (
+          <>
+            <div className="mb-1.5 mt-5 hstack items-center gap-1.5 px-1">
+              <Smartphone size={13} className="shrink-0 text-accent" />
+              <span className="text-[11px] font-semibold uppercase tracking-wide text-muted-2">
+                App
+              </span>
+            </div>
+            {renderLista(apps)}
+          </>
+        )}
 
         {/* Lista de administradores — só aparece pra quem é admin */}
         {isAdmin && doAdmin.length > 0 && (
