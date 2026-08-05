@@ -125,12 +125,14 @@ function EditorDesafio({ treino, pessoas, onFechar, onSalvo }) {
 
   const filtradas = useMemo(() => {
     const t = busca.trim().toLowerCase()
-    if (!t) return pessoas
-    return pessoas.filter((p) =>
-      [p.nome, p.cargo, p.unidade, p.matricula].some((v) =>
-        String(v || '').toLowerCase().includes(t),
-      ),
-    )
+    const base = !t
+      ? pessoas
+      : pessoas.filter((p) =>
+          [p.nome, p.cargo, p.unidade, p.matricula].some((v) =>
+            String(v || '').toLowerCase().includes(t),
+          ),
+        )
+    return [...base].sort((a, b) => (a.nome || '').localeCompare(b.nome || '', 'pt-BR'))
   }, [pessoas, busca])
 
   function toggle(mat) {

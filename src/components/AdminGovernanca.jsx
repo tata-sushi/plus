@@ -47,6 +47,7 @@ function EditorPessoa({ pessoa, scope = 'governanca', catalogo, catalogoAbas, on
   const [liberados, setLiberados] = useState(new Set()) // aba_id de botão liberado (botões · opt-in)
   const [abasAbertas, setAbasAbertas] = useState(new Set()) // pagina_id com abas expandidas
   const [botoesAbertas, setBotoesAbertas] = useState(new Set()) // pagina_id com botões expandidos
+  const [gruposAbertos, setGruposAbertos] = useState(null) // Set de "secao›sub" expandidos · null = ainda não inicializado
   const [salvando, setSalvando] = useState(false)
 
   // Reset de senha (admin): volta pra padrão tata@123 e força troca no próximo login.
@@ -92,6 +93,27 @@ function EditorPessoa({ pessoa, scope = 'governanca', catalogo, catalogoAbas, on
       ativo = false
     }
   }, [pessoa.matricula])
+
+  // Inicializa os grupos expandidos assim que os acessos carregam: abre só as
+  // seções que já têm alguma página liberada (ou a única seção, no escopo App).
+  useEffect(() => {
+    if (ids === null || gruposAbertos !== null) return
+    const abertos = new Set()
+    for (const g of grupos) {
+      const temMarcado = g.itens.some((p) => ids.has(p.pagina_id))
+      if (temMarcado || grupos.length === 1) abertos.add(`${g.secao}›${g.sub}`)
+    }
+    setGruposAbertos(abertos)
+  }, [ids, grupos, gruposAbertos])
+
+  function toggleGrupoAberto(chave) {
+    tapHaptic()
+    setGruposAbertos((prev) => {
+      const n = new Set(prev || [])
+      n.has(chave) ? n.delete(chave) : n.add(chave)
+      return n
+    })
+  }
 
   function toggle(id) {
     tapHaptic()
@@ -292,30 +314,42 @@ function EditorPessoa({ pessoa, scope = 'governanca', catalogo, catalogoAbas, on
         ) : (
           <div className="flex flex-col gap-4">
             {grupos.map((g) => {
+              const chave = `${g.secao}›${g.sub}`
               const marcados = g.itens.filter((p) => ids.has(p.pagina_id)).length
               const todos = marcados === g.itens.length
+              const aberto = gruposAbertos
+                ? gruposAbertos.has(chave)
+                : marcados > 0 || grupos.length === 1
               return (
-                <div key={`${g.secao}-${g.sub}`}>
-                  {/* Cabeçalho da pasta com "marcar tudo" */}
-                  <button
-                    onClick={() => toggleGrupo(g.itens, todos)}
-                    className="hstack w-full gap-2 px-1 pb-2 text-left tap"
-                  >
-                    <Layers size={13} className="shrink-0 text-muted-2" />
-                    <span className="flex-1 text-[11px] font-bold uppercase tracking-widest text-muted">
-                      {g.secao}
-                      {g.sub ? ` · ${g.sub}` : ''}
-                    </span>
-                    <span
+                <div key={chave}>
+                  {/* Cabeçalho: recolher/expandir + "marcar tudo" (badge) */}
+                  <div className="hstack items-center gap-2 px-1 pb-2">
+                    <button
+                      onClick={() => toggleGrupoAberto(chave)}
+                      className="hstack min-w-0 flex-1 items-center gap-2 text-left tap"
+                    >
+                      <ChevronDown
+                        size={14}
+                        className={cn('shrink-0 text-muted-2 transition-transform', !aberto && '-rotate-90')}
+                      />
+                      <Layers size={13} className="shrink-0 text-muted-2" />
+                      <span className="truncate text-[11px] font-bold uppercase tracking-widest text-muted">
+                        {g.secao}
+                        {g.sub ? ` · ${g.sub}` : ''}
+                      </span>
+                    </button>
+                    <button
+                      onClick={() => toggleGrupo(g.itens, todos)}
                       className={cn(
-                        'shrink-0 rounded-pill px-2 py-0.5 text-[10px] font-semibold',
+                        'shrink-0 rounded-pill px-2 py-0.5 text-[10px] font-semibold tap',
                         marcados > 0 ? 'bg-accent-soft text-accent' : 'bg-surface-2 text-muted-2',
                       )}
                     >
                       {marcados}/{g.itens.length}
-                    </span>
-                  </button>
+                    </button>
+                  </div>
 
+                  {aberto && (
                   <Card className="!p-0">
                     {g.itens.map((p, i) => {
                       const on = ids.has(p.pagina_id)
@@ -373,6 +407,7 @@ function EditorPessoa({ pessoa, scope = 'governanca', catalogo, catalogoAbas, on
                       )
                     })}
                   </Card>
+                  )}
                 </div>
               )
             })}
