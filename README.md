@@ -60,7 +60,10 @@ src/
 │   ├── AvaliacaoDia.jsx     # bloco de avaliação (estrelas centralizadas + sugestão + alerta de restrição)
 │   ├── DestaqueBanner.jsx    # card do carrossel (publicação ou destaque; aniversário com texto centralizado)
 │   ├── GovFrame.jsx          # iframe de Governança: entrega o token da sessão + loader (carregamento invisível)
-│   └── AdminPublicacoes.jsx / AdminAniversarios.jsx / AdminConquistas.jsx  # CRUD do painel
+│   ├── AdminPublicacoes.jsx / AdminAniversarios.jsx / AdminConquistas.jsx  # CRUD do painel
+│   ├── AdminGovernanca.jsx    # acesso por pessoa, em 2 escopos: Governança (portal) e Aplicativo (features do app + reset de senha)
+│   ├── AdminDesafios.jsx      # por treinamento, marca quais pessoas têm acesso (atribuição individual)
+│   └── AdminBanheiros.jsx     # CRUD de banheiros + itens do checklist da Limpeza (edição inline + gera/baixa QR)
 ├── routes/
 │   ├── Home.jsx             # Início (identificação + menu do dia + notícias + sugestões)
 │   ├── Ranking.jsx          # Colaboradores · Equipes · Líderes (filtros por unidade)
@@ -70,7 +73,10 @@ src/
 │   ├── Perfil.jsx           # perfil público de outro colaborador
 │   ├── BuscarPessoas.jsx    # busca de colaboradores
 │   ├── Recompensas.jsx      # catálogo + resgate
-│   ├── AdminRecompensas.jsx # painel admin (Anúncios · Recompensas · Pedidos · Envios · Conquistas)
+│   ├── AdminRecompensas.jsx # painel admin — **hub com menu** (estilo "Mais", lista corrida): Recompensas ·
+│   │                        #   Pedidos · Envios · Conquistas · Desafios · Anúncios · Checklist de limpeza ·
+│   │                        #   Governança · Aplicativo (cada item abre a seção; "‹ Painel" volta)
+│   ├── Limpeza.jsx          # Checklist de limpeza: scan do QR do banheiro (jsQR/deep link) + checklist + foto + pontos
 │   ├── Ouvidoria.jsx        # formulário nativo (replica ouvidoria.tatasushi.tech)
 │   ├── Manutencao.jsx       # Painel de Ajustes (notificações · contraste · senha)
 │   ├── GerenciarAtalhos.jsx # Atalhos de Governança (fixar páginas de KPI)
@@ -271,6 +277,58 @@ iframe (origem verificada, via `GovFrame`) e cada página confere o acesso **ao 
 O portão que roda em cada página é o `gate.js` (repositório `lideres`). Detalhes em
 `docs/GOVERNANCA_INTEGRACAO.md` e `docs/AUTENTICACAO.md`.
 
+### Acesso a features do app (seção "App") e ao painel-hub
+
+A mesma máquina de acesso por página serve para **liberar features do próprio app** por
+colaborador: Kanban, Escala e Checklist de limpeza entram no catálogo `governanca_paginas` na
+seção **`App`** (`governanca-app-quadros` / `-escala` / `-limpeza`), e cada RPC de porta
+(`kanban_pode_criar`, `escala_pode_gerir`, `limpeza_pode_acessar`) só checa o **grant** — **sem
+bypass de admin** (até admin precisa de liberação). O painel de Administração é um **hub com menu**
+e separa isso em duas seções: **Governança** (só páginas do portal) e **Aplicativo** (features do
+App + **reset de senha**), ambas usando o `AdminGovernanca` com uma prop `scope`. O contador do
+badge por pessoa é por escopo (`gov_admin_pessoas` devolve `qtd_gov` e `qtd_app`), e as seções do
+editor são **recolhíveis** (abrem só as que já têm acesso).
+
+**Acesso a desafios** — a seção **Desafios** do painel (`AdminDesafios`) lista os treinamentos por
+trilha e deixa marcar, por treinamento, **quais pessoas** têm acesso (grava atribuição `individual`
+em `treinamento_atribuicoes`; desafio sem ninguém marcado = todos veem). Lista de pessoas em ordem
+alfabética. RPCs `desafios_admin_lista` / `desafios_admin_pessoas_do` / `desafios_admin_set_pessoas`.
+
+## Checklist de limpeza (banheiros)
+
+Registro da limpeza dos banheiros pelo app, via **QR por banheiro**, com **pontos** como recompensa
+imediata. Base em `dp_rh`, RPCs em `tata_plus` (padrão Tatá), storage no bucket privado `limpeza`.
+
+**Fluxo do colaborador** (`Limpeza.jsx`, rota `/limpeza`, liberada por pessoa) — escaneia o QR do
+banheiro (câmera + jsQR **ou** deep link `plus.tatasushi.tech/limpeza?b=<token>`), confere banheiro +
+unidade, preenche o **checklist SIM/NÃO** (7 itens, começa tudo SIM), **observação** opcional e, quando
+o app pede, uma **foto** (selfie **ou** foto da limpeza). Confirma → registra com **data, hora e nome
+automáticos**. Não fica no menu do "Mais": é um **atalho fixável** (categoria **App** em Atalhos); o QR
+físico abre a tela direto.
+
+- **Foto aleatória** (anti-rotina) — `limpeza_config` guarda `contador`, `alvo` (sorteado entre
+  `min/max_intervalo`) e `proximo_tipo` (alterna selfie ⇄ limpeza). O `limpeza_preparar` **espia** sem
+  avançar; o `limpeza_registrar` **comita e avança** sob `for update`. Pede foto ~1 a cada 6–8 checks,
+  **nunca as duas** no mesmo check.
+- **Pontos por check** — `limpeza_registrar` credita na carteira (`carteira_lancamentos`, origem
+  `limpeza`, idempotente por check): **+1** por check, **+2** quando a foto pedida é anexada. **Trava
+  anti-farm**: só o 1º check pontuado por **banheiro + pessoa** dentro da janela pontua (config
+  `pontos_check` / `pontos_foto` / `pontos_janela_horas`, default 1/2/3h; os demais registram com 0). Os
+  pontos contam no **saldo, extrato ("Check de limpeza · <banheiro>") e ranking**.
+
+**Admin** (`AdminBanheiros`, Painel → **Checklist de limpeza**, só perfil admin) — CRUD de banheiros
+(por unidade) e itens do checklist, **edição inline** (sem modal), com **gerar/baixar o QR** de cada
+banheiro (import dinâmico do `qrcode`). RPCs `limpeza_admin_*`.
+
+**Amarração (pontas)** — as 3 liberações ficam no painel: **Aplicativo** (fazer o check), **Desafios**
+(treinamento "Como fazer a Checklist de limpeza", trilha Tatá Plus) e **Governança** (relatório/KPIs em
+Dashboards › Limpeza — páginas `governanca-kpis-limpeza` + `-checklist` no portal `lideres`,
+`compliance/kpis/limpeza/`, com o botão `Relatório de limpeza`).
+
+Principais RPCs (`tata_plus`): `limpeza_preparar`, `limpeza_registrar`, `limpeza_pode_acessar`,
+`limpeza_admin_banheiros` / `_itens` / `_banheiro_salvar` / `_item_salvar` / `_*_toggle` /
+`limpeza_admin_checks` (base do relatório).
+
 ## Perfis de acesso
 
 `profiles.perfil` classifica o colaborador (default `colab`; é **manual** e **sobrevive ao sync**
@@ -371,7 +429,11 @@ combinados para a reta final, antes/junto do piloto:
 - [x] **Acesso por aba** — bloqueio de abas individuais por pessoa, em 15 páginas de governança
 - [x] **Perfis granulares** — `perfil` da `profiles` carregado com os níveis da planilha de RH
 - [ ] **Valores por perfil** — esconder salário/custo por perfil (seguro via RLS nas bases novas)
-- [ ] **Painel Kanban (mini-Trello)** — quadros com colunas e cards **arrastáveis** (`@dnd-kit`, toque),
+- [x] **Checklist de limpeza (banheiros)** — no ar. Check por QR + pontos (1/2 com trava anti-farm),
+      admin de banheiros/checklist, treinamento (Tatá Plus) e relatório (governança) amarrados. Ver a
+      seção **Checklist de limpeza**. **Pré-lançamento (operacional):** liberar o check pro pessoal real
+      (painel → Aplicativo), imprimir/fixar os QRs, e carregar a **base histórica** de checks quando chegar.
+- [x] **Painel Kanban (mini-Trello)** — no ar (beta). Quadros com colunas e cards **arrastáveis** (`@dnd-kit`, toque),
       **responsáveis** (avatar), **comentários** e **anexos** (bucket privado); criar quadro + **selecionar
       membros**. Decidido: **criar quadro = líder/admin** (colaborador participa quando adicionado);
       **entrada = aba própria na barra**. Backend `tata_plus` (`quadros → quadro_colunas → quadro_cards` +
