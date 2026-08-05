@@ -307,6 +307,15 @@ function VisaoQuadro({ quadroId, onVoltar, emCanvas }) {
   const [agrupar, setAgrupar] = useState(false)
   const [vista, setVista] = useState('kanban') // 'kanban' | 'lista' | 'calendario'
   const [filtros, setFiltros] = useState({ filtroEtq: new Set(), filtroResp: new Set(), soVencidos: false, soMeus: false })
+  // Aviso efêmero (ex.: entrega confirmada mas sem pontuar por ter < 24h).
+  const [toast, setToast] = useState(null)
+  const toastRef = useRef(null)
+  const avisar = useCallback((texto) => {
+    setToast(texto)
+    clearTimeout(toastRef.current)
+    toastRef.current = setTimeout(() => setToast(null), 4200)
+  }, [])
+  useEffect(() => () => clearTimeout(toastRef.current), [])
 
   const carregarInicial = useCallback(async () => {
     try {
@@ -417,8 +426,9 @@ function VisaoQuadro({ quadroId, onVoltar, emCanvas }) {
   }
   async function concluirCard(card) {
     try {
-      await call('kanban_card_concluir', { p_id: card.id, p_concluido: !card.concluido })
+      const r = await call('kanban_card_concluir', { p_id: card.id, p_concluido: !card.concluido })
       await recarregar()
+      if (r?.curto) avisar('Entrega confirmada, mas ainda não pontua — a tarefa precisa ter 24h desde que foi criada.')
     } catch (e) {
       avisarErro(e)
     }
@@ -499,8 +509,17 @@ function VisaoQuadro({ quadroId, onVoltar, emCanvas }) {
 
   const overlays = (
     <>
+      {toast &&
+        createPortal(
+          <div className="pointer-events-none fixed inset-x-0 bottom-[calc(5rem+env(safe-area-inset-bottom))] z-[70] flex justify-center px-5">
+            <div className="pointer-events-auto max-w-sm rounded-pill border border-line bg-carbon/95 px-4 py-2.5 text-center text-xs font-semibold text-white shadow-xl backdrop-blur dark:bg-surface dark:text-text">
+              {toast}
+            </div>
+          </div>,
+          document.body,
+        )}
       {cardAberto && (
-        <CardModal key={cardAberto.cardId || 'novo'} estado={cardAberto} card={cardLive} board={board} admin={admin} minhaMat={mat} onClose={() => setCardAberto(null)} onRefresh={recarregar} onFeito={async () => { setCardAberto(null); await recarregar() }} />
+        <CardModal key={cardAberto.cardId || 'novo'} estado={cardAberto} card={cardLive} board={board} admin={admin} minhaMat={mat} onClose={() => setCardAberto(null)} onRefresh={recarregar} onFeito={async () => { setCardAberto(null); await recarregar() }} onAviso={avisar} />
       )}
       {sheet === 'filtros' && <FiltrosSheet board={board} filtros={filtros} setFiltros={setFiltros} onClose={() => setSheet(null)} />}
       {sheet === 'membros' && <MembrosSheet board={board} admin={admin} onClose={() => setSheet(null)} onFeito={recarregar} />}
@@ -571,7 +590,7 @@ function CardFace({ card, etiquetaPorId, onOpen, handle, semAcoes }) {
               ctx.onConcluir(card)
             }}
             aria-label={card.concluido ? 'Reabrir cartão' : 'Concluir cartão'}
-            title={ctx.pontua ? (card.concluido ? 'Entrega confirmada (+5)' : 'Confirmar entrega (+5)') : undefined}
+            title={ctx.pontua ? (card.concluido ? 'Entrega confirmada (+2)' : 'Confirmar entrega (+2)') : undefined}
             className={cn('mt-1 grid h-3.5 w-3.5 shrink-0 place-items-center rounded-full border tap', card.concluido ? 'border-accent bg-accent text-black' : 'border-line text-muted-2')}
           >
             {card.concluido && <Check size={9} />}
@@ -1046,7 +1065,7 @@ function MenuFlutuante({ aberto, onClose, children }) {
 }
 
 // ── Modal do cartão ──────────────────────────────────────────────────────────
-function CardModal({ estado, card, board, admin, minhaMat, onClose, onFeito, onRefresh }) {
+function CardModal({ estado, card, board, admin, minhaMat, onClose, onFeito, onRefresh, onAviso }) {
   const existe = estado.modo !== 'criar' && !!card
   const editavel = estado.modo === 'criar' || (estado.modo === 'editar' && admin)
   const base = card || {}
@@ -1138,6 +1157,20 @@ function CardModal({ estado, card, board, admin, minhaMat, onClose, onFeito, onR
       await call(fn, args)
       await onRefresh()
       recarregarHist()
+    } catch (e) {
+      avisarErro(e)
+    } finally {
+      setBusy(false)
+    }
+  }
+  // Concluir/reabrir cartão: captura o retorno pra avisar quando não pontuou (< 24h).
+  async function concluir() {
+    setBusy(true)
+    try {
+      const r = await call('kanban_card_concluir', { p_id: card.id, p_concluido: !card.concluido })
+      await onRefresh()
+      recarregarHist()
+      if (r?.curto) onAviso?.('Entrega confirmada, mas ainda não pontua — a tarefa precisa ter 24h desde que foi criada.')
     } catch (e) {
       avisarErro(e)
     } finally {
@@ -1261,10 +1294,10 @@ function CardModal({ estado, card, board, admin, minhaMat, onClose, onFeito, onR
           <div className="flex shrink-0 items-start gap-2.5 border-b border-line px-5 py-3">
             {existe && (!board.pontua || admin) && (
               <button
-                onClick={() => sub('kanban_card_concluir', { p_id: card.id, p_concluido: !card.concluido })}
+                onClick={concluir}
                 disabled={busy}
                 aria-label={card.concluido ? 'Reabrir cartão' : 'Concluir cartão'}
-                title={board.pontua ? (card.concluido ? 'Entrega confirmada (+5)' : 'Confirmar entrega (+5)') : card.concluido ? 'Concluído' : 'Concluir'}
+                title={board.pontua ? (card.concluido ? 'Entrega confirmada (+2)' : 'Confirmar entrega (+2)') : card.concluido ? 'Concluído' : 'Concluir'}
                 className={cn('mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full border tap', card.concluido ? 'border-[#35383F] ' + ctaEscuro : 'border-line text-muted-2')}
               >
                 {card.concluido && <Check size={14} />}
@@ -1749,7 +1782,7 @@ function MenuGerenciar({ board, admin, vista, setVista, temFiltro, agrupar, setA
               <Star size={17} className="shrink-0 text-accent" />
               <div className="min-w-0 flex-1">
                 <div className="text-sm font-semibold">Pontuação</div>
-                <div className="text-[11px] text-muted">+5 pontos para cada tarefa concluída (por responsável)</div>
+                <div className="text-[11px] text-muted">+2 por tarefa validada (responsável) e +1 pro líder. Vale só após 24h da criação.</div>
               </div>
               <button
                 onClick={togglePontua}
