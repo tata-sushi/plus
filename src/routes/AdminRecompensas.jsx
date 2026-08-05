@@ -53,7 +53,7 @@ const TITULOS = {
   comunicados: 'Anúncios',
   governanca: 'Governança',
   aplicativo: 'Aplicativo',
-  banheiros: 'Banheiros',
+  banheiros: 'Checklist de limpeza',
 }
 
 // Hub do painel: menu de navegação (padrão do "Mais") — lista corrida, sem seções.
@@ -473,7 +473,7 @@ export function AdminRecompensas() {
     { id: 'envios', label: 'Envios', icon: FileCheck2, badge: enviosPendentes },
     { id: 'conquistas', label: 'Conquistas', icon: Trophy },
     { id: 'comunicados', label: 'Anúncios', icon: Megaphone },
-    ...(isAdminPerfil ? [{ id: 'banheiros', label: 'Banheiros', icon: SprayCan }] : []),
+    ...(isAdminPerfil ? [{ id: 'banheiros', label: 'Checklist de limpeza', icon: SprayCan }] : []),
     { id: 'governanca', label: 'Governança', icon: ShieldCheck },
     { id: 'aplicativo', label: 'Aplicativo', icon: Smartphone },
   ]

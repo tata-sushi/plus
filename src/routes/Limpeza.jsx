@@ -104,7 +104,7 @@ export default function Limpeza() {
 
   return (
     <>
-      <Header title="Limpeza de banheiros" />
+      <Header title="Checklist de limpeza" />
       <Voltar />
       <div className="px-5 pb-24 pt-2">
         {fase === 'inicio' && <TelaInicio onScan={() => { setErro(''); setFase('scan') }} />}
@@ -377,8 +377,12 @@ function TelaOk({ ultimo, onNovo }) {
       </span>
       <div className="mt-3 font-display text-lg font-bold">Limpeza registrada!</div>
       {ultimo?.banheiro && (
-        <div className="mt-1 text-sm text-muted">
-          {ultimo.banheiro.nome}{ultimo.banheiro.unidade ? ` · ${ultimo.banheiro.unidade}` : ''} · {hora}
+        <div className="mt-2">
+          <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-2">
+            Checklist de limpeza{ultimo.banheiro.unidade ? ` · ${ultimo.banheiro.unidade}` : ''}
+          </div>
+          <div className="font-display text-base font-bold">{ultimo.banheiro.nome}</div>
+          <div className="mt-0.5 text-xs text-muted">{hora}</div>
         </div>
       )}
       <button onClick={onNovo} className="btn-primary mt-6 hstack w-full justify-center gap-2 py-3.5 text-sm">
