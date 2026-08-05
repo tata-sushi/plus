@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Flag, Gift, Star, Network, Sun, Check, X, KanbanSquare, ChevronRight } from 'lucide-react'
+import { Flag, Gift, Star, Network, Sun, Check, X, KanbanSquare } from 'lucide-react'
 import { cn } from '../lib/cn'
 import { Header } from '../components/Header.jsx'
 import { Section } from '../components/Section.jsx'
@@ -62,6 +62,67 @@ const sugestoesCards = [
     subtitle: 'Conheça nossos líderes',
   },
 ]
+
+// Sugestões em páginas de 4 (grade 2×2) com rolagem lateral + bolinhas — mesmo
+// padrão do carrossel de Notícias. Cada página mostra 4 cards; o resto desliza
+// pro lado (com Kanban na frente, o Organograma cai na 2ª página).
+function paginar4(arr) {
+  const out = []
+  for (let i = 0; i < arr.length; i += 4) out.push(arr.slice(i, i + 4))
+  return out
+}
+
+function SugestoesCarrossel({ cards, desktop, setCanvas }) {
+  const [idx, setIdx] = useState(0)
+  const paginas = paginar4(cards)
+
+  const renderCard = (c, i) => {
+    // No desktop, o organograma abre na área principal (dentro do app), não em tela cheia.
+    const orgNoDesktop = desktop && c.to === '/organograma'
+    return (
+      <PromoCard
+        key={c.title}
+        to={orgNoDesktop ? undefined : c.to}
+        onClick={orgNoDesktop ? () => setCanvas('organograma') : undefined}
+        badgeIcon={c.badgeIcon}
+        title={c.title}
+        subtitle={c.subtitle}
+        emBreve={c.emBreve}
+        bgClassName={c.bgClassName}
+        badgeClassName={c.badgeClassName}
+        textClassName={c.textClassName}
+        className={`reveal-${i + 1}`}
+      />
+    )
+  }
+
+  if (paginas.length <= 1) {
+    return <div className="grid grid-cols-2 gap-3">{cards.map(renderCard)}</div>
+  }
+
+  return (
+    <div>
+      <div
+        onScroll={(e) => setIdx(Math.round(e.currentTarget.scrollLeft / e.currentTarget.clientWidth))}
+        className="flex snap-x snap-mandatory gap-3 overflow-x-auto no-scrollbar"
+      >
+        {paginas.map((pagina, pi) => (
+          <div key={pi} className="grid w-full shrink-0 snap-start grid-cols-2 gap-3">
+            {pagina.map(renderCard)}
+          </div>
+        ))}
+      </div>
+      <div className="mt-2.5 flex justify-center gap-1.5">
+        {paginas.map((_, i) => (
+          <span
+            key={i}
+            className={`h-1.5 rounded-full transition-all ${i === idx ? 'w-4 bg-accent' : 'w-1.5 bg-line'}`}
+          />
+        ))}
+      </div>
+    </div>
+  )
+}
 
 export function Home() {
   const { usuario } = useAuth()
@@ -140,7 +201,13 @@ export function Home() {
   const cargo = usuario?.cargo || ''
   const loja = usuario?.loja || ''
 
-  const cards = sugestoesCards
+  // Kanban entra na frente (empurrando os demais) só pra quem tem acesso aos Quadros.
+  const cards = usuario?.podeQuadros
+    ? [
+        { to: '/quadros', badgeIcon: KanbanSquare, title: 'Kanban Tatá', subtitle: 'Quadros e tarefas do time' },
+        ...sugestoesCards,
+      ]
+    : sugestoesCards
   const desktop = useDesktop()
   const { setCanvas } = useDesktopCanvas()
 
@@ -359,47 +426,9 @@ export function Home() {
         </Section>
       )}
 
-      {/* Sugestões — grid de 2 colunas (sem scroll lateral) */}
+      {/* Sugestões — páginas de 4 (2×2) com rolagem lateral (Organograma vai pra 2ª) */}
       <Section className="mt-4 hsm:mt-3" title="Sugestões">
-        <div className="grid grid-cols-2 gap-3">
-          {cards.map((c, i) => {
-            // No desktop, o organograma abre na área principal (dentro do app),
-            // não em tela cheia.
-            const orgNoDesktop = desktop && c.to === '/organograma'
-            return (
-              <PromoCard
-                key={c.title}
-                to={orgNoDesktop ? undefined : c.to}
-                onClick={orgNoDesktop ? () => setCanvas('organograma') : undefined}
-                badgeIcon={c.badgeIcon}
-                title={c.title}
-                subtitle={c.subtitle}
-                emBreve={c.emBreve}
-                bgClassName={c.bgClassName}
-                badgeClassName={c.badgeClassName}
-                textClassName={c.textClassName}
-                className={`reveal-${i + 1}`}
-              />
-            )
-          })}
-        </div>
-
-        {/* Kanban — linha própria (largura toda), só pra quem tem acesso aos Quadros */}
-        {usuario?.podeQuadros && (
-          <Link
-            to="/quadros"
-            className="reveal hero-card mt-3 flex items-center gap-3 rounded-card p-4 tap"
-          >
-            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-accent text-black shadow-glow">
-              <KanbanSquare size={26} strokeWidth={2} />
-            </span>
-            <div className="min-w-0 flex-1">
-              <div className="font-display text-base font-bold leading-tight">Kanban Tatá</div>
-              <div className="mt-0.5 text-xs text-muted">Os quadros e tarefas do seu time</div>
-            </div>
-            <ChevronRight size={18} className="shrink-0 text-muted-2" />
-          </Link>
-        )}
+        <SugestoesCarrossel cards={cards} desktop={desktop} setCanvas={setCanvas} />
       </Section>
 
       {/* Atalhos — exclusivo p/ quem tem acesso à Governança */}
