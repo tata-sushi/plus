@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Flag, Gift, Star, Network, Sun, Check, X } from 'lucide-react'
+import { Flag, Gift, Star, Network, Sun, Check, X, KanbanSquare, ChevronRight } from 'lucide-react'
 import { cn } from '../lib/cn'
 import { Header } from '../components/Header.jsx'
 import { Section } from '../components/Section.jsx'
@@ -383,6 +383,23 @@ export function Home() {
             )
           })}
         </div>
+
+        {/* Kanban — linha própria (largura toda), só pra quem tem acesso aos Quadros */}
+        {usuario?.podeQuadros && (
+          <Link
+            to="/quadros"
+            className="reveal hero-card mt-3 flex items-center gap-3 rounded-card p-4 tap"
+          >
+            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-accent text-black shadow-glow">
+              <KanbanSquare size={26} strokeWidth={2} />
+            </span>
+            <div className="min-w-0 flex-1">
+              <div className="font-display text-base font-bold leading-tight">Kanban Tatá</div>
+              <div className="mt-0.5 text-xs text-muted">Os quadros e tarefas do seu time</div>
+            </div>
+            <ChevronRight size={18} className="shrink-0 text-muted-2" />
+          </Link>
+        )}
       </Section>
 
       {/* Atalhos — exclusivo p/ quem tem acesso à Governança */}
