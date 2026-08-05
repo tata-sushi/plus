@@ -98,11 +98,9 @@ function EditorPessoa({ pessoa, scope = 'governanca', catalogo, catalogoAbas, on
   // seções que já têm alguma página liberada (ou a única seção, no escopo App).
   useEffect(() => {
     if (ids === null || gruposAbertos !== null) return
+    // Começa SEMPRE recolhido; só o escopo App (grupo único) já abre.
     const abertos = new Set()
-    for (const g of grupos) {
-      const temMarcado = g.itens.some((p) => ids.has(p.pagina_id))
-      if (temMarcado || grupos.length === 1) abertos.add(`${g.secao}›${g.sub}`)
-    }
+    if (grupos.length === 1 && grupos[0]) abertos.add(`${grupos[0].secao}›${grupos[0].sub}`)
     setGruposAbertos(abertos)
   }, [ids, grupos, gruposAbertos])
 
@@ -319,7 +317,7 @@ function EditorPessoa({ pessoa, scope = 'governanca', catalogo, catalogoAbas, on
               const todos = marcados === g.itens.length
               const aberto = gruposAbertos
                 ? gruposAbertos.has(chave)
-                : marcados > 0 || grupos.length === 1
+                : grupos.length === 1
               return (
                 <div key={chave}>
                   {/* Cabeçalho: recolher/expandir + "marcar tudo" (badge) */}
