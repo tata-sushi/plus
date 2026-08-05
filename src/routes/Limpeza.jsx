@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Navigate, useSearchParams } from 'react-router-dom'
 import jsQR from 'jsqr'
-import { QrCode, Camera, Check, Loader2, X, SprayCan, AlertTriangle, RotateCcw } from 'lucide-react'
+import { QrCode, Camera, Check, Loader2, X, SprayCan, AlertTriangle, RotateCcw, Star } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Voltar } from '../components/Voltar.jsx'
 import { Card } from '../components/Card.jsx'
@@ -77,14 +77,14 @@ export default function Limpeza() {
       let fotoUrl = null, fotoObsUrl = null
       if (fotoObrig) fotoUrl = await subirFoto(fotoObrig.file)
       if (fotoOpcional) fotoObsUrl = await subirFoto(fotoOpcional.file)
-      const { error } = await supabase.rpc('limpeza_registrar', {
+      const { data, error } = await supabase.rpc('limpeza_registrar', {
         p_token: token, p_foto_url: fotoUrl,
         p_observacao: obs.trim() || null, p_foto_obs_url: fotoObsUrl,
         p_itens: dados?.itens?.length ? itens : null,
       })
       if (error) throw error
       tapHaptic()
-      setUltimo({ banheiro: dados.banheiro, quando: new Date() })
+      setUltimo({ banheiro: dados.banheiro, quando: new Date(), pontos: Number(data?.pontos) || 0 })
       if (params.get('b')) setParams({}, { replace: true })
       setFase('ok')
     } catch (e) {
@@ -383,6 +383,11 @@ function TelaOk({ ultimo, onNovo }) {
           </div>
           <div className="font-display text-base font-bold">{ultimo.banheiro.nome}</div>
           <div className="mt-0.5 text-xs text-muted">{hora}</div>
+        </div>
+      )}
+      {ultimo?.pontos > 0 && (
+        <div className="mt-4 hstack items-center gap-1.5 rounded-pill bg-accent-soft px-3.5 py-1.5 text-sm font-bold text-accent">
+          <Star size={15} /> +{ultimo.pontos} {ultimo.pontos === 1 ? 'ponto' : 'pontos'} na carteira
         </div>
       )}
       <button onClick={onNovo} className="btn-primary mt-6 hstack w-full justify-center gap-2 py-3.5 text-sm">
