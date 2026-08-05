@@ -277,8 +277,10 @@ function TelaConfirmar({ dados, itens, setItens, obs, setObs, fotoObrig, setFoto
           <SprayCan size={20} />
         </span>
         <div className="min-w-0">
+          <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-2">
+            Limpeza de banheiro{dados.banheiro.unidade ? ` · ${dados.banheiro.unidade}` : ''}
+          </div>
           <div className="font-display text-base font-bold">{dados.banheiro.nome}</div>
-          {dados.banheiro.unidade && <div className="text-xs text-muted">{dados.banheiro.unidade}</div>}
         </div>
       </Card>
 
