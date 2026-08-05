@@ -76,7 +76,7 @@ function SugestoesCarrossel({ cards, desktop, setCanvas }) {
   const [idx, setIdx] = useState(0)
   const paginas = paginar4(cards)
 
-  const renderCard = (c, i, full) => {
+  const renderCard = (c, i) => {
     // No desktop, o organograma abre na área principal (dentro do app), não em tela cheia.
     const orgNoDesktop = desktop && c.to === '/organograma'
     return (
@@ -91,14 +91,13 @@ function SugestoesCarrossel({ cards, desktop, setCanvas }) {
         bgClassName={c.bgClassName}
         badgeClassName={c.badgeClassName}
         textClassName={c.textClassName}
-        // Sozinho na página, ocupa a largura toda (as duas colunas).
-        className={cn(`reveal-${i + 1}`, full && 'col-span-2')}
+        className={`reveal-${i + 1}`}
       />
     )
   }
 
   if (paginas.length <= 1) {
-    return <div className="grid grid-cols-2 gap-3">{cards.map((c, i) => renderCard(c, i, false))}</div>
+    return <div className="grid grid-cols-2 gap-3">{cards.map(renderCard)}</div>
   }
 
   return (
@@ -108,15 +107,10 @@ function SugestoesCarrossel({ cards, desktop, setCanvas }) {
         className="flex snap-x snap-mandatory gap-3 overflow-x-auto no-scrollbar"
       >
         {paginas.map((pagina, pi) => (
-          <div
-            key={pi}
-            className={cn(
-              'grid w-full shrink-0 snap-start grid-cols-2 gap-3',
-              // Páginas cheias não esticam as linhas; a de 1 card deixa ele preencher.
-              pagina.length > 1 && 'content-start',
-            )}
-          >
-            {pagina.map((c, i) => renderCard(c, i, pagina.length === 1))}
+          // content-start: cards no tamanho normal 2×2, sem esticar (páginas com
+          // menos de 4 deixam espaço embaixo até chegarem mais acessos rápidos).
+          <div key={pi} className="grid w-full shrink-0 snap-start grid-cols-2 content-start gap-3">
+            {pagina.map(renderCard)}
           </div>
         ))}
       </div>
