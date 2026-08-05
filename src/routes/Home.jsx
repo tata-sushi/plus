@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Flag, Gift, Star, Network, Sun, Check, X, KanbanSquare } from 'lucide-react'
+import { Flag, Gift, Star, Network, Sun, Check, X, KanbanSquare, SprayCan } from 'lucide-react'
 import { cn } from '../lib/cn'
 import { Header } from '../components/Header.jsx'
 import { Section } from '../components/Section.jsx'
@@ -203,13 +203,17 @@ export function Home() {
   const cargo = usuario?.cargo || ''
   const loja = usuario?.loja || ''
 
-  // Kanban entra na frente (empurrando os demais) só pra quem tem acesso aos Quadros.
-  const cards = usuario?.podeQuadros
-    ? [
-        { to: '/quadros', badgeIcon: KanbanSquare, title: 'Kanban Tatá', subtitle: 'Quadros e tarefas do time' },
-        ...sugestoesCards,
-      ]
-    : sugestoesCards
+  // Acessos de app entram na frente (sempre nesta ordem), empurrando os demais:
+  // 1º Kanban, 2º Checklist de limpeza — cada um só pra quem tem o acesso.
+  const cards = [
+    ...(usuario?.podeQuadros
+      ? [{ to: '/quadros', badgeIcon: KanbanSquare, title: 'Kanban Tatá', subtitle: 'Quadros e tarefas do time' }]
+      : []),
+    ...(usuario?.podeLimpeza
+      ? [{ to: '/limpeza', badgeIcon: SprayCan, title: 'Checklist de limpeza', subtitle: 'Check dos banheiros por QR' }]
+      : []),
+    ...sugestoesCards,
+  ]
   const desktop = useDesktop()
   const { setCanvas } = useDesktopCanvas()
 
