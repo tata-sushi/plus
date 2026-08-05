@@ -25,6 +25,7 @@ import {
   ShieldCheck,
   SprayCan,
   Smartphone,
+  GraduationCap,
 } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Section } from '../components/Section.jsx'
@@ -35,6 +36,7 @@ import { PhotoCropper } from '../components/PhotoCropper.jsx'
 import { AdminPublicacoes } from '../components/AdminPublicacoes.jsx'
 import { AdminConquistas } from '../components/AdminConquistas.jsx'
 import { AdminGovernanca } from '../components/AdminGovernanca.jsx'
+import { AdminDesafios } from '../components/AdminDesafios.jsx'
 import { AdminBanheiros } from '../components/AdminBanheiros.jsx'
 import { cn } from '../lib/cn'
 import { tapHaptic } from '../lib/haptics.js'
@@ -53,6 +55,7 @@ const TITULOS = {
   comunicados: 'Anúncios',
   governanca: 'Governança',
   aplicativo: 'Aplicativo',
+  desafios: 'Desafios',
   banheiros: 'Checklist de limpeza',
 }
 
@@ -472,6 +475,7 @@ export function AdminRecompensas() {
     { id: 'pedidos', label: 'Pedidos', icon: ShoppingBag, badge: pendentes },
     { id: 'envios', label: 'Envios', icon: FileCheck2, badge: enviosPendentes },
     { id: 'conquistas', label: 'Conquistas', icon: Trophy },
+    { id: 'desafios', label: 'Desafios', icon: GraduationCap },
     { id: 'comunicados', label: 'Anúncios', icon: Megaphone },
     ...(isAdminPerfil ? [{ id: 'banheiros', label: 'Checklist de limpeza', icon: SprayCan }] : []),
     { id: 'governanca', label: 'Governança', icon: ShieldCheck },
@@ -489,6 +493,8 @@ export function AdminRecompensas() {
           <BackBar titulo={TITULOS[aba]} onVoltar={() => setAba('menu')} />
           {aba === 'banheiros' ? (
         <AdminBanheiros />
+      ) : aba === 'desafios' ? (
+        <AdminDesafios />
       ) : aba === 'aplicativo' ? (
         <AdminGovernanca scope="app" />
       ) : aba === 'governanca' ? (
