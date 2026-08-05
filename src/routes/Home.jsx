@@ -203,16 +203,20 @@ export function Home() {
   const cargo = usuario?.cargo || ''
   const loja = usuario?.loja || ''
 
-  // Acessos de app entram na frente (sempre nesta ordem), empurrando os demais:
-  // 1º Kanban, 2º Checklist de limpeza — cada um só pra quem tem o acesso.
+  // Ordem dos cards de Sugestões: Kanban · Desafios · Checklist · Cardápio · Recompensas · Organograma.
+  // Kanban e Checklist só aparecem pra quem tem o acesso (podeQuadros / podeLimpeza).
+  const [desafios, recompensas, cardapio, organograma] = sugestoesCards
   const cards = [
     ...(usuario?.podeQuadros
-      ? [{ to: '/quadros', badgeIcon: KanbanSquare, title: 'Kanban Tatá', subtitle: 'Quadros e tarefas do time' }]
+      ? [{ to: '/quadros', badgeIcon: KanbanSquare, title: 'Kanban Tatá', subtitle: 'Quadro de tarefas' }]
       : []),
+    desafios,
     ...(usuario?.podeLimpeza
-      ? [{ to: '/limpeza', badgeIcon: SprayCan, title: 'Checklist de limpeza', subtitle: 'Check dos banheiros por QR' }]
+      ? [{ to: '/limpeza', badgeIcon: SprayCan, title: 'Checklist de limpeza', subtitle: 'Check dos banheiros' }]
       : []),
-    ...sugestoesCards,
+    cardapio,
+    recompensas,
+    organograma,
   ]
   const desktop = useDesktop()
   const { setCanvas } = useDesktopCanvas()
