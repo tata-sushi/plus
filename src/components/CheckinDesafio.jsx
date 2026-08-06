@@ -172,7 +172,7 @@ export function CheckinDesafio({ treinoId, envio, concluido, pontos, onEnviado }
           <p className="mt-1 text-[11px] text-muted-2">Agende uma nova visita ao RH.</p>
         </div>
       )}
-      <p className="mb-2 text-sm font-semibold">Agendar visita ao RH</p>
+      <p className="mb-2 text-sm font-semibold">Agenda sua visita no RH</p>
       <p className="mb-1.5 text-[11px] font-semibold text-muted">Dia</p>
       <div className="flex flex-wrap gap-2">
         {dias.map((dia) => {
@@ -222,7 +222,7 @@ export function CheckinDesafio({ treinoId, envio, concluido, pontos, onEnviado }
       <button
         onClick={agendar}
         disabled={busy}
-        className="btn-primary mt-3 w-full !py-3.5 disabled:opacity-60"
+        className="btn-primary mt-5 w-full !py-3.5 disabled:opacity-60"
       >
         {busy ? (
           <Loader2 size={18} className="animate-spin" />
