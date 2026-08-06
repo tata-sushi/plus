@@ -374,6 +374,8 @@ function VisaoQuadro({ quadroId, onVoltar, emCanvas }) {
   }, [board])
 
   const admin = !!board?.sou_admin
+  // Admin master (perfil do sistema) — só ele vê a "regra" da pontuação (números/trava).
+  const masterAdmin = (usuario?.perfil || '').toLowerCase() === 'admin'
   const etiquetaPorId = useMemo(() => {
     const m = {}
     for (const e of board?.etiquetas || []) m[e.id] = e
@@ -428,7 +430,7 @@ function VisaoQuadro({ quadroId, onVoltar, emCanvas }) {
     try {
       const r = await call('kanban_card_concluir', { p_id: card.id, p_concluido: !card.concluido })
       await recarregar()
-      if (r?.curto) avisar('Entrega confirmada, mas ainda não pontua — a tarefa precisa ter 24h desde que foi criada.')
+      if (r?.curto && masterAdmin) avisar('Entrega confirmada, mas ainda não pontua — a tarefa precisa ter 24h desde que foi criada.')
     } catch (e) {
       avisarErro(e)
     }
@@ -504,7 +506,7 @@ function VisaoQuadro({ quadroId, onVoltar, emCanvas }) {
       kanbanEl
     )
   const conteudoProvido = (
-    <QuadroCtx.Provider value={{ admin, pontua: !!board.pontua, onConcluir: concluirCard, onArquivarLista: arquivarLista }}>{conteudo}</QuadroCtx.Provider>
+    <QuadroCtx.Provider value={{ admin, pontua: !!board.pontua, masterAdmin, onConcluir: concluirCard, onArquivarLista: arquivarLista }}>{conteudo}</QuadroCtx.Provider>
   )
 
   const overlays = (
@@ -519,7 +521,7 @@ function VisaoQuadro({ quadroId, onVoltar, emCanvas }) {
           document.body,
         )}
       {cardAberto && (
-        <CardModal key={cardAberto.cardId || 'novo'} estado={cardAberto} card={cardLive} board={board} admin={admin} minhaMat={mat} onClose={() => setCardAberto(null)} onRefresh={recarregar} onFeito={async () => { setCardAberto(null); await recarregar() }} onAviso={avisar} />
+        <CardModal key={cardAberto.cardId || 'novo'} estado={cardAberto} card={cardLive} board={board} admin={admin} masterAdmin={masterAdmin} minhaMat={mat} onClose={() => setCardAberto(null)} onRefresh={recarregar} onFeito={async () => { setCardAberto(null); await recarregar() }} onAviso={avisar} />
       )}
       {sheet === 'filtros' && <FiltrosSheet board={board} filtros={filtros} setFiltros={setFiltros} onClose={() => setSheet(null)} />}
       {sheet === 'membros' && <MembrosSheet board={board} admin={admin} onClose={() => setSheet(null)} onFeito={recarregar} />}
@@ -532,6 +534,7 @@ function VisaoQuadro({ quadroId, onVoltar, emCanvas }) {
         <MenuGerenciar
           board={board}
           admin={admin}
+          masterAdmin={masterAdmin}
           vista={vista}
           setVista={setVista}
           temFiltro={temFiltro}
@@ -590,7 +593,7 @@ function CardFace({ card, etiquetaPorId, onOpen, handle, semAcoes }) {
               ctx.onConcluir(card)
             }}
             aria-label={card.concluido ? 'Reabrir cartão' : 'Concluir cartão'}
-            title={ctx.pontua ? (card.concluido ? 'Entrega confirmada (+2)' : 'Confirmar entrega (+2)') : undefined}
+            title={ctx.pontua ? (card.concluido ? `Entrega confirmada${ctx.masterAdmin ? ' (+2)' : ''}` : `Confirmar entrega${ctx.masterAdmin ? ' (+2)' : ''}`) : undefined}
             className={cn('mt-1 grid h-3.5 w-3.5 shrink-0 place-items-center rounded-full border tap', card.concluido ? 'border-accent bg-accent text-black' : 'border-line text-muted-2')}
           >
             {card.concluido && <Check size={9} />}
@@ -1065,7 +1068,7 @@ function MenuFlutuante({ aberto, onClose, children }) {
 }
 
 // ── Modal do cartão ──────────────────────────────────────────────────────────
-function CardModal({ estado, card, board, admin, minhaMat, onClose, onFeito, onRefresh, onAviso }) {
+function CardModal({ estado, card, board, admin, masterAdmin, minhaMat, onClose, onFeito, onRefresh, onAviso }) {
   const existe = estado.modo !== 'criar' && !!card
   const editavel = estado.modo === 'criar' || (estado.modo === 'editar' && admin)
   const base = card || {}
@@ -1170,7 +1173,7 @@ function CardModal({ estado, card, board, admin, minhaMat, onClose, onFeito, onR
       const r = await call('kanban_card_concluir', { p_id: card.id, p_concluido: !card.concluido })
       await onRefresh()
       recarregarHist()
-      if (r?.curto) onAviso?.('Entrega confirmada, mas ainda não pontua — a tarefa precisa ter 24h desde que foi criada.')
+      if (r?.curto && masterAdmin) onAviso?.('Entrega confirmada, mas ainda não pontua — a tarefa precisa ter 24h desde que foi criada.')
     } catch (e) {
       avisarErro(e)
     } finally {
@@ -1297,7 +1300,7 @@ function CardModal({ estado, card, board, admin, minhaMat, onClose, onFeito, onR
                 onClick={concluir}
                 disabled={busy}
                 aria-label={card.concluido ? 'Reabrir cartão' : 'Concluir cartão'}
-                title={board.pontua ? (card.concluido ? 'Entrega confirmada (+2)' : 'Confirmar entrega (+2)') : card.concluido ? 'Concluído' : 'Concluir'}
+                title={board.pontua ? (card.concluido ? `Entrega confirmada${masterAdmin ? ' (+2)' : ''}` : `Confirmar entrega${masterAdmin ? ' (+2)' : ''}`) : card.concluido ? 'Concluído' : 'Concluir'}
                 className={cn('mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full border tap', card.concluido ? 'border-[#35383F] ' + ctaEscuro : 'border-line text-muted-2')}
               >
                 {card.concluido && <Check size={14} />}
@@ -1694,7 +1697,7 @@ function FiltrosSheet({ board, filtros, setFiltros, onClose }) {
 }
 
 // ── Menu de gerenciamento (admin) ────────────────────────────────────────────
-function MenuGerenciar({ board, admin, vista, setVista, temFiltro, agrupar, setAgrupar, onBuscar, onClose, onEscolher, onArquivou, onFeito }) {
+function MenuGerenciar({ board, admin, masterAdmin, vista, setVista, temFiltro, agrupar, setAgrupar, onBuscar, onClose, onEscolher, onArquivou, onFeito }) {
   const [busy, setBusy] = useState(false)
   const [pontua, setPontua] = useState(!!board.pontua)
   async function togglePontua() {
@@ -1782,7 +1785,11 @@ function MenuGerenciar({ board, admin, vista, setVista, temFiltro, agrupar, setA
               <Star size={17} className="shrink-0 text-accent" />
               <div className="min-w-0 flex-1">
                 <div className="text-sm font-semibold">Pontuação</div>
-                <div className="text-[11px] text-muted">+2 por tarefa validada (responsável) e +1 pro líder. Vale só após 24h da criação.</div>
+                <div className="text-[11px] text-muted">
+                  {masterAdmin
+                    ? '+2 por tarefa validada (responsável) e +1 pro líder. Vale só após 24h da criação.'
+                    : 'Recompensa o time pelas entregas concluídas.'}
+                </div>
               </div>
               <button
                 onClick={togglePontua}
