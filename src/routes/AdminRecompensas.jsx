@@ -14,6 +14,7 @@ import {
   Clock,
   RotateCcw,
   FileText,
+  MapPin,
   Archive,
   ArchiveRestore,
   ChevronRight,
@@ -576,19 +577,25 @@ export function AdminRecompensas() {
 
                       <div className="mt-3 hstack justify-between gap-2 border-t border-line pt-3">
                         <div className="hstack gap-2">
-                          <button
-                            onClick={() => verAnexo(env)}
-                            disabled={anexoBusy === env.id}
-                            className="btn-ghost !py-2 text-xs text-muted"
-                          >
-                            {anexoBusy === env.id ? (
-                              <Loader2 size={14} className="animate-spin" />
-                            ) : (
-                              <>
-                                <FileText size={14} /> Ver anexo
-                              </>
-                            )}
-                          </button>
+                          {env.arquivo_tipo === 'checkin' ? (
+                            <span className="hstack gap-1.5 px-1 text-xs font-medium text-muted">
+                              <MapPin size={14} /> Check de comparecimento
+                            </span>
+                          ) : (
+                            <button
+                              onClick={() => verAnexo(env)}
+                              disabled={anexoBusy === env.id}
+                              className="btn-ghost !py-2 text-xs text-muted"
+                            >
+                              {anexoBusy === env.id ? (
+                                <Loader2 size={14} className="animate-spin" />
+                              ) : (
+                                <>
+                                  <FileText size={14} /> Ver anexo
+                                </>
+                              )}
+                            </button>
+                          )}
                           <button
                             onClick={() => arquivarEnvio(env, !env.arquivado)}
                             aria-label={env.arquivado ? 'Restaurar' : 'Arquivar'}

@@ -27,6 +27,7 @@ import { VideosYouTube, VideosLista } from '../components/VideosYouTube.jsx'
 import { IntroDesafio } from '../components/IntroDesafio.jsx'
 import { ProvaDesafio } from '../components/ProvaDesafio.jsx'
 import { EnvioDesafio } from '../components/EnvioDesafio.jsx'
+import { CheckinDesafio } from '../components/CheckinDesafio.jsx'
 import { Submodulo, GrupoUnidade } from '../components/Submodulo.jsx'
 import { CodigoEtica } from '../components/CodigoEtica.jsx'
 import { LeituraProva } from '../components/LeituraProva.jsx'
@@ -329,17 +330,27 @@ function Detalhe({
             />
           )}
           <div className="mt-7 border-t border-line pt-6">
-            <EnvioDesafio
-              treinoId={treino.id}
-              matricula={usuario?.matricula}
-              envio={data.envio}
-              concluido={data.concluido}
-              liberado={data.liberado}
-              dataFim={data.data_fim}
-              pontos={data.pontos}
-              rotulo={data.envio_rotulo}
-              onEnviado={recarregar}
-            />
+            {data.checkin_presencial ? (
+              <CheckinDesafio
+                treinoId={treino.id}
+                envio={data.envio}
+                concluido={data.concluido}
+                pontos={data.pontos}
+                onEnviado={recarregar}
+              />
+            ) : (
+              <EnvioDesafio
+                treinoId={treino.id}
+                matricula={usuario?.matricula}
+                envio={data.envio}
+                concluido={data.concluido}
+                liberado={data.liberado}
+                dataFim={data.data_fim}
+                pontos={data.pontos}
+                rotulo={data.envio_rotulo}
+                onEnviado={recarregar}
+              />
+            )}
           </div>
         </div>
       ) : ehReconhecimento ? (
