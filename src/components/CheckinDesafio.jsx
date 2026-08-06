@@ -97,7 +97,7 @@ export function CheckinDesafio({ treinoId, envio, concluido, pontos, onEnviado }
             <Loader2 size={18} className="animate-spin" />
           ) : (
             <>
-              <MapPin size={16} /> Confirmar comparecimento
+              <MapPin size={16} /> Confirmar presença
             </>
           )}
         </button>
@@ -167,7 +167,7 @@ export function CheckinDesafio({ treinoId, envio, concluido, pontos, onEnviado }
         </button>
       )}
       <p className="mt-2 text-center text-[11px] text-muted-2">
-        O RH recebe o seu agendamento e valida o comparecimento pra liberar os {pontos} pontos.
+        Depois que passar no RH, seus pontos do desafio serão liberados automaticamente.
       </p>
       {erro && <p className="mt-2 text-center text-xs font-medium text-danger">{erro}</p>}
     </div>
