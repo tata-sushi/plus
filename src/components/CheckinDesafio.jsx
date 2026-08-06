@@ -4,8 +4,10 @@ import { supabase } from '../lib/supabase.js'
 
 // Horários prontos pra visita ao RH (atende seg. a sex.).
 const HORARIOS = ['10:00', '11:00', '14:00', '15:00', '16:00']
+const DIAS_ABREV = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb']
+const MESES_ABREV = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez']
 
-// Hoje em YYYY-MM-DD (local) — usado como mínimo do seletor de data.
+// Hoje em YYYY-MM-DD (local).
 function hojeStr() {
   const d = new Date()
   const mm = String(d.getMonth() + 1).padStart(2, '0')
@@ -13,20 +15,34 @@ function hojeStr() {
   return `${d.getFullYear()}-${mm}-${dd}`
 }
 
-// Sábado/domingo? (parse local pra não escorregar de fuso horário)
-function ehFimDeSemana(str) {
-  if (!str) return false
-  const [y, m, d] = str.split('-').map(Number)
-  const dia = new Date(y, m - 1, d).getDay()
-  return dia === 0 || dia === 6
+// Hora atual como "HH:MM".
+function horaAtual() {
+  const a = new Date()
+  return `${String(a.getHours()).padStart(2, '0')}:${String(a.getMinutes()).padStart(2, '0')}`
 }
 
 // Horário já passou, quando a data escolhida é hoje?
 function passouHoje(str, hora) {
-  if (str !== hojeStr()) return false
-  const agora = new Date()
-  const atual = `${String(agora.getHours()).padStart(2, '0')}:${String(agora.getMinutes()).padStart(2, '0')}`
-  return hora <= atual
+  return str === hojeStr() && hora <= horaAtual()
+}
+
+// Próximos N dias úteis (seg–sex) prontos pra escolher. Pula hoje se todos
+// os horários do dia já tiverem passado.
+function proximosDiasUteis(n) {
+  const hojeTemVaga = HORARIOS.some((h) => h > horaAtual())
+  const dias = []
+  const d = new Date()
+  d.setHours(0, 0, 0, 0)
+  for (let offset = 0; dias.length < n && offset < 30; offset++, d.setDate(d.getDate() + 1)) {
+    const dow = d.getDay()
+    if (dow === 0 || dow === 6) continue // pula fim de semana
+    if (offset === 0 && !hojeTemVaga) continue // hoje já sem horário disponível
+    const value = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+    const label = offset === 0 ? 'Hoje' : offset === 1 ? 'Amanhã' : DIAS_ABREV[dow]
+    const curta = `${String(d.getDate()).padStart(2, '0')}/${MESES_ABREV[d.getMonth()]}`
+    dias.push({ value, label, curta })
+  }
+  return dias
 }
 
 // Desafio de "check-in presencial" com agendamento: o colaborador (1) agenda a visita
@@ -41,8 +57,7 @@ export function CheckinDesafio({ treinoId, envio, concluido, pontos, onEnviado }
   const [hora, setHora] = useState('')
 
   const status = concluido ? 'aprovado' : envio?.status || null
-  const hoje = hojeStr()
-  const dataFimSemana = ehFimDeSemana(data)
+  const dias = proximosDiasUteis(5)
 
   function fmtAgendado() {
     if (!envio?.agendado_data) return ''
@@ -52,11 +67,7 @@ export function CheckinDesafio({ treinoId, envio, concluido, pontos, onEnviado }
 
   async function agendar() {
     if (!data) {
-      setErro('Escolha a data da visita.')
-      return
-    }
-    if (ehFimDeSemana(data)) {
-      setErro('O RH atende de segunda a sexta — escolha um dia útil.')
+      setErro('Escolha o dia da visita.')
       return
     }
     if (!hora) {
@@ -162,28 +173,33 @@ export function CheckinDesafio({ treinoId, envio, concluido, pontos, onEnviado }
         </div>
       )}
       <p className="mb-2 text-sm font-semibold">Agendar visita ao RH</p>
-      <label className="block text-[11px] font-semibold text-muted">
-        Data <span className="font-medium text-muted-2">(seg. a sex.)</span>
-        <input
-          type="date"
-          value={data}
-          min={hoje}
-          onChange={(e) => {
-            setData(e.target.value)
-            setErro('')
-          }}
-          className="mt-1 w-full rounded-lg border border-line bg-bg px-3 py-2 text-sm text-text outline-none"
-        />
-      </label>
-      {data && dataFimSemana && (
-        <p className="mt-1 text-[11px] font-medium text-danger">
-          O RH atende de segunda a sexta — escolha um dia útil.
-        </p>
-      )}
+      <p className="mb-1.5 text-[11px] font-semibold text-muted">Dia</p>
+      <div className="flex flex-wrap gap-2">
+        {dias.map((dia) => {
+          const sel = data === dia.value
+          return (
+            <button
+              key={dia.value}
+              type="button"
+              onClick={() => {
+                setData(dia.value)
+                if (passouHoje(dia.value, hora)) setHora('')
+                setErro('')
+              }}
+              className={`tap min-w-[64px] rounded-lg border px-3 py-2 text-center leading-tight ${
+                sel ? 'border-accent bg-accent text-black' : 'border-line bg-bg text-text'
+              }`}
+            >
+              <span className="block text-sm font-semibold capitalize">{dia.label}</span>
+              <span className="block text-[10px] font-medium opacity-70">{dia.curta}</span>
+            </button>
+          )
+        })}
+      </div>
       <p className="mb-1.5 mt-3 text-[11px] font-semibold text-muted">Horário</p>
       <div className="flex flex-wrap gap-2">
         {HORARIOS.map((h) => {
-          const desab = !dataFimSemana && passouHoje(data, h)
+          const desab = passouHoje(data, h)
           const sel = hora === h
           return (
             <button
