@@ -559,6 +559,12 @@ export function AdminRecompensas() {
                             {env.nome || 'Colaborador'}
                           </div>
                           <div className="truncate text-xs text-muted">{env.treinamento_titulo}</div>
+                          {env.agendado_data && (
+                            <div className="truncate text-[11px] font-semibold text-accent">
+                              Agendou: {env.agendado_data.split('-').reverse().slice(0, 2).join('/')}
+                              {env.agendado_hora ? ` às ${env.agendado_hora}` : ''}
+                            </div>
+                          )}
                           <div className="text-[11px] text-muted-2">
                             {new Date(env.enviado_em).toLocaleDateString('pt-BR')} · matrícula{' '}
                             {env.matricula}
