@@ -172,7 +172,7 @@ export function CheckinDesafio({ treinoId, envio, concluido, pontos, onEnviado }
           <p className="mt-1 text-[11px] text-muted-2">Agende uma nova visita ao RH.</p>
         </div>
       )}
-      <p className="mb-2 text-sm font-semibold">Agenda sua visita no RH</p>
+      <p className="mb-2 text-sm font-semibold">Aproveite e agende sua visita com o RH</p>
       <p className="mb-1.5 text-[11px] font-semibold text-muted">Dia</p>
       <div className="flex flex-wrap gap-2">
         {dias.map((dia) => {
