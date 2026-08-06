@@ -1125,6 +1125,13 @@ function CardModal({ estado, card, board, admin, masterAdmin, minhaMat, onClose,
 
   async function salvar() {
     if (!titulo.trim()) return
+    if (faltaResp) { avisarErro(new Error('Todo cartão precisa de ao menos um responsável.')); return }
+    if (faltaEtq) {
+      avisarErro(new Error(semEtiquetas
+        ? 'Este quadro ainda não tem categorias. Crie etiquetas no menu do quadro (⋮ › Etiquetas) para poder adicionar cartões.'
+        : 'Todo cartão precisa de uma categoria (etiqueta).'))
+      return
+    }
     setSalvando(true)
     try {
       const args = {
@@ -1281,6 +1288,11 @@ function CardModal({ estado, card, board, admin, masterAdmin, minhaMat, onClose,
   const ehImagem = (a) =>
     /^image\//.test(a.mime || '') || /\.(png|jpe?g|gif|webp|avif|bmp|svg)$/i.test(a.nome || '')
   const etqSel = board.etiquetas.find((e) => etqs.has(e.id)) // categoria é única (uma por vez)
+  // Trava: todo card precisa de responsável e de categoria (etiqueta).
+  const semEtiquetas = board.etiquetas.length === 0
+  const faltaResp = resp.size === 0
+  const faltaEtq = etqs.size === 0
+  const podeSalvar = !!titulo.trim() && !faltaResp && !faltaEtq
   const lbl = 'font-mono text-[9px] font-medium uppercase tracking-[0.12em] text-muted'
   const chipSel = 'border-[#35383F] bg-[#35383F] text-white'
   const ctaEscuro = 'bg-[#35383F] text-[#CFFF00]'
@@ -1378,7 +1390,7 @@ function CardModal({ estado, card, board, admin, masterAdmin, minhaMat, onClose,
             <div className={cn(board.etiquetas.length > 0 && 'grid grid-cols-2 items-start gap-4')}>
               {board.etiquetas.length > 0 && (
                 <div>
-                  <div className={lbl}>Categoria</div>
+                  <div className={lbl}>Categoria{editavel && <span className="text-danger"> *</span>}</div>
                   <div className="relative mt-2">
                     <button
                       disabled={!editavel}
@@ -1406,7 +1418,7 @@ function CardModal({ estado, card, board, admin, masterAdmin, minhaMat, onClose,
                 </div>
               )}
               <div>
-                <div className={lbl}>Responsáveis</div>
+                <div className={lbl}>Responsáveis{editavel && <span className="text-danger"> *</span>}</div>
                 <div className="mt-2 flex flex-wrap gap-1.5">
                   {board.membros.map((p) => {
                     const on = resp.has(p.matricula)
@@ -1421,6 +1433,12 @@ function CardModal({ estado, card, board, admin, masterAdmin, minhaMat, onClose,
                 </div>
               </div>
             </div>
+
+            {semEtiquetas && editavel && (
+              <div className="rounded-lg border border-warn/30 bg-warn/10 px-3 py-2 text-[11px] font-medium text-warn">
+                Este quadro não tem categorias. Crie etiquetas no menu do quadro (⋮ › Etiquetas) para conseguir adicionar cartões.
+              </div>
+            )}
 
             {/* Descrição */}
             <div>
@@ -1628,8 +1646,19 @@ function CardModal({ estado, card, board, admin, masterAdmin, minhaMat, onClose,
 
           {/* Rodapé: só Salvar (fechar = cancelar) */}
           {editavel && (
-            <div className="flex shrink-0 border-t border-line bg-surface px-5 py-3 pb-6">
-              <button onClick={salvar} disabled={salvando || !titulo.trim()} className={cn('hstack h-10 w-full items-center justify-center gap-2 rounded-lg font-mono text-[10px] font-medium uppercase tracking-[0.6px] tap disabled:opacity-40', ctaEscuro)}>
+            <div className="shrink-0 border-t border-line bg-surface px-5 py-3 pb-6">
+              {titulo.trim() && !podeSalvar && (
+                <div className="mb-2 text-center text-[11px] font-medium text-muted">
+                  {faltaResp && faltaEtq
+                    ? 'Escolha um responsável e uma categoria para continuar.'
+                    : faltaResp
+                    ? 'Escolha ao menos um responsável.'
+                    : semEtiquetas
+                    ? 'Crie categorias no quadro (⋮ › Etiquetas) para adicionar cartões.'
+                    : 'Escolha uma categoria.'}
+                </div>
+              )}
+              <button onClick={salvar} disabled={salvando || !podeSalvar} className={cn('hstack h-10 w-full items-center justify-center gap-2 rounded-lg font-mono text-[10px] font-medium uppercase tracking-[0.6px] tap disabled:opacity-40', ctaEscuro)}>
                 {salvando ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
                 {estado.modo === 'criar' ? 'Criar' : 'Salvar'}
               </button>
