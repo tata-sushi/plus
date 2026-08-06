@@ -2,6 +2,33 @@ import { useState } from 'react'
 import { Loader2, CheckCircle2, Clock, XCircle, MapPin, CalendarClock, CalendarPlus } from 'lucide-react'
 import { supabase } from '../lib/supabase.js'
 
+// Horários prontos pra visita ao RH (atende seg. a sex.).
+const HORARIOS = ['10:00', '11:00', '14:00', '15:00', '16:00']
+
+// Hoje em YYYY-MM-DD (local) — usado como mínimo do seletor de data.
+function hojeStr() {
+  const d = new Date()
+  const mm = String(d.getMonth() + 1).padStart(2, '0')
+  const dd = String(d.getDate()).padStart(2, '0')
+  return `${d.getFullYear()}-${mm}-${dd}`
+}
+
+// Sábado/domingo? (parse local pra não escorregar de fuso horário)
+function ehFimDeSemana(str) {
+  if (!str) return false
+  const [y, m, d] = str.split('-').map(Number)
+  const dia = new Date(y, m - 1, d).getDay()
+  return dia === 0 || dia === 6
+}
+
+// Horário já passou, quando a data escolhida é hoje?
+function passouHoje(str, hora) {
+  if (str !== hojeStr()) return false
+  const agora = new Date()
+  const atual = `${String(agora.getHours()).padStart(2, '0')}:${String(agora.getMinutes()).padStart(2, '0')}`
+  return hora <= atual
+}
+
 // Desafio de "check-in presencial" com agendamento: o colaborador (1) agenda a visita
 // ao RH com data + horário — o que cria um card no Kanban do RH pra Thamires —, depois
 // (2) dá o check de comparecimento, e o RH valida na aba Envios pra liberar os pontos.
@@ -14,6 +41,8 @@ export function CheckinDesafio({ treinoId, envio, concluido, pontos, onEnviado }
   const [hora, setHora] = useState('')
 
   const status = concluido ? 'aprovado' : envio?.status || null
+  const hoje = hojeStr()
+  const dataFimSemana = ehFimDeSemana(data)
 
   function fmtAgendado() {
     if (!envio?.agendado_data) return ''
@@ -24,6 +53,14 @@ export function CheckinDesafio({ treinoId, envio, concluido, pontos, onEnviado }
   async function agendar() {
     if (!data) {
       setErro('Escolha a data da visita.')
+      return
+    }
+    if (ehFimDeSemana(data)) {
+      setErro('O RH atende de segunda a sexta — escolha um dia útil.')
+      return
+    }
+    if (!hora) {
+      setErro('Escolha um horário.')
       return
     }
     setErro('')
@@ -125,25 +162,46 @@ export function CheckinDesafio({ treinoId, envio, concluido, pontos, onEnviado }
         </div>
       )}
       <p className="mb-2 text-sm font-semibold">Agendar visita ao RH</p>
-      <div className="grid grid-cols-2 gap-2">
-        <label className="block text-[11px] font-semibold text-muted">
-          Data
-          <input
-            type="date"
-            value={data}
-            onChange={(e) => setData(e.target.value)}
-            className="mt-1 w-full rounded-lg border border-line bg-bg px-3 py-2 text-sm text-text outline-none"
-          />
-        </label>
-        <label className="block text-[11px] font-semibold text-muted">
-          Horário
-          <input
-            type="time"
-            value={hora}
-            onChange={(e) => setHora(e.target.value)}
-            className="mt-1 w-full rounded-lg border border-line bg-bg px-3 py-2 text-sm text-text outline-none"
-          />
-        </label>
+      <label className="block text-[11px] font-semibold text-muted">
+        Data <span className="font-medium text-muted-2">(seg. a sex.)</span>
+        <input
+          type="date"
+          value={data}
+          min={hoje}
+          onChange={(e) => {
+            setData(e.target.value)
+            setErro('')
+          }}
+          className="mt-1 w-full rounded-lg border border-line bg-bg px-3 py-2 text-sm text-text outline-none"
+        />
+      </label>
+      {data && dataFimSemana && (
+        <p className="mt-1 text-[11px] font-medium text-danger">
+          O RH atende de segunda a sexta — escolha um dia útil.
+        </p>
+      )}
+      <p className="mb-1.5 mt-3 text-[11px] font-semibold text-muted">Horário</p>
+      <div className="flex flex-wrap gap-2">
+        {HORARIOS.map((h) => {
+          const desab = !dataFimSemana && passouHoje(data, h)
+          const sel = hora === h
+          return (
+            <button
+              key={h}
+              type="button"
+              disabled={desab}
+              onClick={() => {
+                setHora(h)
+                setErro('')
+              }}
+              className={`tap rounded-lg border px-3.5 py-2 text-sm font-semibold ${
+                sel ? 'border-accent bg-accent text-black' : 'border-line bg-bg text-text'
+              } disabled:cursor-not-allowed disabled:border-line disabled:bg-transparent disabled:text-muted-2 disabled:line-through`}
+            >
+              {h}
+            </button>
+          )
+        })}
       </div>
       <button
         onClick={agendar}
