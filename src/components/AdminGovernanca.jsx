@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Loader2, Search, ChevronRight, ChevronDown, Check, ShieldCheck, X, Layers, KeyRound } from 'lucide-react'
+import { Loader2, Search, ChevronRight, ChevronDown, Check, ShieldCheck, X, Layers, KeyRound, Info } from 'lucide-react'
 import { Section } from './Section.jsx'
 import { Card } from './Card.jsx'
 import { Avatar } from './Avatar.jsx'
@@ -381,6 +381,23 @@ function EditorPessoa({ pessoa, scope = 'governanca', catalogo, catalogoAbas, on
                               </span>
                             )}
                           </button>
+
+                          {/* Explicação da pontuação do Kanban — fica só aqui, no
+                              painel do admin master (não vai pros treinamentos). */}
+                          {p.pagina_id === 'governanca-app-quadros' && (
+                            <div className="mx-4 mb-3 rounded-xl border border-line bg-surface-2/60 px-3.5 py-3 text-[11px] leading-relaxed text-muted">
+                              <div className="hstack mb-1 gap-1.5 font-semibold text-text">
+                                <Info size={13} className="shrink-0 text-accent" /> Como o Kanban pontua
+                              </div>
+                              <ul className="ml-3.5 list-disc space-y-0.5">
+                                <li><b className="text-text">Colaborador:</b> +2 por tarefa que o líder validar.</li>
+                                <li><b className="text-text">Líder do quadro:</b> +1 por entrega que ele validar.</li>
+                                <li>Só pontua com o cartão tendo <b className="text-text">24h ou mais</b> desde a criação (evita criar e concluir na hora só pra pontuar).</li>
+                                <li>Reabrir o cartão <b className="text-text">remove</b> os pontos.</li>
+                                <li>Quadro novo <b className="text-text">já nasce pontuando</b>; o líder liga/desliga no menu do quadro.</li>
+                              </ul>
+                            </div>
+                          )}
 
                           {/* Só quando a página está liberada: abas e botões
                               recolhíveis (começam guardados). Ligado = a pessoa
