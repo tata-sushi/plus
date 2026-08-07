@@ -69,12 +69,14 @@ export function Mais() {
   const loja = usuario?.loja || ''
   // Ouvidoria e Gerenciar atalhos só para quem tem acesso à Governança.
   // Quadros só aparece para quem foi liberado no painel de admin.
-  const navItens = itens.filter(
-    (i) =>
-      (!i.gov || usuario?.governanca?.tem) &&
-      (!i.quadros || usuario?.podeQuadros) &&
-      (!i.escala || usuario?.podeEscala),
-  )
+  const navItens = itens
+    .filter(
+      (i) =>
+        (!i.gov || usuario?.governanca?.tem) &&
+        (!i.quadros || usuario?.podeQuadros) &&
+        (!i.escala || usuario?.podeEscala),
+    )
+    .sort((a, b) => a.label.localeCompare(b.label, 'pt', { sensitivity: 'base' }))
 
   const inputFoto = useRef(null)
   const [enviando, setEnviando] = useState(false)

@@ -207,8 +207,8 @@ function Calendario() {
         )}
       </div>
 
-      <div className="mt-6 flex flex-col items-center gap-5 text-[11px] text-muted">
-        <div className="flex flex-wrap justify-center gap-x-4 gap-y-2">
+      <div className="mt-6 flex flex-col items-start gap-5 text-[11px] text-muted">
+        <div className="flex flex-wrap gap-x-4 gap-y-2">
           <span className="hstack gap-1.5">
             <span className="h-3.5 w-3.5 rounded border border-accent/30 bg-accent-soft" /> Trabalho
           </span>
@@ -225,7 +225,7 @@ function Calendario() {
             <X size={13} strokeWidth={3} className="text-muted-2/70" /> Não pontuou
           </span>
         </div>
-        <div className="flex flex-wrap justify-center gap-4">
+        <div className="flex flex-wrap gap-4">
           <span className="hstack gap-1.5">
             <MessageCircle size={13} className="text-accent" /> Conversa com o RH
           </span>
