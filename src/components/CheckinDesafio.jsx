@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Loader2, CheckCircle2, Clock, XCircle, MapPin, CalendarClock, CalendarPlus } from 'lucide-react'
+import { Loader2, CheckCircle2, Clock, XCircle, MessageCircle, CalendarClock, CalendarPlus } from 'lucide-react'
 import { supabase } from '../lib/supabase.js'
 
 // Horários prontos pra visita ao RH (atende seg. a sex.).
@@ -106,7 +106,7 @@ export function CheckinDesafio({ treinoId, envio, concluido, pontos, onEnviado }
     return (
       <div className="rounded-card border border-accent/30 bg-accent-soft px-4 py-5 text-center">
         <CheckCircle2 className="mx-auto text-accent" size={28} />
-        <p className="mt-2 text-sm font-bold text-accent">Comparecimento validado! +{pontos} pontos</p>
+        <p className="mt-2 text-sm font-bold text-accent">Conversa validada! +{pontos} pontos</p>
         <p className="mt-0.5 text-xs text-muted">Seus pontos já entraram na carteira. 🎉</p>
       </div>
     )
@@ -118,7 +118,7 @@ export function CheckinDesafio({ treinoId, envio, concluido, pontos, onEnviado }
         <Clock className="mx-auto text-warn" size={25} />
         <p className="mt-2 text-sm font-bold text-warn">Check enviado! Aguardando o RH</p>
         <p className="mt-0.5 text-xs text-muted">
-          Assim que o RH validar o seu comparecimento, os {pontos} pontos entram.
+          Assim que o RH validar a sua conversa, os {pontos} pontos entram.
         </p>
       </div>
     )
@@ -146,7 +146,7 @@ export function CheckinDesafio({ treinoId, envio, concluido, pontos, onEnviado }
               <Loader2 size={18} className="animate-spin" />
             ) : (
               <>
-                <MapPin size={16} /> Confirmar presença
+                <MessageCircle size={16} /> Confirmar conversa
               </>
             )}
           </button>
@@ -168,7 +168,7 @@ export function CheckinDesafio({ treinoId, envio, concluido, pontos, onEnviado }
       {status === 'reprovado' && !reagendar && (
         <div className="mb-3 rounded-card border border-danger/30 bg-danger/10 px-4 py-3">
           <div className="hstack gap-2 text-sm font-semibold text-danger">
-            <XCircle size={17} /> Comparecimento não validado
+            <XCircle size={17} /> Conversa não validada
           </div>
           {envio?.motivo && <p className="mt-1 text-xs text-muted">{envio.motivo}</p>}
           <p className="mt-1 text-[11px] text-muted-2">Agende um novo bate-papo com o RH.</p>
