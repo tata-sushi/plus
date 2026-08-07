@@ -325,6 +325,9 @@ function Detalhe({
             </div>
           )}
           {temHtml && (
+            <LeitorVoz html={personalizar(data.conteudo_html)} className="mb-4" />
+          )}
+          {temHtml && (
             <div
               className="conteudo text-sm leading-relaxed"
               dangerouslySetInnerHTML={{ __html: personalizar(data.conteudo_html) }}

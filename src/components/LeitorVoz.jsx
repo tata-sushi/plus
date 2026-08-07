@@ -59,30 +59,30 @@ export function LeitorVoz({ html, className }) {
   }
 
   return (
-    <div className={cn('hstack gap-2', className)}>
-      {estado === 'parado' && (
-        <button onClick={ouvir} className="btn-ghost !px-3.5 !py-2 text-xs font-semibold">
-          <Volume2 size={15} /> Ouvir
+    <div className={cn('flex items-stretch gap-2', className)}>
+      {estado === 'parado' ? (
+        <button onClick={ouvir} className="btn-ghost w-full !py-2.5 text-sm font-semibold">
+          <Volume2 size={16} /> Ouvir
         </button>
-      )}
-      {estado === 'lendo' && (
-        <button onClick={pausar} className="btn-ghost !px-3.5 !py-2 text-xs font-semibold">
-          <Pause size={15} /> Pausar
-        </button>
-      )}
-      {estado === 'pausado' && (
-        <button onClick={continuar} className="btn-ghost !px-3.5 !py-2 text-xs font-semibold">
-          <Play size={15} /> Continuar
-        </button>
-      )}
-      {estado !== 'parado' && (
-        <button
-          onClick={parar}
-          className="btn-ghost !px-3 !py-2 text-xs text-muted"
-          aria-label="Parar leitura"
-        >
-          <Square size={14} />
-        </button>
+      ) : (
+        <>
+          {estado === 'lendo' ? (
+            <button onClick={pausar} className="btn-ghost flex-1 !py-2.5 text-sm font-semibold">
+              <Pause size={16} /> Pausar
+            </button>
+          ) : (
+            <button onClick={continuar} className="btn-ghost flex-1 !py-2.5 text-sm font-semibold">
+              <Play size={16} /> Continuar
+            </button>
+          )}
+          <button
+            onClick={parar}
+            className="btn-ghost shrink-0 !px-4 !py-2.5 text-muted"
+            aria-label="Parar leitura"
+          >
+            <Square size={16} />
+          </button>
+        </>
       )}
     </div>
   )
