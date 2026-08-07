@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Loader2, CheckCircle2, Clock, XCircle, MessageCircle, CalendarClock, CalendarPlus } from 'lucide-react'
+import { Loader2, CheckCircle2, Clock, XCircle, CalendarClock } from 'lucide-react'
 import { supabase } from '../lib/supabase.js'
 
 // Horários prontos pra visita ao RH (atende seg. a sex.).
@@ -142,13 +142,7 @@ export function CheckinDesafio({ treinoId, envio, concluido, pontos, onEnviado }
             disabled={busy}
             className="btn-primary flex-1 !py-3 disabled:opacity-60"
           >
-            {busy ? (
-              <Loader2 size={18} className="animate-spin" />
-            ) : (
-              <>
-                <MessageCircle size={16} /> Confirmar conversa
-              </>
-            )}
+            {busy ? <Loader2 size={18} className="animate-spin" /> : 'Confirmar conversa'}
           </button>
           <button
             onClick={() => setReagendar(true)}
@@ -221,30 +215,23 @@ export function CheckinDesafio({ treinoId, envio, concluido, pontos, onEnviado }
           )
         })}
       </div>
-      <button
-        onClick={agendar}
-        disabled={busy}
-        className="btn-primary mt-5 w-full !py-3.5 disabled:opacity-60"
-      >
-        {busy ? (
-          <Loader2 size={18} className="animate-spin" />
-        ) : (
-          <>
-            <CalendarPlus size={16} /> Agendar visita
-          </>
-        )}
-      </button>
-      {reagendar && (
+      <div className="mt-5 flex items-stretch gap-2">
         <button
-          onClick={() => setReagendar(false)}
-          className="btn-ghost mt-2 w-full !py-2 text-xs text-muted"
+          onClick={agendar}
+          disabled={busy}
+          className="btn-primary flex-1 !py-3.5 disabled:opacity-60"
         >
-          Cancelar
+          {busy ? <Loader2 size={18} className="animate-spin" /> : 'Agendar explicação'}
         </button>
-      )}
-      <p className="mt-2 text-center text-[11px] text-muted-2">
-        Depois do bate-papo com o RH, seus pontos do desafio serão liberados automaticamente.
-      </p>
+        {reagendar && (
+          <button
+            onClick={() => setReagendar(false)}
+            className="btn-ghost shrink-0 !py-3.5 px-5"
+          >
+            Cancelar
+          </button>
+        )}
+      </div>
       {erro && <p className="mt-2 text-center text-xs font-medium text-danger">{erro}</p>}
     </div>
   )
