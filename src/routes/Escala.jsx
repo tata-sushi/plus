@@ -191,7 +191,7 @@ function Calendario() {
                 ) : (
                   <X size={9} strokeWidth={3} className="absolute right-0.5 top-0.5 text-muted-2/70" />
                 ))}
-              {temEvt && <MessageCircle size={9} strokeWidth={2.5} className="absolute left-0.5 top-0.5 text-accent" />}
+              {temEvt && <span className="absolute bottom-1 left-1/2 h-1.5 w-5 -translate-x-1/2 rounded-full bg-accent" />}
               <span className={cn('font-bold', isHoje ? 'text-accent' : trab ? 'text-carbon dark:text-accent' : '')}>{d.getDate()}</span>
               {noMes && folga && <Sun size={9} className="text-muted-2" />}
               {noMes && trab && pares.length > 0 && (
@@ -207,25 +207,29 @@ function Calendario() {
         )}
       </div>
 
-      <div className="mt-4 hstack flex-wrap gap-4 text-[11px] text-muted">
-        <span className="hstack gap-1.5">
-          <span className="h-3.5 w-3.5 rounded border border-accent/30 bg-accent-soft" /> Trabalho
-        </span>
-        <span className="hstack gap-1.5">
-          <span className="grid h-3.5 w-3.5 place-items-center rounded border border-line bg-fill">
-            <Sun size={8} className="text-muted-2" />
+      <div className="mt-6 flex flex-col items-center gap-5 text-[11px] text-muted">
+        <div className="flex flex-wrap justify-center gap-x-4 gap-y-2">
+          <span className="hstack gap-1.5">
+            <span className="h-3.5 w-3.5 rounded border border-accent/30 bg-accent-soft" /> Trabalho
           </span>
-          Folga
-        </span>
-        <span className="hstack gap-1.5">
-          <Check size={13} strokeWidth={3} className="text-accent" /> Validou
-        </span>
-        <span className="hstack gap-1.5">
-          <X size={13} strokeWidth={3} className="text-muted-2/70" /> Não pontuou
-        </span>
-        <span className="hstack gap-1.5">
-          <MessageCircle size={13} className="text-accent" /> Conversa
-        </span>
+          <span className="hstack gap-1.5">
+            <span className="grid h-3.5 w-3.5 place-items-center rounded border border-line bg-fill">
+              <Sun size={8} className="text-muted-2" />
+            </span>
+            Folga
+          </span>
+          <span className="hstack gap-1.5">
+            <Check size={13} strokeWidth={3} className="text-accent" /> Validou
+          </span>
+          <span className="hstack gap-1.5">
+            <X size={13} strokeWidth={3} className="text-muted-2/70" /> Não pontuou
+          </span>
+        </div>
+        <div className="flex flex-wrap justify-center gap-4">
+          <span className="hstack gap-1.5">
+            <MessageCircle size={13} className="text-accent" /> Conversa com o RH
+          </span>
+        </div>
       </div>
 
       {det && (
