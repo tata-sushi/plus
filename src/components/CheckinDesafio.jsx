@@ -114,9 +114,9 @@ export function CheckinDesafio({ treinoId, envio, concluido, pontos, onEnviado }
 
   if (status === 'pendente') {
     return (
-      <div className="rounded-card border border-warn/30 bg-warn/10 px-4 py-5 text-center">
-        <Clock className="mx-auto text-warn" size={25} />
-        <p className="mt-2 text-sm font-bold text-warn">Conversa realizada! Aguardando o RH</p>
+      <div className="rounded-card border border-line bg-surface-2 px-4 py-5 text-center">
+        <Clock className="mx-auto text-accent" size={25} />
+        <p className="mt-2 text-sm font-bold text-text">Conversa realizada! Aguardando o RH</p>
         <p className="mt-0.5 text-xs text-muted">
           O RH valida o desafio para liberar seus {pontos} pontos.
         </p>
