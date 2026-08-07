@@ -35,8 +35,10 @@ export function AdminDesafios() {
     return [...m.entries()]
   }, [treinos])
 
-  function aoSalvar(id, pessoasQtd) {
-    setTreinos((prev) => prev.map((t) => (t.id === id ? { ...t, pessoas: pessoasQtd } : t)))
+  function aoSalvar(id, resumo) {
+    setTreinos((prev) =>
+      prev.map((t) => (t.id === id ? { ...t, pessoas: resumo.pessoas, desativados: resumo.desativados } : t)),
+    )
     setSel(null)
   }
 
@@ -55,7 +57,8 @@ export function AdminDesafios() {
           <Info size={15} className="mt-0.5 shrink-0 text-muted-2" />
           <span>
             Escolha quem enxerga cada desafio. Sem ninguém marcado, ele fica visível para{' '}
-            <b className="text-text">todos</b>. Marcar pessoas restringe só a elas.
+            <b className="text-text">todos</b>. <b className="text-text">Liberar</b> restringe só às pessoas
+            marcadas; <b className="text-text">Desativar</b> esconde de pessoas específicas.
           </span>
         </div>
       </div>
@@ -84,6 +87,10 @@ export function AdminDesafios() {
                   <span className="hstack shrink-0 gap-1 rounded-pill bg-accent-soft px-2.5 py-1 text-[11px] font-bold text-accent">
                     <Users size={11} /> {t.pessoas}
                   </span>
+                ) : t.desativados > 0 ? (
+                  <span className="hstack shrink-0 gap-1 rounded-pill bg-danger/10 px-2.5 py-1 text-[11px] font-bold text-danger">
+                    <X size={11} strokeWidth={3} /> {t.desativados}
+                  </span>
                 ) : t.outras_regras ? (
                   <span className="shrink-0 text-[11px] font-medium text-muted-2">por regra</span>
                 ) : (
@@ -109,19 +116,28 @@ export function AdminDesafios() {
 }
 
 function EditorDesafio({ treino, pessoas, onFechar, onSalvo }) {
-  const [ids, setIds] = useState(null) // Set de matrículas liberadas · null = carregando
+  const [modo, setModo] = useState('liberar') // 'liberar' (quem vê) | 'desativar' (quem NÃO vê)
+  const [idsLib, setIdsLib] = useState(null) // Set de matrículas liberadas
+  const [idsDes, setIdsDes] = useState(null) // Set de matrículas desativadas
   const [busca, setBusca] = useState('')
   const [salvando, setSalvando] = useState(false)
 
   useEffect(() => {
     let ativo = true
-    supabase.rpc('desafios_admin_pessoas_do', { p_treino: treino.id }).then(({ data }) => {
-      if (ativo) setIds(new Set(data || []))
+    Promise.all([
+      supabase.rpc('desafios_admin_pessoas_do', { p_treino: treino.id }),
+      supabase.rpc('desafios_admin_desativados_do', { p_treino: treino.id }),
+    ]).then(([lib, des]) => {
+      if (!ativo) return
+      setIdsLib(new Set(lib.data || []))
+      setIdsDes(new Set(des.data || []))
     })
     return () => {
       ativo = false
     }
   }, [treino.id])
+
+  const carregando = idsLib === null || idsDes === null
 
   const filtradas = useMemo(() => {
     const t = busca.trim().toLowerCase()
@@ -135,26 +151,41 @@ function EditorDesafio({ treino, pessoas, onFechar, onSalvo }) {
     return [...base].sort((a, b) => (a.nome || '').localeCompare(b.nome || '', 'pt-BR'))
   }, [pessoas, busca])
 
+  // Marcar em um modo tira do outro — cada pessoa é liberada, desativada ou nenhum.
   function toggle(mat) {
     tapHaptic()
-    setIds((prev) => {
+    const [meu, setMeu, setOutro] =
+      modo === 'liberar' ? [idsLib, setIdsLib, setIdsDes] : [idsDes, setIdsDes, setIdsLib]
+    const jaTem = meu.has(mat)
+    setMeu((prev) => {
       const n = new Set(prev)
-      n.has(mat) ? n.delete(mat) : n.add(mat)
+      jaTem ? n.delete(mat) : n.add(mat)
       return n
     })
+    if (!jaTem) {
+      setOutro((prev) => {
+        if (!prev.has(mat)) return prev
+        const n = new Set(prev)
+        n.delete(mat)
+        return n
+      })
+    }
   }
 
   async function salvar() {
     setSalvando(true)
-    const { error } = await supabase.rpc('desafios_admin_set_pessoas', {
-      p_treino: treino.id,
-      p_matriculas: [...ids],
-    })
+    const [r1, r2] = await Promise.all([
+      supabase.rpc('desafios_admin_set_pessoas', { p_treino: treino.id, p_matriculas: [...idsLib] }),
+      supabase.rpc('desafios_admin_set_desativados', { p_treino: treino.id, p_matriculas: [...idsDes] }),
+    ])
     setSalvando(false)
-    if (!error) onSalvo(ids.size)
+    if (!r1.error && !r2.error) onSalvo({ pessoas: idsLib.size, desativados: idsDes.size })
   }
 
-  const n = ids?.size ?? 0
+  const liberar = modo === 'liberar'
+  const nLib = idsLib?.size ?? 0
+  const nDes = idsDes?.size ?? 0
+  const setAtual = liberar ? idsLib : idsDes
 
   return createPortal(
     <div className="fixed inset-0 z-50 flex flex-col bg-bg">
@@ -172,36 +203,67 @@ function EditorDesafio({ treino, pessoas, onFechar, onSalvo }) {
       </div>
 
       {/* Corpo */}
-      {ids === null ? (
+      {carregando ? (
         <div className="hstack flex-1 justify-center py-16 text-muted-2">
           <Loader2 size={22} className="animate-spin" />
         </div>
       ) : (
         <>
           <div className="shrink-0 px-5 pt-4">
+            {/* Alternador Liberar / Desativar */}
+            <div className="hstack gap-1 rounded-pill bg-surface-2 p-1">
+              <button
+                onClick={() => setModo('liberar')}
+                className={cn('flex-1 rounded-pill py-1.5 text-xs font-bold tap', liberar ? 'bg-accent text-black' : 'text-muted')}
+              >
+                Liberar
+              </button>
+              <button
+                onClick={() => setModo('desativar')}
+                className={cn('flex-1 rounded-pill py-1.5 text-xs font-bold tap', !liberar ? 'bg-danger text-white' : 'text-muted')}
+              >
+                Desativar
+              </button>
+            </div>
+
+            {/* Banner do modo atual */}
             <div
               className={cn(
-                'rounded-card border px-3.5 py-3 text-xs',
-                n > 0 ? 'border-accent/30 bg-accent-soft text-accent' : 'border-line bg-surface text-muted',
+                'mt-3 rounded-card border px-3.5 py-3 text-xs',
+                liberar
+                  ? nLib > 0 ? 'border-accent/30 bg-accent-soft text-accent' : 'border-line bg-surface text-muted'
+                  : nDes > 0 ? 'border-danger/30 bg-danger/10 text-danger' : 'border-line bg-surface text-muted',
               )}
             >
-              {n > 0 ? (
+              {liberar ? (
+                nLib > 0 ? (
+                  <span>
+                    <b>{nLib}</b> {nLib === 1 ? 'pessoa liberada' : 'pessoas liberadas'} — só{' '}
+                    {nLib === 1 ? 'ela vê' : 'elas veem'} este desafio.
+                  </span>
+                ) : (
+                  <span>
+                    Ninguém liberado — <b className="text-text">todos</b> veem (menos os desativados).
+                  </span>
+                )
+              ) : nDes > 0 ? (
                 <span>
-                  <b>{n}</b> {n === 1 ? 'pessoa liberada' : 'pessoas liberadas'} — só {n === 1 ? 'ela' : 'elas'}{' '}
-                  {n === 1 ? 'vê' : 'veem'} este desafio.
+                  <b>{nDes}</b> {nDes === 1 ? 'pessoa desativada' : 'pessoas desativadas'} —{' '}
+                  {nDes === 1 ? 'ela não vê' : 'elas não veem'} este desafio.
                 </span>
               ) : (
                 <span>
-                  Ninguém marcado — <b className="text-text">todos os colaboradores</b> veem este desafio.
+                  Ninguém desativado. Marque quem <b className="text-text">não</b> deve ver este desafio.
                 </span>
               )}
             </div>
+
             {treino.outras_regras && (
               <p className="mt-2 px-1 text-[11px] text-muted-2">
-                Este desafio também tem regras por unidade/departamento — elas continuam valendo além
-                das pessoas marcadas aqui.
+                Este desafio também tem regras por unidade/departamento — elas continuam valendo.
               </p>
             )}
+
             <div className="mt-3">
               <div className="hstack gap-2 rounded-card bg-surface-2 px-3 py-2">
                 <Search size={16} className="shrink-0 text-muted-2" />
@@ -218,7 +280,8 @@ function EditorDesafio({ treino, pessoas, onFechar, onSalvo }) {
           <div className="flex-1 overflow-y-auto px-5 py-3">
             <div className="flex flex-col gap-2">
               {filtradas.map((p) => {
-                const on = ids.has(p.matricula)
+                const on = setAtual.has(p.matricula)
+                const noOutro = (liberar ? idsDes : idsLib).has(p.matricula)
                 return (
                   <button key={p.matricula} onClick={() => toggle(p.matricula)} className="tap text-left">
                     <Card className="hstack items-center gap-3 !py-2.5">
@@ -230,13 +293,22 @@ function EditorDesafio({ treino, pessoas, onFechar, onSalvo }) {
                           {p.unidade ? ` · ${p.unidade}` : ''}
                         </div>
                       </div>
+                      {noOutro && (
+                        <span className={cn('shrink-0 text-[10px] font-semibold', liberar ? 'text-danger' : 'text-accent')}>
+                          {liberar ? 'desativado' : 'liberado'}
+                        </span>
+                      )}
                       <span
                         className={cn(
                           'grid h-6 w-6 shrink-0 place-items-center rounded-md border transition-colors',
-                          on ? 'border-accent bg-accent text-black' : 'border-line text-transparent',
+                          on
+                            ? liberar
+                              ? 'border-accent bg-accent text-black'
+                              : 'border-danger bg-danger text-white'
+                            : 'border-line text-transparent',
                         )}
                       >
-                        <Check size={15} strokeWidth={3} />
+                        {liberar ? <Check size={15} strokeWidth={3} /> : <X size={15} strokeWidth={3} />}
                       </span>
                     </Card>
                   </button>
@@ -257,13 +329,7 @@ function EditorDesafio({ treino, pessoas, onFechar, onSalvo }) {
               disabled={salvando}
               className={cn('btn-primary w-full !py-3.5', salvando && 'opacity-60')}
             >
-              {salvando ? (
-                <Loader2 size={18} className="animate-spin" />
-              ) : n > 0 ? (
-                `Salvar (${n} ${n === 1 ? 'pessoa' : 'pessoas'})`
-              ) : (
-                'Salvar (todos veem)'
-              )}
+              {salvando ? <Loader2 size={18} className="animate-spin" /> : 'Salvar'}
             </button>
           </div>
         </>
