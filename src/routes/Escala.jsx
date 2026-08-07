@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Navigate } from 'react-router-dom'
-import { Loader2, ChevronLeft, ChevronRight, CalendarClock, Check, X, Sun, CircleCheck, Coins } from 'lucide-react'
+import { Loader2, ChevronLeft, ChevronRight, CalendarClock, Check, X, Sun, CircleCheck, Coins, MessageCircle } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Voltar } from '../components/Voltar.jsx'
 import { Avatar } from '../components/Avatar.jsx'
@@ -57,7 +57,7 @@ function Painel() {
   // Montar escala saiu do app (é feito na governança). O app é só a consulta.
   return (
     <>
-      <Header title="Escala" />
+      <Header title="Agenda" />
       <Voltar />
       <Calendario />
     </>
@@ -75,7 +75,8 @@ function paresDe(info) {
 function Calendario() {
   const [mesOffset, setMesOffset] = useState(0)
   const [mapa, setMapa] = useState(null) // { 'YYYY-MM-DD': { entrada, saida, folga, marcacoes } }
-  const [det, setDet] = useState(null) // { info, dia } — detalhe do dia (marcações)
+  const [eventos, setEventos] = useState(null) // { 'YYYY-MM-DD': [ { tipo, hora, titulo, status } ] }
+  const [det, setDet] = useState(null) // { info, dia, evts } — detalhe do dia
   const [checando, setChecando] = useState(false)
 
   // Valida a presença de HOJE (+5) de dentro do modal — mesma ação do card da Home.
@@ -114,9 +115,13 @@ function Calendario() {
   useEffect(() => {
     let a = true
     setMapa(null)
+    setEventos(null)
     call('escala_meu_periodo', { p_inicio: grid.startISO, p_fim: grid.endISO })
       .then((d) => a && setMapa(d && typeof d === 'object' ? d : {}))
       .catch(() => a && setMapa({}))
+    call('agenda_meus_eventos', { p_inicio: grid.startISO, p_fim: grid.endISO })
+      .then((d) => a && setEventos(d && typeof d === 'object' ? d : {}))
+      .catch(() => a && setEventos({}))
     return () => {
       a = false
     }
@@ -152,16 +157,18 @@ function Calendario() {
           const iso = isoLocal(d)
           const noMes = d.getMonth() === mes
           const info = mapa?.[iso]
+          const evts = eventos?.[iso]
+          const temEvt = noMes && Array.isArray(evts) && evts.length > 0
           const isHoje = iso === hoje
           const folga = !!info?.folga
           const trab = !!info && !info.folga
           const pares = paresDe(info)
-          const clicavel = noMes && !!info
+          const clicavel = noMes && (!!info || temEvt)
           return (
             <button
               key={iso}
               type="button"
-              onClick={clicavel ? () => setDet({ info, dia: d }) : undefined}
+              onClick={clicavel ? () => setDet({ info, dia: d, evts }) : undefined}
               disabled={!clicavel}
               className={cn(
                 'relative flex aspect-square flex-col items-center justify-center gap-0.5 rounded-lg border text-[11px]',
@@ -184,6 +191,7 @@ function Calendario() {
                 ) : (
                   <X size={9} strokeWidth={3} className="absolute right-0.5 top-0.5 text-muted-2/70" />
                 ))}
+              {temEvt && <MessageCircle size={9} strokeWidth={2.5} className="absolute left-0.5 top-0.5 text-accent" />}
               <span className={cn('font-bold', isHoje ? 'text-accent' : trab ? 'text-carbon dark:text-accent' : '')}>{d.getDate()}</span>
               {noMes && folga && <Sun size={9} className="text-muted-2" />}
               {noMes && trab && pares.length > 0 && (
@@ -215,6 +223,9 @@ function Calendario() {
         <span className="hstack gap-1.5">
           <X size={13} strokeWidth={3} className="text-muted-2/70" /> Não pontuou
         </span>
+        <span className="hstack gap-1.5">
+          <MessageCircle size={13} className="text-accent" /> Conversa
+        </span>
       </div>
 
       {det && (
@@ -230,29 +241,41 @@ function Calendario() {
               <div className="text-xs text-muted">{DIAS[(det.dia.getDay() + 6) % 7]}</div>
             </div>
           </div>
-          <div className="mt-4">
-            {det.info.folga ? (
-              <div className="hstack gap-2 rounded-card border border-line bg-fill px-4 py-3 text-sm font-semibold text-muted">
-                <Sun size={16} /> {det.info.tipo_folga || 'Folga'}
+          <div className="mt-4 flex flex-col gap-3">
+            {det.info &&
+              (det.info.folga ? (
+                <div className="hstack gap-2 rounded-card border border-line bg-fill px-4 py-3 text-sm font-semibold text-muted">
+                  <Sun size={16} /> {det.info.tipo_folga || 'Folga'}
+                </div>
+              ) : paresDe(det.info).length ? (
+                <div className="flex flex-col gap-2">
+                  {paresDe(det.info).map((p, i) => (
+                    <div key={i} className="hstack items-center justify-between rounded-card border border-line px-4 py-3">
+                      <span className="text-[11px] font-semibold uppercase tracking-wide text-muted-2">
+                        {paresDe(det.info).length > 1 ? `Turno ${i + 1}` : 'Horário'}
+                      </span>
+                      <span className="text-sm font-bold">
+                        {p[0]} <span className="text-muted-2">–</span> {p[1]}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="rounded-card border border-line px-4 py-3 text-sm font-bold">
+                  Liderança <span className="font-normal text-muted-2">· Sem controle de ponto</span>
+                </div>
+              ))}
+            {det.evts?.map((ev, i) => (
+              <div key={`ev${i}`} className="rounded-card border border-accent/30 bg-accent-soft px-4 py-3">
+                <div className="hstack items-center justify-between">
+                  <span className="hstack gap-2 text-sm font-semibold text-carbon dark:text-accent">
+                    <MessageCircle size={16} /> Conversa com o RH
+                  </span>
+                  <span className="text-sm font-bold">{hm(ev.hora) || 'a combinar'}</span>
+                </div>
+                {ev.titulo && <div className="mt-0.5 text-xs text-muted">{ev.titulo}</div>}
               </div>
-            ) : paresDe(det.info).length ? (
-              <div className="flex flex-col gap-2">
-                {paresDe(det.info).map((p, i) => (
-                  <div key={i} className="hstack items-center justify-between rounded-card border border-line px-4 py-3">
-                    <span className="text-[11px] font-semibold uppercase tracking-wide text-muted-2">
-                      {paresDe(det.info).length > 1 ? `Turno ${i + 1}` : 'Horário'}
-                    </span>
-                    <span className="text-sm font-bold">
-                      {p[0]} <span className="text-muted-2">–</span> {p[1]}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="rounded-card border border-line px-4 py-3 text-sm font-bold">
-                Liderança <span className="font-normal text-muted-2">· Sem controle de ponto</span>
-              </div>
-            )}
+            ))}
           </div>
           {isoLocal(det.dia) === hoje && det.info && !det.info.folga && (
             det.info.validado ? (
