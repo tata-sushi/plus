@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Volume2, Pause, Play, Square } from 'lucide-react'
 import { cn } from '../lib/cn'
 
@@ -22,6 +22,9 @@ function fmtVel(r) {
 export function LeitorVoz({ html, className }) {
   const [estado, setEstado] = useState('parado') // parado | lendo | pausado
   const [vel, setVel] = useState(1)
+  // Token de sessão: ao reiniciar (ex.: trocar velocidade), o cancel() dispara
+  // o onend da fala antiga — este token faz ignorar esses callbacks vencidos.
+  const sessao = useRef(0)
 
   // Ao trocar de conteúdo ou sair da tela, para a leitura.
   useEffect(() => {
@@ -35,6 +38,7 @@ export function LeitorVoz({ html, className }) {
   function ouvir(r = vel) {
     const texto = htmlParaTexto(html)
     if (!texto) return
+    const atual = ++sessao.current
     window.speechSynthesis.cancel()
     const voz = (window.speechSynthesis.getVoices() || []).find((v) => /pt[-_]?br/i.test(v.lang))
     // Quebra em frases: cada trecho curto evita o corte de fala em textos
@@ -45,8 +49,11 @@ export function LeitorVoz({ html, className }) {
       u.lang = 'pt-BR'
       if (voz) u.voice = voz
       u.rate = r
-      if (i === partes.length - 1) u.onend = () => setEstado('parado')
-      u.onerror = () => setEstado('parado')
+      const fim = () => {
+        if (sessao.current === atual) setEstado('parado')
+      }
+      if (i === partes.length - 1) u.onend = fim
+      u.onerror = fim
       window.speechSynthesis.speak(u)
     })
     setEstado('lendo')
@@ -67,6 +74,7 @@ export function LeitorVoz({ html, className }) {
     setEstado('lendo')
   }
   function parar() {
+    sessao.current++ // invalida callbacks pendentes
     window.speechSynthesis.cancel()
     setEstado('parado')
   }
@@ -74,7 +82,7 @@ export function LeitorVoz({ html, className }) {
   return (
     <div className={cn('flex items-stretch gap-2', className)}>
       {estado === 'parado' ? (
-        <button onClick={() => ouvir()} className="btn-ghost flex-1 !py-2.5 text-sm font-semibold">
+        <button onClick={() => ouvir()} className="btn-ghost w-full !py-2.5 text-sm font-semibold">
           <Volume2 size={16} /> Ouvir
         </button>
       ) : (
@@ -89,6 +97,13 @@ export function LeitorVoz({ html, className }) {
             </button>
           )}
           <button
+            onClick={ciclarVel}
+            className="btn-ghost shrink-0 !px-3.5 !py-2.5 text-xs font-bold tabular-nums text-muted"
+            aria-label={`Velocidade da leitura: ${fmtVel(vel)}`}
+          >
+            {fmtVel(vel)}
+          </button>
+          <button
             onClick={parar}
             className="btn-ghost shrink-0 !px-4 !py-2.5 text-muted"
             aria-label="Parar leitura"
@@ -97,13 +112,6 @@ export function LeitorVoz({ html, className }) {
           </button>
         </>
       )}
-      <button
-        onClick={ciclarVel}
-        className="btn-ghost shrink-0 !px-3 !py-2.5 text-xs font-bold tabular-nums text-muted"
-        aria-label={`Velocidade da leitura: ${fmtVel(vel)}`}
-      >
-        {fmtVel(vel)}
-      </button>
     </div>
   )
 }
