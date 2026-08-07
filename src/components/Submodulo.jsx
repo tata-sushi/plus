@@ -20,6 +20,7 @@ import {
   Store,
 } from 'lucide-react'
 import { cn } from '../lib/cn'
+import { LeitorVoz } from './LeitorVoz.jsx'
 
 // rótulo curto do tempo de casa: 6 → "6 meses", 12 → "1 ano", 24 → "2 anos"…
 const tempoLabel = (m) =>
@@ -169,10 +170,13 @@ export function Submodulo({ nome, itens, onAbrir, admin = false, personalizar = 
         />
       </button>
       {sobre && (
-        <div
-          className="conteudo px-4 pb-4 text-[13px] leading-relaxed"
-          dangerouslySetInnerHTML={{ __html: personalizar(COMO_FUNCIONA[nome]) }}
-        />
+        <div className="px-4 pb-4">
+          <LeitorVoz html={personalizar(COMO_FUNCIONA[nome])} className="mb-3" />
+          <div
+            className="conteudo text-[13px] leading-relaxed"
+            dangerouslySetInnerHTML={{ __html: personalizar(COMO_FUNCIONA[nome]) }}
+          />
+        </div>
       )}
     </div>
   ) : null
