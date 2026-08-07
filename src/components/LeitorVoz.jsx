@@ -30,7 +30,7 @@ function fmtVel(r) {
   return String(r).replace('.', ',') + '×'
 }
 
-export function LeitorVoz({ html, className }) {
+export function LeitorVoz({ html, texto, className }) {
   const [estado, setEstado] = useState('parado') // parado | lendo | pausado
   const [vel, setVel] = useState(velInicial)
   // Token de sessão: ao reiniciar (ex.: trocar velocidade), o cancel() dispara
@@ -42,19 +42,20 @@ export function LeitorVoz({ html, className }) {
     return () => {
       if (suportado) window.speechSynthesis.cancel()
     }
-  }, [html])
+  }, [html, texto])
 
   if (!suportado) return null
 
   function ouvir(r = vel) {
-    const texto = htmlParaTexto(html)
-    if (!texto) return
+    // Aceita HTML (desafios) ou texto puro (comunicados/avisos).
+    const conteudo = texto != null ? String(texto).replace(/\s+/g, ' ').trim() : htmlParaTexto(html)
+    if (!conteudo) return
     const atual = ++sessao.current
     window.speechSynthesis.cancel()
     const voz = (window.speechSynthesis.getVoices() || []).find((v) => /pt[-_]?br/i.test(v.lang))
     // Quebra em frases: cada trecho curto evita o corte de fala em textos
     // longos (bug conhecido do Chrome) e a fala fica mais estável.
-    const partes = texto.match(/[^.!?]+[.!?]+(\s|$)|\S[^.!?]*$/g) || [texto]
+    const partes = conteudo.match(/[^.!?]+[.!?]+(\s|$)|\S[^.!?]*$/g) || [conteudo]
     partes.forEach((parte, i) => {
       const u = new SpeechSynthesisUtterance(parte.trim())
       u.lang = 'pt-BR'

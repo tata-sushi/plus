@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Loader2, CheckCircle2 } from 'lucide-react'
 import { cn } from '../lib/cn'
+import { LeitorVoz } from './LeitorVoz.jsx'
 
 // Desafio de avaliação (nota, ex.: NPS 0–10): mostra o conteúdo + a pergunta
 // com a escala de notas. Enviar a nota conclui o desafio e credita os pontos.
@@ -14,10 +15,13 @@ export function Avaliacao({ introHtml, avaliacao, concluido, onEnviar, enviando 
     <div className="flex flex-1 flex-col overflow-hidden">
       <div className="flex-1 overflow-y-auto px-5 py-5">
         {introHtml && (
-          <div
-            className="conteudo text-sm leading-relaxed"
-            dangerouslySetInnerHTML={{ __html: introHtml }}
-          />
+          <>
+            <LeitorVoz html={introHtml} className="mb-4" />
+            <div
+              className="conteudo text-sm leading-relaxed"
+              dangerouslySetInnerHTML={{ __html: introHtml }}
+            />
+          </>
         )}
 
         <div className="mt-8 border-t border-line pt-6">

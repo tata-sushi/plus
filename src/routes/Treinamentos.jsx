@@ -366,8 +366,11 @@ function Detalhe({
             Icone={PartyPopper}
           />
           {data.conteudo_html && (
+            <LeitorVoz html={personalizar(data.conteudo_html)} className="mt-6 mb-4" />
+          )}
+          {data.conteudo_html && (
             <div
-              className="conteudo mt-6 text-sm leading-relaxed"
+              className="conteudo text-sm leading-relaxed"
               dangerouslySetInnerHTML={{ __html: personalizar(data.conteudo_html) }}
             />
           )}

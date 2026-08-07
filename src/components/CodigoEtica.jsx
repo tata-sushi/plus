@@ -3,6 +3,7 @@ import { Check, ArrowRight, ArrowLeft, Loader2, ShieldCheck, PenLine } from 'luc
 import { ProgressBar } from './ProgressBar.jsx'
 import { ProvaDesafio } from './ProvaDesafio.jsx'
 import { AssinaturaPad } from './AssinaturaPad.jsx'
+import { LeitorVoz } from './LeitorVoz.jsx'
 import { cn } from '../lib/cn'
 import { supabase } from '../lib/supabase.js'
 
@@ -86,6 +87,7 @@ export function CodigoEtica({ treinoId, blocos, concluido, personalizar, onAssin
       {/* Conteúdo do bloco */}
       <div key={passo} className="animate-page flex-1 overflow-y-auto px-5 py-5">
         <h2 className="font-display text-lg font-bold leading-tight">{b.titulo}</h2>
+        <LeitorVoz html={personalizar(b.html)} className="mt-3" />
         <div
           className="conteudo mt-3 text-sm leading-relaxed"
           dangerouslySetInnerHTML={{ __html: personalizar(b.html) }}

@@ -3,6 +3,7 @@ import { Eye, Loader2, Calendar } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Voltar } from '../components/Voltar.jsx'
 import { Card } from '../components/Card.jsx'
+import { LeitorVoz } from '../components/LeitorVoz.jsx'
 import { cn } from '../lib/cn'
 import { dataCurta, dataBR, ehHoje, eventoVigente } from '../lib/tempo.js'
 import { supabase } from '../lib/supabase.js'
@@ -84,6 +85,13 @@ export function Comunicados() {
                 >
                   {c.corpo}
                 </p>
+              )}
+
+              {c.corpo && (
+                <LeitorVoz
+                  texto={[c.titulo, c.corpo].filter(Boolean).join('. ')}
+                  className="mt-3"
+                />
               )}
 
               {c.data_evento && (
