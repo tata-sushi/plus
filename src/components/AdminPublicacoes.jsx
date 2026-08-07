@@ -48,6 +48,82 @@ const AUTO = [
   { chave: 'aviso_2', label: 'Aviso recorrente', Icon: Megaphone, vars: 'Texto e imagem livres · entra no revezamento (comece desligado)' },
 ]
 
+// Linha de uma notificação automática do sistema (o "sininho"): liga/desliga +
+// texto editável. Sinaliza pro admin que aquele aviso automático está rodando.
+function NotifAutoLinha({ item, onToggle, onSalvar }) {
+  const on = item.ativo
+  const [aberto, setAberto] = useState(false)
+  const [titulo, setTitulo] = useState(item.titulo || '')
+  const [texto, setTexto] = useState(item.texto || '')
+  useEffect(() => {
+    setTitulo(item.titulo || '')
+    setTexto(item.texto || '')
+  }, [item.titulo, item.texto])
+  const mudou =
+    titulo.trim() !== (item.titulo || '').trim() || texto.trim() !== (item.texto || '').trim()
+  return (
+    <div>
+      <div className="hstack items-center gap-3 px-4 py-3">
+        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-accent-soft text-accent">
+          <Bell size={18} />
+        </span>
+        <button onClick={() => setAberto((v) => !v)} className="min-w-0 flex-1 text-left tap">
+          <span className="hstack gap-1 text-sm font-semibold">
+            {item.nome}
+            <ChevronDown
+              size={14}
+              className={cn('text-muted-2 transition-transform', aberto && 'rotate-180')}
+            />
+          </span>
+          <span className="block truncate text-[11px] text-muted-2">{item.quando || item.titulo}</span>
+        </button>
+        <button
+          onClick={() => onToggle(item.chave)}
+          className={cn(
+            'relative h-6 w-10 shrink-0 rounded-full transition-colors tap',
+            on ? 'bg-accent' : 'bg-surface-2',
+          )}
+          aria-label={on ? 'Desativar' : 'Ativar'}
+        >
+          <span
+            className={cn(
+              'absolute top-0.5 h-5 w-5 rounded-full bg-white transition-all',
+              on ? 'left-[18px]' : 'left-0.5',
+            )}
+          />
+        </button>
+      </div>
+      {aberto && (
+        <div className="space-y-2 px-4 pb-3">
+          <input
+            value={titulo}
+            onChange={(e) => setTitulo(e.target.value)}
+            placeholder="Título da notificação"
+            className="w-full rounded-card border border-line bg-surface px-3 py-2 text-sm font-semibold outline-none placeholder:text-muted-2"
+          />
+          <textarea
+            value={texto}
+            onChange={(e) => setTexto(e.target.value)}
+            placeholder="Texto da notificação"
+            rows={2}
+            className="w-full resize-none rounded-card border border-line bg-surface px-3 py-2 text-sm outline-none placeholder:text-muted-2"
+          />
+          <p className="px-1 text-[10px] text-muted-2">
+            Use <b className="text-muted">{'{hora}'}</b> pra encaixar o horário agendado (ex.: “ às 14:00”).
+          </p>
+          <button
+            onClick={() => onSalvar(item.chave, titulo, texto)}
+            disabled={!mudou}
+            className={cn('btn-primary w-full !py-2.5 text-xs', !mudou && 'opacity-50')}
+          >
+            Salvar texto
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
+
 // Linha de um destaque automático: liga/desliga + editor de título/texto/imagem.
 function AutoLinha({ meta, estado, onToggle, onSalvar, onImagem, onRemoverImg }) {
   const { Icon } = meta
@@ -223,6 +299,7 @@ export function AdminPublicacoes() {
   const [publicando, setPublicando] = useState(false)
   const [erro, setErro] = useState('')
   const [excluindo, setExcluindo] = useState(null)
+  const [notifAuto, setNotifAuto] = useState([])
   const imgInput = useRef(null)
 
   const carregar = useCallback(async () => {
@@ -238,6 +315,9 @@ export function AdminPublicacoes() {
     })
     supabase.rpc('admin_destaque_estado').then(({ data }) => {
       if (data) setAuto(data)
+    })
+    supabase.rpc('admin_avisos_auto_lista').then(({ data }) => {
+      if (data) setNotifAuto(data)
     })
   }, [carregar])
 
@@ -292,6 +372,22 @@ export function AdminPublicacoes() {
     tapHaptic()
     ligaAuto(chave, { imagem_url: null })
     await supabase.rpc('admin_destaque_img_salvar', { p_chave: chave, p_url: null })
+  }
+
+  async function alternarNotifAuto(chave) {
+    tapHaptic()
+    const novo = !(notifAuto.find((a) => a.chave === chave)?.ativo ?? true)
+    setNotifAuto((prev) => prev.map((a) => (a.chave === chave ? { ...a, ativo: novo } : a)))
+    const { error } = await supabase.rpc('admin_avisos_auto_toggle', { p_chave: chave })
+    if (error) setNotifAuto((prev) => prev.map((a) => (a.chave === chave ? { ...a, ativo: !novo } : a)))
+  }
+
+  async function salvarNotifAuto(chave, titulo, texto) {
+    tapHaptic()
+    const t = titulo.trim()
+    const c = texto.trim()
+    setNotifAuto((prev) => prev.map((a) => (a.chave === chave ? { ...a, titulo: t, texto: c } : a)))
+    await supabase.rpc('admin_avisos_auto_salvar', { p_chave: chave, p_titulo: t, p_texto: c })
   }
 
   function alternarLista(setter, valor) {
@@ -485,6 +581,25 @@ export function AdminPublicacoes() {
           ))}
         </div>
       </div>
+
+      {/* Notificações automáticas (sininho do sistema) — liga/desliga + texto */}
+      {notifAuto.length > 0 && (
+        <div className="px-5 pt-4">
+          <div className="mb-2 hstack gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted-2">
+            <Bell size={12} /> Notificações (sininho)
+          </div>
+          <div className="card divide-y divide-line p-0">
+            {notifAuto.map((item) => (
+              <NotifAutoLinha
+                key={item.chave}
+                item={item}
+                onToggle={alternarNotifAuto}
+                onSalvar={salvarNotifAuto}
+              />
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Ações + filtro numa linha: Novo · tipo · arquivar */}
       <div className="hstack gap-2 px-5 pt-4">
