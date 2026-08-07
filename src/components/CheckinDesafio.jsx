@@ -116,9 +116,9 @@ export function CheckinDesafio({ treinoId, envio, concluido, pontos, onEnviado }
     return (
       <div className="rounded-card border border-warn/30 bg-warn/10 px-4 py-5 text-center">
         <Clock className="mx-auto text-warn" size={25} />
-        <p className="mt-2 text-sm font-bold text-warn">Check enviado! Aguardando o RH</p>
+        <p className="mt-2 text-sm font-bold text-warn">Conversa realizada! Aguardando o RH</p>
         <p className="mt-0.5 text-xs text-muted">
-          Assim que o RH validar a sua conversa, os {pontos} pontos entram.
+          O RH valida o desafio para liberar seus {pontos} pontos.
         </p>
       </div>
     )
