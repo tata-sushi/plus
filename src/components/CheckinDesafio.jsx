@@ -45,10 +45,10 @@ function proximosDiasUteis(n) {
   return dias
 }
 
-// Desafio de "check-in presencial" com agendamento: o colaborador (1) agenda a visita
-// ao RH com data + horário — o que cria um card no Kanban do RH pra Thamires —, depois
+// Desafio de "check-in presencial" com agendamento: o colaborador (1) agenda um bate-papo
+// com o RH escolhendo dia e horário, o que cria um card no Kanban do RH pra Thamires; depois
 // (2) dá o check de comparecimento, e o RH valida na aba Envios pra liberar os pontos.
-// Estados: agendar (sem/reprovado) → agendado → pendente → aprovado.
+// Estados: agendar (sem/reprovado), agendado, pendente, aprovado.
 export function CheckinDesafio({ treinoId, envio, concluido, pontos, onEnviado }) {
   const [busy, setBusy] = useState(false)
   const [erro, setErro] = useState('')
@@ -130,31 +130,33 @@ export function CheckinDesafio({ treinoId, envio, concluido, pontos, onEnviado }
       <div>
         <div className="rounded-card border border-line bg-surface-2 px-4 py-4">
           <div className="hstack gap-2 text-sm font-semibold">
-            <CalendarClock size={18} className="text-accent" /> Visita agendada
+            <CalendarClock size={18} className="text-accent" /> Bate-papo agendado
           </div>
           <p className="mt-1 text-xs text-muted">
-            {fmtAgendado()} — compareça ao RH no horário combinado. Depois, confirme aqui.
+            {fmtAgendado()}. No horário combinado, o RH bate um papo com você para explicar o holerite. Depois, confirme aqui.
           </p>
         </div>
-        <button
-          onClick={confirmar}
-          disabled={busy}
-          className="btn-primary mt-3 w-full !py-3.5 disabled:opacity-60"
-        >
-          {busy ? (
-            <Loader2 size={18} className="animate-spin" />
-          ) : (
-            <>
-              <MapPin size={16} /> Confirmar presença
-            </>
-          )}
-        </button>
-        <button
-          onClick={() => setReagendar(true)}
-          className="btn-ghost mt-2 w-full !py-2 text-xs text-muted"
-        >
-          Reagendar
-        </button>
+        <div className="mt-3 flex items-stretch gap-2">
+          <button
+            onClick={confirmar}
+            disabled={busy}
+            className="btn-primary flex-1 !py-3 disabled:opacity-60"
+          >
+            {busy ? (
+              <Loader2 size={18} className="animate-spin" />
+            ) : (
+              <>
+                <MapPin size={16} /> Confirmar presença
+              </>
+            )}
+          </button>
+          <button
+            onClick={() => setReagendar(true)}
+            className="btn-ghost shrink-0 !py-3 px-5"
+          >
+            Reagendar
+          </button>
+        </div>
         {erro && <p className="mt-2 text-center text-xs font-medium text-danger">{erro}</p>}
       </div>
     )
@@ -169,10 +171,10 @@ export function CheckinDesafio({ treinoId, envio, concluido, pontos, onEnviado }
             <XCircle size={17} /> Comparecimento não validado
           </div>
           {envio?.motivo && <p className="mt-1 text-xs text-muted">{envio.motivo}</p>}
-          <p className="mt-1 text-[11px] text-muted-2">Agende uma nova visita ao RH.</p>
+          <p className="mt-1 text-[11px] text-muted-2">Agende um novo bate-papo com o RH.</p>
         </div>
       )}
-      <p className="mb-2 text-sm font-semibold">Aproveite e agende sua visita com o RH</p>
+      <p className="mb-2 text-sm font-semibold">Aproveite e agende um bate-papo com o RH</p>
       <p className="mb-1.5 text-[11px] font-semibold text-muted">Dia</p>
       <div className="flex flex-wrap gap-2">
         {dias.map((dia) => {
@@ -241,7 +243,7 @@ export function CheckinDesafio({ treinoId, envio, concluido, pontos, onEnviado }
         </button>
       )}
       <p className="mt-2 text-center text-[11px] text-muted-2">
-        Depois que passar no RH, seus pontos do desafio serão liberados automaticamente.
+        Depois do bate-papo com o RH, seus pontos do desafio serão liberados automaticamente.
       </p>
       {erro && <p className="mt-2 text-center text-xs font-medium text-danger">{erro}</p>}
     </div>
