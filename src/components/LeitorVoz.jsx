@@ -8,6 +8,17 @@ import { cn } from '../lib/cn'
 // suporte, o botão simplesmente não aparece.
 const suportado = typeof window !== 'undefined' && 'speechSynthesis' in window
 const VELOCIDADES = [0.75, 1, 1.25, 1.5]
+const VEL_KEY = 'tata:leitorvoz:vel'
+
+// Lê a velocidade salva no aparelho (lembra a preferência entre sessões).
+function velInicial() {
+  try {
+    const v = Number(localStorage.getItem(VEL_KEY))
+    return VELOCIDADES.includes(v) ? v : 1
+  } catch {
+    return 1
+  }
+}
 
 function htmlParaTexto(html) {
   const el = document.createElement('div')
@@ -21,7 +32,7 @@ function fmtVel(r) {
 
 export function LeitorVoz({ html, className }) {
   const [estado, setEstado] = useState('parado') // parado | lendo | pausado
-  const [vel, setVel] = useState(1)
+  const [vel, setVel] = useState(velInicial)
   // Token de sessão: ao reiniciar (ex.: trocar velocidade), o cancel() dispara
   // o onend da fala antiga — este token faz ignorar esses callbacks vencidos.
   const sessao = useRef(0)
@@ -62,6 +73,11 @@ export function LeitorVoz({ html, className }) {
   function ciclarVel() {
     const prox = VELOCIDADES[(VELOCIDADES.indexOf(vel) + 1) % VELOCIDADES.length]
     setVel(prox)
+    try {
+      localStorage.setItem(VEL_KEY, String(prox))
+    } catch {
+      // sem persistência (modo privado/sem storage) — segue só na sessão
+    }
     if (estado !== 'parado') ouvir(prox) // reinicia já na nova velocidade
   }
 
