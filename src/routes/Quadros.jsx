@@ -217,6 +217,8 @@ function Painel() {
 
 // ── Lista de quadros ─────────────────────────────────────────────────────────
 function ListaQuadros({ quadros, onAbrir, onMudou, selecionadoId }) {
+  const { usuario } = useAuth()
+  const podeCriar = !!usuario?.podeCriarQuadros // membro comum só participa; criar é dos líderes liberados
   const [criando, setCriando] = useState(false)
   const podeMais = (quadros?.filter((q) => !q.arquivado).length || 0) < 3
 
@@ -281,13 +283,13 @@ function ListaQuadros({ quadros, onAbrir, onMudou, selecionadoId }) {
           </div>
         )}
 
-        {quadros != null && (
+        {quadros != null && podeCriar && (
           <button onClick={novoQuadro} disabled={!podeMais || criando} className="btn-primary mt-4 hstack w-full justify-center gap-2 py-3 text-sm disabled:opacity-40">
             {criando ? <Loader2 size={16} className="animate-spin" /> : <Plus size={16} />}
             Novo quadro
           </button>
         )}
-        {quadros != null && !podeMais && <div className="mt-2 text-center text-[11px] text-muted">Limite de 3 quadros por pessoa.</div>}
+        {quadros != null && podeCriar && !podeMais && <div className="mt-2 text-center text-[11px] text-muted">Limite de 3 quadros por pessoa.</div>}
       </div>
     </>
   )

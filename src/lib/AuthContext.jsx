@@ -16,7 +16,8 @@ export function AuthProvider({ children }) {
   const [profile, setProfile] = useState(null)
   const [avatarUrl, setAvatarUrl] = useState(null)
   const [podePublicar, setPodePublicar] = useState(false)
-  const [podeQuadros, setPodeQuadros] = useState(null) // acesso a Quadros: null = verificando
+  const [podeQuadros, setPodeQuadros] = useState(null) // acesso ao módulo Quadros (liberado OU membro de algum quadro): null = verificando
+  const [podeCriarQuadros, setPodeCriarQuadros] = useState(false) // pode criar quadro (só quem é liberado no painel)
   const [podeEscala, setPodeEscala] = useState(null) // acesso a Escala (líder): null = verificando
   const [podeLimpeza, setPodeLimpeza] = useState(null) // acesso a Limpeza de banheiros: null = verificando
   const [govTipo, setGovTipo] = useState(null) // tipo de acesso à governança (ou null)
@@ -109,6 +110,7 @@ export function AuthProvider({ children }) {
       setAvatarUrl(null)
       setPodePublicar(false)
       setPodeQuadros(null)
+      setPodeCriarQuadros(false)
       setPodeEscala(null)
       setPodeLimpeza(null)
       setGovTipo(null)
@@ -126,8 +128,11 @@ export function AuthProvider({ children }) {
     supabase.rpc('pode_publicar').then(({ data }) => {
       if (ativo) setPodePublicar(data === true)
     })
-    supabase.rpc('kanban_pode_criar').then(({ data }) => {
+    supabase.rpc('kanban_tem_acesso').then(({ data }) => {
       if (ativo) setPodeQuadros(data === true)
+    })
+    supabase.rpc('kanban_pode_criar').then(({ data }) => {
+      if (ativo) setPodeCriarQuadros(data === true)
     })
     supabase.rpc('escala_pode_gerir').then(({ data }) => {
       if (ativo) setPodeEscala(data === true)
@@ -167,6 +172,7 @@ export function AuthProvider({ children }) {
         avatarUrl,
         podePublicar,
         podeQuadros,
+        podeCriarQuadros,
         podeEscala,
         podeLimpeza,
         governanca: { tem: !!govTipo, tipo: govTipo },
