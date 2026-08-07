@@ -171,6 +171,14 @@
 }
 .conteudo > :first-child { margin-top: 0; }
 .conteudo em { font-style: normal; font-weight: 500; font-size: 0.85em; color: rgb(var(--muted)); }
+.conteudo mark {
+  background: rgb(var(--accent) / 0.2);
+  color: inherit;
+  padding: 0.02em 0.34em;
+  border-radius: 0.35em;
+  font-weight: 600;
+  white-space: nowrap;
+}
 .conteudo ul { margin: 0.4rem 0 1.1rem; padding: 0; list-style: none; }
 .conteudo li { position: relative; padding-left: 1.15rem; margin-bottom: 0.5rem; }
 .conteudo li::before {
