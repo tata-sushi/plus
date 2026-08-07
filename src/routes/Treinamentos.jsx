@@ -28,6 +28,7 @@ import { IntroDesafio } from '../components/IntroDesafio.jsx'
 import { ProvaDesafio } from '../components/ProvaDesafio.jsx'
 import { EnvioDesafio } from '../components/EnvioDesafio.jsx'
 import { CheckinDesafio } from '../components/CheckinDesafio.jsx'
+import { LeitorVoz } from '../components/LeitorVoz.jsx'
 import { Submodulo, GrupoUnidade } from '../components/Submodulo.jsx'
 import { CodigoEtica } from '../components/CodigoEtica.jsx'
 import { LeituraProva } from '../components/LeituraProva.jsx'
@@ -465,6 +466,9 @@ function Detalhe({
             <div className="mb-5">
               <IntroDesafio titulo={treino.titulo} frase={frase} variante={1} />
             </div>
+          )}
+          {temHtml && (
+            <LeitorVoz html={personalizar(data.conteudo_html)} className="mb-4" />
           )}
           {temHtml && (
             <div
