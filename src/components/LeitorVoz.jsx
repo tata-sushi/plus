@@ -7,6 +7,7 @@ import { cn } from '../lib/cn'
 // Acessibilidade pra quem tem dificuldade de leitura. Se o aparelho não tiver
 // suporte, o botão simplesmente não aparece.
 const suportado = typeof window !== 'undefined' && 'speechSynthesis' in window
+const VELOCIDADES = [0.75, 1, 1.25, 1.5]
 
 function htmlParaTexto(html) {
   const el = document.createElement('div')
@@ -14,8 +15,13 @@ function htmlParaTexto(html) {
   return (el.textContent || '').replace(/\s+/g, ' ').trim()
 }
 
+function fmtVel(r) {
+  return String(r).replace('.', ',') + '×'
+}
+
 export function LeitorVoz({ html, className }) {
   const [estado, setEstado] = useState('parado') // parado | lendo | pausado
+  const [vel, setVel] = useState(1)
 
   // Ao trocar de conteúdo ou sair da tela, para a leitura.
   useEffect(() => {
@@ -26,7 +32,7 @@ export function LeitorVoz({ html, className }) {
 
   if (!suportado) return null
 
-  function ouvir() {
+  function ouvir(r = vel) {
     const texto = htmlParaTexto(html)
     if (!texto) return
     window.speechSynthesis.cancel()
@@ -38,11 +44,18 @@ export function LeitorVoz({ html, className }) {
       const u = new SpeechSynthesisUtterance(parte.trim())
       u.lang = 'pt-BR'
       if (voz) u.voice = voz
+      u.rate = r
       if (i === partes.length - 1) u.onend = () => setEstado('parado')
       u.onerror = () => setEstado('parado')
       window.speechSynthesis.speak(u)
     })
     setEstado('lendo')
+  }
+
+  function ciclarVel() {
+    const prox = VELOCIDADES[(VELOCIDADES.indexOf(vel) + 1) % VELOCIDADES.length]
+    setVel(prox)
+    if (estado !== 'parado') ouvir(prox) // reinicia já na nova velocidade
   }
 
   function pausar() {
@@ -61,7 +74,7 @@ export function LeitorVoz({ html, className }) {
   return (
     <div className={cn('flex items-stretch gap-2', className)}>
       {estado === 'parado' ? (
-        <button onClick={ouvir} className="btn-ghost w-full !py-2.5 text-sm font-semibold">
+        <button onClick={() => ouvir()} className="btn-ghost flex-1 !py-2.5 text-sm font-semibold">
           <Volume2 size={16} /> Ouvir
         </button>
       ) : (
@@ -84,6 +97,13 @@ export function LeitorVoz({ html, className }) {
           </button>
         </>
       )}
+      <button
+        onClick={ciclarVel}
+        className="btn-ghost shrink-0 !px-3 !py-2.5 text-xs font-bold tabular-nums text-muted"
+        aria-label={`Velocidade da leitura: ${fmtVel(vel)}`}
+      >
+        {fmtVel(vel)}
+      </button>
     </div>
   )
 }
