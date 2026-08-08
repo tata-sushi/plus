@@ -6,7 +6,7 @@ import { Loader2, ExternalLink } from 'lucide-react'
 // onLido() é chamado quando o usuário rola até o fim (ou se o PDF couber sem rolar).
 // inline=true: renderiza as páginas no próprio fluxo (sem rolagem/altura própria),
 // pra encaixar dentro de um desafio com texto e vídeo — quem rola é o container de fora.
-export function PdfViewer({ src, onLido, inline = false }) {
+export function PdfViewer({ src, onLido, onErro, inline = false }) {
   const paginasRef = useRef(null)
   const prontoRef = useRef(false) // só libera o "fim da rolagem" depois de renderizar tudo
   const [estado, setEstado] = useState('carregando') // 'carregando' | 'ok' | 'erro'
@@ -52,6 +52,7 @@ export function PdfViewer({ src, onLido, inline = false }) {
         if (!cancelado) {
           setEstado('erro')
           onLido?.() // falhou o embed: libera concluir (lê pelo "Abrir o PDF")
+          onErro?.() // e libera explicitamente quem gateia a leitura (ex.: LeituraProva)
         }
       }
     }

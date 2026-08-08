@@ -77,7 +77,7 @@ export function LeituraProva({
           <p className="mb-2 hstack gap-1.5 text-xs font-semibold text-muted">
             <FileText size={14} /> Cartilha — leia até o fim
           </p>
-          <PdfViewer src={pdfUrl} inline onLido={aoRenderizar} />
+          <PdfViewer src={pdfUrl} inline onLido={aoRenderizar} onErro={() => setLido(true)} />
           <a
             href={`${pdfUrl}?download`}
             target="_blank"
