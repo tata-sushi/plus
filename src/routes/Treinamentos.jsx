@@ -465,7 +465,7 @@ function Detalhe({
       ) : ehVideo ? (
         <VideoPlayer src={data.arquivo_url} onAssistido={() => setVideosOk(true)} />
       ) : ehPdf && !ehRico ? (
-        <PdfViewer src={data.arquivo_url} onLido={() => setRolou(true)} />
+        <PdfViewer src={data.arquivo_url} onLido={() => setRolou(true)} onAbrir={() => setRolou(true)} />
       ) : ehRico ? (
         <div ref={conteudoRef} onScroll={aoRolarConteudo} className="flex-1 overflow-y-auto px-5 py-4">
           {frase && (

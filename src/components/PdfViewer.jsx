@@ -6,13 +6,15 @@ import { Loader2, ExternalLink } from 'lucide-react'
 // onLido() é chamado quando o usuário rola até o fim (ou se o PDF couber sem rolar).
 // inline=true: renderiza as páginas no próprio fluxo (sem rolagem/altura própria),
 // pra encaixar dentro de um desafio com texto e vídeo — quem rola é o container de fora.
-export function PdfViewer({ src, onLido, onErro, inline = false }) {
+export function PdfViewer({ src, onLido, onErro, onAbrir, inline = false }) {
   const paginasRef = useRef(null)
   const prontoRef = useRef(false) // só libera o "fim da rolagem" depois de renderizar tudo
   const [estado, setEstado] = useState('carregando') // 'carregando' | 'ok' | 'erro'
 
   useEffect(() => {
     let cancelado = false
+    let tentativa = 0
+    const MAX_TENTATIVAS = 3
     prontoRef.current = false
     const alvo = paginasRef.current
     if (!alvo || !src) return
@@ -49,11 +51,19 @@ export function PdfViewer({ src, onLido, onErro, inline = false }) {
         // se o PDF couber sem rolar, já conta como lido
         if (alvo.scrollHeight <= alvo.clientHeight + 4) onLido?.()
       } catch {
-        if (!cancelado) {
-          setEstado('erro')
-          onLido?.() // falhou o embed: libera concluir (lê pelo "Abrir o PDF")
-          onErro?.() // e libera explicitamente quem gateia a leitura (ex.: LeituraProva)
+        if (cancelado) return
+        // Falha transitória (rede/worker): tenta de novo antes de desistir, pra
+        // o PDF "abrir automático" na maioria dos casos.
+        tentativa += 1
+        if (tentativa < MAX_TENTATIVAS) {
+          alvo.innerHTML = ''
+          setTimeout(() => {
+            if (!cancelado) renderizar()
+          }, 700 * tentativa)
+          return
         }
+        setEstado('erro')
+        onErro?.() // nao deu pra exibir inline: quem gateia pede "abra o PDF"
       }
     }
     renderizar()
@@ -75,6 +85,7 @@ export function PdfViewer({ src, onLido, onErro, inline = false }) {
         href={src}
         target="_blank"
         rel="noopener noreferrer"
+        onClick={() => onAbrir?.()}
         className="btn-primary mt-3 inline-flex !py-2 text-xs"
       >
         <ExternalLink size={14} /> Abrir o PDF

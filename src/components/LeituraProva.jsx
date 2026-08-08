@@ -29,6 +29,7 @@ export function LeituraProva({
 }) {
   const [fase, setFase] = useState('leitura')
   const [lido, setLido] = useState(concluido)
+  const [pdfErro, setPdfErro] = useState(false) // PDF nao renderizou inline
   const scrollRef = useRef(null)
   const questoes = prova?.questoes || []
   const todasResp = questoes.length > 0 && questoes.every((q) => respostas[q.id])
@@ -77,7 +78,13 @@ export function LeituraProva({
           <p className="mb-2 hstack gap-1.5 text-xs font-semibold text-muted">
             <FileText size={14} /> Cartilha — leia até o fim
           </p>
-          <PdfViewer src={pdfUrl} inline onLido={aoRenderizar} onErro={() => setLido(true)} />
+          <PdfViewer
+            src={pdfUrl}
+            inline
+            onLido={aoRenderizar}
+            onErro={() => setPdfErro(true)}
+            onAbrir={() => setLido(true)}
+          />
           <a
             href={`${pdfUrl}?download`}
             target="_blank"
@@ -131,6 +138,10 @@ export function LeituraProva({
             {lido ? (
               <>
                 Ir para a prova <ArrowRight size={16} />
+              </>
+            ) : pdfErro ? (
+              <>
+                <FileText size={16} /> Abra o PDF para continuar
               </>
             ) : (
               <>
