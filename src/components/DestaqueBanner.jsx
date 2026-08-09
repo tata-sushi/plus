@@ -72,8 +72,9 @@ export function DestaqueBanner({ d }) {
         <span className={`absolute inset-0 bg-gradient-to-tr ${tpl.grad} to-transparent`} />
       )}
 
-      {/* ícone decorativo grande, bem sutil (não em publicação só de imagem) */}
-      {!soImagem && (
+      {/* ícone decorativo grande — só no fallback sem imagem (sobre a arte real
+          virava um "fantasma", principalmente no tema claro) */}
+      {!temImagem && (
         <Icon
           size={200}
           strokeWidth={1.25}
