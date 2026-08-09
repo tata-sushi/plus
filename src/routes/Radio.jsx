@@ -119,10 +119,9 @@ export function Radio() {
   const admin = !!usuario?.podePublicar
   const meuNome = usuario?.primeiroNome || 'Você'
 
-  // Tocar qualquer música abre a NOSSA playlist no Spotify (o mix do time) — o
-  // play acontece lá dentro. O Spotify não permite tocar uma faixa específica
-  // dentro de uma playlist por link, então sempre abrimos a playlist.
-  const tocar = (trackId) => (playlistId ? playlistUrl(playlistId) : spotifyUrl(trackId))
+  // Tocar uma música abre AQUELA faixa no Spotify (intuitivo: toco a música →
+  // abre a música). A playlist inteira do time abre pela capa do topo.
+  const tocar = (trackId) => spotifyUrl(trackId)
 
   async function adicionar() {
     const id = extrairTrackId(link)
@@ -297,7 +296,7 @@ export function Radio() {
               target="_blank"
               rel="noopener noreferrer"
               className="hero-card hstack w-full gap-3 p-3 text-left tap"
-              aria-label="Abrir a playlist do time no Spotify"
+              aria-label={`Ouvir ${semana.titulo || 'a música'} no Spotify`}
             >
               <Capa src={semana.capa} size="h-14 w-14" />
               <div className="min-w-0 flex-1">
@@ -339,7 +338,7 @@ export function Radio() {
                   target="_blank"
                   rel="noopener noreferrer"
                   className="hstack min-w-0 flex-1 gap-2.5 text-left tap"
-                  aria-label="Abrir a playlist do time no Spotify"
+                  aria-label={`Ouvir ${m.titulo || 'a música'} no Spotify`}
                 >
                   <Capa src={m.capa} />
                   <div className="min-w-0 flex-1">
