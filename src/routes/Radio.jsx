@@ -3,6 +3,7 @@ import { Heart, Trash2, Plus, Music2, Trophy, Play } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Voltar } from '../components/Voltar.jsx'
 import { useAuth } from '../lib/AuthContext.jsx'
+import { supabase } from '../lib/supabase.js'
 import { cn } from '../lib/cn'
 
 // Rádio Tatá — espaço colaborativo de descoberta musical. O time compartilha,
@@ -76,11 +77,17 @@ export function Radio() {
   const [lista, setLista] = useState(carregar)
   const [link, setLink] = useState('')
   const [erro, setErro] = useState('')
+  const [playlistId, setPlaylistId] = useState(null)
   const tentados = useRef(new Set())
 
   useEffect(() => {
     salvar(lista)
   }, [lista])
+
+  // URL da playlist do Spotify (aparece quando a conta estiver conectada).
+  useEffect(() => {
+    supabase.rpc('radio_playlist_url').then(({ data }) => setPlaylistId(data || null))
+  }, [])
 
   // Enriquece com título/capa (oEmbed) as faixas que ainda não têm — uma vez cada.
   useEffect(() => {
@@ -123,6 +130,8 @@ export function Radio() {
       { id: 'm' + id, trackId: id, por: meuNome, curtidas: 0, euCurti: false, ts: Date.now() },
       ...l,
     ])
+    // Espelha na playlist do Spotify (se a conta estiver conectada). Best-effort.
+    supabase.rpc('radio_add_spotify', { p_track: id }).catch(() => {})
   }
 
   function curtir(m) {
@@ -166,6 +175,17 @@ export function Radio() {
           </div>
           {erro && <p className="mt-2 text-xs font-medium text-danger">{erro}</p>}
         </div>
+
+        {playlistId && (
+          <a
+            href={`https://open.spotify.com/playlist/${playlistId}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn-ghost mt-3 w-full !py-2.5 text-sm"
+          >
+            <Music2 size={15} /> Abrir a playlist no Spotify
+          </a>
+        )}
 
         {/* Música da Semana */}
         {semana && (
