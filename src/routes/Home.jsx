@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Flag, Gift, Star, Network, Sun, Check, X, KanbanSquare, SprayCan } from 'lucide-react'
+import { Flag, Gift, Star, Network, Sun, Check, X, KanbanSquare, SprayCan, Radio as RadioIcon } from 'lucide-react'
 import { cn } from '../lib/cn'
 import { Header } from '../components/Header.jsx'
 import { Section } from '../components/Section.jsx'
@@ -217,6 +217,9 @@ export function Home() {
     cardapio,
     recompensas,
     organograma,
+    ...(usuario?.podePublicar
+      ? [{ to: '/radio', badgeIcon: RadioIcon, title: 'Rádio Tatá', subtitle: 'Playlist do time' }]
+      : []),
   ]
   const desktop = useDesktop()
   const { setCanvas } = useDesktopCanvas()
