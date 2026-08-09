@@ -119,6 +119,14 @@ export function Radio() {
   const admin = !!usuario?.podePublicar
   const meuNome = usuario?.primeiroNome || 'Você'
 
+  // Toca a faixa DENTRO da nossa playlist: abre a playlist já destacando a
+  // música (param `highlight` do Spotify). Sem playlist conectada, cai na
+  // faixa avulsa.
+  const tocar = (trackId) =>
+    playlistId
+      ? `${playlistUrl(playlistId)}?highlight=${encodeURIComponent('spotify:track:' + trackId)}`
+      : spotifyUrl(trackId)
+
   async function adicionar() {
     const id = extrairTrackId(link)
     if (!id) {
@@ -288,11 +296,11 @@ export function Radio() {
               <Trophy size={14} /> Mais curtida da semana
             </div>
             <a
-              href={spotifyUrl(semana.trackId)}
+              href={tocar(semana.trackId)}
               target="_blank"
               rel="noopener noreferrer"
               className="hero-card hstack w-full gap-3 p-3 text-left tap"
-              aria-label={`Ouvir ${semana.titulo || 'a música'} no Spotify`}
+              aria-label={`Ouvir ${semana.titulo || 'a música'} na playlist do Spotify`}
             >
               <Capa src={semana.capa} size="h-14 w-14" />
               <div className="min-w-0 flex-1">
@@ -330,11 +338,11 @@ export function Radio() {
             {ordenada.map((m) => (
               <div key={m.id} className="card hstack gap-2.5 p-2.5">
                 <a
-                  href={spotifyUrl(m.trackId)}
+                  href={tocar(m.trackId)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="hstack min-w-0 flex-1 gap-2.5 text-left tap"
-                  aria-label={`Ouvir ${m.titulo || 'a música'} no Spotify`}
+                  aria-label={`Ouvir ${m.titulo || 'a música'} na playlist do Spotify`}
                 >
                   <Capa src={m.capa} />
                   <div className="min-w-0 flex-1">
