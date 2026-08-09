@@ -178,7 +178,7 @@ export function Radio() {
       }
       // Sem "validação" de inclusão — a música já aparece na lista. Só mostra
       // feedback quando há algo a comemorar (os +5 pontos da 1ª da semana).
-      setSync(data.pontuou ? { ok: true, msg: 'Você ganhou +5 pontos! 🎉' } : null)
+      setSync(data.pontuou ? { ok: true, msg: 'Você ganhou +5 pontos!' } : null)
       await carregarLista()
     } catch {
       setSync({ ok: false, msg: 'Não deu pra falar com o servidor agora.' })
