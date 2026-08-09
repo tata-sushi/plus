@@ -270,7 +270,7 @@ export function Radio() {
         {semana && (
           <div className="mt-5">
             <div className="mb-2 hstack gap-1.5 text-xs font-bold uppercase tracking-wide text-accent">
-              <Trophy size={14} /> Mais elogiada da semana passada
+              <Trophy size={14} /> Mais curtida da semana
             </div>
             <a
               href={destino(semana.trackId)}
