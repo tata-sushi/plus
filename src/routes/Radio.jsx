@@ -296,7 +296,7 @@ export function Radio() {
 
         {/* Playlist */}
         <div className="mt-6 mb-2 hstack justify-between">
-          <div className="font-display text-sm font-bold">Compartilhe e descubra</div>
+          <div className="font-display text-sm font-bold">Músicas compartilhadas</div>
           <div className="text-[11px] text-muted-2">
             {lista.length} {lista.length === 1 ? 'música' : 'músicas'}
           </div>
