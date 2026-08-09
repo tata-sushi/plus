@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Heart, Trash2, Plus, Music2, Trophy, Play } from 'lucide-react'
+import { Heart, Trash2, Plus, Music2, Trophy, Play, Loader2 } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Voltar } from '../components/Voltar.jsx'
 import { useAuth } from '../lib/AuthContext.jsx'
@@ -7,10 +7,10 @@ import { supabase } from '../lib/supabase.js'
 import { cn } from '../lib/cn'
 
 // Rádio Tatá — espaço colaborativo de descoberta musical. O time compartilha,
-// curte e vota nas músicas; a REPRODUÇÃO acontece no próprio Spotify (o botão
-// "ouvir" abre a faixa no app/site do Spotify — sem player embutido, sem risco).
-// PROTÓTIPO: por enquanto os dados ficam só no aparelho (localStorage).
-const CHAVE = 'tata:radio:v1'
+// curte e vota nas músicas; a REPRODUÇÃO acontece no próprio Spotify (tocar
+// numa faixa abre a música; a capa do topo abre a playlist do time).
+// Dados no backend (compartilhados entre todos): RPCs radio_listar / _adicionar
+// / _curtir_toggle / _remover. Pontos entram na carteira/ranking do app.
 
 const spotifyUrl = (trackId) => `https://open.spotify.com/track/${trackId}`
 const playlistUrl = (id) => `https://open.spotify.com/playlist/${id}`
@@ -40,28 +40,6 @@ async function buscarMeta(trackId) {
   }
 }
 
-function carregar() {
-  try {
-    const v = JSON.parse(localStorage.getItem(CHAVE) || 'null')
-    if (Array.isArray(v)) return v
-  } catch {
-    // storage indisponível — segue com o seed
-  }
-  const agora = Date.now()
-  return [
-    { id: 's1', trackId: '0VjIjW4GlUZAMYd2vXMi3b', por: 'Tatá', curtidas: 5, euCurti: false, ts: agora - 2 * 86400000 },
-    { id: 's2', trackId: '7qiZfU4dY1lWllzX7mPBI3', por: 'Tatá', curtidas: 3, euCurti: false, ts: agora - 1 * 86400000 },
-  ]
-}
-
-function salvar(lista) {
-  try {
-    localStorage.setItem(CHAVE, JSON.stringify(lista))
-  } catch {
-    // sem persistência (modo privado) — segue só na sessão
-  }
-}
-
 function Capa({ src, size = 'h-11 w-11' }) {
   return (
     <div className={cn('shrink-0 overflow-hidden rounded-lg bg-surface-2', size)}>
@@ -78,31 +56,50 @@ function Capa({ src, size = 'h-11 w-11' }) {
 
 export function Radio() {
   const { usuario } = useAuth()
-  const [lista, setLista] = useState(carregar)
+  const [lista, setLista] = useState([])
+  const [semana, setSemana] = useState(null)
+  const [carregando, setCarregando] = useState(true)
   const [link, setLink] = useState('')
   const [erro, setErro] = useState('')
-  const [sync, setSync] = useState(null) // { ok, msg } — resultado do espelho no Spotify
+  const [sync, setSync] = useState(null) // { ok, msg } — feedback de adicionar/remover
   const [playlistId, setPlaylistId] = useState(null)
   const tentados = useRef(new Set())
 
-  useEffect(() => {
-    salvar(lista)
-  }, [lista])
+  const admin = !!usuario?.podePublicar
+  const minhaMatricula = String(usuario?.matricula || '')
 
-  // URL da playlist do Spotify (aparece quando a conta estiver conectada).
+  // Carrega a lista compartilhada + o líder da semana (backend).
+  async function carregarLista() {
+    const { data } = await supabase.rpc('radio_listar')
+    if (data && !data.erro) {
+      setLista(Array.isArray(data.musicas) ? data.musicas : [])
+      setSemana(data.semana || null)
+    }
+    setCarregando(false)
+  }
+
   useEffect(() => {
+    carregarLista()
     supabase.rpc('radio_playlist_url').then(({ data }) => setPlaylistId(data || null))
   }, [])
 
-  // Enriquece com título/capa (oEmbed) as faixas que ainda não têm — uma vez cada.
+  // Enriquece com capa (oEmbed) as faixas que ainda não têm — uma vez cada (só p/ exibir).
   useEffect(() => {
-    const faltando = lista.filter((m) => !m.titulo && !tentados.current.has(m.trackId))
+    const faltando = lista.filter((m) => !m.capa && !tentados.current.has(m.trackId))
     if (!faltando.length) return
     let vivo = true
     faltando.forEach((m) => {
       tentados.current.add(m.trackId)
       buscarMeta(m.trackId).then((meta) => {
-        if (vivo && meta) setLista((l) => l.map((x) => (x.id === m.id ? { ...x, ...meta } : x)))
+        if (vivo && meta) {
+          setLista((l) =>
+            l.map((x) =>
+              x.trackId === m.trackId
+                ? { ...x, capa: x.capa || meta.capa, titulo: x.titulo || meta.titulo }
+                : x,
+            ),
+          )
+        }
       })
     })
     return () => {
@@ -110,17 +107,14 @@ export function Radio() {
     }
   }, [lista])
 
-  const semana = useMemo(() => {
-    if (!lista.length) return null
-    return [...lista].sort((a, b) => b.curtidas - a.curtidas || b.ts - a.ts)[0]
-  }, [lista])
-  const ordenada = useMemo(() => [...lista].sort((a, b) => b.ts - a.ts), [lista])
+  // Capa do herói: reaproveita a capa já enriquecida da lista, se houver.
+  const semanaCapa = useMemo(
+    () => (semana ? lista.find((m) => m.trackId === semana.trackId)?.capa || semana.capa : null),
+    [semana, lista],
+  )
 
-  const admin = !!usuario?.podePublicar
-  const meuNome = usuario?.primeiroNome || 'Você'
-
-  // Tocar uma música abre AQUELA faixa no Spotify (intuitivo: toco a música →
-  // abre a música). A playlist inteira do time abre pela capa do topo.
+  // Tocar uma música abre AQUELA faixa no Spotify (intuitivo). A playlist inteira
+  // do time abre pela capa do topo / botão do fim.
   const tocar = (trackId) => spotifyUrl(trackId)
 
   async function adicionar() {
@@ -135,64 +129,75 @@ export function Radio() {
     }
     setErro('')
     setLink('')
-    setSync({ ok: null, msg: 'Adicionando ao Spotify…' })
-    setLista((l) => [
-      { id: 'm' + id, trackId: id, por: meuNome, curtidas: 0, euCurti: false, ts: Date.now() },
-      ...l,
-    ])
-    // Espelha na playlist do Spotify e mostra o resultado (ajuda no teste).
+    setSync({ ok: null, msg: 'Adicionando…' })
+    const meta = await buscarMeta(id)
     try {
-      const { data, error } = await supabase.rpc('radio_add_spotify', { p_track: id })
+      const { data, error } = await supabase.rpc('radio_adicionar', {
+        p_track: id,
+        p_titulo: meta?.titulo || null,
+        p_capa: meta?.capa || null,
+      })
       if (error) {
         setSync({ ok: false, msg: 'Não deu pra falar com o servidor agora.' })
-      } else if (data?.ok) {
-        setSync({ ok: true, msg: 'Adicionada à playlist do Spotify ✓' })
-      } else {
-        const motivos = {
-          sem_acesso: 'Sua conta não tem acesso pra sincronizar com o Spotify.',
-          nao_configurado: 'A playlist do Spotify ainda não está configurada.',
-          auth_falhou: 'Falha ao autenticar no Spotify.',
-          add_falhou: `O Spotify recusou a adição${data?.status ? ` (${data.status})` : ''}.`,
-          track_invalido: 'Link de faixa inválido.',
-        }
-        setSync({ ok: false, msg: motivos[data?.erro] || 'Não foi possível adicionar no Spotify.' })
+        return
       }
+      if (!data?.ok) {
+        const motivos = {
+          sem_acesso: 'Sua conta não tem acesso à Rádio.',
+          track_invalido: 'Link de faixa inválido.',
+          sem_matricula: 'Não identifiquei seu cadastro.',
+        }
+        setSync({ ok: false, msg: motivos[data?.erro] || 'Não foi possível adicionar.' })
+        return
+      }
+      if (data.ja_existe) {
+        setSync({ ok: false, msg: 'Essa música já está na playlist.' })
+        return
+      }
+      setSync({
+        ok: true,
+        msg: data.pontuou ? 'Música adicionada! +5 pontos 🎉' : 'Música adicionada à playlist ✓',
+      })
+      await carregarLista()
     } catch {
       setSync({ ok: false, msg: 'Não deu pra falar com o servidor agora.' })
     }
   }
 
-  function curtir(m) {
+  async function curtir(m) {
+    // Otimista: reflete na hora; reconcilia com a resposta do servidor.
     setLista((l) =>
       l.map((x) =>
         x.id === m.id ? { ...x, euCurti: !x.euCurti, curtidas: x.curtidas + (x.euCurti ? -1 : 1) } : x,
       ),
     )
+    const { data, error } = await supabase.rpc('radio_curtir_toggle', { p_musica: m.id })
+    setLista((l) =>
+      l.map((x) =>
+        x.id === m.id
+          ? error || !data?.ok
+            ? { ...x, euCurti: m.euCurti, curtidas: m.curtidas } // reverte
+            : { ...x, euCurti: data.euCurti, curtidas: data.curtidas }
+          : x,
+      ),
+    )
   }
 
   async function remover(m) {
+    const antes = lista
     setLista((l) => l.filter((x) => x.id !== m.id))
-    // Espelha a remoção na playlist do Spotify e mostra o resultado.
-    setSync({ ok: null, msg: 'Removendo do Spotify…' })
-    try {
-      const { data, error } = await supabase.rpc('radio_remove_spotify', { p_track: m.trackId })
-      if (error) {
-        setSync({ ok: false, msg: 'Não deu pra falar com o servidor agora.' })
-      } else if (data?.ok) {
-        setSync({ ok: true, msg: 'Removida da playlist do Spotify ✓' })
-      } else {
-        const motivos = {
-          sem_acesso: 'Sua conta não tem acesso pra sincronizar com o Spotify.',
-          nao_configurado: 'A playlist do Spotify ainda não está configurada.',
-          auth_falhou: 'Falha ao autenticar no Spotify.',
-          muitas_faixas: 'A playlist é grande demais pra remover automaticamente.',
-          remove_falhou: `O Spotify recusou a remoção${data?.status ? ` (${data.status})` : ''}.`,
-        }
-        setSync({ ok: false, msg: motivos[data?.erro] || 'Não foi possível remover do Spotify.' })
+    setSync({ ok: null, msg: 'Removendo…' })
+    const { data, error } = await supabase.rpc('radio_remover', { p_musica: m.id })
+    if (error || !data?.ok) {
+      setLista(antes) // reverte
+      const motivos = {
+        sem_permissao: 'Você não pode remover essa música.',
+        nao_encontrada: 'Música não encontrada.',
       }
-    } catch {
-      setSync({ ok: false, msg: 'Não deu pra falar com o servidor agora.' })
+      setSync({ ok: false, msg: (data && motivos[data.erro]) || 'Não deu pra remover agora.' })
+      return
     }
+    setSync({ ok: true, msg: 'Removida da playlist ✓' })
   }
 
   return (
@@ -201,8 +206,7 @@ export function Radio() {
       <Voltar />
       <div className="px-5 pt-2 pb-24">
         {/* Topo (hero estilo capa de playlist): capa + título em cima e, abaixo,
-            a mensagem. A capa usa CAPA_RADIO (piloto: ícone do Tatá) — é só trocar
-            a constante pela arte oficial quando tiver. */}
+            a mensagem. A capa usa CAPA_RADIO (arte oficial da Rádio). */}
         <div className="mb-4 overflow-hidden rounded-card border border-line">
           <div className="hstack gap-3.5 bg-accent-soft p-4">
             {playlistId ? (
@@ -268,6 +272,10 @@ export function Radio() {
               <Plus size={16} /> Add
             </button>
           </div>
+          <p className="mt-2 text-[11px] text-muted-2">
+            Ganhe <span className="font-semibold text-accent">+5 pontos</span> ao compartilhar a
+            primeira música da semana.
+          </p>
           {erro && <p className="mt-2 text-xs font-medium text-danger">{erro}</p>}
           {sync && (
             <p
@@ -283,9 +291,7 @@ export function Radio() {
           )}
         </div>
 
-        {/* Mais elogiada da semana passada (placeholder front: a mais curtida
-            da lista do próprio aparelho — vira o campeão real do time quando
-            houver base compartilhada). */}
+        {/* Mais curtida da semana (líder do time nesta semana, computado no backend) */}
         {semana && (
           <div className="mt-5">
             <div className="mb-2 hstack gap-1.5 text-xs font-bold uppercase tracking-wide text-accent">
@@ -298,7 +304,7 @@ export function Radio() {
               className="hero-card hstack w-full gap-3 p-3 text-left tap"
               aria-label={`Ouvir ${semana.titulo || 'a música'} no Spotify`}
             >
-              <Capa src={semana.capa} size="h-14 w-14" />
+              <Capa src={semanaCapa} size="h-14 w-14" />
               <div className="min-w-0 flex-1">
                 <div className="truncate text-sm font-bold">{semana.titulo || 'Faixa do Spotify'}</div>
                 <div className="mt-0.5 truncate text-[11px] text-muted">Indicada por {semana.por}</div>
@@ -313,7 +319,7 @@ export function Radio() {
           </div>
         )}
 
-        {/* Playlist */}
+        {/* Lista */}
         <div className="mt-6 mb-2 hstack justify-between">
           <div className="font-display text-sm font-bold">Músicas compartilhadas</div>
           <div className="text-[11px] text-muted-2">
@@ -321,7 +327,11 @@ export function Radio() {
           </div>
         </div>
 
-        {ordenada.length === 0 ? (
+        {carregando ? (
+          <div className="grid place-items-center py-12 text-muted-2">
+            <Loader2 size={22} className="animate-spin" />
+          </div>
+        ) : lista.length === 0 ? (
           <div className="mt-6 rounded-card border border-dashed border-line px-4 py-10 text-center">
             <Music2 size={26} className="mx-auto text-muted-2" />
             <div className="mt-2 text-sm font-semibold">Playlist vazia</div>
@@ -331,7 +341,7 @@ export function Radio() {
           </div>
         ) : (
           <div className="flex flex-col gap-2">
-            {ordenada.map((m) => (
+            {lista.map((m) => (
               <div key={m.id} className="card hstack gap-2.5 p-2.5">
                 <a
                   href={tocar(m.trackId)}
@@ -359,7 +369,7 @@ export function Radio() {
                   >
                     <Heart size={13} className={cn(m.euCurti && 'fill-current')} /> {m.curtidas}
                   </button>
-                  {(admin || m.por === meuNome) && (
+                  {(admin || m.porMatricula === minhaMatricula) && (
                     <button
                       onClick={() => remover(m)}
                       className="grid h-8 w-8 place-items-center rounded-pill bg-fill text-muted-2 tap"
