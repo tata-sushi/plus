@@ -197,10 +197,20 @@ export function Radio() {
       <Header title="Rádio Tatá" />
       <Voltar />
       <div className="px-5 pt-2 pb-24">
-        <p className="mb-4 text-sm text-muted">
-          A playlist colaborativa do time. Cole um link do Spotify e some ao som do Tatá.{' '}
-          <span className="font-semibold text-accent">(beta)</span>
-        </p>
+        {/* Topo: propósito da Rádio — convida a compartilhar e descobrir */}
+        <div className="mb-4 rounded-card bg-accent-soft p-4">
+          <div className="mb-2 hstack gap-1.5">
+            <Music2 size={15} className="text-accent" />
+            <span className="text-xs font-bold uppercase tracking-wide text-accent">Rádio Tatá</span>
+            <span className="ml-auto rounded-pill bg-bg px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-accent">
+              beta
+            </span>
+          </div>
+          <p className="text-sm leading-relaxed text-text">
+            A música também é uma forma de conhecer pessoas. Compartilhe o que faz parte do seu mundo,
+            descubra novos sons e ajude a construir a playlist da nossa galera.
+          </p>
+        </div>
 
         {/* Adicionar música */}
         <div className="card p-3">
@@ -267,7 +277,7 @@ export function Radio() {
 
         {/* Playlist */}
         <div className="mt-6 mb-2 hstack justify-between">
-          <div className="font-display text-sm font-bold">Playlist do time</div>
+          <div className="font-display text-sm font-bold">Compartilhe e descubra</div>
           <div className="text-[11px] text-muted-2">
             {lista.length} {lista.length === 1 ? 'música' : 'músicas'}
           </div>
