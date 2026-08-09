@@ -77,6 +77,7 @@ export function Radio() {
   const [lista, setLista] = useState(carregar)
   const [link, setLink] = useState('')
   const [erro, setErro] = useState('')
+  const [sync, setSync] = useState(null) // { ok, msg } — resultado do espelho no Spotify
   const [playlistId, setPlaylistId] = useState(null)
   const tentados = useRef(new Set())
 
@@ -114,7 +115,7 @@ export function Radio() {
   const admin = !!usuario?.podePublicar
   const meuNome = usuario?.primeiroNome || 'Você'
 
-  function adicionar() {
+  async function adicionar() {
     const id = extrairTrackId(link)
     if (!id) {
       setErro('Cole um link de faixa do Spotify.')
@@ -126,12 +127,31 @@ export function Radio() {
     }
     setErro('')
     setLink('')
+    setSync({ ok: null, msg: 'Adicionando ao Spotify…' })
     setLista((l) => [
       { id: 'm' + id, trackId: id, por: meuNome, curtidas: 0, euCurti: false, ts: Date.now() },
       ...l,
     ])
-    // Espelha na playlist do Spotify (se a conta estiver conectada). Best-effort.
-    supabase.rpc('radio_add_spotify', { p_track: id }).catch(() => {})
+    // Espelha na playlist do Spotify e mostra o resultado (ajuda no teste).
+    try {
+      const { data, error } = await supabase.rpc('radio_add_spotify', { p_track: id })
+      if (error) {
+        setSync({ ok: false, msg: 'Não deu pra falar com o servidor agora.' })
+      } else if (data?.ok) {
+        setSync({ ok: true, msg: 'Adicionada à playlist do Spotify ✓' })
+      } else {
+        const motivos = {
+          sem_acesso: 'Sua conta não tem acesso pra sincronizar com o Spotify.',
+          nao_configurado: 'A playlist do Spotify ainda não está configurada.',
+          auth_falhou: 'Falha ao autenticar no Spotify.',
+          add_falhou: `O Spotify recusou a adição${data?.status ? ` (${data.status})` : ''}.`,
+          track_invalido: 'Link de faixa inválido.',
+        }
+        setSync({ ok: false, msg: motivos[data?.erro] || 'Não foi possível adicionar no Spotify.' })
+      }
+    } catch {
+      setSync({ ok: false, msg: 'Não deu pra falar com o servidor agora.' })
+    }
   }
 
   function curtir(m) {
@@ -164,6 +184,7 @@ export function Radio() {
               onChange={(e) => {
                 setLink(e.target.value)
                 setErro('')
+                setSync(null)
               }}
               onKeyDown={(e) => e.key === 'Enter' && adicionar()}
               placeholder="Cole o link da música no Spotify"
@@ -174,6 +195,18 @@ export function Radio() {
             </button>
           </div>
           {erro && <p className="mt-2 text-xs font-medium text-danger">{erro}</p>}
+          {sync && (
+            <p
+              className={cn(
+                'mt-2 text-xs font-medium',
+                sync.ok === true && 'text-accent',
+                sync.ok === false && 'text-danger',
+                sync.ok === null && 'text-muted',
+              )}
+            >
+              {sync.msg}
+            </p>
+          )}
         </div>
 
         {playlistId && (
