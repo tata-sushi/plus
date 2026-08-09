@@ -27,6 +27,7 @@ import {
   SprayCan,
   Smartphone,
   GraduationCap,
+  Coins,
 } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Section } from '../components/Section.jsx'
@@ -37,6 +38,7 @@ import { PhotoCropper } from '../components/PhotoCropper.jsx'
 import { AdminPublicacoes } from '../components/AdminPublicacoes.jsx'
 import { AdminConquistas } from '../components/AdminConquistas.jsx'
 import { AdminGovernanca } from '../components/AdminGovernanca.jsx'
+import { AdminVerValores } from '../components/AdminVerValores.jsx'
 import { AdminDesafios } from '../components/AdminDesafios.jsx'
 import { AdminBanheiros } from '../components/AdminBanheiros.jsx'
 import { cn } from '../lib/cn'
@@ -55,6 +57,7 @@ const TITULOS = {
   conquistas: 'Conquistas',
   comunicados: 'Anúncios',
   governanca: 'Governança',
+  valores: 'Valores de governança',
   aplicativo: 'Aplicativo',
   desafios: 'Desafios',
   banheiros: 'Checklist de limpeza',
@@ -480,6 +483,7 @@ export function AdminRecompensas() {
     { id: 'comunicados', label: 'Anúncios', icon: Megaphone },
     ...(isAdminPerfil ? [{ id: 'banheiros', label: 'Checklist de limpeza', icon: SprayCan }] : []),
     { id: 'governanca', label: 'Governança', icon: ShieldCheck },
+    { id: 'valores', label: 'Valores de governança', icon: Coins },
     { id: 'aplicativo', label: 'Aplicativo', icon: Smartphone },
   ]
 
@@ -500,6 +504,8 @@ export function AdminRecompensas() {
         <AdminGovernanca scope="app" />
       ) : aba === 'governanca' ? (
         <AdminGovernanca scope="governanca" />
+      ) : aba === 'valores' ? (
+        <AdminVerValores />
       ) : aba === 'conquistas' ? (
         <AdminConquistas />
       ) : aba === 'comunicados' ? (
