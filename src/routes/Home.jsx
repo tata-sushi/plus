@@ -217,10 +217,7 @@ export function Home() {
     cardapio,
     recompensas,
     organograma,
-    // Rádio Tatá em teste: por enquanto liberada só para o Victor (matrícula 7).
-    ...(String(usuario?.matricula) === '7'
-      ? [{ to: '/radio', badgeIcon: RadioIcon, title: 'Rádio Tatá', subtitle: 'Playlist do time' }]
-      : []),
+    { to: '/radio', badgeIcon: RadioIcon, title: 'Rádio Tatá', subtitle: 'Playlist do time' },
   ]
   const desktop = useDesktop()
   const { setCanvas } = useDesktopCanvas()
