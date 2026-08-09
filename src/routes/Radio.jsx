@@ -167,8 +167,29 @@ export function Radio() {
     )
   }
 
-  function remover(m) {
+  async function remover(m) {
     setLista((l) => l.filter((x) => x.id !== m.id))
+    // Espelha a remoção na playlist do Spotify e mostra o resultado.
+    setSync({ ok: null, msg: 'Removendo do Spotify…' })
+    try {
+      const { data, error } = await supabase.rpc('radio_remove_spotify', { p_track: m.trackId })
+      if (error) {
+        setSync({ ok: false, msg: 'Não deu pra falar com o servidor agora.' })
+      } else if (data?.ok) {
+        setSync({ ok: true, msg: 'Removida da playlist do Spotify ✓' })
+      } else {
+        const motivos = {
+          sem_acesso: 'Sua conta não tem acesso pra sincronizar com o Spotify.',
+          nao_configurado: 'A playlist do Spotify ainda não está configurada.',
+          auth_falhou: 'Falha ao autenticar no Spotify.',
+          muitas_faixas: 'A playlist é grande demais pra remover automaticamente.',
+          remove_falhou: `O Spotify recusou a remoção${data?.status ? ` (${data.status})` : ''}.`,
+        }
+        setSync({ ok: false, msg: motivos[data?.erro] || 'Não foi possível remover do Spotify.' })
+      }
+    } catch {
+      setSync({ ok: false, msg: 'Não deu pra falar com o servidor agora.' })
+    }
   }
 
   return (
