@@ -62,6 +62,15 @@ export default defineConfig({
         // link web+tataplus:// abre o aplicativo. Base do botão "Abrir aplicativo"
         // na tela de já-instalado. Sem efeito no iOS.
         protocol_handlers: [{ protocol: 'web+tataplus', url: '/?abrir=%s' }],
+        // "Compartilhar → Tatá Plus": com o PWA instalado (Android), o app
+        // aparece na folha de compartilhamento de outros apps (ex.: Spotify).
+        // O link chega em /compartilhar (GET), que extrai a faixa e leva pra
+        // Rádio. Sem efeito no iOS (a Apple não suporta share_target em PWA).
+        share_target: {
+          action: '/compartilhar',
+          method: 'GET',
+          params: { title: 'title', text: 'text', url: 'url' },
+        },
         icons: [
           { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
           { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },

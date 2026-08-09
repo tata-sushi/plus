@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { Heart, Trash2, Plus, Music2, Trophy, Play, Loader2 } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Voltar } from '../components/Voltar.jsx'
@@ -83,6 +84,17 @@ export function Radio() {
     carregarLista()
     supabase.rpc('radio_playlist_url').then(({ data }) => setPlaylistId(data || null))
   }, [])
+
+  // Chegou via "Compartilhar → Tatá Plus" (?add=<trackId>): pré-preenche a
+  // música e abre o aviso de política pra confirmar em 1 toque.
+  const [searchParams] = useSearchParams()
+  useEffect(() => {
+    const add = searchParams.get('add')
+    if (add && /^[A-Za-z0-9]{22}$/.test(add)) {
+      setLink(`https://open.spotify.com/track/${add}`)
+      setPolicyOpen(true)
+    }
+  }, [searchParams])
 
   // Enriquece com capa (oEmbed) as faixas que ainda não têm — uma vez cada (só p/ exibir).
   useEffect(() => {

@@ -25,6 +25,7 @@ import { PainelExterno } from './routes/PainelExterno.jsx'
 import { BuscarPessoas } from './routes/BuscarPessoas.jsx'
 import { Carteira } from './routes/Carteira.jsx'
 import { Radio } from './routes/Radio.jsx'
+import { Compartilhar } from './routes/Compartilhar.jsx'
 
 // Painel Kanban (Quadros) — carregado sob demanda (poucos têm acesso), pra não
 // pesar o bundle de todo mundo com a lib de drag-and-drop.
@@ -73,6 +74,7 @@ export function App() {
         <Route path="/governanca" element={<Governanca />} />
         <Route path="/organograma" element={<Organograma />} />
         <Route path="/radio" element={<Radio />} />
+        <Route path="/compartilhar" element={<Compartilhar />} />
         <Route path="/atalhos-governanca" element={<GerenciarAtalhos />} />
         <Route path="/perfil-disc" element={<QuestionarioDisc />} />
         <Route path="/painel/:id" element={<PainelExterno />} />
