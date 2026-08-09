@@ -217,7 +217,8 @@ export function Home() {
     cardapio,
     recompensas,
     organograma,
-    ...(usuario?.podePublicar
+    // Rádio Tatá em teste: por enquanto liberada só para o Victor (matrícula 7).
+    ...(String(usuario?.matricula) === '7'
       ? [{ to: '/radio', badgeIcon: RadioIcon, title: 'Rádio Tatá', subtitle: 'Playlist do time' }]
       : []),
   ]
