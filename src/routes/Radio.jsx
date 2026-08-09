@@ -15,9 +15,8 @@ const CHAVE = 'tata:radio:v1'
 const spotifyUrl = (trackId) => `https://open.spotify.com/track/${trackId}`
 const playlistUrl = (id) => `https://open.spotify.com/playlist/${id}`
 
-// Capa do topo (hero) da Rádio. PILOTO: ícone do Tatá — troque pela arte
-// oficial da Rádio (imagem quadrada, ex.: 640×640, em /public/icons/).
-const CAPA_RADIO = '/icons/icon-192.png'
+// Capa do topo (hero) da Rádio — arte oficial (imagem quadrada em /public/icons/).
+const CAPA_RADIO = '/icons/radio-capa.webp'
 
 // Extrai o ID (22 chars) de um link/URI de faixa do Spotify.
 function extrairTrackId(txt) {
