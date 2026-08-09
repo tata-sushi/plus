@@ -17,6 +17,7 @@ import {
   Gift,
   Ban,
   PartyPopper,
+  Headphones,
 } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Card } from '../components/Card.jsx'
@@ -563,6 +564,14 @@ function Detalhe({
 
       {!ehCodigo && !ehEnvio && !ehReconhecimento && !ehLeituraProva && !ehAvaliacao && !ehPerfilDisc && (
       <div className="safe-bottom border-t border-line px-5 py-3">
+        {treino.titulo === 'Rádio Tatá' && (
+          <button
+            onClick={() => navigate('/radio')}
+            className="btn-ghost mb-2 w-full !py-3 text-sm"
+          >
+            <Headphones size={16} /> Acessar a Rádio Tatá
+          </button>
+        )}
         {treino.concluido ? (
           <div className="hstack justify-center gap-2 rounded-card bg-accent-soft py-3 text-sm font-semibold text-accent">
             <CheckCircle2 size={18} /> Concluído
