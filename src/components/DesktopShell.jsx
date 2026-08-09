@@ -287,7 +287,7 @@ export function DesktopShell() {
             </div>
           )}
         </section>
-        <RadioPlayerBar variant="sidebar" />
+        <RadioPlayerBar />
       </div>
     </DesktopCanvasContext.Provider>
   )

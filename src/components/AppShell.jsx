@@ -66,7 +66,7 @@ export function AppShell() {
       <main key={location.pathname} className="animate-page pb-24">
         <Outlet />
       </main>
-      <RadioPlayerBar variant="float" />
+      <RadioPlayerBar />
       <BottomNav />
     </div>
   )
