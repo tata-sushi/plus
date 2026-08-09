@@ -258,8 +258,7 @@ export function Radio() {
             </div>
           </div>
           <p className="bg-surface-2 px-4 py-3.5 text-sm leading-relaxed text-text">
-            Música também é uma forma de conhecer pessoas. Compartilhe o que faz parte do seu mundo,
-            descubra novos sons e colabore para construir a playlist com o nosso estilo.
+            Música também é uma forma de conhecer pessoas. Compartilhe e descubra.
           </p>
         </div>
 
@@ -414,7 +413,8 @@ export function Radio() {
           onClick={() => setPolicyOpen(false)}
         >
           <div
-            className="w-full max-w-sm rounded-card bg-surface p-5 shadow-xl"
+            className="w-full max-w-sm rounded-card border bg-surface p-5 shadow-xl"
+            style={{ borderColor: 'rgb(var(--accent) / 0.55)' }}
             onClick={(e) => e.stopPropagation()}
           >
             <div className="text-sm font-bold text-text">⚠️ Antes de compartilhar</div>
