@@ -235,22 +235,13 @@ export function Radio() {
           )}
         </div>
 
-        {playlistId && (
-          <a
-            href={`https://open.spotify.com/playlist/${playlistId}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="btn-ghost mt-3 w-full !py-2.5 text-sm"
-          >
-            <Music2 size={15} /> Abrir a playlist no Spotify
-          </a>
-        )}
-
-        {/* Música da Semana */}
+        {/* Mais elogiada da semana passada (placeholder front: a mais curtida
+            da lista do próprio aparelho — vira o campeão real do time quando
+            houver base compartilhada). */}
         {semana && (
           <div className="mt-5">
             <div className="mb-2 hstack gap-1.5 text-xs font-bold uppercase tracking-wide text-accent">
-              <Trophy size={14} /> Música da Semana
+              <Trophy size={14} /> Mais elogiada da semana passada
             </div>
             <a
               href={destino(semana.trackId)}
