@@ -62,6 +62,7 @@ export function Radio() {
   const [link, setLink] = useState('')
   const [erro, setErro] = useState('')
   const [sync, setSync] = useState(null) // { ok, msg } — feedback de adicionar/remover
+  const [policyOpen, setPolicyOpen] = useState(false) // aviso de política antes de adicionar
   const [playlistId, setPlaylistId] = useState(null)
   const tentados = useRef(new Set())
 
@@ -117,7 +118,9 @@ export function Radio() {
   // do time abre pela capa do topo / botão do fim.
   const tocar = (trackId) => spotifyUrl(trackId)
 
-  async function adicionar() {
+  // Ao tocar em "Add": valida o link e abre o aviso de política. A adição só
+  // acontece depois que a pessoa confirma (confirmarAdicao).
+  function adicionar() {
     const id = extrairTrackId(link)
     if (!id) {
       setErro('Cole um link de faixa do Spotify.')
@@ -128,6 +131,13 @@ export function Radio() {
       return
     }
     setErro('')
+    setPolicyOpen(true)
+  }
+
+  async function confirmarAdicao() {
+    setPolicyOpen(false)
+    const id = extrairTrackId(link)
+    if (!id) return
     setLink('')
     setSync({ ok: null, msg: 'Adicionando…' })
     const meta = await buscarMeta(id)
@@ -395,6 +405,38 @@ export function Radio() {
           </a>
         )}
       </div>
+
+      {policyOpen && (
+        <div
+          className="fixed inset-0 z-50 grid place-items-center bg-black/50 p-5"
+          role="dialog"
+          aria-modal="true"
+          onClick={() => setPolicyOpen(false)}
+        >
+          <div
+            className="w-full max-w-sm rounded-card bg-surface p-5 shadow-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="text-sm font-bold text-text">⚠️ Antes de compartilhar</div>
+            <p className="mt-2 text-sm leading-relaxed text-muted">
+              Compartilhe com responsabilidade. Músicas com conteúdo ofensivo, linguagem imprópria ou
+              incompatíveis com os valores e as políticas da Tatá poderão ser removidas e gerar medidas
+              disciplinares, conforme a gravidade do conteúdo compartilhado.
+            </p>
+            <div className="mt-4 hstack gap-2">
+              <button
+                onClick={() => setPolicyOpen(false)}
+                className="btn-ghost flex-1 !py-2.5 text-sm"
+              >
+                Cancelar
+              </button>
+              <button onClick={confirmarAdicao} className="btn-primary flex-1 !py-2.5 text-sm">
+                Continuar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   )
 }
