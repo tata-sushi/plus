@@ -154,10 +154,9 @@ export function Radio() {
         setSync({ ok: false, msg: 'Essa música já está na playlist.' })
         return
       }
-      setSync({
-        ok: true,
-        msg: data.pontuou ? 'Música adicionada! +5 pontos 🎉' : 'Música adicionada à playlist ✓',
-      })
+      // Sem "validação" de inclusão — a música já aparece na lista. Só mostra
+      // feedback quando há algo a comemorar (os +5 pontos da 1ª da semana).
+      setSync(data.pontuou ? { ok: true, msg: 'Você ganhou +5 pontos! 🎉' } : null)
       await carregarLista()
     } catch {
       setSync({ ok: false, msg: 'Não deu pra falar com o servidor agora.' })
@@ -197,7 +196,7 @@ export function Radio() {
       setSync({ ok: false, msg: (data && motivos[data.erro]) || 'Não deu pra remover agora.' })
       return
     }
-    setSync({ ok: true, msg: 'Removida da playlist ✓' })
+    setSync(null)
   }
 
   return (
@@ -273,8 +272,8 @@ export function Radio() {
             </button>
           </div>
           <p className="mt-2 text-[11px] text-muted-2">
-            Ganhe <span className="font-semibold text-accent">+5 pontos</span> ao compartilhar a
-            primeira música da semana.
+            Ganhe <span className="font-semibold text-accent">+5 pontos</span> ao compartilhar (válido
+            para um compartilhamento por semana).
           </p>
           {erro && <p className="mt-2 text-xs font-medium text-danger">{erro}</p>}
           {sync && (
