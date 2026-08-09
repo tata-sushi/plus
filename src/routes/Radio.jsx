@@ -15,6 +15,10 @@ const CHAVE = 'tata:radio:v1'
 const spotifyUrl = (trackId) => `https://open.spotify.com/track/${trackId}`
 const playlistUrl = (id) => `https://open.spotify.com/playlist/${id}`
 
+// Capa do topo (hero) da Rádio. PILOTO: ícone do Tatá — troque pela arte
+// oficial da Rádio (imagem quadrada, ex.: 640×640, em /public/icons/).
+const CAPA_RADIO = '/icons/icon-192.png'
+
 // Extrai o ID (22 chars) de um link/URI de faixa do Spotify.
 function extrairTrackId(txt) {
   if (!txt) return null
@@ -197,16 +201,28 @@ export function Radio() {
       <Header title="Rádio Tatá" />
       <Voltar />
       <div className="px-5 pt-2 pb-24">
-        {/* Topo: propósito da Rádio — convida a compartilhar e descobrir */}
-        <div className="mb-4 rounded-card bg-accent-soft p-4">
-          <div className="mb-2 hstack gap-1.5">
-            <Music2 size={15} className="text-accent" />
-            <span className="text-xs font-bold uppercase tracking-wide text-accent">Rádio Tatá</span>
-            <span className="ml-auto rounded-pill bg-bg px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-accent">
-              beta
-            </span>
+        {/* Topo (hero estilo capa de playlist): capa + título em cima e, abaixo,
+            a mensagem. A capa usa CAPA_RADIO (piloto: ícone do Tatá) — é só trocar
+            a constante pela arte oficial quando tiver. */}
+        <div className="mb-4 overflow-hidden rounded-card border border-line">
+          <div className="hstack gap-3.5 bg-accent-soft p-4">
+            <img
+              src={CAPA_RADIO}
+              alt="Capa da Rádio Tatá"
+              className="h-20 w-20 shrink-0 rounded-xl object-cover shadow-md"
+            />
+            <div className="min-w-0">
+              <div className="hstack gap-1.5 text-[11px] font-bold uppercase tracking-wide text-accent">
+                <span>Playlist do time</span>
+                <span className="rounded-pill bg-bg px-1.5 py-0.5 text-[9px]">beta</span>
+              </div>
+              <div className="mt-0.5 font-display text-2xl font-bold leading-tight">Rádio Tatá</div>
+              <div className="mt-1 text-[11px] text-muted">
+                {lista.length} {lista.length === 1 ? 'música' : 'músicas'} · a galera do Tatá
+              </div>
+            </div>
           </div>
-          <p className="text-sm leading-relaxed text-text">
+          <p className="bg-surface-2 px-4 py-3.5 text-sm leading-relaxed text-text">
             A música também é uma forma de conhecer pessoas. Compartilhe o que faz parte do seu mundo,
             descubra novos sons e ajude a construir a playlist da nossa galera.
           </p>
