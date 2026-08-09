@@ -250,18 +250,6 @@ export function Radio() {
           </p>
         </div>
 
-        {/* Acesse e siga a playlist no Spotify — leva direto ao mix do time */}
-        {playlistId && (
-          <a
-            href={playlistUrl(playlistId)}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="btn-primary mb-4 w-full !py-3 text-sm"
-          >
-            <Music2 size={16} /> Acesse e siga nossa playlist no Spotify
-          </a>
-        )}
-
         {/* Adicionar música */}
         <div className="card p-3">
           <div className="hstack gap-2">
@@ -384,6 +372,18 @@ export function Radio() {
               </div>
             ))}
           </div>
+        )}
+
+        {/* Acesse e siga a playlist no Spotify — depois de todas as músicas */}
+        {playlistId && (
+          <a
+            href={playlistUrl(playlistId)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn-primary mt-6 w-full !py-3 text-sm"
+          >
+            <Music2 size={16} /> Acesse e siga nossa playlist no Spotify
+          </a>
         )}
       </div>
     </>
