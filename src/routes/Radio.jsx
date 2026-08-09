@@ -13,6 +13,7 @@ import { cn } from '../lib/cn'
 const CHAVE = 'tata:radio:v1'
 
 const spotifyUrl = (trackId) => `https://open.spotify.com/track/${trackId}`
+const playlistUrl = (id) => `https://open.spotify.com/playlist/${id}`
 
 // Extrai o ID (22 chars) de um link/URI de faixa do Spotify.
 function extrairTrackId(txt) {
@@ -114,6 +115,10 @@ export function Radio() {
 
   const admin = !!usuario?.podePublicar
   const meuNome = usuario?.primeiroNome || 'Você'
+
+  // Ao tocar numa faixa, leva pra NOSSA playlist (quando conectada); se ainda
+  // não houver playlist, cai na própria faixa no Spotify.
+  const destino = (trackId) => (playlistId ? playlistUrl(playlistId) : spotifyUrl(trackId))
 
   async function adicionar() {
     const id = extrairTrackId(link)
@@ -227,10 +232,11 @@ export function Radio() {
               <Trophy size={14} /> Música da Semana
             </div>
             <a
-              href={spotifyUrl(semana.trackId)}
+              href={destino(semana.trackId)}
               target="_blank"
               rel="noopener noreferrer"
               className="hero-card hstack w-full gap-3 p-3 text-left tap"
+              aria-label={playlistId ? 'Abrir a playlist no Spotify' : `Ouvir ${semana.titulo || 'a música'} no Spotify`}
             >
               <Capa src={semana.capa} size="h-14 w-14" />
               <div className="min-w-0 flex-1">
@@ -268,11 +274,11 @@ export function Radio() {
             {ordenada.map((m) => (
               <div key={m.id} className="card hstack gap-2.5 p-2.5">
                 <a
-                  href={spotifyUrl(m.trackId)}
+                  href={destino(m.trackId)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="hstack min-w-0 flex-1 gap-2.5 text-left tap"
-                  aria-label={`Ouvir ${m.titulo || 'a música'} no Spotify`}
+                  aria-label={playlistId ? 'Abrir a playlist no Spotify' : `Ouvir ${m.titulo || 'a música'} no Spotify`}
                 >
                   <Capa src={m.capa} />
                   <div className="min-w-0 flex-1">
