@@ -1,13 +1,14 @@
-import { useEffect, useMemo, useState } from 'react'
-import { Heart, Trash2, Plus, Music2, Trophy } from 'lucide-react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { Heart, Trash2, Plus, Music2, Trophy, Play, AudioLines } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Voltar } from '../components/Voltar.jsx'
 import { useAuth } from '../lib/AuthContext.jsx'
+import { useRadioPlayer } from '../lib/RadioPlayer.jsx'
 import { cn } from '../lib/cn'
 
 // Rádio Tatá — playlist colaborativa do Spotify. PROTÓTIPO: por enquanto roda
 // só no aparelho (localStorage), sem backend. Quando ligar a base, é só trocar
-// carregar/salvar/curtir/remover pelas RPCs (radio_playlist, radio_add, ...).
+// carregar/salvar pelas RPCs (radio_playlist, radio_add, radio_curtir, ...).
 const CHAVE = 'tata:radio:v1'
 
 // Extrai o ID (22 chars) de um link/URI de faixa do Spotify.
@@ -19,6 +20,21 @@ function extrairTrackId(txt) {
   return /^[A-Za-z0-9]{22}$/.test(bruto) ? bruto : null
 }
 
+// Metadados (título + capa) pelo oEmbed público do Spotify — sem chave de API.
+async function buscarMeta(trackId) {
+  try {
+    const url = `https://open.spotify.com/oembed?url=${encodeURIComponent(
+      'https://open.spotify.com/track/' + trackId,
+    )}`
+    const r = await fetch(url)
+    if (!r.ok) return null
+    const j = await r.json()
+    return { titulo: j.title || null, capa: j.thumbnail_url || null }
+  } catch {
+    return null // CORS/rede — segue sem metadados, o player mostra tudo mesmo assim
+  }
+}
+
 function carregar() {
   try {
     const v = JSON.parse(localStorage.getItem(CHAVE) || 'null')
@@ -26,7 +42,6 @@ function carregar() {
   } catch {
     // storage indisponível — segue com o seed
   }
-  // Seed de exemplo (some assim que o time adiciona as próprias).
   const agora = Date.now()
   return [
     { id: 's1', trackId: '0VjIjW4GlUZAMYd2vXMi3b', por: 'Tatá', curtidas: 5, euCurti: false, ts: agora - 2 * 86400000 },
@@ -42,40 +57,56 @@ function salvar(lista) {
   }
 }
 
-function SpotifyEmbed({ trackId }) {
+function Capa({ src, size = 'h-11 w-11' }) {
   return (
-    <iframe
-      title="Spotify"
-      src={`https://open.spotify.com/embed/track/${trackId}?utm_source=tata_plus`}
-      width="100%"
-      height="152"
-      loading="lazy"
-      allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-      className="rounded-xl"
-      style={{ border: 0 }}
-    />
+    <div className={cn('shrink-0 overflow-hidden rounded-lg bg-surface-2', size)}>
+      {src ? (
+        <img src={src} alt="" className="h-full w-full object-cover" loading="lazy" />
+      ) : (
+        <div className="grid h-full w-full place-items-center text-muted-2">
+          <Music2 size={18} />
+        </div>
+      )}
+    </div>
   )
 }
 
 export function Radio() {
   const { usuario } = useAuth()
+  const { faixa, tocar } = useRadioPlayer()
   const [lista, setLista] = useState(carregar)
   const [link, setLink] = useState('')
   const [erro, setErro] = useState('')
+  const tentados = useRef(new Set())
 
   useEffect(() => {
     salvar(lista)
   }, [lista])
 
-  // Música da Semana = mais curtida (empate → mais recente).
+  // Enriquece com título/capa (oEmbed) as faixas que ainda não têm — uma vez cada.
+  useEffect(() => {
+    const faltando = lista.filter((m) => !m.titulo && !tentados.current.has(m.trackId))
+    if (!faltando.length) return
+    let vivo = true
+    faltando.forEach((m) => {
+      tentados.current.add(m.trackId)
+      buscarMeta(m.trackId).then((meta) => {
+        if (vivo && meta) setLista((l) => l.map((x) => (x.id === m.id ? { ...x, ...meta } : x)))
+      })
+    })
+    return () => {
+      vivo = false
+    }
+  }, [lista])
+
   const semana = useMemo(() => {
     if (!lista.length) return null
     return [...lista].sort((a, b) => b.curtidas - a.curtidas || b.ts - a.ts)[0]
   }, [lista])
+  const ordenada = useMemo(() => [...lista].sort((a, b) => b.ts - a.ts), [lista])
 
   const admin = !!usuario?.podePublicar
   const meuNome = usuario?.primeiroNome || 'Você'
-  const ordenada = useMemo(() => [...lista].sort((a, b) => b.ts - a.ts), [lista])
 
   function adicionar() {
     const id = extrairTrackId(link)
@@ -89,10 +120,9 @@ export function Radio() {
     }
     setErro('')
     setLink('')
-    setLista((l) => [
-      { id: 'm' + id, trackId: id, por: meuNome, curtidas: 0, euCurti: false, ts: Date.now() },
-      ...l,
-    ])
+    const nova = { id: 'm' + id, trackId: id, por: meuNome, curtidas: 0, euCurti: false, ts: Date.now() }
+    setLista((l) => [nova, ...l])
+    tocar({ trackId: nova.trackId, titulo: nova.titulo, capa: nova.capa, por: nova.por })
   }
 
   function curtir(m) {
@@ -106,6 +136,8 @@ export function Radio() {
   function remover(m) {
     setLista((l) => l.filter((x) => x.id !== m.id))
   }
+
+  const eTocando = (m) => faixa?.trackId === m.trackId
 
   return (
     <>
@@ -143,17 +175,22 @@ export function Radio() {
             <div className="mb-2 hstack gap-1.5 text-xs font-bold uppercase tracking-wide text-accent">
               <Trophy size={14} /> Música da Semana
             </div>
-            <div className="hero-card p-3">
-              <SpotifyEmbed trackId={semana.trackId} />
-              <div className="mt-2 hstack justify-between text-xs text-muted">
-                <span>
-                  Indicada por <strong className="text-text">{semana.por}</strong>
-                </span>
-                <span className="hstack gap-1 text-accent">
-                  <Heart size={13} className="fill-current" /> {semana.curtidas}
-                </span>
+            <button
+              onClick={() => tocar({ trackId: semana.trackId, titulo: semana.titulo, capa: semana.capa, por: semana.por })}
+              className="hero-card hstack w-full gap-3 p-3 text-left tap"
+            >
+              <Capa src={semana.capa} size="h-14 w-14" />
+              <div className="min-w-0 flex-1">
+                <div className="truncate text-sm font-bold">{semana.titulo || 'Faixa do Spotify'}</div>
+                <div className="mt-0.5 truncate text-[11px] text-muted">Indicada por {semana.por}</div>
+                <div className="mt-1 hstack gap-1 text-[11px] font-semibold text-accent">
+                  <Heart size={12} className="fill-current" /> {semana.curtidas}
+                </div>
               </div>
-            </div>
+              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-accent text-black">
+                {eTocando(semana) ? <AudioLines size={16} /> : <Play size={16} fill="currentColor" />}
+              </span>
+            </button>
           </div>
         )}
 
@@ -174,34 +211,49 @@ export function Radio() {
             </div>
           </div>
         ) : (
-          <div className="flex flex-col gap-2.5">
+          <div className="flex flex-col gap-2">
             {ordenada.map((m) => (
-              <div key={m.id} className="card p-3">
-                <SpotifyEmbed trackId={m.trackId} />
-                <div className="mt-2 hstack justify-between">
-                  <span className="min-w-0 truncate text-xs text-muted">
-                    por <strong className="text-text">{m.por}</strong>
-                  </span>
-                  <div className="hstack shrink-0 gap-1.5">
-                    <button
-                      onClick={() => curtir(m)}
-                      className={cn(
-                        'hstack gap-1 rounded-pill px-3 py-1.5 text-xs font-semibold tap',
-                        m.euCurti ? 'bg-accent-soft text-accent' : 'bg-fill text-muted',
-                      )}
-                    >
-                      <Heart size={14} className={cn(m.euCurti && 'fill-current')} /> {m.curtidas}
-                    </button>
-                    {(admin || m.por === meuNome) && (
-                      <button
-                        onClick={() => remover(m)}
-                        className="grid h-8 w-8 place-items-center rounded-pill bg-fill text-muted-2 tap"
-                        aria-label="Remover música"
-                      >
-                        <Trash2 size={14} />
-                      </button>
-                    )}
+              <div
+                key={m.id}
+                className={cn('card hstack gap-2.5 p-2.5', eTocando(m) && 'ring-1 ring-accent/60')}
+              >
+                <button
+                  onClick={() => tocar({ trackId: m.trackId, titulo: m.titulo, capa: m.capa, por: m.por })}
+                  className="hstack min-w-0 flex-1 gap-2.5 text-left tap"
+                >
+                  <Capa src={m.capa} />
+                  <div className="min-w-0 flex-1">
+                    <div className="truncate text-sm font-semibold">{m.titulo || 'Faixa do Spotify'}</div>
+                    <div className="truncate text-[11px] text-muted">por {m.por}</div>
                   </div>
+                  <span
+                    className={cn(
+                      'grid h-8 w-8 shrink-0 place-items-center rounded-full',
+                      eTocando(m) ? 'bg-accent text-black' : 'bg-fill text-muted',
+                    )}
+                  >
+                    {eTocando(m) ? <AudioLines size={15} /> : <Play size={14} fill="currentColor" />}
+                  </span>
+                </button>
+                <div className="hstack shrink-0 gap-1.5">
+                  <button
+                    onClick={() => curtir(m)}
+                    className={cn(
+                      'hstack gap-1 rounded-pill px-2.5 py-1.5 text-xs font-semibold tap',
+                      m.euCurti ? 'bg-accent-soft text-accent' : 'bg-fill text-muted',
+                    )}
+                  >
+                    <Heart size={13} className={cn(m.euCurti && 'fill-current')} /> {m.curtidas}
+                  </button>
+                  {(admin || m.por === meuNome) && (
+                    <button
+                      onClick={() => remover(m)}
+                      className="grid h-8 w-8 place-items-center rounded-pill bg-fill text-muted-2 tap"
+                      aria-label="Remover música"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  )}
                 </div>
               </div>
             ))}

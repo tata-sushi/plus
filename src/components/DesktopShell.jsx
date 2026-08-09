@@ -20,6 +20,7 @@ import { resolveIcon } from '../lib/icons.js'
 import { Ouvidoria } from '../routes/Ouvidoria.jsx'
 import { AdminRecompensas } from '../routes/AdminRecompensas.jsx'
 import { GovFrame } from './GovFrame.jsx'
+import { RadioPlayerBar } from './RadioPlayerBar.jsx'
 
 // Board Kanban aberto na área grande — carregado sob demanda (mesmo chunk da rota).
 const QuadroCanvas = lazy(() => import('../routes/Quadros.jsx').then((m) => ({ default: m.QuadroCanvas })))
@@ -286,6 +287,7 @@ export function DesktopShell() {
             </div>
           )}
         </section>
+        <RadioPlayerBar variant="sidebar" />
       </div>
     </DesktopCanvasContext.Provider>
   )

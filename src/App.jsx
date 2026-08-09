@@ -25,6 +25,7 @@ import { PainelExterno } from './routes/PainelExterno.jsx'
 import { BuscarPessoas } from './routes/BuscarPessoas.jsx'
 import { Carteira } from './routes/Carteira.jsx'
 import { Radio } from './routes/Radio.jsx'
+import { RadioPlayerProvider } from './lib/RadioPlayer.jsx'
 
 // Painel Kanban (Quadros) — carregado sob demanda (poucos têm acesso), pra não
 // pesar o bundle de todo mundo com a lib de drag-and-drop.
@@ -50,6 +51,7 @@ function Protegido() {
 
 export function App() {
   return (
+    <RadioPlayerProvider>
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route element={<Protegido />}>
@@ -103,5 +105,6 @@ export function App() {
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
     </Routes>
+    </RadioPlayerProvider>
   )
 }
