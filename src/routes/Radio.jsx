@@ -1,15 +1,17 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Heart, Trash2, Plus, Music2, Trophy, Play, AudioLines } from 'lucide-react'
+import { Heart, Trash2, Plus, Music2, Trophy, Play } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Voltar } from '../components/Voltar.jsx'
 import { useAuth } from '../lib/AuthContext.jsx'
-import { useRadioPlayer } from '../lib/RadioPlayer.jsx'
 import { cn } from '../lib/cn'
 
-// Rádio Tatá — playlist colaborativa do Spotify. PROTÓTIPO: por enquanto roda
-// só no aparelho (localStorage), sem backend. Quando ligar a base, é só trocar
-// carregar/salvar pelas RPCs (radio_playlist, radio_add, radio_curtir, ...).
+// Rádio Tatá — espaço colaborativo de descoberta musical. O time compartilha,
+// curte e vota nas músicas; a REPRODUÇÃO acontece no próprio Spotify (o botão
+// "ouvir" abre a faixa no app/site do Spotify — sem player embutido, sem risco).
+// PROTÓTIPO: por enquanto os dados ficam só no aparelho (localStorage).
 const CHAVE = 'tata:radio:v1'
+
+const spotifyUrl = (trackId) => `https://open.spotify.com/track/${trackId}`
 
 // Extrai o ID (22 chars) de um link/URI de faixa do Spotify.
 function extrairTrackId(txt) {
@@ -23,15 +25,13 @@ function extrairTrackId(txt) {
 // Metadados (título + capa) pelo oEmbed público do Spotify — sem chave de API.
 async function buscarMeta(trackId) {
   try {
-    const url = `https://open.spotify.com/oembed?url=${encodeURIComponent(
-      'https://open.spotify.com/track/' + trackId,
-    )}`
+    const url = `https://open.spotify.com/oembed?url=${encodeURIComponent(spotifyUrl(trackId))}`
     const r = await fetch(url)
     if (!r.ok) return null
     const j = await r.json()
     return { titulo: j.title || null, capa: j.thumbnail_url || null }
   } catch {
-    return null // CORS/rede — segue sem metadados, o player mostra tudo mesmo assim
+    return null
   }
 }
 
@@ -73,7 +73,6 @@ function Capa({ src, size = 'h-11 w-11' }) {
 
 export function Radio() {
   const { usuario } = useAuth()
-  const { faixa, tocar } = useRadioPlayer()
   const [lista, setLista] = useState(carregar)
   const [link, setLink] = useState('')
   const [erro, setErro] = useState('')
@@ -120,9 +119,10 @@ export function Radio() {
     }
     setErro('')
     setLink('')
-    const nova = { id: 'm' + id, trackId: id, por: meuNome, curtidas: 0, euCurti: false, ts: Date.now() }
-    setLista((l) => [nova, ...l])
-    tocar({ trackId: nova.trackId, titulo: nova.titulo, capa: nova.capa, por: nova.por })
+    setLista((l) => [
+      { id: 'm' + id, trackId: id, por: meuNome, curtidas: 0, euCurti: false, ts: Date.now() },
+      ...l,
+    ])
   }
 
   function curtir(m) {
@@ -136,8 +136,6 @@ export function Radio() {
   function remover(m) {
     setLista((l) => l.filter((x) => x.id !== m.id))
   }
-
-  const eTocando = (m) => faixa?.trackId === m.trackId
 
   return (
     <>
@@ -175,8 +173,10 @@ export function Radio() {
             <div className="mb-2 hstack gap-1.5 text-xs font-bold uppercase tracking-wide text-accent">
               <Trophy size={14} /> Música da Semana
             </div>
-            <button
-              onClick={() => tocar({ trackId: semana.trackId, titulo: semana.titulo, capa: semana.capa, por: semana.por })}
+            <a
+              href={spotifyUrl(semana.trackId)}
+              target="_blank"
+              rel="noopener noreferrer"
               className="hero-card hstack w-full gap-3 p-3 text-left tap"
             >
               <Capa src={semana.capa} size="h-14 w-14" />
@@ -188,9 +188,9 @@ export function Radio() {
                 </div>
               </div>
               <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-accent text-black">
-                {eTocando(semana) ? <AudioLines size={16} /> : <Play size={16} fill="currentColor" />}
+                <Play size={16} fill="currentColor" />
               </span>
-            </button>
+            </a>
           </div>
         )}
 
@@ -213,28 +213,23 @@ export function Radio() {
         ) : (
           <div className="flex flex-col gap-2">
             {ordenada.map((m) => (
-              <div
-                key={m.id}
-                className={cn('card hstack gap-2.5 p-2.5', eTocando(m) && 'ring-1 ring-accent/60')}
-              >
-                <button
-                  onClick={() => tocar({ trackId: m.trackId, titulo: m.titulo, capa: m.capa, por: m.por })}
+              <div key={m.id} className="card hstack gap-2.5 p-2.5">
+                <a
+                  href={spotifyUrl(m.trackId)}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="hstack min-w-0 flex-1 gap-2.5 text-left tap"
+                  aria-label={`Ouvir ${m.titulo || 'a música'} no Spotify`}
                 >
                   <Capa src={m.capa} />
                   <div className="min-w-0 flex-1">
                     <div className="truncate text-sm font-semibold">{m.titulo || 'Faixa do Spotify'}</div>
                     <div className="truncate text-[11px] text-muted">por {m.por}</div>
                   </div>
-                  <span
-                    className={cn(
-                      'grid h-8 w-8 shrink-0 place-items-center rounded-full',
-                      eTocando(m) ? 'bg-accent text-black' : 'bg-fill text-muted',
-                    )}
-                  >
-                    {eTocando(m) ? <AudioLines size={15} /> : <Play size={14} fill="currentColor" />}
+                  <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-accent text-black">
+                    <Play size={14} fill="currentColor" />
                   </span>
-                </button>
+                </a>
                 <div className="hstack shrink-0 gap-1.5">
                   <button
                     onClick={() => curtir(m)}

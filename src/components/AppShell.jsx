@@ -2,7 +2,6 @@ import { useEffect } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 import { BottomNav } from './BottomNav'
 import { DesktopShell } from './DesktopShell.jsx'
-import { RadioPlayerBar } from './RadioPlayerBar.jsx'
 import { useDesktop } from '../lib/useDesktop.js'
 import { estadoPush, ativarPush } from '../lib/push.js'
 import { cn } from '../lib/cn'
@@ -66,7 +65,6 @@ export function AppShell() {
       <main key={location.pathname} className="animate-page pb-24">
         <Outlet />
       </main>
-      <RadioPlayerBar />
       <BottomNav />
     </div>
   )
