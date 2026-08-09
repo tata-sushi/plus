@@ -211,19 +211,23 @@ export function Radio() {
               className="h-20 w-20 shrink-0 rounded-xl object-cover shadow-md"
             />
             <div className="min-w-0">
-              <div className="hstack gap-1.5 text-[11px] font-bold uppercase tracking-wide text-accent">
-                <span>Playlist do time</span>
-                <span className="rounded-pill bg-bg px-1.5 py-0.5 text-[9px]">beta</span>
+              <div className="text-[11px] font-bold uppercase tracking-wide text-accent">
+                Compartilhe cultura
               </div>
-              <div className="mt-0.5 font-display text-2xl font-bold leading-tight">Rádio Tatá</div>
+              <div className="mt-0.5 flex items-center gap-2">
+                <span className="font-display text-2xl font-bold leading-tight">Rádio Tatá</span>
+                <span className="rounded-pill bg-bg px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-accent">
+                  beta
+                </span>
+              </div>
               <div className="mt-1 text-[11px] text-muted">
-                {lista.length} {lista.length === 1 ? 'música' : 'músicas'} · a galera do Tatá
+                {lista.length} {lista.length === 1 ? 'música' : 'músicas'}
               </div>
             </div>
           </div>
           <p className="bg-surface-2 px-4 py-3.5 text-sm leading-relaxed text-text">
-            A música também é uma forma de conhecer pessoas. Compartilhe o que faz parte do seu mundo,
-            descubra novos sons e ajude a construir a playlist da nossa galera.
+            Música também é uma forma de conhecer pessoas. Compartilhe o que faz parte do seu mundo,
+            descubra novos sons e colabore para construir a playlist com o nosso estilo.
           </p>
         </div>
 
