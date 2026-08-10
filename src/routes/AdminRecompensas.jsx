@@ -63,8 +63,10 @@ const TITULOS = {
   banheiros: 'Checklist de limpeza',
 }
 
-// Hub do painel: menu de navegação (padrão do "Mais") — lista corrida, sem seções.
-function MenuHub({ itens, onAbrir, onSair }) {
+// Hub do painel: menu de navegação (padrão do "Mais"). Aceita grupos —
+// cada grupo é um card próprio, com um rótulo opcional. Serve pra separar
+// coisas de natureza diferente (ex.: acesso/botões x visibilidade de valores).
+function MenuHub({ grupos, onAbrir, onSair }) {
   return (
     <>
       <div className="hstack gap-2 px-5 pt-1 text-sm">
@@ -72,33 +74,42 @@ function MenuHub({ itens, onAbrir, onSair }) {
           <ArrowLeft size={16} /> Mais
         </button>
       </div>
-      <div className="px-5 pb-24 pt-3">
-        <div className="card overflow-hidden">
-          {itens.map((it, idx) => {
-            const Icon = it.icon
-            return (
-              <button
-                key={it.id}
-                onClick={() => onAbrir(it.id)}
-                className={cn(
-                  'hstack w-full gap-3 px-4 py-3.5 text-left tap',
-                  idx > 0 && 'border-t border-line',
-                )}
-              >
-                <div className="grid h-9 w-9 place-items-center rounded-full bg-accent-soft text-accent">
-                  <Icon size={18} />
-                </div>
-                <span className="flex-1 text-sm font-semibold">{it.label}</span>
-                {it.badge > 0 && (
-                  <span className="grid h-5 min-w-5 place-items-center rounded-full bg-warn/20 px-1 text-[11px] font-bold text-warn">
-                    {it.badge}
-                  </span>
-                )}
-                <ChevronRight size={16} className="text-carbon" />
-              </button>
-            )
-          })}
-        </div>
+      <div className="space-y-5 px-5 pb-24 pt-3">
+        {grupos.map((g, gi) => (
+          <div key={g.titulo || gi}>
+            {g.titulo && (
+              <p className="mb-1.5 px-1 text-[11px] font-bold uppercase tracking-widest text-muted-2">
+                {g.titulo}
+              </p>
+            )}
+            <div className="card overflow-hidden">
+              {g.itens.map((it, idx) => {
+                const Icon = it.icon
+                return (
+                  <button
+                    key={it.id}
+                    onClick={() => onAbrir(it.id)}
+                    className={cn(
+                      'hstack w-full gap-3 px-4 py-3.5 text-left tap',
+                      idx > 0 && 'border-t border-line',
+                    )}
+                  >
+                    <div className="grid h-9 w-9 place-items-center rounded-full bg-accent-soft text-accent">
+                      <Icon size={18} />
+                    </div>
+                    <span className="flex-1 text-sm font-semibold">{it.label}</span>
+                    {it.badge > 0 && (
+                      <span className="grid h-5 min-w-5 place-items-center rounded-full bg-warn/20 px-1 text-[11px] font-bold text-warn">
+                        {it.badge}
+                      </span>
+                    )}
+                    <ChevronRight size={16} className="text-carbon" />
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        ))}
       </div>
     </>
   )
@@ -472,19 +483,29 @@ export function AdminRecompensas() {
     )
   }
 
-  // Menu do hub (padrão do "Mais"): lista corrida, um botão abaixo do outro.
+  // Menu do hub (padrão do "Mais"), em grupos. Acesso/botões e visibilidade de
+  // valores são coisas diferentes, então "Valores" fica numa seção à parte.
   // Banheiros só p/ perfil admin.
-  const itensMenu = [
-    { id: 'catalogo', label: 'Recompensas', icon: Gift },
-    { id: 'pedidos', label: 'Pedidos', icon: ShoppingBag, badge: pendentes },
-    { id: 'envios', label: 'Envios', icon: FileCheck2, badge: enviosPendentes },
-    { id: 'conquistas', label: 'Conquistas', icon: Trophy },
-    { id: 'desafios', label: 'Desafios', icon: GraduationCap },
-    { id: 'comunicados', label: 'Anúncios', icon: Megaphone },
-    ...(isAdminPerfil ? [{ id: 'banheiros', label: 'Checklist de limpeza', icon: SprayCan }] : []),
-    { id: 'governanca', label: 'Governança', icon: ShieldCheck },
-    { id: 'valores', label: 'Valores de governança', icon: Coins },
-    { id: 'aplicativo', label: 'Aplicativo', icon: Smartphone },
+  const gruposMenu = [
+    {
+      itens: [
+        { id: 'catalogo', label: 'Recompensas', icon: Gift },
+        { id: 'pedidos', label: 'Pedidos', icon: ShoppingBag, badge: pendentes },
+        { id: 'envios', label: 'Envios', icon: FileCheck2, badge: enviosPendentes },
+        { id: 'conquistas', label: 'Conquistas', icon: Trophy },
+        { id: 'desafios', label: 'Desafios', icon: GraduationCap },
+        { id: 'comunicados', label: 'Anúncios', icon: Megaphone },
+        ...(isAdminPerfil
+          ? [{ id: 'banheiros', label: 'Checklist de limpeza', icon: SprayCan }]
+          : []),
+        { id: 'governanca', label: 'Governança', icon: ShieldCheck },
+        { id: 'aplicativo', label: 'Aplicativo', icon: Smartphone },
+      ],
+    },
+    {
+      titulo: 'Valores',
+      itens: [{ id: 'valores', label: 'Valores de governança', icon: Coins }],
+    },
   ]
 
   return (
@@ -492,7 +513,7 @@ export function AdminRecompensas() {
       <Header title="Administração" />
 
       {aba === 'menu' ? (
-        <MenuHub itens={itensMenu} onAbrir={setAba} onSair={() => navigate('/mais')} />
+        <MenuHub grupos={gruposMenu} onAbrir={setAba} onSair={() => navigate('/mais')} />
       ) : (
         <>
           <BackBar titulo={TITULOS[aba]} onVoltar={() => setAba('menu')} />
