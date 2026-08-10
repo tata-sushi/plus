@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Loader2, Search, ChevronRight, ChevronDown, Check, ShieldCheck, X, Layers, KeyRound, Info } from 'lucide-react'
+import { Loader2, Search, ChevronRight, ChevronDown, Check, ShieldCheck, X, Layers, KeyRound, Info, ShieldOff } from 'lucide-react'
 import { Section } from './Section.jsx'
 import { Card } from './Card.jsx'
 import { Avatar } from './Avatar.jsx'
@@ -76,6 +76,24 @@ function EditorPessoa({ pessoa, scope = 'governanca', catalogo, catalogoAbas, on
     } catch (e) {
       setReset({ fase: 'error', msg: e?.message || 'Não foi possível resetar a senha.' })
     }
+  }
+
+  // Desativar todos os acessos: zera páginas, botões, bloqueios de aba e valores
+  // da pessoa numa tacada só (ex.: desligamento / troca de função).
+  const [zerar, setZerar] = useState({ fase: 'idle' }) // idle | confirm | loading | error
+  async function zerarAcessos() {
+    setZerar({ fase: 'loading' })
+    const { error } = await supabase.rpc('gov_admin_zerar_acessos', { p_matricula: pessoa.matricula })
+    if (error) {
+      setZerar({ fase: 'error', msg: error.message || 'Não foi possível desativar os acessos.' })
+      return
+    }
+    tapHaptic()
+    setIds(new Set())
+    setBloqueadas(new Set())
+    setLiberados(new Set())
+    setValoresLib(new Set())
+    onSalvo({ total: 0, escopo: 0 })
   }
 
   // Contagem pro rodapé: abas desligadas (opt-out), botões e valores liberados.
@@ -502,6 +520,58 @@ function EditorPessoa({ pessoa, scope = 'governanca', catalogo, catalogoAbas, on
               )
             })}
           </div>
+        )}
+
+        {/* Desativar todos os acessos — reset total da pessoa. Escondido pra admin
+            de governança (o acesso dele vem do perfil, não das liberações). */}
+        {(ehApp || !pessoa.is_admin) && ids !== null && (
+          <Card className="mt-4">
+            <div className="hstack gap-3">
+              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-danger/15 text-danger">
+                <ShieldOff size={18} />
+              </span>
+              <div className="min-w-0 flex-1">
+                <div className="text-sm font-semibold">Desativar todos os acessos</div>
+                <div className="text-xs text-muted">
+                  Remove de uma vez todas as páginas, botões e valores desta pessoa.
+                </div>
+              </div>
+            </div>
+            <div className="mt-3">
+              {zerar.fase === 'confirm' ? (
+                <div className="hstack gap-2">
+                  <button
+                    onClick={zerarAcessos}
+                    className="flex-1 rounded-lg bg-danger py-2 text-sm font-semibold text-white tap"
+                  >
+                    Confirmar — desativar tudo
+                  </button>
+                  <button
+                    onClick={() => setZerar({ fase: 'idle' })}
+                    className="shrink-0 rounded-lg border border-line px-3 py-2 text-sm font-semibold text-muted tap"
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setZerar({ fase: 'confirm' })}
+                  disabled={zerar.fase === 'loading'}
+                  className="hstack w-full justify-center gap-2 rounded-lg border border-danger/40 py-2 text-sm font-semibold text-danger tap disabled:opacity-50"
+                >
+                  {zerar.fase === 'loading' ? (
+                    <Loader2 size={16} className="animate-spin" />
+                  ) : (
+                    <ShieldOff size={16} />
+                  )}
+                  Desativar todos os acessos
+                </button>
+              )}
+              {zerar.fase === 'error' && (
+                <div className="mt-2 text-xs font-medium text-danger">{zerar.msg}</div>
+              )}
+            </div>
+          </Card>
         )}
 
         {/* Reset de senha — só no escopo "Aplicativo" (é ação do app, não governança) */}
