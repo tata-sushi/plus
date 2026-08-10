@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Loader2, Search, ChevronRight, ChevronDown, Check, ShieldCheck, X, Layers, KeyRound, Info, Coins } from 'lucide-react'
+import { Loader2, Search, ChevronRight, ChevronDown, Check, ShieldCheck, X, Layers, KeyRound, Info } from 'lucide-react'
 import { Section } from './Section.jsx'
 import { Card } from './Card.jsx'
 import { Avatar } from './Avatar.jsx'
@@ -31,16 +31,25 @@ function EditorPessoa({ pessoa, scope = 'governanca', catalogo, catalogoAbas, on
   const grupos = useMemo(() => agrupar(catalogo), [catalogo])
   // Ids de página dentro do escopo aberto (p/ contar no rodapé sem misturar escopos).
   const escopoPaginaIds = useMemo(() => new Set((catalogo || []).map((p) => p.pagina_id)), [catalogo])
-  // Agrupa por página e separa em abas (tipo='aba') e botões (tipo='botao').
+  // Agrupa por página e separa em abas (tipo='aba'), botões (tipo='botao') e
+  // valores (tipo='valor' — o aba_id É a área consultada em pode_ver_valores).
   const itensPorPagina = useMemo(() => {
     const m = {}
     for (const a of catalogoAbas || []) {
-      const bucket = m[a.pagina_id] || (m[a.pagina_id] = { abas: [], botoes: [] })
+      const bucket = m[a.pagina_id] || (m[a.pagina_id] = { abas: [], botoes: [], valores: [] })
       if (a.tipo === 'botao') bucket.botoes.push(a)
+      else if (a.tipo === 'valor') bucket.valores.push(a)
       else bucket.abas.push(a)
     }
     return m
   }, [catalogoAbas])
+
+  // Chaves de "valor" do catálogo (as áreas que este editor gerencia em
+  // dp_rh.perm_ver_valores — não toca em 'geral' nem em áreas de fora).
+  const valorKeys = useMemo(
+    () => (catalogoAbas || []).filter((a) => a.tipo === 'valor').map((a) => a.aba_id),
+    [catalogoAbas],
+  )
 
   const [ids, setIds] = useState(null) // Set de pagina_id · null = carregando
   const [bloqueadas, setBloqueadas] = useState(new Set()) // aba_id bloqueada (abas · opt-out)
@@ -50,11 +59,10 @@ function EditorPessoa({ pessoa, scope = 'governanca', catalogo, catalogoAbas, on
   const [gruposAbertos, setGruposAbertos] = useState(null) // Set de "secao›sub" expandidos · null = ainda não inicializado
   const [salvando, setSalvando] = useState(false)
 
-  // Ver valores (R$): cheque único por pessoa (grava a liberação global 'geral'
-  // em dp_rh.perm_ver_valores). Salva na hora, separado do "Salvar acesso" — assim
-  // vale até pra admin, cujo botão de salvar acesso fica oculto no bypass.
-  const [verValores, setVerValores] = useState(null) // bool · null = carregando
-  const [salvandoValores, setSalvandoValores] = useState(false)
+  // Valores (R$): liberação POR PÁGINA. Guarda as áreas ligadas do catálogo
+  // (tipo='valor'); persiste em dp_rh.perm_ver_valores no "Salvar acesso".
+  const [valoresLib, setValoresLib] = useState(new Set()) // aba_id/área liberada
+  const [valoresAbertas, setValoresAbertas] = useState(new Set()) // pagina_id expandida
 
   // Reset de senha (admin): volta pra padrão tata@123 e força troca no próximo login.
   const [reset, setReset] = useState({ fase: 'idle' }) // idle | confirm | loading | done | error
@@ -70,14 +78,14 @@ function EditorPessoa({ pessoa, scope = 'governanca', catalogo, catalogoAbas, on
     }
   }
 
-  // Contagem pro rodapé: abas desligadas (opt-out) e botões liberados (opt-in).
+  // Contagem pro rodapé: abas desligadas (opt-out), botões e valores liberados.
   const contagem = useMemo(() => {
     let abasOff = 0
     for (const item of catalogoAbas || []) {
-      if (item.tipo !== 'botao' && bloqueadas.has(item.aba_id)) abasOff++
+      if (item.tipo === 'aba' && bloqueadas.has(item.aba_id)) abasOff++
     }
-    return { abasOff, botoesOn: liberados.size }
-  }, [catalogoAbas, bloqueadas, liberados])
+    return { abasOff, botoesOn: liberados.size, valoresOn: valoresLib.size }
+  }, [catalogoAbas, bloqueadas, liberados, valoresLib])
 
   useEffect(() => {
     let ativo = true
@@ -100,30 +108,37 @@ function EditorPessoa({ pessoa, scope = 'governanca', catalogo, catalogoAbas, on
     }
   }, [pessoa.matricula])
 
-  // Carrega o estado do "ver valores" (só faz sentido na governança).
+  // Carrega as liberações de valores por área (só governança). Mantém só as
+  // áreas do catálogo (ignora 'geral' e áreas de fora, que não são geridas aqui).
   useEffect(() => {
     if (ehApp) return
     let ativo = true
     supabase.rpc('perm_valores_areas', { p_matricula: pessoa.matricula }).then(({ data }) => {
-      if (ativo) setVerValores((data || []).some((r) => r.area === 'geral'))
+      if (!ativo) return
+      const cat = new Set(valorKeys)
+      setValoresLib(new Set((data || []).map((r) => r.area).filter((a) => cat.has(a))))
     })
     return () => {
       ativo = false
     }
-  }, [pessoa.matricula, ehApp])
+  }, [pessoa.matricula, ehApp, valorKeys])
 
-  async function toggleValores() {
-    if (salvandoValores || verValores === null) return
-    const novo = !verValores
+  function toggleValor(abaId) {
     tapHaptic()
-    setSalvandoValores(true)
-    setVerValores(novo) // otimista
-    const { error } = await supabase.rpc('perm_valores_set_geral', {
-      p_matricula: pessoa.matricula,
-      p_liberado: novo,
+    setValoresLib((prev) => {
+      const n = new Set(prev)
+      n.has(abaId) ? n.delete(abaId) : n.add(abaId)
+      return n
     })
-    setSalvandoValores(false)
-    if (error) setVerValores(!novo)
+  }
+
+  function toggleValoresAbertas(paginaId) {
+    tapHaptic()
+    setValoresAbertas((prev) => {
+      const n = new Set(prev)
+      n.has(paginaId) ? n.delete(paginaId) : n.add(paginaId)
+      return n
+    })
   }
 
   // Inicializa os grupos expandidos assim que os acessos carregam: abre só as
@@ -201,7 +216,7 @@ function EditorPessoa({ pessoa, scope = 'governanca', catalogo, catalogoAbas, on
 
   async function salvar() {
     setSalvando(true)
-    const [r1, r2, r3] = await Promise.all([
+    const [r1, r2, r3, r4] = await Promise.all([
       supabase.rpc('gov_admin_set', { p_matricula: pessoa.matricula, p_pagina_ids: [...ids] }),
       supabase.rpc('gov_admin_abas_set', {
         p_matricula: pessoa.matricula,
@@ -211,9 +226,14 @@ function EditorPessoa({ pessoa, scope = 'governanca', catalogo, catalogoAbas, on
         p_matricula: pessoa.matricula,
         p_aba_ids: [...liberados],
       }),
+      supabase.rpc('perm_valores_sync', {
+        p_matricula: pessoa.matricula,
+        p_on: [...valoresLib],
+        p_cat: valorKeys,
+      }),
     ])
     setSalvando(false)
-    if (!r1.error && !r2.error && !r3.error) {
+    if (!r1.error && !r2.error && !r3.error && !r4.error) {
       const escopo = [...ids].filter((id) => escopoPaginaIds.has(id)).length
       onSalvo({ total: ids.size, escopo })
     }
@@ -224,15 +244,18 @@ function EditorPessoa({ pessoa, scope = 'governanca', catalogo, catalogoAbas, on
   function BlocoToggles({ tipo, itens, aberto, onToggleAberto }) {
     if (!itens || itens.length === 0) return null
     const isBotao = tipo === 'botao'
-    // Botões: opt-in (ligado = liberado). Abas: opt-out (ligado = não bloqueado).
-    const estaOn = (id) => (isBotao ? liberados.has(id) : !bloqueadas.has(id))
-    const onToggle = isBotao ? toggleBotao : toggleAba
-    const label = isBotao ? 'Botões' : 'Abas'
+    const isValor = tipo === 'valor'
+    // Botões e valores: opt-in (começam desligados). Abas: opt-out.
+    const optIn = isBotao || isValor
+    const estaOn = (id) =>
+      isValor ? valoresLib.has(id) : isBotao ? liberados.has(id) : !bloqueadas.has(id)
+    const onToggle = isValor ? toggleValor : isBotao ? toggleBotao : toggleAba
+    const label = isValor ? 'Valores' : isBotao ? 'Botões' : 'Abas'
     const qtdOn = itens.filter((a) => estaOn(a.aba_id)).length
     const qtdOff = itens.length - qtdOn
-    // Botões mostram quantos estão liberados (verde); abas, quantas estão
-    // desligadas (vermelho).
-    const badge = isBotao
+    // Opt-in (botões/valores) mostra quantos estão liberados (verde); abas,
+    // quantas estão desligadas (vermelho).
+    const badge = optIn
       ? qtdOn > 0 && { txt: `${qtdOn} liberado${qtdOn > 1 ? 's' : ''}`, cls: 'bg-accent/15 text-accent' }
       : qtdOff > 0 && {
           txt: `${qtdOff} desligada${qtdOff > 1 ? 's' : ''}`,
@@ -254,7 +277,7 @@ function EditorPessoa({ pessoa, scope = 'governanca', catalogo, catalogoAbas, on
               {badge.txt}
             </span>
           )}
-          {isBotao && qtdOn === 0 && (
+          {optIn && qtdOn === 0 && (
             <span className="rounded-pill bg-surface-2 px-1.5 py-0.5 text-[9px] font-medium uppercase text-muted-2">
               oculto por padrão
             </span>
@@ -281,13 +304,17 @@ function EditorPessoa({ pessoa, scope = 'governanca', catalogo, catalogoAbas, on
                       on ? 'bg-accent' : 'bg-surface-2',
                     )}
                     aria-label={
-                      isBotao
+                      isValor
                         ? on
-                          ? `Ocultar botão: ${a.label}`
-                          : `Liberar botão: ${a.label}`
-                        : on
-                          ? `Desligar acesso: ${a.label}`
-                          : `Ligar acesso: ${a.label}`
+                          ? `Ocultar valores: ${a.label}`
+                          : `Liberar valores: ${a.label}`
+                        : isBotao
+                          ? on
+                            ? `Ocultar botão: ${a.label}`
+                            : `Liberar botão: ${a.label}`
+                          : on
+                            ? `Desligar acesso: ${a.label}`
+                            : `Ligar acesso: ${a.label}`
                     }
                   >
                     <span
@@ -327,44 +354,6 @@ function EditorPessoa({ pessoa, scope = 'governanca', catalogo, catalogoAbas, on
 
       {/* Corpo */}
       <div className="flex-1 overflow-y-auto px-5 py-4">
-        {/* Ver valores (R$) — cheque da pessoa, junto do acesso de páginas/abas/
-            botões. É global (vê tudo ou não vê nada) e salva na hora. */}
-        {!ehApp && (
-          <Card className="mb-4 hstack gap-3">
-            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-accent-soft text-accent">
-              <Coins size={18} />
-            </span>
-            <div className="min-w-0 flex-1">
-              <div className="text-sm font-semibold">Valores (R$)</div>
-              <div className="text-xs text-muted">
-                Pode ver os valores financeiros das páginas de governança. Ligado vê tudo;
-                desligado não vê nada.
-              </div>
-            </div>
-            {verValores === null ? (
-              <Loader2 size={18} className="shrink-0 animate-spin text-muted-2" />
-            ) : (
-              <button
-                onClick={toggleValores}
-                disabled={salvandoValores}
-                className={cn(
-                  'relative h-6 w-10 shrink-0 rounded-full transition-colors tap',
-                  verValores ? 'bg-accent' : 'bg-surface-2',
-                  salvandoValores && 'opacity-60',
-                )}
-                aria-label={verValores ? 'Desligar acesso a valores' : 'Ligar acesso a valores'}
-              >
-                <span
-                  className={cn(
-                    'absolute top-0.5 h-5 w-5 rounded-full bg-white transition-all',
-                    verValores ? 'left-[18px]' : 'left-0.5',
-                  )}
-                />
-              </button>
-            )}
-          </Card>
-        )}
-
         {!ehApp && pessoa.is_admin ? (
           <Card className="hstack gap-3">
             <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-accent-soft text-accent">
@@ -421,10 +410,15 @@ function EditorPessoa({ pessoa, scope = 'governanca', catalogo, catalogoAbas, on
                   <Card className="!p-0">
                     {g.itens.map((p, i) => {
                       const on = ids.has(p.pagina_id)
-                      const bucket = itensPorPagina[p.pagina_id] || { abas: [], botoes: [] }
+                      const bucket = itensPorPagina[p.pagina_id] || {
+                        abas: [],
+                        botoes: [],
+                        valores: [],
+                      }
                       const abas = bucket.abas
                       const botoes = bucket.botoes
-                      const totalItens = abas.length + botoes.length
+                      const valores = bucket.valores
+                      const totalItens = abas.length + botoes.length + valores.length
                       return (
                         <div key={p.pagina_id} className={cn(i > 0 && 'border-t border-line')}>
                           <button
@@ -444,10 +438,15 @@ function EditorPessoa({ pessoa, scope = 'governanca', catalogo, catalogoAbas, on
                             <span className="flex-1 text-sm font-medium">{p.label}</span>
                             {totalItens > 0 && (
                               <span className="shrink-0 text-[10px] font-semibold text-muted-2">
-                                {abas.length > 0 && `${abas.length} aba${abas.length > 1 ? 's' : ''}`}
-                                {abas.length > 0 && botoes.length > 0 && ' · '}
-                                {botoes.length > 0 &&
-                                  `${botoes.length} botão${botoes.length > 1 ? 'es' : ''}`}
+                                {[
+                                  abas.length > 0 && `${abas.length} aba${abas.length > 1 ? 's' : ''}`,
+                                  botoes.length > 0 &&
+                                    `${botoes.length} botão${botoes.length > 1 ? 'es' : ''}`,
+                                  valores.length > 0 &&
+                                    `${valores.length} valor${valores.length > 1 ? 'es' : ''}`,
+                                ]
+                                  .filter(Boolean)
+                                  .join(' · ')}
                               </span>
                             )}
                           </button>
@@ -485,6 +484,12 @@ function EditorPessoa({ pessoa, scope = 'governanca', catalogo, catalogoAbas, on
                                 itens={botoes}
                                 aberto={botoesAbertas.has(p.pagina_id)}
                                 onToggleAberto={() => toggleBotoesAbertas(p.pagina_id)}
+                              />
+                              <BlocoToggles
+                                tipo="valor"
+                                itens={valores}
+                                aberto={valoresAbertas.has(p.pagina_id)}
+                                onToggleAberto={() => toggleValoresAbertas(p.pagina_id)}
                               />
                             </>
                           )}
@@ -567,7 +572,7 @@ function EditorPessoa({ pessoa, scope = 'governanca', catalogo, catalogoAbas, on
                   ? ''
                   : `${contagem.abasOff ? ` · ${contagem.abasOff} aba(s) off` : ''}${
                       contagem.botoesOn ? ` · ${contagem.botoesOn} botão(ões) liberado(s)` : ''
-                    }`
+                    }${contagem.valoresOn ? ` · ${contagem.valoresOn} valor(es)` : ''}`
                 return `Salvar acesso (${n} ${palavra}${extra})`
               })()
             )}
