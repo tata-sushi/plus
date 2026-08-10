@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Loader2, Search, ChevronRight, ChevronDown, Check, ShieldCheck, X, Layers, KeyRound, Info } from 'lucide-react'
+import { Loader2, Search, ChevronRight, ChevronDown, Check, ShieldCheck, X, Layers, KeyRound, Info, Coins } from 'lucide-react'
 import { Section } from './Section.jsx'
 import { Card } from './Card.jsx'
 import { Avatar } from './Avatar.jsx'
@@ -50,6 +50,12 @@ function EditorPessoa({ pessoa, scope = 'governanca', catalogo, catalogoAbas, on
   const [gruposAbertos, setGruposAbertos] = useState(null) // Set de "secao›sub" expandidos · null = ainda não inicializado
   const [salvando, setSalvando] = useState(false)
 
+  // Ver valores (R$): cheque único por pessoa (grava a liberação global 'geral'
+  // em dp_rh.perm_ver_valores). Salva na hora, separado do "Salvar acesso" — assim
+  // vale até pra admin, cujo botão de salvar acesso fica oculto no bypass.
+  const [verValores, setVerValores] = useState(null) // bool · null = carregando
+  const [salvandoValores, setSalvandoValores] = useState(false)
+
   // Reset de senha (admin): volta pra padrão tata@123 e força troca no próximo login.
   const [reset, setReset] = useState({ fase: 'idle' }) // idle | confirm | loading | done | error
   async function resetarSenha() {
@@ -93,6 +99,32 @@ function EditorPessoa({ pessoa, scope = 'governanca', catalogo, catalogoAbas, on
       ativo = false
     }
   }, [pessoa.matricula])
+
+  // Carrega o estado do "ver valores" (só faz sentido na governança).
+  useEffect(() => {
+    if (ehApp) return
+    let ativo = true
+    supabase.rpc('perm_valores_areas', { p_matricula: pessoa.matricula }).then(({ data }) => {
+      if (ativo) setVerValores((data || []).some((r) => r.area === 'geral'))
+    })
+    return () => {
+      ativo = false
+    }
+  }, [pessoa.matricula, ehApp])
+
+  async function toggleValores() {
+    if (salvandoValores || verValores === null) return
+    const novo = !verValores
+    tapHaptic()
+    setSalvandoValores(true)
+    setVerValores(novo) // otimista
+    const { error } = await supabase.rpc('perm_valores_set_geral', {
+      p_matricula: pessoa.matricula,
+      p_liberado: novo,
+    })
+    setSalvandoValores(false)
+    if (error) setVerValores(!novo)
+  }
 
   // Inicializa os grupos expandidos assim que os acessos carregam: abre só as
   // seções que já têm alguma página liberada (ou a única seção, no escopo App).
@@ -295,6 +327,44 @@ function EditorPessoa({ pessoa, scope = 'governanca', catalogo, catalogoAbas, on
 
       {/* Corpo */}
       <div className="flex-1 overflow-y-auto px-5 py-4">
+        {/* Ver valores (R$) — cheque da pessoa, junto do acesso de páginas/abas/
+            botões. É global (vê tudo ou não vê nada) e salva na hora. */}
+        {!ehApp && (
+          <Card className="mb-4 hstack gap-3">
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-accent-soft text-accent">
+              <Coins size={18} />
+            </span>
+            <div className="min-w-0 flex-1">
+              <div className="text-sm font-semibold">Valores (R$)</div>
+              <div className="text-xs text-muted">
+                Pode ver os valores financeiros das páginas de governança. Ligado vê tudo;
+                desligado não vê nada.
+              </div>
+            </div>
+            {verValores === null ? (
+              <Loader2 size={18} className="shrink-0 animate-spin text-muted-2" />
+            ) : (
+              <button
+                onClick={toggleValores}
+                disabled={salvandoValores}
+                className={cn(
+                  'relative h-6 w-10 shrink-0 rounded-full transition-colors tap',
+                  verValores ? 'bg-accent' : 'bg-surface-2',
+                  salvandoValores && 'opacity-60',
+                )}
+                aria-label={verValores ? 'Desligar acesso a valores' : 'Ligar acesso a valores'}
+              >
+                <span
+                  className={cn(
+                    'absolute top-0.5 h-5 w-5 rounded-full bg-white transition-all',
+                    verValores ? 'left-[18px]' : 'left-0.5',
+                  )}
+                />
+              </button>
+            )}
+          </Card>
+        )}
+
         {!ehApp && pessoa.is_admin ? (
           <Card className="hstack gap-3">
             <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-accent-soft text-accent">
