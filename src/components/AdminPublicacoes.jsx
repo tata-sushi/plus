@@ -11,6 +11,7 @@ import {
   Smartphone,
   Bell,
   Eye,
+  EyeOff,
   Megaphone,
   ImagePlus,
   Archive,
@@ -521,6 +522,19 @@ export function AdminPublicacoes() {
     if (!error) setItens((prev) => prev.filter((i) => i.id !== item.id))
   }
 
+  // Tira da Home agora: valida até ontem (sai do carrossel, fica no histórico).
+  async function tirarDaHome(item) {
+    tapHaptic()
+    const ontem = new Date(Date.now() - 86400000).toISOString().slice(0, 10)
+    setItens((prev) => prev.map((i) => (i.id === item.id ? { ...i, data_fim: ontem } : i)))
+    const { data, error } = await supabase.rpc('admin_tirar_da_home', { p_id: item.id })
+    if (error) {
+      setItens((prev) => prev.map((i) => (i.id === item.id ? { ...i, data_fim: item.data_fim } : i)))
+    } else if (data) {
+      setItens((prev) => prev.map((i) => (i.id === item.id ? { ...i, data_fim: data } : i)))
+    }
+  }
+
   async function alternarArquivo(item) {
     tapHaptic()
     const novo = !item.arquivado
@@ -734,6 +748,16 @@ export function AdminPublicacoes() {
                           />
                         </button>
                         <div className="hstack gap-2">
+                          {p.no_carrossel && p.ativo && !p.arquivado && !encerrado && (
+                            <button
+                              onClick={() => tirarDaHome(p)}
+                              className="grid h-9 w-9 place-items-center rounded-full bg-surface-2 text-muted-2 tap"
+                              aria-label="Tirar da Home"
+                              title="Tirar da Home (continua no histórico de Comunicados)"
+                            >
+                              <EyeOff size={15} />
+                            </button>
+                          )}
                           <button
                             onClick={() => alternarArquivo(p)}
                             className="grid h-9 w-9 place-items-center rounded-full bg-surface-2 text-muted-2 tap"
