@@ -296,6 +296,7 @@ export function AdminPublicacoes() {
   const [departamentosSel, setDepartamentosSel] = useState([])
   const [imgFile, setImgFile] = useState(null)
   const [imgPreview, setImgPreview] = useState('')
+  const [soImagemHome, setSoImagemHome] = useState(false) // comunicado no carrossel: só a arte, sem título/texto
   const [publicando, setPublicando] = useState(false)
   const [erro, setErro] = useState('')
   const [excluindo, setExcluindo] = useState(null)
@@ -410,6 +411,7 @@ export function AdminPublicacoes() {
     if (imgPreview) URL.revokeObjectURL(imgPreview)
     setImgFile(null)
     setImgPreview('')
+    setSoImagemHome(false) // sem imagem, não faz sentido "só imagem na Home"
   }
 
   function abrirForm() {
@@ -426,6 +428,7 @@ export function AdminPublicacoes() {
     setDataEvento('')
     setValidoDe('')
     setValidoAte('')
+    setSoImagemHome(false)
     setAlvoModo('todos')
     setUnidadesSel([])
     setDepartamentosSel([])
@@ -438,6 +441,13 @@ export function AdminPublicacoes() {
     const c = corpo.trim()
     // basta ter imagem OU algum texto (título/corpo são opcionais)
     if ((!t && !c && !imgFile) || publicando || !matricula) return
+    // comunicado/notícia vão pro carrossel da Home → precisam de "válido até"
+    // (senão nunca saem de lá); o backend também recusa por garantia.
+    const ehCarrossel = tipo === 'comunicado' || tipo === 'noticia'
+    if (ehCarrossel && !validoAte) {
+      setErro('Defina o "válido até" — é a data em que sai da Home (fica no histórico de Comunicados).')
+      return
+    }
     tapHaptic()
     setPublicando(true)
     setErro('')
@@ -476,6 +486,7 @@ export function AdminPublicacoes() {
       p_data_fim: validoAte || null,
       p_alvos,
       p_push: tipo === 'aviso' ? pushAviso : false,
+      p_carrossel_so_imagem: soImagemHome && !!imagem_url,
     })
     setPublicando(false)
     if (error) {
@@ -520,7 +531,10 @@ export function AdminPublicacoes() {
     }
   }
 
-  const podePublicar = (titulo.trim() || corpo.trim() || imgFile) && !publicando
+  // comunicado/notícia vão pro carrossel → exigem "válido até".
+  const ehCarrossel = tipo === 'comunicado' || tipo === 'noticia'
+  const podePublicar =
+    (titulo.trim() || corpo.trim() || imgFile) && (!ehCarrossel || validoAte) && !publicando
 
   const lista = itens.filter(
     (p) =>
@@ -802,6 +816,37 @@ export function AdminPublicacoes() {
                 className="hidden"
               />
 
+              {/* Só imagem na Home — esconde título/texto no carrossel, mantém na
+                  página de Comunicados. Só faz sentido com imagem e tipo carrossel. */}
+              {imgPreview && ehCarrossel && (
+                <button
+                  type="button"
+                  onClick={() => setSoImagemHome((s) => !s)}
+                  className="mt-2 hstack w-full items-start justify-between gap-3 rounded-card border border-line bg-surface px-4 py-3 text-left tap"
+                >
+                  <span className="min-w-0">
+                    <span className="block text-sm font-medium">Na Home, mostrar só a imagem</span>
+                    <span className="mt-0.5 block text-[11px] leading-snug text-muted">
+                      Esconde título e texto no card da Home. O texto completo continua na página de
+                      Comunicados.
+                    </span>
+                  </span>
+                  <span
+                    className={cn(
+                      'relative mt-0.5 h-6 w-10 shrink-0 rounded-full transition-colors',
+                      soImagemHome ? 'bg-accent' : 'bg-surface-2',
+                    )}
+                  >
+                    <span
+                      className={cn(
+                        'absolute top-0.5 h-5 w-5 rounded-full bg-white transition-all',
+                        soImagemHome ? 'left-[18px]' : 'left-0.5',
+                      )}
+                    />
+                  </span>
+                </button>
+              )}
+
               {/* Tipo */}
               <label className="mt-3 block text-[11px] font-semibold uppercase tracking-widest text-muted">
                 Tipo
@@ -877,8 +922,15 @@ export function AdminPublicacoes() {
                     className="ml-auto bg-transparent text-xs text-text outline-none"
                   />
                 </label>
-                <label className="hstack gap-2 rounded-card border border-line bg-surface px-3 py-2.5">
-                  <span className="text-[11px] text-muted">até</span>
+                <label
+                  className={cn(
+                    'hstack gap-2 rounded-card border bg-surface px-3 py-2.5',
+                    ehCarrossel && !validoAte ? 'border-danger/50' : 'border-line',
+                  )}
+                >
+                  <span className="text-[11px] text-muted">
+                    até{ehCarrossel && <span className="text-danger"> *</span>}
+                  </span>
                   <input
                     type="date"
                     value={validoAte}
@@ -887,6 +939,13 @@ export function AdminPublicacoes() {
                   />
                 </label>
               </div>
+              {ehCarrossel && (
+                <p className="mt-1 px-1 text-[11px] text-muted-2">
+                  {validoAte
+                    ? 'Depois dessa data, sai da Home e fica no histórico de Comunicados.'
+                    : 'Obrigatório: a data em que o comunicado sai da Home (fica no histórico de Comunicados).'}
+                </p>
+              )}
 
               {/* Público */}
               <label className="mt-3 block text-[11px] font-semibold uppercase tracking-widest text-muted">
