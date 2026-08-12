@@ -430,7 +430,7 @@ function ConcluintesTab({ treino }) {
                 </div>
               </div>
               {p.concluido_em && (
-                <span className="shrink-0 text-[11px] font-medium text-muted-2">
+                <span className="pill shrink-0 bg-surface-2 text-[11px] text-muted-2">
                   {new Date(p.concluido_em).toLocaleDateString('pt-BR')}
                 </span>
               )}
