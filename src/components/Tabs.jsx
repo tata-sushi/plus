@@ -13,8 +13,10 @@ export function Tabs({ tabs, value, onChange, defaultValue, className }) {
   }
 
   return (
-    <div className={cn('px-5', className)}>
-      <div className="flex items-center justify-center gap-2 overflow-x-auto pb-3 no-scrollbar">
+    // Rola quando os tabs passam da largura (ex.: rótulos longos), mas continua
+    // centralizado quando cabe — w-max + mx-auto: sem cortar as pontas.
+    <div className={cn('overflow-x-auto no-scrollbar', className)}>
+      <div className="mx-auto flex w-max items-center gap-2 px-5 pb-3">
         {tabs.map((t) => {
           const isActive = t.value === active
           return (

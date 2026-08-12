@@ -50,10 +50,7 @@ export function DestaquesSemana() {
           </span>
           <div className="min-w-0 flex-1">
             <div className="font-display text-sm font-bold">Destaques da semana</div>
-            <div className="text-[11px] text-muted">
-              {dados.semana_inicio ? `Semana de ${dMes(dados.semana_inicio)} · ` : ''}
-              <span className="font-semibold text-accent">1º leva +25 pts 🏆</span>
-            </div>
+            <div className="text-[11px] font-semibold text-accent">1º leva +25 pts 🏆</div>
           </div>
         </div>
 
@@ -111,20 +108,27 @@ export function DestaquesSemana() {
             <div className="mb-1.5 hstack gap-1 px-0.5 text-[10px] font-bold uppercase tracking-widest text-muted-2">
               <Crown size={11} /> Coroados
             </div>
-            <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1">
+            <div className="flex flex-col gap-1.5">
               {historico.map((h) => (
                 <button
                   key={h.semana}
                   onClick={() => navigate(`/perfil/${h.matricula}`)}
-                  className="hstack shrink-0 items-center gap-2 rounded-pill border border-line bg-surface px-2.5 py-1.5 text-left tap"
+                  className="hstack items-center gap-3 rounded-card bg-surface px-3 py-2 text-left tap"
                 >
-                  <Avatar name={h.nome} src={h.avatar_url} size={24} />
-                  <div className="min-w-0">
-                    <div className="max-w-[110px] truncate text-[11px] font-semibold">
-                      {(h.nome || '').split(' ')[0]}
+                  <Avatar name={h.nome} src={h.avatar_url} size={30} />
+                  <div className="min-w-0 flex-1">
+                    <div className="truncate text-sm font-semibold">
+                      {(h.nome || '').split(' ').slice(0, 2).join(' ')}
                     </div>
-                    <div className="text-[9px] text-muted-2">sem. {dMes(h.semana)}</div>
+                    <div className="truncate text-[11px] text-muted">
+                      {h.departamento}
+                      {h.departamento && h.unidade ? ' · ' : ''}
+                      {h.unidade}
+                    </div>
                   </div>
+                  <span className="shrink-0 text-[11px] font-medium text-muted-2">
+                    sem. {dMes(h.semana)}
+                  </span>
                 </button>
               ))}
             </div>
