@@ -117,10 +117,37 @@ export function ProfileView({ colaborador, isSelf }) {
         </div>
       </Section>
 
-      {/* Desafios realizados — lista dos que o próprio concluiu (histórico) */}
+      {/* DEMO — radar de feedback (dados fake, só no meu usuário) — abaixo dos Indicadores */}
+      {demoRadar && (
+        <Section className="reveal reveal-3 mt-5" title="Feedback 360º (demo)">
+          <Card className="p-4">
+            <RadarChart axes={RADAR_EIXOS} series={RADAR_SERIES} max={5} size={280} />
+            <p className="mt-3 text-center text-[11px] text-muted-2">
+              Dados de exemplo — visualização do gráfico.
+            </p>
+          </Card>
+        </Section>
+      )}
+
+      {/* Ações — em breve */}
+      {isSelf && (
+        <Section className="reveal reveal-3 mt-5" title="Ações">
+          <Card className="hstack gap-3">
+            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-surface-2 text-muted-2">
+              <Clock size={16} />
+            </span>
+            <div className="min-w-0 flex-1">
+              <div className="text-sm font-semibold">Em breve</div>
+              <div className="text-xs text-muted">Novas ações chegando por aqui.</div>
+            </div>
+          </Card>
+        </Section>
+      )}
+
+      {/* Desafios realizados — última seção: lista dos que o próprio concluiu (histórico) */}
       {isSelf && (
         <Section
-          className="reveal reveal-2 mt-5"
+          className="reveal reveal-3 mt-5"
           title="Desafios realizados"
           action={
             concluidos != null && (
@@ -161,33 +188,6 @@ export function ProfileView({ colaborador, isSelf }) {
               ))}
             </div>
           )}
-        </Section>
-      )}
-
-      {/* DEMO — radar de feedback (dados fake, só no meu usuário) — abaixo dos Indicadores */}
-      {demoRadar && (
-        <Section className="reveal reveal-3 mt-5" title="Feedback 360º (demo)">
-          <Card className="p-4">
-            <RadarChart axes={RADAR_EIXOS} series={RADAR_SERIES} max={5} size={280} />
-            <p className="mt-3 text-center text-[11px] text-muted-2">
-              Dados de exemplo — visualização do gráfico.
-            </p>
-          </Card>
-        </Section>
-      )}
-
-      {/* Ações — em breve */}
-      {isSelf && (
-        <Section className="reveal reveal-3 mt-5" title="Ações">
-          <Card className="hstack gap-3">
-            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-surface-2 text-muted-2">
-              <Clock size={16} />
-            </span>
-            <div className="min-w-0 flex-1">
-              <div className="text-sm font-semibold">Em breve</div>
-              <div className="text-xs text-muted">Novas ações chegando por aqui.</div>
-            </div>
-          </Card>
         </Section>
       )}
 
