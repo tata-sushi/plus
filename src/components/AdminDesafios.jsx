@@ -116,6 +116,7 @@ export function AdminDesafios() {
 }
 
 function EditorDesafio({ treino, pessoas, onFechar, onSalvo }) {
+  const [aba, setAba] = useState('acesso') // 'acesso' (quem vê) | 'concluintes' (quem realizou)
   const [modo, setModo] = useState('liberar') // 'liberar' (quem vê) | 'desativar' (quem NÃO vê)
   const [idsLib, setIdsLib] = useState(null) // Set de matrículas liberadas
   const [idsDes, setIdsDes] = useState(null) // Set de matrículas desativadas
@@ -202,8 +203,31 @@ function EditorDesafio({ treino, pessoas, onFechar, onSalvo }) {
         </div>
       </div>
 
+      {/* Abas: Acesso (quem vê) · Quem realizou (quem concluiu) */}
+      <div className="shrink-0 border-b border-line bg-surface px-5">
+        <div className="hstack gap-6">
+          {[
+            { k: 'acesso', label: 'Acesso' },
+            { k: 'concluintes', label: 'Quem realizou' },
+          ].map((ab) => (
+            <button
+              key={ab.k}
+              onClick={() => setAba(ab.k)}
+              className={cn(
+                '-mb-px border-b-2 py-2.5 text-sm font-semibold tap',
+                aba === ab.k ? 'border-accent text-text' : 'border-transparent text-muted-2',
+              )}
+            >
+              {ab.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* Corpo */}
-      {carregando ? (
+      {aba === 'concluintes' ? (
+        <ConcluintesTab treino={treino} />
+      ) : carregando ? (
         <div className="hstack flex-1 justify-center py-16 text-muted-2">
           <Loader2 size={22} className="animate-spin" />
         </div>
@@ -336,5 +360,94 @@ function EditorDesafio({ treino, pessoas, onFechar, onSalvo }) {
       )}
     </div>,
     document.body,
+  )
+}
+
+// Aba "Quem realizou": lista (só leitura) de quem já concluiu o desafio, com a
+// data de conclusão. Carrega sob demanda ao abrir a aba.
+function ConcluintesTab({ treino }) {
+  const [lista, setLista] = useState(null)
+  const [busca, setBusca] = useState('')
+
+  useEffect(() => {
+    let ativo = true
+    supabase.rpc('desafios_admin_concluintes', { p_treino: treino.id }).then(({ data }) => {
+      if (ativo) setLista(data || [])
+    })
+    return () => {
+      ativo = false
+    }
+  }, [treino.id])
+
+  const filtradas = useMemo(() => {
+    const t = busca.trim().toLowerCase()
+    if (!t) return lista || []
+    return (lista || []).filter((p) =>
+      [p.nome, p.cargo, p.unidade, p.matricula].some((v) =>
+        String(v || '').toLowerCase().includes(t),
+      ),
+    )
+  }, [lista, busca])
+
+  if (lista === null) {
+    return (
+      <div className="hstack flex-1 justify-center py-16 text-muted-2">
+        <Loader2 size={22} className="animate-spin" />
+      </div>
+    )
+  }
+
+  return (
+    <>
+      <div className="shrink-0 px-5 pt-4">
+        <div className="rounded-card border border-line bg-surface px-3.5 py-3 text-xs text-muted">
+          <b className="text-text">{lista.length}</b>{' '}
+          {lista.length === 1 ? 'pessoa concluiu' : 'pessoas concluíram'} este desafio.
+        </div>
+        {lista.length > 0 && (
+          <div className="mt-3 hstack gap-2 rounded-card bg-surface-2 px-3 py-2">
+            <Search size={16} className="shrink-0 text-muted-2" />
+            <input
+              value={busca}
+              onChange={(e) => setBusca(e.target.value)}
+              placeholder="Buscar por nome, cargo, loja…"
+              className="w-full bg-transparent text-sm outline-none placeholder:text-muted-2"
+            />
+          </div>
+        )}
+      </div>
+
+      <div className="flex-1 overflow-y-auto px-5 py-3">
+        <div className="flex flex-col gap-2">
+          {filtradas.map((p) => (
+            <Card key={p.matricula} className="hstack items-center gap-3 !py-2.5">
+              <Avatar name={p.nome} src={p.avatar_url} size={38} />
+              <div className="min-w-0 flex-1">
+                <div className="truncate text-sm font-semibold">{p.nome}</div>
+                <div className="truncate text-xs text-muted">
+                  {p.cargo}
+                  {p.unidade ? ` · ${p.unidade}` : ''}
+                </div>
+              </div>
+              {p.concluido_em && (
+                <span className="shrink-0 text-[11px] font-medium text-muted-2">
+                  {new Date(p.concluido_em).toLocaleDateString('pt-BR')}
+                </span>
+              )}
+            </Card>
+          ))}
+          {lista.length === 0 && (
+            <div className="card p-8 text-center text-sm text-muted">
+              Ninguém concluiu este desafio ainda.
+            </div>
+          )}
+          {lista.length > 0 && filtradas.length === 0 && (
+            <div className="card p-8 text-center text-sm text-muted">
+              Ninguém encontrado com “{busca}”.
+            </div>
+          )}
+        </div>
+      </div>
+    </>
   )
 }
