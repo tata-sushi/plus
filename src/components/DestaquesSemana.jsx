@@ -110,25 +110,21 @@ export function DestaquesSemana() {
             <div className="mb-1.5 hstack gap-1 px-0.5 text-[10px] font-bold uppercase tracking-widest text-muted-2">
               <Crown size={11} /> Coroados
             </div>
-            <div className="flex flex-col gap-1.5">
-              {historico.map((h) => (
+            <div className="flex flex-col">
+              {historico.map((h, i) => (
                 <button
                   key={h.semana}
                   onClick={() => navigate(`/perfil/${h.matricula}`)}
-                  className="hstack items-center gap-3 rounded-card bg-surface px-3 py-2 text-left tap"
+                  className={cn(
+                    'hstack items-center gap-2.5 px-1 py-1.5 text-left tap',
+                    i > 0 && 'border-t border-line/60',
+                  )}
                 >
-                  <Avatar name={h.nome} src={h.avatar_url} size={30} />
-                  <div className="min-w-0 flex-1">
-                    <div className="truncate text-sm font-semibold">
-                      {(h.nome || '').split(' ').slice(0, 2).join(' ')}
-                    </div>
-                    <div className="truncate text-[11px] text-muted">
-                      {h.departamento}
-                      {h.departamento && h.unidade ? ' · ' : ''}
-                      {h.unidade}
-                    </div>
-                  </div>
-                  <span className="shrink-0 text-[11px] font-medium text-muted-2">
+                  <Avatar name={h.nome} src={h.avatar_url} size={22} />
+                  <span className="min-w-0 flex-1 truncate text-[13px] font-medium">
+                    {(h.nome || '').split(' ').slice(0, 2).join(' ')}
+                  </span>
+                  <span className="shrink-0 text-[10px] font-medium text-muted-2">
                     sem. {dMes(h.semana)}
                   </span>
                 </button>
