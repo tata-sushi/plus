@@ -26,7 +26,7 @@ export function ProfileView({ colaborador, isSelf }) {
   const { usuario } = useAuth()
   // Demo do radar só no meu usuário (matrícula 7), sem afetar os outros.
   const demoRadar = isSelf && usuario?.matricula === '7'
-  const ehDev = colaborador?.matricula === '7' // perfil do dev → tema laranja
+  const ehDev = usuario?.matricula === '7' // perfil do dev → tema laranja
   // Resumo real: saldo, resgates e progresso de desafios.
   const [resumo, setResumo] = useState(null)
   // Lista dos desafios que o próprio já concluiu (só na Minha Jornada).
