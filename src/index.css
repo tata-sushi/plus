@@ -58,6 +58,29 @@
   --accent-soft: rgba(170, 132, 26, 0.16);
 }
 
+/* ===== Animação da marca no header — um brilho sutil varre a logo/nome a cada
+   ~6s. Discreto; some quando o usuário prefere menos movimento. ===== */
+.marca-anim { position: relative; overflow: hidden; }
+.marca-anim::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 42%;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.55), transparent);
+  transform: translateX(-170%) skewX(-14deg);
+  animation: marca-shine 6s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes marca-shine {
+  0%, 74% { transform: translateX(-170%) skewX(-14deg); }
+  93%, 100% { transform: translateX(340%) skewX(-14deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .marca-anim::after { display: none; }
+}
+
 /* Modo claro: o brilho verde (shadow-glow) fica pesado — troca por uma
    sombra neutra suave. No escuro o glow verde continua. */
 :root[data-theme='light'] .shadow-glow {

@@ -11,7 +11,7 @@ export function Header({ right }) {
     <header className="safe-top sticky top-0 z-30 bg-bg/90 backdrop-blur border-b border-line">
       <div className={`flex items-center px-5 py-3 ${desktop ? 'justify-end' : 'justify-between'}`}>
         {!desktop && (
-          <Link to="/" className="hstack gap-2">
+          <Link to="/" className="marca-anim hstack gap-2">
             {/* Logo por contraste: marca clara (verde vivo) no escuro,
                 marca fechada (verde escuro) no claro. */}
             <img
