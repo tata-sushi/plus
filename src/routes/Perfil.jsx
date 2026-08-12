@@ -32,7 +32,7 @@ export function Perfil() {
   const navigate = useNavigate()
   const { usuario } = useAuth()
   const ehEu = !!usuario?.matricula && id === usuario.matricula
-  const ehDev = id === '7' // perfil do dev → tema ouro (easter egg)
+  const ehDev = id === '7' // perfil do dev → tema laranja (easter egg)
 
   const [perfil, setPerfil] = useState(undefined) // undefined = carregando · null = não encontrado
   const [catalogo, setCatalogo] = useState([])
@@ -128,7 +128,7 @@ export function Perfil() {
   }
 
   return (
-    <div className={ehDev ? 'tema-ouro' : undefined}>
+    <div className={ehDev ? 'tema-laranja' : undefined}>
       <Header />
 
       <div className="px-5 pt-4">

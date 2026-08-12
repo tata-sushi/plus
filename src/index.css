@@ -45,19 +45,19 @@
   --meta-color: #F5F4F1;
 }
 
-/* ===== Tema ouro — perfil do dev (easter egg): troca o verde por dourado e
-   deixa as linhas/divisores dourados. Aplicado via .tema-ouro num wrapper. ===== */
-.tema-ouro {
-  --accent: 226 190 88;
-  --accent-dim: 200 162 60;
-  --accent-soft: rgba(226, 190, 88, 0.14);
-  --line: rgba(226, 190, 88, 0.38);
+/* ===== Tema laranja — perfil do dev (easter egg): troca o verde por laranja e
+   deixa as linhas/divisores laranja. Aplicado via .tema-laranja num wrapper. ===== */
+.tema-laranja {
+  --accent: 255 125 40;
+  --accent-dim: 230 100 28;
+  --accent-soft: rgba(255, 125, 40, 0.15);
+  --line: rgba(255, 125, 40, 0.40);
 }
-:root[data-theme='light'] .tema-ouro {
-  --accent: 170 132 26;
-  --accent-dim: 140 108 16;
-  --accent-soft: rgba(170, 132, 26, 0.16);
-  --line: rgba(170, 132, 26, 0.34);
+:root[data-theme='light'] .tema-laranja {
+  --accent: 214 88 20;
+  --accent-dim: 180 70 14;
+  --accent-soft: rgba(214, 88, 20, 0.15);
+  --line: rgba(214, 88, 20, 0.34);
 }
 
 /* Modo claro: o brilho verde (shadow-glow) fica pesado — troca por uma
