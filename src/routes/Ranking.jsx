@@ -29,9 +29,9 @@ import { useAuth } from '../lib/AuthContext.jsx'
 import { supabase } from '../lib/supabase.js'
 
 const TIPOS_BASE = [
-  { value: 'geral', label: 'Colaboradores' },
-  { value: 'equipes', label: 'Equipes' },
+  { value: 'geral', label: 'Ranking' },
   { value: 'lideres', label: 'Líderes' },
+  { value: 'equipes', label: 'Equipes' },
 ]
 // Aba "Destaque da semana" — ainda em teste, só aparece pra mim (matrícula 7).
 const DESTAQUE_TAB = { value: 'destaque', label: 'Destaque da semana' }
