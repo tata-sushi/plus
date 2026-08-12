@@ -28,11 +28,13 @@ import { Avatar } from '../components/Avatar.jsx'
 import { useAuth } from '../lib/AuthContext.jsx'
 import { supabase } from '../lib/supabase.js'
 
-const tipos = [
+const TIPOS_BASE = [
   { value: 'geral', label: 'Colaboradores' },
   { value: 'equipes', label: 'Equipes' },
   { value: 'lideres', label: 'Líderes' },
 ]
+// Aba "Destaque da semana" — ainda em teste, só aparece pra mim (matrícula 7).
+const DESTAQUE_TAB = { value: 'destaque', label: 'Destaque da semana' }
 
 const fmt = (n) => Number(n || 0).toLocaleString('pt-BR')
 const selectCls =
@@ -128,7 +130,10 @@ function PodiumEquipe({ pos, e, metrica }) {
 export function Ranking() {
   const { usuario } = useAuth()
   const navigate = useNavigate()
-  const [tipo, setTipo] = useState('geral') // geral | lideres | equipes
+  // Destaque da semana ainda em teste: aba só pra mim (matrícula 7), e já entra nela.
+  const ehDev = usuario?.matricula === '7'
+  const tipos = ehDev ? [DESTAQUE_TAB, ...TIPOS_BASE] : TIPOS_BASE
+  const [tipo, setTipo] = useState(ehDev ? 'destaque' : 'geral') // destaque | geral | lideres | equipes
   const [uni, setUni] = useState('')
   const [dep, setDep] = useState('')
   const [metricaEquipe, setMetricaEquipe] = useState('total') // total | media
@@ -195,12 +200,9 @@ export function Ranking() {
   return (
     <>
       <Header title="Ranking" />
+      <Tabs tabs={tipos} value={tipo} onChange={setTipo} className="pt-3" />
 
-      {/* Seção principal: destaques da semana (corrida + coroados) */}
-      <DestaquesSemana />
-
-      <Tabs tabs={tipos} value={tipo} onChange={setTipo} className="pt-4" />
-
+      {tipo !== 'destaque' && (
       <div className="hstack gap-2 px-5 pb-1 pt-2">
         <select value={uni} onChange={(e) => setUni(e.target.value)} className={selectCls}>
           <option value="">Todas as unidades</option>
@@ -238,8 +240,11 @@ export function Ranking() {
           </select>
         )}
       </div>
+      )}
 
-      {carregando ? (
+      {tipo === 'destaque' ? (
+        <DestaquesSemana />
+      ) : carregando ? (
         <div className="hstack justify-center py-16 text-muted-2">
           <Loader2 size={22} className="animate-spin" />
         </div>
