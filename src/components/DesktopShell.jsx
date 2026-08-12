@@ -12,6 +12,7 @@ import {
   X,
   Loader2,
   KanbanSquare,
+  LayoutDashboard,
 } from 'lucide-react'
 import { cn } from '../lib/cn'
 import { useAuth } from '../lib/AuthContext.jsx'
@@ -177,6 +178,25 @@ export function DesktopShell() {
               })}
             </div>
           </div>
+
+          {/* Atalho pro painel de administração — pinado no rodapé do rail, só
+              para quem pode publicar. Abre o painel na área central. */}
+          {usuario?.podePublicar && (
+            <>
+              <span className="my-0.5 h-px w-6 bg-line" />
+              <button
+                onClick={() => setCanvas('admin')}
+                title="Painel de administração"
+                aria-label="Painel de administração"
+                className={cn(
+                  railBtn,
+                  canvas === 'admin' ? 'bg-accent-soft text-accent' : 'text-carbon hover:text-text',
+                )}
+              >
+                <LayoutDashboard size={21} strokeWidth={canvas === 'admin' ? 2.4 : 2} />
+              </button>
+            </>
+          )}
         </nav>
 
         {/* Painel do app (retrátil) — conteúdo montado para preservar estado */}
