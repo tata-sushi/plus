@@ -269,7 +269,16 @@ export function Mais() {
 
       <footer className="mt-8 flex flex-col items-center gap-0.5 px-5 text-center text-[11px] text-muted-2">
         <span className="font-semibold">TATÁ PLUS · 2.0</span>
-        <span>Desenvolvido por Victor Carvalho</span>
+        <span>
+          Desenvolvido por{' '}
+          <Link
+            to="/perfil/7"
+            className="text-inherit transition-colors hover:text-accent"
+            aria-label="Perfil de Victor Carvalho"
+          >
+            Victor Carvalho
+          </Link>
+        </span>
       </footer>
     </>
   )
