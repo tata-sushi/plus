@@ -50,11 +50,10 @@ export function DestaquesSemana() {
           </span>
           <div className="min-w-0 flex-1">
             <div className="font-display text-sm font-bold">Destaques da semana</div>
-            {dados.semana_inicio && (
-              <div className="text-[11px] text-muted">
-                Corrida da semana de {dMes(dados.semana_inicio)}
-              </div>
-            )}
+            <div className="text-[11px] text-muted">
+              {dados.semana_inicio ? `Semana de ${dMes(dados.semana_inicio)} · ` : ''}
+              <span className="font-semibold text-accent">1º leva +25 pts 🏆</span>
+            </div>
           </div>
         </div>
 
