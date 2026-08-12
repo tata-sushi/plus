@@ -134,6 +134,15 @@ export function Ranking() {
   const ehDev = usuario?.matricula === '7'
   const tipos = ehDev ? [DESTAQUE_TAB, ...TIPOS_BASE] : TIPOS_BASE
   const [tipo, setTipo] = useState(ehDev ? 'destaque' : 'geral') // destaque | geral | lideres | equipes
+  // usuario pode chegar depois do 1º render (aí o useState acima nasce 'geral').
+  // Quando confirmar que sou eu, abro na aba Destaque da semana — uma vez só,
+  // sem atropelar se eu já tiver trocado de aba na mão.
+  const [abriuPadrao, setAbriuPadrao] = useState(false)
+  useEffect(() => {
+    if (abriuPadrao || !usuario) return
+    if (ehDev) setTipo('destaque')
+    setAbriuPadrao(true)
+  }, [usuario, ehDev, abriuPadrao])
   const [uni, setUni] = useState('')
   const [dep, setDep] = useState('')
   const [metricaEquipe, setMetricaEquipe] = useState('total') // total | media
