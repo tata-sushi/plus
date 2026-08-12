@@ -26,6 +26,7 @@ export function ProfileView({ colaborador, isSelf }) {
   const { usuario } = useAuth()
   // Demo do radar só no meu usuário (matrícula 7), sem afetar os outros.
   const demoRadar = isSelf && usuario?.matricula === '7'
+  const ehDev = colaborador?.matricula === '7' // perfil do dev → tema ouro
   // Resumo real: saldo, resgates e progresso de desafios.
   const [resumo, setResumo] = useState(null)
   // Lista dos desafios que o próprio já concluiu (só na Minha Jornada).
@@ -52,7 +53,7 @@ export function ProfileView({ colaborador, isSelf }) {
   const pct = total > 0 ? Math.round((feitos / total) * 100) : 0
 
   return (
-    <>
+    <div className={ehDev ? 'tema-ouro' : undefined}>
       <Header title={isSelf ? 'Minha Jornada' : colaborador.nome} />
       {isSelf && <Voltar />}
 
@@ -219,6 +220,6 @@ export function ProfileView({ colaborador, isSelf }) {
           </div>,
           document.body,
         )}
-    </>
+    </div>
   )
 }
