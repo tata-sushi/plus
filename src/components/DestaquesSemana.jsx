@@ -50,7 +50,9 @@ export function DestaquesSemana() {
           </span>
           <div className="min-w-0 flex-1">
             <div className="font-display text-sm font-bold">Destaques da semana</div>
-            <div className="text-[11px] font-semibold text-accent">1º leva +25 pts 🏆</div>
+            <div className="text-[11px] font-semibold text-accent">
+              Primeiro lugar leva 25 pontos 🏆
+            </div>
           </div>
         </div>
 
