@@ -21,6 +21,7 @@ import {
   Briefcase,
 } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
+import { DestaquesSemana } from '../components/DestaquesSemana.jsx'
 import { Tabs } from '../components/Tabs.jsx'
 import { Section } from '../components/Section.jsx'
 import { Avatar } from '../components/Avatar.jsx'
@@ -194,7 +195,11 @@ export function Ranking() {
   return (
     <>
       <Header title="Ranking" />
-      <Tabs tabs={tipos} value={tipo} onChange={setTipo} className="pt-3" />
+
+      {/* Seção principal: destaques da semana (corrida + coroados) */}
+      <DestaquesSemana />
+
+      <Tabs tabs={tipos} value={tipo} onChange={setTipo} className="pt-4" />
 
       <div className="hstack gap-2 px-5 pb-1 pt-2">
         <select value={uni} onChange={(e) => setUni(e.target.value)} className={selectCls}>
