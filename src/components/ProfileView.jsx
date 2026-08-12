@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Clock, X } from 'lucide-react'
+import { Clock, X, Loader2 } from 'lucide-react'
 import { Header } from './Header.jsx'
 import { Voltar } from './Voltar.jsx'
 import { Section } from './Section.jsx'
@@ -13,6 +13,7 @@ import { Conquistas } from './Conquistas.jsx'
 import { RadarChart } from './RadarChart.jsx'
 import { useAuth } from '../lib/AuthContext.jsx'
 import { supabase } from '../lib/supabase.js'
+import { cn } from '../lib/cn'
 
 // DEMO (dados fake) — radar de feedback líder × liderado. Temporário, só p/ visual.
 const RADAR_EIXOS = ['Comunicação', 'Colaboração', 'Proatividade', 'Organização', 'Técnica', 'Liderança']
@@ -27,6 +28,8 @@ export function ProfileView({ colaborador, isSelf }) {
   const demoRadar = isSelf && usuario?.matricula === '7'
   // Resumo real: saldo, resgates e progresso de desafios.
   const [resumo, setResumo] = useState(null)
+  // Lista dos desafios que o próprio já concluiu (só na Minha Jornada).
+  const [concluidos, setConcluidos] = useState(null)
   // Foto ampliada (lightbox) ao tocar no avatar, quando há foto de verdade.
   const [zoom, setZoom] = useState(false)
 
@@ -35,6 +38,9 @@ export function ProfileView({ colaborador, isSelf }) {
     let ativo = true
     supabase.rpc('meu_resumo').then(({ data }) => {
       if (ativo) setResumo(data || null)
+    })
+    supabase.rpc('meus_desafios_concluidos').then(({ data }) => {
+      if (ativo) setConcluidos(data || [])
     })
     return () => {
       ativo = false
@@ -110,6 +116,53 @@ export function ProfileView({ colaborador, isSelf }) {
           </div>
         </div>
       </Section>
+
+      {/* Desafios realizados — lista dos que o próprio concluiu (histórico) */}
+      {isSelf && (
+        <Section
+          className="reveal reveal-2 mt-5"
+          title="Desafios realizados"
+          action={
+            concluidos != null && (
+              <span className="text-xs font-semibold text-muted">{concluidos.length}</span>
+            )
+          }
+        >
+          {concluidos == null ? (
+            <Card className="hstack justify-center py-6 text-muted-2">
+              <Loader2 size={20} className="animate-spin" />
+            </Card>
+          ) : concluidos.length === 0 ? (
+            <Card className="py-6 text-center text-sm text-muted">
+              Você ainda não concluiu nenhum desafio.
+            </Card>
+          ) : (
+            <div className="card overflow-hidden">
+              {concluidos.map((d, i) => (
+                <div
+                  key={d.id}
+                  className={cn('hstack items-center gap-3 px-4 py-3', i > 0 && 'border-t border-line')}
+                >
+                  <div className="min-w-0 flex-1">
+                    <div className="truncate text-sm font-semibold">{d.titulo}</div>
+                    <div className="truncate text-[11px] text-muted-2">
+                      {d.trilha}
+                      {d.concluido_em
+                        ? ` · ${new Date(d.concluido_em).toLocaleDateString('pt-BR')}`
+                        : ''}
+                    </div>
+                  </div>
+                  {d.pontos > 0 && (
+                    <span className="shrink-0 rounded-pill bg-accent-soft px-2 py-0.5 text-[11px] font-bold text-accent">
+                      +{d.pontos}
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </Section>
+      )}
 
       {/* DEMO — radar de feedback (dados fake, só no meu usuário) — abaixo dos Indicadores */}
       {demoRadar && (
