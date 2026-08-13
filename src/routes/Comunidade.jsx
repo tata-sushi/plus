@@ -39,6 +39,63 @@ function ResgateCard({ post }) {
   )
 }
 
+// Mídia do post: carrossel deslizável quando há várias imagens (publicações
+// dos robôs), ou foto única (posts normais). Sem imagem → não renderiza nada.
+function PostMidia({ post }) {
+  const imagens =
+    Array.isArray(post.midias) && post.midias.length
+      ? post.midias
+      : post.midia_url
+        ? [post.midia_url]
+        : []
+  const ref = useRef(null)
+  const [ativo, setAtivo] = useState(0)
+
+  if (imagens.length === 0) return null
+  if (imagens.length === 1) {
+    return (
+      <img
+        src={imagens[0]}
+        alt=""
+        className="mt-3 aspect-square w-full rounded-2xl object-cover"
+        loading="lazy"
+      />
+    )
+  }
+  return (
+    <div className="mt-3">
+      <div
+        ref={ref}
+        onScroll={(e) =>
+          setAtivo(Math.round(e.currentTarget.scrollLeft / e.currentTarget.clientWidth))
+        }
+        className="no-scrollbar flex snap-x snap-mandatory overflow-x-auto rounded-2xl"
+      >
+        {imagens.map((src, i) => (
+          <img
+            key={i}
+            src={src}
+            alt=""
+            className="aspect-square w-full shrink-0 snap-center object-cover"
+            loading="lazy"
+          />
+        ))}
+      </div>
+      <div className="mt-2 flex justify-center gap-1.5">
+        {imagens.map((_, i) => (
+          <span
+            key={i}
+            className={cn(
+              'h-1.5 rounded-full transition-all',
+              i === ativo ? 'w-4 bg-accent' : 'w-1.5 bg-muted-2',
+            )}
+          />
+        ))}
+      </div>
+    </div>
+  )
+}
+
 function PostCard({ post, matricula, admin, meuNome, meuAvatar, onCurtir, onExcluir }) {
   const navigate = useNavigate()
   const [abrir, setAbrir] = useState(false)
@@ -128,17 +185,31 @@ function PostCard({ post, matricula, admin, meuNome, meuAvatar, onCurtir, onExcl
         )}
       </div>
 
-      {/* Texto */}
-      {post.texto && <p className="mt-3 whitespace-pre-wrap text-sm">{post.texto}</p>}
+      {/* Título (publicações ricas dos robôs) */}
+      {post.titulo && (
+        <h3 className="mt-3 font-display text-[15px] font-bold leading-snug">{post.titulo}</h3>
+      )}
 
-      {/* Mídia (foto) */}
-      {post.midia_url && (
-        <img
-          src={post.midia_url}
-          alt=""
-          className="mt-3 aspect-square w-full rounded-2xl object-cover"
-          loading="lazy"
-        />
+      {/* Texto */}
+      {post.texto && (
+        <p className={cn('whitespace-pre-wrap text-sm', post.titulo ? 'mt-1' : 'mt-3')}>
+          {post.texto}
+        </p>
+      )}
+
+      {/* Mídia — carrossel (várias) ou foto única */}
+      <PostMidia post={post} />
+
+      {/* Link / botão de ação (CTA) */}
+      {post.link_url && post.link_label && (
+        <a
+          href={post.link_url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="btn-primary mt-3 flex w-full justify-center !py-2.5 text-xs"
+        >
+          {post.link_label}
+        </a>
       )}
 
       {/* Ações */}
