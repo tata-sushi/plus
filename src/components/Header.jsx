@@ -1,17 +1,21 @@
 import { Link } from 'react-router-dom'
 import { Notificacoes } from './Notificacoes.jsx'
 import { useDesktop } from '../lib/useDesktop.js'
+import { useAuth } from '../lib/AuthContext.jsx'
 
 export function Header({ right }) {
   // No desktop a marca some do header: quem não tem Governança já vê o logo
   // grande na área central e o portal (para quem tem) já traz o próprio logo —
   // então dois logos lado a lado ficariam redundantes. Fica só o sino.
   const desktop = useDesktop()
+  const { usuario } = useAuth()
+  // Brilho na marca é exclusivo do dev (matrícula 7), não aparece pros demais.
+  const ehDev = usuario?.matricula === '7'
   return (
     <header className="safe-top sticky top-0 z-30 bg-bg/90 backdrop-blur border-b border-line">
       <div className={`flex items-center px-5 py-3 ${desktop ? 'justify-end' : 'justify-between'}`}>
         {!desktop && (
-          <Link to="/" className="marca-anim hstack gap-2">
+          <Link to="/" className={`hstack gap-2${ehDev ? ' marca-anim' : ''}`}>
             {/* Logo por contraste: marca clara (verde vivo) no escuro,
                 marca fechada (verde escuro) no claro. */}
             <img
