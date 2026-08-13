@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { Heart, MessageCircle, Image as ImageIcon, Send, Loader2, Trash2, X, Gift } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Card } from '../components/Card.jsx'
@@ -15,6 +15,34 @@ const TAM_MAX = 15 * 1024 * 1024 // 15 MB
 
 // só o primeiro nome (nas postagens e comentários)
 const soPrimeiro = (n) => (n || 'Colaborador').split(/\s+/)[0]
+
+// Menções clicáveis: converte a marcação @[Nome](matricula) num link pro perfil
+// da pessoa. Usado nas publicações direcionadas (robôs). Texto sem marcação passa
+// intacto. Ex.: "Parabéns @[João Silva](24683)!" → "Parabéns @João Silva!" (link).
+function comMencoes(texto) {
+  if (!texto) return texto
+  const re = /@\[([^\]]+)\]\(([\w-]+)\)/g
+  const partes = []
+  let ultimo = 0
+  let m
+  let k = 0
+  while ((m = re.exec(texto)) !== null) {
+    if (m.index > ultimo) partes.push(texto.slice(ultimo, m.index))
+    partes.push(
+      <Link
+        key={`m${k++}`}
+        to={`/perfil/${m[2]}`}
+        onClick={(e) => e.stopPropagation()}
+        className="font-semibold text-accent"
+      >
+        @{m[1]}
+      </Link>,
+    )
+    ultimo = m.index + m[0].length
+  }
+  if (ultimo < texto.length) partes.push(texto.slice(ultimo))
+  return partes
+}
 
 // Post automático de resgate — card compacto (metade do tamanho), sem ações.
 function ResgateCard({ post }) {
@@ -187,13 +215,15 @@ function PostCard({ post, matricula, admin, meuNome, meuAvatar, onCurtir, onExcl
 
       {/* Título (publicações ricas dos robôs) */}
       {post.titulo && (
-        <h3 className="mt-3 font-display text-[15px] font-bold leading-snug">{post.titulo}</h3>
+        <h3 className="mt-3 font-display text-[15px] font-bold leading-snug">
+          {comMencoes(post.titulo)}
+        </h3>
       )}
 
       {/* Texto */}
       {post.texto && (
         <p className={cn('whitespace-pre-wrap text-sm', post.titulo ? 'mt-1' : 'mt-3')}>
-          {post.texto}
+          {comMencoes(post.texto)}
         </p>
       )}
 
