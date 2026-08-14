@@ -58,14 +58,14 @@
   --accent-soft: rgba(170, 132, 26, 0.16);
 }
 
-/* Selo comemorativo "10 anos · Tatá Sushi" no canto do logo do header (em teste). */
+/* Selo "10 anos" (só o texto dourado) no canto do logo do header (em teste). */
 .selo-10anos {
   position: absolute;
-  right: -8px;
-  bottom: -6px;
-  width: 24px;
-  height: 24px;
-  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.55));
+  right: -9px;
+  bottom: -8px;
+  width: 30px;
+  height: auto;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.9)) drop-shadow(0 0 1px rgba(0, 0, 0, 0.7));
 }
 
 /* Modo claro: o brilho verde (shadow-glow) fica pesado — troca por uma

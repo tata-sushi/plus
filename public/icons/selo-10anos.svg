@@ -1,17 +1,10 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="10 anos Tatá Sushi">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 132" role="img" aria-label="10 anos">
   <defs>
     <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#FBEEB6"/><stop offset=".35" stop-color="#E9C868"/>
-      <stop offset=".7" stop-color="#C79A3A"/><stop offset="1" stop-color="#8A6417"/>
+      <stop offset="0" stop-color="#FBEEB6"/><stop offset=".4" stop-color="#E9C868"/>
+      <stop offset=".75" stop-color="#C79A3A"/><stop offset="1" stop-color="#8A6417"/>
     </linearGradient>
-    <path id="top" d="M 36 104 A 64 64 0 0 1 164 104" fill="none"/>
   </defs>
-  <circle cx="100" cy="100" r="96" fill="#0b0d10"/>
-  <circle cx="100" cy="100" r="94" fill="none" stroke="url(#g)" stroke-width="7"/>
-  <circle cx="100" cy="100" r="72" fill="none" stroke="url(#g)" stroke-width="1.6" opacity=".65"/>
-  <text font-family="Arial,Helvetica,sans-serif" font-weight="800" font-size="16" letter-spacing="3" fill="url(#g)">
-    <textPath href="#top" startOffset="50%" text-anchor="middle">TATÁ SUSHI</textPath></text>
-  <g fill="url(#g)" transform="translate(100,64)"><path transform="translate(0,0) scale(1)" d="M0,-7 2,-2 7,-2 3,1 5,6 0,3 -5,6 -3,1 -7,-2 -2,-2 Z"/><path transform="translate(-17,3) scale(0.72)" d="M0,-7 2,-2 7,-2 3,1 5,6 0,3 -5,6 -3,1 -7,-2 -2,-2 Z"/><path transform="translate(17,3) scale(0.72)" d="M0,-7 2,-2 7,-2 3,1 5,6 0,3 -5,6 -3,1 -7,-2 -2,-2 Z"/></g>
-  <text x="100" y="140" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-weight="800" font-size="72" fill="url(#g)">10</text>
-  <text x="100" y="162" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-weight="700" font-size="16" letter-spacing="8" fill="url(#g)">ANOS</text>
+  <text x="60" y="74" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-weight="800" font-size="82" fill="url(#g)">10</text>
+  <text x="60" y="106" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-weight="700" font-size="23" letter-spacing="4" fill="url(#g)">ANOS</text>
 </svg>
