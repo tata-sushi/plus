@@ -34,9 +34,12 @@ export function Header({ right }) {
                 height={128}
               />
               {ehDev && (
-                <span className="selo-10anos" aria-hidden="true">
-                  10
-                </span>
+                <img
+                  src="/icons/selo-10anos.svg"
+                  alt=""
+                  aria-hidden="true"
+                  className="selo-10anos"
+                />
               )}
             </span>
             <span className="font-display text-[16px] font-semibold tracking-tight">
