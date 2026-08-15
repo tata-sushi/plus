@@ -175,12 +175,14 @@ function Painel() {
   const desktop = useDesktop()
   const { canvas, setCanvas } = useDesktopCanvas()
   const [quadros, setQuadros] = useState(null)
+  const [meusCards, setMeusCards] = useState([]) // resumo "minhas tarefas" na lateral
   const [quadroIdMobile, setQuadroIdMobile] = useState(null)
 
   const recarregarLista = useCallback(async () => {
     try {
-      const data = await call('kanban_meus_quadros')
-      setQuadros(Array.isArray(data) ? data : [])
+      const [qs, mc] = await Promise.all([call('kanban_meus_quadros'), call('kanban_meus_cards')])
+      setQuadros(Array.isArray(qs) ? qs : [])
+      setMeusCards(Array.isArray(mc) ? mc : [])
     } catch (e) {
       avisarErro(e)
       setQuadros([])
@@ -212,13 +214,15 @@ function Painel() {
       />
     )
   }
-  return <ListaQuadros quadros={quadros} onAbrir={abrir} onMudou={recarregarLista} selecionadoId={canvasQuadro} />
+  return <ListaQuadros quadros={quadros} meusCards={meusCards} onAbrir={abrir} onMudou={recarregarLista} selecionadoId={canvasQuadro} />
 }
 
 // ── Lista de quadros ─────────────────────────────────────────────────────────
-function ListaQuadros({ quadros, onAbrir, onMudou, selecionadoId }) {
+function ListaQuadros({ quadros, meusCards = [], onAbrir, onMudou, selecionadoId }) {
   const { usuario } = useAuth()
   const podeCriar = !!usuario?.podeCriarQuadros // membro comum só participa; criar é dos líderes liberados
+  // TESTE (só matrícula 7): resumo "minhas tarefas" embaixo de cada quadro na lateral.
+  const ehTester = String(usuario?.matricula || '') === '7'
   const [criando, setCriando] = useState(false)
   const podeMais = (quadros?.filter((q) => !q.arquivado).length || 0) < 3
 
@@ -256,9 +260,10 @@ function ListaQuadros({ quadros, onAbrir, onMudou, selecionadoId }) {
           <div className="mt-2 flex flex-col gap-2.5">
             {quadros.map((q) => {
               const Ic = iconeQuadro(q.icone)
+              const meus = ehTester ? meusCards.filter((c) => c.quadro_id === q.id) : []
               return (
+              <div key={q.id} className="flex flex-col gap-1.5">
               <button
-                key={q.id}
                 onClick={() => onAbrir(q.id)}
                 className={cn('card hstack gap-3 px-4 py-3.5 text-left tap', selecionadoId === q.id && 'ring-2 ring-accent')}
               >
@@ -278,6 +283,44 @@ function ListaQuadros({ quadros, onAbrir, onMudou, selecionadoId }) {
                   </div>
                 </div>
               </button>
+
+              {/* Resumo "minhas tarefas" deste quadro (clicar abre o quadro) */}
+              {meus.length > 0 && (
+                <div className="mb-1 ml-5 flex flex-col gap-1 border-l border-line pl-3">
+                  <div className="hstack gap-1 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-2">
+                    <ListChecks size={11} /> Minhas tarefas ({meus.length})
+                  </div>
+                  {meus.map((c) => {
+                    const vencido = c.data_conclusao && c.data_conclusao < hojeISO()
+                    const cor = (c.cores && c.cores[0]) || null
+                    return (
+                      <button
+                        key={c.id}
+                        onClick={() => onAbrir(q.id)}
+                        title={c.titulo}
+                        className="hstack gap-2 rounded-lg px-2 py-1.5 text-left tap hover:bg-fill"
+                      >
+                        <span
+                          className="h-4 w-1 shrink-0 rounded-full"
+                          style={{ background: cor || 'rgb(var(--muted-2) / 0.5)' }}
+                        />
+                        <span className="min-w-0 flex-1 truncate text-[12px] text-text">{c.titulo}</span>
+                        {c.data_conclusao && (
+                          <span
+                            className={cn(
+                              'hstack shrink-0 gap-0.5 text-[10px] font-semibold',
+                              vencido ? 'text-danger' : 'text-muted-2',
+                            )}
+                          >
+                            <CalendarDays size={10} /> {fmtPrazo(c.data_conclusao)}
+                          </span>
+                        )}
+                      </button>
+                    )
+                  })}
+                </div>
+              )}
+              </div>
               )
             })}
           </div>
