@@ -11,6 +11,9 @@ export default defineConfig({
       includeAssets: ['icons/favicon-32.png', 'icons/apple-touch-icon.png'],
       workbox: {
         globPatterns: ['**/*.{js,css,html,png,webp,webmanifest,woff2}'],
+        // Áudio demo do Podcast (~1MB, TESTE matrícula 7): fora do precache pra
+        // não pesar o install de todo mundo — carrega sob demanda só na aba Podcast.
+        globIgnores: ['**/podcastDemoAudio-*.js'],
         navigateFallback: '/index.html',
         navigateFallbackDenylist: [/^\/api/],
         // handlers de push (notificação no celular) — ver public/push-sw.js

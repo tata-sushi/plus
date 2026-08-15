@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { Heart, Trash2, Plus, Music2, Trophy, Play, Loader2 } from 'lucide-react'
+import { Heart, Trash2, Plus, Music2, Trophy, Play, Loader2, Headphones } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Voltar } from '../components/Voltar.jsx'
 import { useAuth } from '../lib/AuthContext.jsx'
 import { supabase } from '../lib/supabase.js'
 import { cn } from '../lib/cn'
+import { PodcastTab } from './PodcastTab.jsx'
 
 // Rádio Tatá — espaço colaborativo de descoberta musical. O time compartilha,
 // curte e vota nas músicas; a REPRODUÇÃO acontece no próprio Spotify (tocar
@@ -69,6 +70,11 @@ export function Radio() {
 
   const admin = !!usuario?.podePublicar
   const minhaMatricula = String(usuario?.matricula || '')
+
+  // Rádio 2.0 (TESTE): abas Música / Podcast visíveis só para a matrícula 7.
+  const ehTester = minhaMatricula === '7'
+  const [aba, setAba] = useState('musica')
+  const mostrarPodcast = ehTester && aba === 'podcast'
 
   // Carrega a lista compartilhada + o líder da semana (backend).
   async function carregarLista() {
@@ -225,6 +231,39 @@ export function Radio() {
     <>
       <Header title="Rádio Tatá" />
       <Voltar />
+
+      {/* Rádio 2.0 (TESTE, só matrícula 7): alterna Música / Podcast */}
+      {ehTester && (
+        <div className="px-5 pt-1">
+          <div className="grid grid-cols-2 gap-1 rounded-pill border border-line bg-surface-2 p-1">
+            <button
+              onClick={() => setAba('musica')}
+              className={cn(
+                'flex items-center justify-center gap-1.5 rounded-pill py-2 text-[13px] font-bold tap',
+                aba === 'musica' ? 'bg-accent text-black' : 'text-muted',
+              )}
+            >
+              <Music2 size={15} /> Música
+            </button>
+            <button
+              onClick={() => setAba('podcast')}
+              className={cn(
+                'flex items-center justify-center gap-1.5 rounded-pill py-2 text-[13px] font-bold tap',
+                aba === 'podcast' ? 'bg-accent text-black' : 'text-muted',
+              )}
+            >
+              <Headphones size={15} /> Podcast
+            </button>
+          </div>
+          <div className="mt-1.5 text-center text-[10px] font-semibold uppercase tracking-wide text-muted-2">
+            Rádio 2.0 · prévia da sua matrícula
+          </div>
+        </div>
+      )}
+
+      {mostrarPodcast && <PodcastTab />}
+
+      {!mostrarPodcast && (
       <div className="px-5 pt-2 pb-24">
         {/* Topo (hero estilo capa de playlist): capa + título em cima e, abaixo,
             a mensagem. A capa usa CAPA_RADIO (arte oficial da Rádio). */}
@@ -416,6 +455,7 @@ export function Radio() {
           </a>
         )}
       </div>
+      )}
 
       {policyOpen && (
         <div
