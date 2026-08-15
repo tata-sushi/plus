@@ -221,8 +221,6 @@ function Painel() {
 function ListaQuadros({ quadros, meusCards = [], onAbrir, onMudou, selecionadoId }) {
   const { usuario } = useAuth()
   const podeCriar = !!usuario?.podeCriarQuadros // membro comum só participa; criar é dos líderes liberados
-  // TESTE (só matrícula 7): resumo "minhas tarefas" embaixo de cada quadro na lateral.
-  const ehTester = String(usuario?.matricula || '') === '7'
   const [criando, setCriando] = useState(false)
   const podeMais = (quadros?.filter((q) => !q.arquivado).length || 0) < 3
 
@@ -260,7 +258,7 @@ function ListaQuadros({ quadros, meusCards = [], onAbrir, onMudou, selecionadoId
           <div className="mt-2 flex flex-col gap-2.5">
             {quadros.map((q) => {
               const Ic = iconeQuadro(q.icone)
-              const meus = ehTester ? meusCards.filter((c) => c.quadro_id === q.id) : []
+              const meus = meusCards.filter((c) => c.quadro_id === q.id)
               return (
               <div key={q.id} className="flex flex-col gap-1.5">
               <button
