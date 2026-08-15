@@ -84,6 +84,11 @@ export function PodcastTab() {
   const [tocando, setTocando] = useState(false)
   const [tempo, setTempo] = useState(0)
   const [duracao, setDuracao] = useState(0)
+  const maxRef = useRef(0) // ponto máximo já ouvido do episódio atual (trava o avançar)
+  const [concluidos, setConcluidos] = useState(() => new Set())
+  const [aviso, setAviso] = useState('') // toast "+X pts" ao concluir
+
+  const estaConcluido = (ep) => ep.concluido || concluidos.has(ep.id)
 
   // O áudio demo (~1MB) é carregado sob demanda — só quando a pessoa dá o 1º play.
   async function garantirAudio() {
@@ -106,6 +111,7 @@ export function PodcastTab() {
     const url = await garantirAudio()
     setAtual(ep.id)
     setTempo(0)
+    maxRef.current = 0 // novo episódio: zera o teto de "já ouvido"
     const el = audioRef.current
     if (!el) return
     // garante a src no 1º play (antes do re-render do React) — todos os
@@ -122,10 +128,29 @@ export function PodcastTab() {
     else a.pause()
   }
 
-  function buscar(e) {
-    const a = audioRef.current
-    if (!a || !duracao) return
-    a.currentTime = (Number(e.target.value) / 100) * duracao
+  // Progresso: acompanha o tempo e guarda o ponto máximo já ouvido.
+  function aoTempo(e) {
+    const t = e.currentTarget.currentTime
+    setTempo(t)
+    if (t > maxRef.current) maxRef.current = t
+  }
+
+  // Trava "não pode avançar": qualquer tentativa de pular à frente do ponto
+  // máximo já ouvido é revertida (tolerância de 0,6s pra buffering).
+  function impedirAvanco(e) {
+    const el = e.currentTarget
+    if (el.currentTime > maxRef.current + 0.6) el.currentTime = maxRef.current
+  }
+
+  // Concluir = ouviu até o fim. Pontua 1× por episódio (aqui, no teste, é visual).
+  function concluir() {
+    const ep = EPISODIOS.find((x) => x.id === atual)
+    setTocando(false)
+    if (!ep || estaConcluido(ep)) return
+    setConcluidos((s) => new Set(s).add(ep.id))
+    setAviso(`🎉 +${ep.pontos} pts — episódio concluído!`)
+    window.clearTimeout(concluir._t)
+    concluir._t = window.setTimeout(() => setAviso(''), 3500)
   }
 
   const epAtual = EPISODIOS.find((e) => e.id === atual) || null
@@ -165,10 +190,13 @@ export function PodcastTab() {
         </div>
       </div>
 
-      {/* Aviso do teste */}
+      {/* Aviso do teste + regra de pontuação */}
       <div className="mb-4 rounded-xl border border-dashed border-line bg-fill px-3 py-2 text-[11px] leading-snug text-muted-2">
-        🔒 Prévia só pra você (matrícula 7). O áudio dos episódios é um{' '}
+        🔒 Prévia só pra você (matrícula 7). O áudio é um{' '}
         <b className="text-muted">demo de ~24s</b> só pra testar o player.
+        <br />
+        🎧 Pra pontuar, <b className="text-muted">ouça até o fim</b> — não dá pra
+        adiantar o áudio.
       </div>
 
       <div className="mb-2.5 mt-1 hstack items-center justify-between px-0.5">
@@ -212,7 +240,7 @@ export function PodcastTab() {
                         {ep.tag}
                       </span>
                     )}
-                    {ep.concluido && (
+                    {estaConcluido(ep) && (
                       <span className="hstack gap-1 rounded-pill bg-accent/15 px-2 py-0.5 text-[10.5px] font-bold text-accent">
                         <Check size={11} strokeWidth={3.2} /> concluído
                       </span>
@@ -221,7 +249,7 @@ export function PodcastTab() {
                   <div className="mt-1.5 text-[11px] text-muted-2">
                     <b className="font-semibold text-muted">{ep.dur}</b>
                     {' · '}
-                    {ep.concluido ? (
+                    {estaConcluido(ep) ? (
                       <span className="font-semibold text-accent">+{ep.pontos} pts ganhos</span>
                     ) : (
                       <>
@@ -286,16 +314,10 @@ export function PodcastTab() {
             <div className="min-w-0 flex-1">
               <div className="truncate text-[12.5px] font-bold">{epAtual.titulo}</div>
               <div className="text-[10.5px] text-muted">Tatá Cast · Episódio {epAtual.id}</div>
-              <input
-                type="range"
-                min={0}
-                max={100}
-                value={pct || 0}
-                onChange={buscar}
-                aria-label="Progresso do episódio"
-                className="mt-1.5 h-1 w-full cursor-pointer"
-                style={{ accentColor: 'rgb(var(--accent))' }}
-              />
+              {/* progresso só visual — não dá pra arrastar/avançar */}
+              <div className="mt-1.5 h-1 w-full overflow-hidden rounded-pill bg-surface-3">
+                <div className="h-full rounded-pill bg-accent" style={{ width: `${pct}%` }} />
+              </div>
             </div>
             <button
               onClick={togglePlay}
@@ -312,6 +334,18 @@ export function PodcastTab() {
         </div>
       )}
 
+      {/* Toast "+X pts" ao concluir */}
+      {aviso && (
+        <div
+          className="fixed inset-x-0 z-30 flex justify-center px-4"
+          style={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 140px)' }}
+        >
+          <div className="rounded-pill bg-accent px-4 py-2 text-[12.5px] font-bold text-black shadow-[0_10px_24px_-8px_rgb(var(--accent)/0.6)]">
+            {aviso}
+          </div>
+        </div>
+      )}
+
       {/* elemento de áudio único */}
       <audio
         ref={audioRef}
@@ -319,8 +353,9 @@ export function PodcastTab() {
         preload="none"
         onPlay={() => setTocando(true)}
         onPause={() => setTocando(false)}
-        onEnded={() => setTocando(false)}
-        onTimeUpdate={(e) => setTempo(e.currentTarget.currentTime)}
+        onEnded={concluir}
+        onSeeking={impedirAvanco}
+        onTimeUpdate={aoTempo}
         onLoadedMetadata={(e) => setDuracao(e.currentTarget.duration)}
       />
     </div>
