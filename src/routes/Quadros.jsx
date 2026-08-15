@@ -166,8 +166,16 @@ function Quadros() {
 }
 
 // Board aberto na área grande do desktop (canvas do DesktopShell).
-export function QuadroCanvas({ quadroId, onVoltar }) {
-  return <VisaoQuadro quadroId={quadroId} onVoltar={onVoltar} emCanvas />
+export function QuadroCanvas({ quadroId, onVoltar, cardInicial, cardNonce }) {
+  return (
+    <VisaoQuadro
+      quadroId={quadroId}
+      onVoltar={onVoltar}
+      cardInicial={cardInicial}
+      cardNonce={cardNonce}
+      emCanvas
+    />
+  )
 }
 
 // ── Casca: lista de quadros ↔ visão de um quadro ─────────────────────────────
@@ -177,6 +185,7 @@ function Painel() {
   const [quadros, setQuadros] = useState(null)
   const [meusCards, setMeusCards] = useState([]) // resumo "minhas tarefas" na lateral
   const [quadroIdMobile, setQuadroIdMobile] = useState(null)
+  const [cardMobile, setCardMobile] = useState(null) // card a abrir ao entrar no quadro (mobile)
 
   const recarregarLista = useCallback(async () => {
     try {
@@ -198,17 +207,24 @@ function Painel() {
     if (desktop && !canvasQuadro) recarregarLista()
   }, [desktop, canvasQuadro, recarregarLista])
 
-  function abrir(id) {
-    if (desktop) setCanvas({ tipo: 'quadro', quadroId: id })
-    else setQuadroIdMobile(id)
+  // cardId opcional: abre o quadro já com aquele cartão aberto (resumo da lateral).
+  function abrir(id, cardId) {
+    if (desktop) setCanvas({ tipo: 'quadro', quadroId: id, cardId: cardId || null, cardNonce: cardId ? Date.now() : 0 })
+    else {
+      setQuadroIdMobile(id)
+      setCardMobile(cardId ? { id: cardId, nonce: Date.now() } : null)
+    }
   }
 
   if (!desktop && quadroIdMobile) {
     return (
       <VisaoQuadro
         quadroId={quadroIdMobile}
+        cardInicial={cardMobile?.id}
+        cardNonce={cardMobile?.nonce}
         onVoltar={() => {
           setQuadroIdMobile(null)
+          setCardMobile(null)
           recarregarLista()
         }}
       />
@@ -294,7 +310,7 @@ function ListaQuadros({ quadros, meusCards = [], onAbrir, onMudou, selecionadoId
                     return (
                       <button
                         key={c.id}
-                        onClick={() => onAbrir(q.id)}
+                        onClick={() => onAbrir(q.id, c.id)}
                         title={c.titulo}
                         className="hstack gap-2 rounded-lg px-2 py-1.5 text-left tap hover:bg-fill"
                       >
@@ -337,7 +353,7 @@ function ListaQuadros({ quadros, meusCards = [], onAbrir, onMudou, selecionadoId
 }
 
 // ── Visão de um quadro ───────────────────────────────────────────────────────
-function VisaoQuadro({ quadroId, onVoltar, emCanvas }) {
+function VisaoQuadro({ quadroId, onVoltar, emCanvas, cardInicial, cardNonce }) {
   const { usuario } = useAuth()
   const mat = usuario?.matricula
   const [board, setBoard] = useState(null)
@@ -429,6 +445,17 @@ function VisaoQuadro({ quadroId, onVoltar, emCanvas }) {
   useEffect(() => {
     if (cardAberto?.cardId && board && !cardLive) setCardAberto(null)
   }, [cardAberto, board, cardLive])
+
+  // Abre direto um cartão específico (clique no resumo "minhas tarefas" da lateral).
+  // Keyed no nonce → cada clique reabre, mas um refresh em tempo real não reabre.
+  const autoNonceRef = useRef(0)
+  useEffect(() => {
+    if (!cardInicial || !cardNonce || !board) return
+    if (autoNonceRef.current === cardNonce) return
+    autoNonceRef.current = cardNonce
+    const card = (board.cards || []).find((k) => k.id === cardInicial)
+    if (card) setCardAberto({ modo: board.sou_admin ? 'editar' : 'ver', cardId: card.id, colunaId: card.coluna_id })
+  }, [cardInicial, cardNonce, board])
 
   const temFiltro = filtros.filtroEtq.size || filtros.filtroResp.size || filtros.soVencidos || filtros.soMeus
   const filtrando = !!busca.trim() || !!temFiltro
