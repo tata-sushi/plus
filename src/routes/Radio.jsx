@@ -6,7 +6,7 @@ import { Voltar } from '../components/Voltar.jsx'
 import { useAuth } from '../lib/AuthContext.jsx'
 import { supabase } from '../lib/supabase.js'
 import { cn } from '../lib/cn'
-import { PodcastTab } from './PodcastTab.jsx'
+import { PodcastTab, podcastQtd } from './PodcastTab.jsx'
 
 // Rádio Tatá — espaço colaborativo de descoberta musical. O time compartilha,
 // curte e vota nas músicas; a REPRODUÇÃO acontece no próprio Spotify (tocar
@@ -265,7 +265,7 @@ export function Radio() {
             )}
             <div className="min-w-0">
               <div className="text-[11px] font-bold uppercase tracking-wide text-accent">
-                Compartilhe cultura
+                Compartilhando informação e cultura
               </div>
               <div className="mt-0.5 flex items-center gap-2">
                 <span className="font-display text-2xl font-bold leading-tight">Rádio Tatá</span>
@@ -275,6 +275,7 @@ export function Radio() {
               </div>
               <div className="mt-1 text-[11px] text-muted">
                 {lista.length} {lista.length === 1 ? 'música' : 'músicas'}
+                {ehTester && ` · ${podcastQtd} ${podcastQtd === 1 ? 'podcast' : 'podcasts'}`}
               </div>
             </div>
           </div>
@@ -303,7 +304,7 @@ export function Radio() {
                   aba === 'podcast' ? 'bg-accent text-black' : 'text-muted',
                 )}
               >
-                <Headphones size={15} /> Podcasts
+                <Headphones size={15} /> Podcast
               </button>
             </div>
             <div className="mt-1.5 text-center text-[10px] font-semibold uppercase tracking-wide text-muted-2">

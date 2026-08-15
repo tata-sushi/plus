@@ -53,6 +53,9 @@ const EPISODIOS = [
   },
 ]
 
+// Contagem de episódios (usada no cabeçalho fixo da Rádio 2.0).
+export const podcastQtd = EPISODIOS.length
+
 const mmss = (s) => {
   if (!s || !isFinite(s)) return '0:00'
   const m = Math.floor(s / 60)
@@ -121,13 +124,6 @@ export function PodcastTab() {
     el.play().catch(() => {})
   }
 
-  function togglePlay() {
-    const a = audioRef.current
-    if (!a) return
-    if (a.paused) a.play()
-    else a.pause()
-  }
-
   // Progresso: acompanha o tempo e guarda o ponto máximo já ouvido.
   function aoTempo(e) {
     const t = e.currentTarget.currentTime
@@ -153,43 +149,10 @@ export function PodcastTab() {
     concluir._t = window.setTimeout(() => setAviso(''), 3500)
   }
 
-  const epAtual = EPISODIOS.find((e) => e.id === atual) || null
   const pct = duracao ? (tempo / duracao) * 100 : 0
 
   return (
-    <div className="px-5 pt-2 pb-44">
-      {/* Hero do podcast */}
-      <div
-        className="mb-4 flex items-center gap-3.5 overflow-hidden rounded-card border border-line p-4"
-        style={{
-          background:
-            'radial-gradient(130% 150% at 0% 0%, rgb(var(--accent) / 0.20), rgb(var(--accent) / 0.04) 55%, transparent 72%), rgb(var(--surface))',
-        }}
-      >
-        <div
-          className="grid h-16 w-16 shrink-0 place-items-center rounded-2xl text-accent"
-          style={{
-            background: 'linear-gradient(150deg,#0f3d05,#061f00)',
-            border: '1px solid rgb(var(--accent) / 0.3)',
-            boxShadow: '0 8px 20px -10px rgb(var(--accent) / 0.5)',
-          }}
-        >
-          <Headphones size={30} strokeWidth={1.9} />
-        </div>
-        <div className="min-w-0">
-          <div className="hstack gap-2">
-            <span className="font-display text-xl font-extrabold tracking-tight">Tatá Cast</span>
-            <span className="rounded-pill bg-accent px-1.5 py-0.5 text-[9px] font-extrabold uppercase tracking-wide text-black">
-              beta
-            </span>
-          </div>
-          <p className="mt-1 text-[12.5px] leading-snug text-muted">
-            Treinamento no seu ritmo, em áudio. Deu o play, ouviu,{' '}
-            <span className="font-semibold text-accent">pontuou</span>.
-          </p>
-        </div>
-      </div>
-
+    <div className="px-5 pt-1 pb-24">
       {/* Aviso do teste + regra de pontuação */}
       <div className="mb-4 rounded-xl border border-dashed border-line bg-fill px-3 py-2 text-[11px] leading-snug text-muted-2">
         🔒 Prévia só pra você (matrícula 7). O áudio é um{' '}
@@ -247,8 +210,6 @@ export function PodcastTab() {
                     )}
                   </div>
                   <div className="mt-1.5 text-[11px] text-muted-2">
-                    <b className="font-semibold text-muted">{ep.dur}</b>
-                    {' · '}
                     {estaConcluido(ep) ? (
                       <span className="font-semibold text-accent">+{ep.pontos} pts ganhos</span>
                     ) : (
@@ -295,44 +256,6 @@ export function PodcastTab() {
           )
         })}
       </div>
-
-      {/* Player fixo — "tocando agora" (acima da barra de navegação) */}
-      {epAtual && (
-        <div
-          className="fixed inset-x-0 z-20 px-3"
-          style={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 68px)' }}
-        >
-          <div
-            className="mx-auto flex max-w-md items-center gap-3 rounded-2xl border p-2.5 backdrop-blur"
-            style={{
-              background: 'rgb(var(--surface) / 0.94)',
-              borderColor: 'rgb(var(--accent) / 0.3)',
-              boxShadow: '0 14px 34px -14px rgba(0,0,0,.7)',
-            }}
-          >
-            <Capa ep={epAtual} size={42} />
-            <div className="min-w-0 flex-1">
-              <div className="truncate text-[12.5px] font-bold">{epAtual.titulo}</div>
-              <div className="text-[10.5px] text-muted">Tatá Cast · Episódio {epAtual.id}</div>
-              {/* progresso só visual — não dá pra arrastar/avançar */}
-              <div className="mt-1.5 h-1 w-full overflow-hidden rounded-pill bg-surface-3">
-                <div className="h-full rounded-pill bg-accent" style={{ width: `${pct}%` }} />
-              </div>
-            </div>
-            <button
-              onClick={togglePlay}
-              aria-label={tocando ? 'Pausar' : 'Tocar'}
-              className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-accent text-black"
-            >
-              {tocando ? (
-                <Pause size={18} fill="currentColor" />
-              ) : (
-                <Play size={18} fill="currentColor" className="ml-0.5" />
-              )}
-            </button>
-          </div>
-        </div>
-      )}
 
       {/* Toast "+X pts" ao concluir */}
       {aviso && (
