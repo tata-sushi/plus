@@ -232,39 +232,9 @@ export function Radio() {
       <Header title="Rádio Tatá" />
       <Voltar />
 
-      {/* Rádio 2.0 (TESTE, só matrícula 7): alterna Música / Podcast */}
-      {ehTester && (
-        <div className="px-5 pt-1">
-          <div className="grid grid-cols-2 gap-1 rounded-pill border border-line bg-surface-2 p-1">
-            <button
-              onClick={() => setAba('musica')}
-              className={cn(
-                'flex items-center justify-center gap-1.5 rounded-pill py-2 text-[13px] font-bold tap',
-                aba === 'musica' ? 'bg-accent text-black' : 'text-muted',
-              )}
-            >
-              <Music2 size={15} /> Música
-            </button>
-            <button
-              onClick={() => setAba('podcast')}
-              className={cn(
-                'flex items-center justify-center gap-1.5 rounded-pill py-2 text-[13px] font-bold tap',
-                aba === 'podcast' ? 'bg-accent text-black' : 'text-muted',
-              )}
-            >
-              <Headphones size={15} /> Podcast
-            </button>
-          </div>
-          <div className="mt-1.5 text-center text-[10px] font-semibold uppercase tracking-wide text-muted-2">
-            Rádio 2.0 · prévia da sua matrícula
-          </div>
-        </div>
-      )}
-
-      {mostrarPodcast && <PodcastTab />}
-
-      {!mostrarPodcast && (
-      <div className="px-5 pt-2 pb-24">
+      {/* Cabeçalho fixo da Rádio: o card "Rádio Tatá" não muda entre as abas;
+          o seletor (Playlist/Podcasts) fica ABAIXO dele (só matrícula 7). */}
+      <div className="px-5 pt-2">
         {/* Topo (hero estilo capa de playlist): capa + título em cima e, abaixo,
             a mensagem. A capa usa CAPA_RADIO (arte oficial da Rádio). */}
         <div className="mb-4 overflow-hidden rounded-card border border-line">
@@ -313,6 +283,40 @@ export function Radio() {
           </p>
         </div>
 
+        {/* Seletor ABAIXO do card fixo: Playlist / Podcasts (só matrícula 7) */}
+        {ehTester && (
+          <div className="-mt-1 mb-4">
+            <div className="grid grid-cols-2 gap-1 rounded-pill border border-line bg-surface-2 p-1">
+              <button
+                onClick={() => setAba('musica')}
+                className={cn(
+                  'flex items-center justify-center gap-1.5 rounded-pill py-2 text-[13px] font-bold tap',
+                  aba === 'musica' ? 'bg-accent text-black' : 'text-muted',
+                )}
+              >
+                <Music2 size={15} /> Playlist
+              </button>
+              <button
+                onClick={() => setAba('podcast')}
+                className={cn(
+                  'flex items-center justify-center gap-1.5 rounded-pill py-2 text-[13px] font-bold tap',
+                  aba === 'podcast' ? 'bg-accent text-black' : 'text-muted',
+                )}
+              >
+                <Headphones size={15} /> Podcasts
+              </button>
+            </div>
+            <div className="mt-1.5 text-center text-[10px] font-semibold uppercase tracking-wide text-muted-2">
+              Rádio 2.0 · prévia da sua matrícula
+            </div>
+          </div>
+        )}
+      </div>
+
+      {mostrarPodcast && <PodcastTab />}
+
+      {!mostrarPodcast && (
+      <div className="px-5 pb-24">
         {/* Adicionar música */}
         <div className="card p-3">
           <div className="hstack gap-2">
