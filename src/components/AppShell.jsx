@@ -5,6 +5,7 @@ import { DesktopShell } from './DesktopShell.jsx'
 import { useDesktop } from '../lib/useDesktop.js'
 import { estadoPush, ativarPush } from '../lib/push.js'
 import { cn } from '../lib/cn'
+import { PodcastPlayerProvider } from '../lib/podcastPlayer.jsx'
 
 // Rotas em tela cheia, sem a barra de navegação (ex.: organograma em paisagem).
 const SEM_NAV = ['/organograma', '/governanca', '/perfil-disc']
@@ -12,6 +13,9 @@ const SEM_NAV = ['/organograma', '/governanca', '/perfil-disc']
 // Orientação: o app fica travado em RETRATO pelo manifesto do PWA. O organograma
 // vai para PAISAGEM por conta própria (tela cheia + orientation.lock — ver
 // routes/Organograma.jsx), então aqui não é preciso mexer em orientação.
+//
+// O conteúdo de cada rota é montado dentro do PodcastPlayerProvider (nível do
+// app): assim o player do Podcast CONTINUA tocando ao navegar entre as telas.
 export function AppShell() {
   const location = useLocation()
   const desktop = useDesktop()
@@ -31,11 +35,11 @@ export function AppShell() {
     })
   }, [])
 
-  // Celular na Governança: mantém a barra de navegação (a barra sumindo
-  // atrapalhava a volta). O iframe ocupa todo o espaço acima da barra, que
-  // fica em fluxo (não fixa) na base da coluna.
+  let conteudo
   if (ehGov && !desktop) {
-    return (
+    // Celular na Governança: mantém a barra de navegação em fluxo na base; o
+    // iframe ocupa o espaço acima dela.
+    conteudo = (
       <div className="flex h-[100dvh] flex-col bg-bg">
         <main key={location.pathname} className="animate-page min-h-0 flex-1 overflow-hidden">
           <Outlet />
@@ -43,29 +47,29 @@ export function AppShell() {
         <BottomNav flow />
       </div>
     )
-  }
-
-  // Telas cheias (organograma, DISC e a Governança no desktop) ocupam tudo.
-  if (semNav) {
-    return (
+  } else if (semNav) {
+    // Telas cheias (organograma, DISC e a Governança no desktop) ocupam tudo.
+    conteudo = (
       <div className="min-h-[100dvh] bg-bg">
         <main key={location.pathname} className={cn('animate-page', ehGov && 'h-[100dvh]')}>
           <Outlet />
         </main>
       </div>
     )
+  } else if (desktop) {
+    // Desktop: navegação dupla (painel do app + portal/organograma na área grande).
+    conteudo = <DesktopShell />
+  } else {
+    // Celular: coluna única com a barra de navegação embaixo.
+    conteudo = (
+      <div className="min-h-[100dvh] bg-bg">
+        <main key={location.pathname} className="animate-page pb-24">
+          <Outlet />
+        </main>
+        <BottomNav />
+      </div>
+    )
   }
 
-  // Desktop: navegação dupla (painel do app + portal/organograma na área grande).
-  if (desktop) return <DesktopShell />
-
-  // Celular: coluna única com a barra de navegação embaixo.
-  return (
-    <div className="min-h-[100dvh] bg-bg">
-      <main key={location.pathname} className="animate-page pb-24">
-        <Outlet />
-      </main>
-      <BottomNav />
-    </div>
-  )
+  return <PodcastPlayerProvider>{conteudo}</PodcastPlayerProvider>
 }
