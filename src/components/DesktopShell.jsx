@@ -146,6 +146,9 @@ export function DesktopShell() {
               )
             })}
 
+            {/* Player do Podcast (Rádio 2.0) — logo abaixo do "Mais" */}
+            <PodcastRailControl />
+
             {/* Abas de governança abertas — ícone + "x" pra fechar. O padding
                 dá folga pro badge do "x" não ser cortado pelo overflow do scroll. */}
             {abas.length > 0 && <span className="my-0.5 h-px w-6 bg-line" />}
@@ -198,9 +201,6 @@ export function DesktopShell() {
               </button>
             </>
           )}
-
-          {/* Player do Podcast (Rádio 2.0) — aparece com episódio no ar */}
-          <PodcastRailControl />
         </nav>
 
         {/* Painel do app (retrátil) — conteúdo montado para preservar estado */}

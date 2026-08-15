@@ -1,5 +1,5 @@
 import { createContext, useContext, useRef, useState, useCallback } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { Play, Pause, Radio, Loader2 } from 'lucide-react'
 import { useDesktop } from './useDesktop.js'
 
@@ -129,24 +129,27 @@ function MiniPlayer() {
   const p = usePodcastPlayer()
   const desktop = useDesktop()
   const navigate = useNavigate()
+  const { pathname } = useLocation()
   if (!p?.atual) return null
+  const naRadio = pathname === '/radio'
   return (
     <>
       {p.aviso && (
         <div
           className="fixed inset-x-0 z-[45] flex justify-center px-4"
-          style={{ bottom: desktop ? '24px' : 'calc(env(safe-area-inset-bottom, 0px) + 150px)' }}
+          style={{ bottom: desktop ? '24px' : 'calc(env(safe-area-inset-bottom, 0px) + 90px)' }}
         >
           <div className="rounded-pill bg-accent px-4 py-2 text-[12.5px] font-bold text-black shadow-[0_10px_24px_-8px_rgb(var(--accent)/0.6)]">
             {p.aviso}
           </div>
         </div>
       )}
-      {!desktop && (
+      {/* Mobile: barrinha QUADRADA, colada na margem esquerda, no meio da tela.
+          Só aparece FORA da Rádio (na Rádio o controle já está na tela). */}
+      {!desktop && !naRadio && (
         <div
-          className="fixed right-3 z-40 flex flex-col items-center gap-1 rounded-full border p-1.5 backdrop-blur"
+          className="fixed left-0 top-1/2 z-40 flex -translate-y-1/2 flex-col items-center gap-1 rounded-r-2xl border border-l-0 p-1.5 backdrop-blur"
           style={{
-            bottom: 'calc(env(safe-area-inset-bottom, 0px) + 80px)',
             background: 'rgb(var(--surface) / 0.96)',
             borderColor: 'rgb(var(--accent) / 0.3)',
             boxShadow: '0 12px 28px -12px rgba(0,0,0,.7)',
@@ -156,14 +159,14 @@ function MiniPlayer() {
             onClick={() => navigate('/radio')}
             aria-label="Abrir a Rádio"
             title={p.atual.titulo}
-            className="grid h-9 w-9 place-items-center rounded-full text-accent tap"
+            className="grid h-9 w-9 place-items-center rounded-lg text-accent tap"
           >
             <Radio size={18} />
           </button>
           <button
             onClick={p.toggle}
             aria-label={p.tocando ? 'Pausar' : 'Tocar'}
-            className="grid h-9 w-9 place-items-center rounded-full bg-accent text-black tap"
+            className="grid h-9 w-9 place-items-center rounded-lg bg-accent text-black tap"
           >
             {p.carregando ? (
               <Loader2 size={15} className="animate-spin" />
