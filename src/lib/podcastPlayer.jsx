@@ -1,6 +1,6 @@
 import { createContext, useContext, useRef, useState, useCallback } from 'react'
-import { Play, Pause, X, Loader2 } from 'lucide-react'
-import { cn } from './cn'
+import { useNavigate } from 'react-router-dom'
+import { Play, Pause, Radio, Loader2 } from 'lucide-react'
 import { useDesktop } from './useDesktop.js'
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -122,71 +122,94 @@ export function PodcastPlayerProvider({ children }) {
   )
 }
 
-// Barrinha persistente — aparece em qualquer tela enquanto houver episódio no ar.
+// Mini-player compacto — só o ícone da Rádio + play/pause.
+// MOBILE: barrinha flutuante na lateral direita. DESKTOP: o controle vai no rail
+// (ver PodcastRailControl, renderizado pelo DesktopShell).
 function MiniPlayer() {
   const p = usePodcastPlayer()
   const desktop = useDesktop()
+  const navigate = useNavigate()
   if (!p?.atual) return null
-  const ep = p.atual
   return (
     <>
       {p.aviso && (
         <div
           className="fixed inset-x-0 z-[45] flex justify-center px-4"
-          style={{ bottom: desktop ? '92px' : 'calc(env(safe-area-inset-bottom, 0px) + 150px)' }}
+          style={{ bottom: desktop ? '24px' : 'calc(env(safe-area-inset-bottom, 0px) + 150px)' }}
         >
           <div className="rounded-pill bg-accent px-4 py-2 text-[12.5px] font-bold text-black shadow-[0_10px_24px_-8px_rgb(var(--accent)/0.6)]">
             {p.aviso}
           </div>
         </div>
       )}
-      <div
-        className="fixed inset-x-0 z-40 px-3"
-        style={{ bottom: desktop ? '16px' : 'calc(env(safe-area-inset-bottom, 0px) + 68px)' }}
-      >
+      {!desktop && (
         <div
-          className="mx-auto flex max-w-md items-center gap-3 rounded-2xl border p-2.5 backdrop-blur"
+          className="fixed right-3 z-40 flex flex-col items-center gap-1 rounded-full border p-1.5 backdrop-blur"
           style={{
+            bottom: 'calc(env(safe-area-inset-bottom, 0px) + 80px)',
             background: 'rgb(var(--surface) / 0.96)',
             borderColor: 'rgb(var(--accent) / 0.3)',
-            boxShadow: '0 14px 34px -14px rgba(0,0,0,.7)',
+            boxShadow: '0 12px 28px -12px rgba(0,0,0,.7)',
           }}
         >
-          <div
-            className="grid h-11 w-11 shrink-0 place-items-center rounded-xl font-display text-base font-extrabold text-white/95"
-            style={{ background: ep.cor || 'rgb(var(--surface-3))' }}
+          <button
+            onClick={() => navigate('/radio')}
+            aria-label="Abrir a Rádio"
+            title={p.atual.titulo}
+            className="grid h-9 w-9 place-items-center rounded-full text-accent tap"
           >
-            {ep.id}
-          </div>
-          <div className="min-w-0 flex-1">
-            <div className="truncate text-[12.5px] font-bold">{ep.titulo}</div>
-            <div className="text-[10.5px] text-muted">Podcast · Episódio {ep.id}</div>
-            {/* progresso só visual — não dá pra arrastar/avançar */}
-            <div className="mt-1.5 h-1 w-full overflow-hidden rounded-pill bg-surface-3">
-              <div className="h-full rounded-pill bg-accent" style={{ width: `${p.pct}%` }} />
-            </div>
-          </div>
+            <Radio size={18} />
+          </button>
           <button
             onClick={p.toggle}
             aria-label={p.tocando ? 'Pausar' : 'Tocar'}
-            className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-accent text-black"
+            className="grid h-9 w-9 place-items-center rounded-full bg-accent text-black tap"
           >
             {p.carregando ? (
-              <Loader2 size={18} className="animate-spin" />
+              <Loader2 size={15} className="animate-spin" />
             ) : p.tocando ? (
-              <Pause size={18} fill="currentColor" />
+              <Pause size={15} fill="currentColor" />
             ) : (
-              <Play size={18} fill="currentColor" className="ml-0.5" />
+              <Play size={15} fill="currentColor" className="ml-0.5" />
             )}
           </button>
-          <button
-            onClick={p.fechar}
-            aria-label="Fechar player"
-            className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-muted-2 tap"
-          >
-            <X size={16} />
-          </button>
         </div>
+      )}
+    </>
+  )
+}
+
+// Controle do Podcast no RAIL do desktop (barra lateral): ícone da Rádio + play/pause.
+export function PodcastRailControl() {
+  const p = usePodcastPlayer()
+  const navigate = useNavigate()
+  if (!p?.atual) return null
+  return (
+    <>
+      <span className="my-0.5 h-px w-6 bg-line" />
+      <div className="flex flex-col items-center gap-1 rounded-2xl bg-accent-soft p-1">
+        <button
+          onClick={() => navigate('/radio')}
+          aria-label="Abrir a Rádio"
+          title={p.atual.titulo}
+          className="grid h-8 w-8 place-items-center rounded-xl text-accent tap"
+        >
+          <Radio size={18} />
+        </button>
+        <button
+          onClick={p.toggle}
+          aria-label={p.tocando ? 'Pausar' : 'Tocar'}
+          title={p.tocando ? 'Pausar' : 'Tocar'}
+          className="grid h-8 w-8 place-items-center rounded-full bg-accent text-black tap"
+        >
+          {p.carregando ? (
+            <Loader2 size={14} className="animate-spin" />
+          ) : p.tocando ? (
+            <Pause size={14} fill="currentColor" />
+          ) : (
+            <Play size={14} fill="currentColor" className="ml-0.5" />
+          )}
+        </button>
       </div>
     </>
   )

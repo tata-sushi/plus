@@ -21,6 +21,7 @@ import { resolveIcon } from '../lib/icons.js'
 import { Ouvidoria } from '../routes/Ouvidoria.jsx'
 import { AdminRecompensas } from '../routes/AdminRecompensas.jsx'
 import { GovFrame } from './GovFrame.jsx'
+import { PodcastRailControl } from '../lib/podcastPlayer.jsx'
 
 // Board Kanban aberto na área grande — carregado sob demanda (mesmo chunk da rota).
 const QuadroCanvas = lazy(() => import('../routes/Quadros.jsx').then((m) => ({ default: m.QuadroCanvas })))
@@ -197,6 +198,9 @@ export function DesktopShell() {
               </button>
             </>
           )}
+
+          {/* Player do Podcast (Rádio 2.0) — aparece com episódio no ar */}
+          <PodcastRailControl />
         </nav>
 
         {/* Painel do app (retrátil) — conteúdo montado para preservar estado */}

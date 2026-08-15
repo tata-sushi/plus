@@ -265,7 +265,7 @@ export function Radio() {
             )}
             <div className="min-w-0">
               <div className="text-[11px] font-bold uppercase tracking-wide text-accent">
-                Compartilhando informação e cultura
+                Cultura e Informação
               </div>
               <div className="mt-0.5 flex items-center gap-2">
                 <span className="font-display text-2xl font-bold leading-tight">Rádio Tatá</span>
