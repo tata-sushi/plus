@@ -21,6 +21,19 @@ const VAZIO = {
   ativo: true,
 }
 
+// Normaliza o content-type do áudio pra um MIME que o navegador toca de fato:
+// m4a costuma vir como 'audio/x-m4a', que com nosniff (padrão do storage) o
+// browser recusa. m4a → audio/mp4; mp3 → audio/mpeg; etc.
+function mimeAudio(file) {
+  const t = (file.type || '').toLowerCase()
+  const ext = (file.name.split('.').pop() || '').toLowerCase()
+  if (ext === 'm4a' || t === 'audio/x-m4a' || t === 'audio/m4a') return 'audio/mp4'
+  if (ext === 'mp3' || t === 'audio/mp3') return 'audio/mpeg'
+  if (t.startsWith('audio/')) return t
+  const map = { mp4: 'audio/mp4', aac: 'audio/aac', ogg: 'audio/ogg', wav: 'audio/wav', webm: 'audio/webm' }
+  return map[ext] || 'audio/mpeg'
+}
+
 export function AdminPodcast() {
   const [itens, setItens] = useState([])
   const [carregando, setCarregando] = useState(true)
@@ -119,7 +132,7 @@ export function AdminPodcast() {
         const caminho = `audio/${crypto.randomUUID()}.${ext}`
         const { error } = await supabase.storage
           .from('podcast')
-          .upload(caminho, audioFile, { cacheControl: '3600', contentType: audioFile.type })
+          .upload(caminho, audioFile, { cacheControl: '3600', contentType: mimeAudio(audioFile) })
         if (error) {
           setSalvando(false)
           return setErro('Não foi possível enviar o áudio.')
