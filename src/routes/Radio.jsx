@@ -6,7 +6,7 @@ import { Voltar } from '../components/Voltar.jsx'
 import { useAuth } from '../lib/AuthContext.jsx'
 import { supabase } from '../lib/supabase.js'
 import { cn } from '../lib/cn'
-import { PodcastTab, podcastQtd } from './PodcastTab.jsx'
+import { PodcastTab } from './PodcastTab.jsx'
 
 // Rádio Tatá — espaço colaborativo de descoberta musical. O time compartilha,
 // curte e vota nas músicas; a REPRODUÇÃO acontece no próprio Spotify (tocar
@@ -75,6 +75,13 @@ export function Radio() {
   const ehTester = minhaMatricula === '7'
   const [aba, setAba] = useState('musica')
   const mostrarPodcast = ehTester && aba === 'podcast'
+  const [episodios, setEpisodios] = useState([])
+
+  // Episódios do podcast (só p/ tester) — usados no contador e na aba Podcast.
+  useEffect(() => {
+    if (!ehTester) return
+    supabase.rpc('podcast_listar').then(({ data }) => setEpisodios(Array.isArray(data) ? data : []))
+  }, [ehTester])
 
   // Carrega a lista compartilhada + o líder da semana (backend).
   async function carregarLista() {
@@ -275,7 +282,8 @@ export function Radio() {
               </div>
               <div className="mt-1 text-[11px] text-muted">
                 {lista.length} {lista.length === 1 ? 'música' : 'músicas'}
-                {ehTester && ` · ${podcastQtd} ${podcastQtd === 1 ? 'podcast' : 'podcasts'}`}
+                {ehTester &&
+                  ` · ${episodios.length} ${episodios.length === 1 ? 'podcast' : 'podcasts'}`}
               </div>
             </div>
           </div>
@@ -314,7 +322,7 @@ export function Radio() {
         )}
       </div>
 
-      {mostrarPodcast && <PodcastTab />}
+      {mostrarPodcast && <PodcastTab episodios={episodios} />}
 
       {!mostrarPodcast && (
       <div className="px-5 pb-24">

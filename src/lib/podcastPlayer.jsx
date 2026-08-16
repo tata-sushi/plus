@@ -15,7 +15,6 @@ export const usePodcastPlayer = () => useContext(Ctx)
 
 export function PodcastPlayerProvider({ children }) {
   const audioRef = useRef(null)
-  const [url, setUrl] = useState(null)
   const [carregando, setCarregando] = useState(false)
   const [atual, setAtual] = useState(null) // objeto do episódio no ar
   const [tocando, setTocando] = useState(false)
@@ -26,35 +25,29 @@ export function PodcastPlayerProvider({ children }) {
   const maxRef = useRef(0) // ponto máximo já ouvido (trava o avançar)
   const avisoTimer = useRef(null)
 
-  // O áudio demo (~1MB) carrega sob demanda no 1º play.
-  const garantirUrl = useCallback(async () => {
-    if (url) return url
-    setCarregando(true)
-    const mod = await import('../routes/podcastDemoAudio.js')
-    setCarregando(false)
-    setUrl(mod.podcastDemoAudio)
-    return mod.podcastDemoAudio
-  }, [url])
-
+  // Toca um episódio (áudio hospedado no bucket 'podcast'). Como o player é
+  // global, segue tocando ao navegar. Mesmo episódio → alterna play/pause.
   const tocar = useCallback(
-    async (ep) => {
+    (ep) => {
       const a = audioRef.current
       if (atual?.id === ep.id && a) {
         if (a.paused) a.play()
         else a.pause()
         return
       }
-      const u = await garantirUrl()
+      if (!ep.audio_url) return
       setAtual(ep)
       setTempo(0)
+      setDuracao(0)
       maxRef.current = 0
+      setCarregando(true)
       const el = audioRef.current
       if (!el) return
-      if (!el.src) el.src = u
+      el.src = ep.audio_url
       el.currentTime = 0
       el.play().catch(() => {})
     },
-    [atual, garantirUrl],
+    [atual],
   )
 
   const toggle = useCallback(() => {
@@ -109,9 +102,14 @@ export function PodcastPlayerProvider({ children }) {
       <MiniPlayer />
       <audio
         ref={audioRef}
-        src={url || undefined}
         preload="none"
-        onPlay={() => setTocando(true)}
+        onPlay={() => {
+          setTocando(true)
+          setCarregando(false)
+        }}
+        onPlaying={() => setCarregando(false)}
+        onCanPlay={() => setCarregando(false)}
+        onWaiting={() => setCarregando(true)}
         onPause={() => setTocando(false)}
         onEnded={concluir}
         onSeeking={impedirAvanco}

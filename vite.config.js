@@ -11,9 +11,6 @@ export default defineConfig({
       includeAssets: ['icons/favicon-32.png', 'icons/apple-touch-icon.png'],
       workbox: {
         globPatterns: ['**/*.{js,css,html,png,webp,webmanifest,woff2}'],
-        // Áudio demo do Podcast (~1MB, TESTE matrícula 7): fora do precache pra
-        // não pesar o install de todo mundo — carrega sob demanda só na aba Podcast.
-        globIgnores: ['**/podcastDemoAudio-*.js'],
         navigateFallback: '/index.html',
         navigateFallbackDenylist: [/^\/api/],
         // handlers de push (notificação no celular) — ver public/push-sw.js
@@ -22,6 +19,12 @@ export default defineConfig({
         // StaleWhileRevalidate: abre na hora do cache e revalida em segundo plano,
         // então trocar uma arte no bucket reflete na próxima carga.
         runtimeCaching: [
+          {
+            // Áudio do podcast: NÃO passa pelo cache do SW — streaming + range
+            // requests (seek) não combinam com cache; o browser cuida da rede.
+            urlPattern: /\/storage\/v1\/object\/public\/podcast\/audio\/.*/i,
+            handler: 'NetworkOnly',
+          },
           {
             urlPattern: /^https:\/\/aoqsbusfrffapjglpqjk\.supabase\.co\/storage\/.*/i,
             handler: 'StaleWhileRevalidate',
