@@ -42,11 +42,6 @@ export function PodcastTab({ episodios = [] }) {
 
   return (
     <div className="px-5 pt-1 pb-24">
-      {/* Regra de pontuação */}
-      <div className="mb-4 rounded-xl border border-dashed border-line bg-fill px-3 py-2 text-[11px] leading-snug text-muted-2">
-        🎧 Pra pontuar, <b className="text-muted">ouça até o fim</b> — não dá pra adiantar o áudio.
-      </div>
-
       <div className="mb-2.5 mt-1 hstack items-center justify-between px-0.5">
         <div className="font-display text-sm font-bold">Episódios</div>
         <div className="text-[11px] text-muted-2">
