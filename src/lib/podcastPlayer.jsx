@@ -192,6 +192,13 @@ function MiniPlayer() {
               <Play size={15} fill="currentColor" className="ml-0.5" />
             )}
           </button>
+          <button
+            onClick={p.ciclarVelocidade}
+            aria-label="Velocidade de reprodução"
+            className="rounded-lg bg-fill px-1.5 py-1 text-[10px] font-bold text-muted tap"
+          >
+            {p.velocidade}x
+          </button>
         </div>
       )}
     </>
@@ -228,6 +235,14 @@ export function PodcastRailControl() {
           ) : (
             <Play size={14} fill="currentColor" className="ml-0.5" />
           )}
+        </button>
+        <button
+          onClick={p.ciclarVelocidade}
+          aria-label="Velocidade de reprodução"
+          title={`Velocidade ${p.velocidade}x`}
+          className="rounded-lg bg-bg/70 px-1 py-0.5 text-[10px] font-bold text-muted tap"
+        >
+          {p.velocidade}x
         </button>
       </div>
     </>
