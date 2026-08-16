@@ -45,7 +45,20 @@ export function AdminPodcast() {
     setCapaFile(null)
     setAudioFile(null)
     const proximaOrdem = itens.length ? Math.max(...itens.map((i) => i.ordem || 0)) + 1 : 0
-    setEditando(item ? { ...VAZIO, ...item } : { ...VAZIO, ordem: proximaOrdem })
+    // coalesce null → '' pra não quebrar os inputs controlados nem os .trim() ao salvar
+    setEditando(
+      item
+        ? {
+            ...VAZIO,
+            ...item,
+            titulo: item.titulo || '',
+            legenda: item.legenda || '',
+            publico: item.publico || '',
+            capa_url: item.capa_url || '',
+            audio_url: item.audio_url || '',
+          }
+        : { ...VAZIO, ordem: proximaOrdem },
+    )
   }
   function fechar() {
     setEditando(null)
@@ -77,7 +90,10 @@ export function AdminPodcast() {
   }
 
   const podeSalvar =
-    !!editando && editando.titulo.trim() !== '' && (!!editando.audio_url || !!audioFile) && !salvando
+    !!editando &&
+    (editando.titulo || '').trim() !== '' &&
+    (!!editando.audio_url || !!audioFile) &&
+    !salvando
 
   async function salvar() {
     if (!podeSalvar) return
@@ -112,11 +128,11 @@ export function AdminPodcast() {
       }
       const { error } = await supabase.rpc('podcast_admin_salvar', {
         p_id: editando.id,
-        p_titulo: editando.titulo.trim(),
-        p_legenda: editando.legenda.trim() || null,
+        p_titulo: (editando.titulo || '').trim(),
+        p_legenda: (editando.legenda || '').trim() || null,
         p_capa_url: capa_url || null,
         p_audio_url: audio_url || null,
-        p_publico: editando.publico.trim() || null,
+        p_publico: (editando.publico || '').trim() || null,
         p_pontos: Number(editando.pontos) || 10,
         p_ordem: Number(editando.ordem) || 0,
         p_ativo: editando.ativo,
@@ -126,9 +142,9 @@ export function AdminPodcast() {
       fechar()
       setCarregando(true)
       carregar()
-    } catch {
+    } catch (e) {
       setSalvando(false)
-      setErro('Falha inesperada ao salvar.')
+      setErro(e?.message || 'Falha inesperada ao salvar.')
     }
   }
 
