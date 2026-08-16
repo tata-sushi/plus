@@ -2,6 +2,7 @@ import { createContext, useContext, useRef, useState, useCallback } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { Play, Pause, Radio, Loader2, X } from 'lucide-react'
 import { useDesktop } from './useDesktop.js'
+import { supabase } from './supabase.js'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Player GLOBAL do Podcast (Rádio 2.0). Vive no nível do app (montado no
@@ -89,14 +90,28 @@ export function PodcastPlayerProvider({ children }) {
     const el = e.currentTarget
     if (el.currentTime > maxRef.current + 0.6) el.currentTime = maxRef.current
   }
+  function mostrarAviso(txt) {
+    setAviso(txt)
+    clearTimeout(avisoTimer.current)
+    avisoTimer.current = setTimeout(() => setAviso(''), 3500)
+  }
   function concluir() {
     setTocando(false)
     const ep = atual
-    if (!ep || ep.concluido || concluidos.has(ep.id)) return
-    setConcluidos((s) => new Set(s).add(ep.id))
-    setAviso(`🎉 +${ep.pontos} pts — episódio concluído!`)
-    clearTimeout(avisoTimer.current)
-    avisoTimer.current = setTimeout(() => setAviso(''), 3500)
+    if (!ep || concluidos.has(ep.id)) return
+    // Credita de verdade na carteira (idempotente por episódio no servidor).
+    // Só marca como concluído localmente se o crédito confirmar — assim uma
+    // falha de rede permite tentar de novo ao reouvir.
+    supabase
+      .rpc('podcast_pontuar', { p_episodio: ep.id })
+      .then(({ data, error }) => {
+        if (error || !data?.ok) return mostrarAviso('Episódio concluído ✓')
+        setConcluidos((s) => new Set(s).add(ep.id))
+        mostrarAviso(
+          data.pontuou ? `🎉 +${data.pontos} pts — episódio concluído!` : 'Episódio concluído ✓',
+        )
+      })
+      .catch(() => mostrarAviso('Episódio concluído ✓'))
   }
 
   const pct = duracao ? (tempo / duracao) * 100 : 0
