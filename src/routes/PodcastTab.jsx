@@ -37,7 +37,7 @@ function Capa({ ep, size = 54 }) {
   )
 }
 
-export function PodcastTab({ episodios = [] }) {
+export function PodcastTab({ episodios = [], ouvidos }) {
   const player = usePodcastPlayer()
 
   return (
@@ -61,7 +61,7 @@ export function PodcastTab({ episodios = [] }) {
         <div className="flex flex-col gap-2.5">
           {episodios.map((ep) => {
             const ativo = player.atual?.id === ep.id
-            const concluido = player.estaConcluido(ep)
+            const concluido = (ouvidos && ouvidos.has(ep.id)) || player.estaConcluido(ep)
             return (
               <div
                 key={ep.id}

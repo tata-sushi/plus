@@ -75,10 +75,14 @@ export function Radio() {
   const [aba, setAba] = useState('musica')
   const mostrarPodcast = aba === 'podcast'
   const [episodios, setEpisodios] = useState([])
+  const [ouvidos, setOuvidos] = useState(() => new Set()) // episódios já concluídos (check persistente)
 
-  // Episódios do podcast — usados no contador e na aba Podcast.
+  // Episódios do podcast + os que a pessoa já concluiu.
   useEffect(() => {
     supabase.rpc('podcast_listar').then(({ data }) => setEpisodios(Array.isArray(data) ? data : []))
+    supabase
+      .rpc('podcast_meus_concluidos')
+      .then(({ data }) => setOuvidos(new Set(Array.isArray(data) ? data : [])))
   }, [])
 
   // Carrega a lista compartilhada + o líder da semana (backend).
@@ -315,7 +319,7 @@ export function Radio() {
         </div>
       </div>
 
-      {mostrarPodcast && <PodcastTab episodios={episodios} />}
+      {mostrarPodcast && <PodcastTab episodios={episodios} ouvidos={ouvidos} />}
 
       {!mostrarPodcast && (
       <div className="px-5 pb-24">
