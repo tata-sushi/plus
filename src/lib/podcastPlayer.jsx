@@ -1,6 +1,6 @@
 import { createContext, useContext, useRef, useState, useCallback } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { Play, Pause, Radio, Loader2 } from 'lucide-react'
+import { Play, Pause, Radio, Loader2, X } from 'lucide-react'
 import { useDesktop } from './useDesktop.js'
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -172,6 +172,13 @@ function MiniPlayer() {
           }}
         >
           <button
+            onClick={p.fechar}
+            aria-label="Fechar player"
+            className="grid h-6 w-6 place-items-center rounded-full text-muted-2 tap"
+          >
+            <X size={13} />
+          </button>
+          <button
             onClick={() => navigate('/radio')}
             aria-label="Abrir a Rádio"
             title={p.atual.titulo}
@@ -214,6 +221,13 @@ export function PodcastRailControl() {
     <>
       <span className="my-0.5 h-px w-6 bg-line" />
       <div className="flex flex-col items-center gap-1 rounded-2xl bg-accent-soft p-1">
+        <button
+          onClick={p.fechar}
+          aria-label="Fechar player"
+          className="grid h-6 w-6 place-items-center rounded-full text-muted-2 tap"
+        >
+          <X size={12} />
+        </button>
         <button
           onClick={() => navigate('/radio')}
           aria-label="Abrir a Rádio"

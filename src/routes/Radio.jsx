@@ -71,17 +71,15 @@ export function Radio() {
   const admin = !!usuario?.podePublicar
   const minhaMatricula = String(usuario?.matricula || '')
 
-  // Rádio 2.0 (TESTE): abas Música / Podcast visíveis só para a matrícula 7.
-  const ehTester = minhaMatricula === '7'
+  // Rádio 2.0: abas Música / Podcast (em produção, para todos).
   const [aba, setAba] = useState('musica')
-  const mostrarPodcast = ehTester && aba === 'podcast'
+  const mostrarPodcast = aba === 'podcast'
   const [episodios, setEpisodios] = useState([])
 
-  // Episódios do podcast (só p/ tester) — usados no contador e na aba Podcast.
+  // Episódios do podcast — usados no contador e na aba Podcast.
   useEffect(() => {
-    if (!ehTester) return
     supabase.rpc('podcast_listar').then(({ data }) => setEpisodios(Array.isArray(data) ? data : []))
-  }, [ehTester])
+  }, [])
 
   // Carrega a lista compartilhada + o líder da semana (backend).
   async function carregarLista() {
@@ -282,7 +280,7 @@ export function Radio() {
               </div>
               <div className="mt-1 text-[11px] text-muted">
                 {lista.length} {lista.length === 1 ? 'música' : 'músicas'}
-                {ehTester &&
+                {episodios.length > 0 &&
                   ` · ${episodios.length} ${episodios.length === 1 ? 'podcast' : 'podcasts'}`}
               </div>
             </div>
@@ -292,34 +290,29 @@ export function Radio() {
           </p>
         </div>
 
-        {/* Seletor ABAIXO do card fixo: Playlist / Podcasts (só matrícula 7) */}
-        {ehTester && (
-          <div className="-mt-1 mb-4">
-            <div className="grid grid-cols-2 gap-1 rounded-pill border border-line bg-surface-2 p-1">
-              <button
-                onClick={() => setAba('musica')}
-                className={cn(
-                  'flex items-center justify-center gap-1.5 rounded-pill py-2 text-[13px] font-bold tap',
-                  aba === 'musica' ? 'bg-accent text-black' : 'text-muted',
-                )}
-              >
-                <Music2 size={15} /> Playlist
-              </button>
-              <button
-                onClick={() => setAba('podcast')}
-                className={cn(
-                  'flex items-center justify-center gap-1.5 rounded-pill py-2 text-[13px] font-bold tap',
-                  aba === 'podcast' ? 'bg-accent text-black' : 'text-muted',
-                )}
-              >
-                <Headphones size={15} /> Podcast
-              </button>
-            </div>
-            <div className="mt-1.5 text-center text-[10px] font-semibold uppercase tracking-wide text-muted-2">
-              Rádio 2.0 · prévia da sua matrícula
-            </div>
+        {/* Seletor ABAIXO do card fixo: Playlist / Podcast */}
+        <div className="-mt-1 mb-4">
+          <div className="grid grid-cols-2 gap-1 rounded-pill border border-line bg-surface-2 p-1">
+            <button
+              onClick={() => setAba('musica')}
+              className={cn(
+                'flex items-center justify-center gap-1.5 rounded-pill py-2 text-[13px] font-bold tap',
+                aba === 'musica' ? 'bg-accent text-black' : 'text-muted',
+              )}
+            >
+              <Music2 size={15} /> Playlist
+            </button>
+            <button
+              onClick={() => setAba('podcast')}
+              className={cn(
+                'flex items-center justify-center gap-1.5 rounded-pill py-2 text-[13px] font-bold tap',
+                aba === 'podcast' ? 'bg-accent text-black' : 'text-muted',
+              )}
+            >
+              <Headphones size={15} /> Podcast
+            </button>
           </div>
-        )}
+        </div>
       </div>
 
       {mostrarPodcast && <PodcastTab episodios={episodios} />}
