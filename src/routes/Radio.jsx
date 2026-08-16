@@ -377,8 +377,11 @@ export function Radio() {
               <div className="min-w-0 flex-1">
                 <div className="truncate text-sm font-bold">{semana.titulo || 'Faixa do Spotify'}</div>
                 <div className="mt-0.5 truncate text-[11px] text-muted">Indicada por {semana.por}</div>
-                <div className="mt-1 hstack gap-1 text-[11px] font-semibold text-accent">
-                  <Heart size={12} className="fill-current" /> {semana.curtidas}
+                <div className="mt-1 hstack gap-1.5 text-[11px] font-semibold text-accent">
+                  <Heart size={12} className="fill-current" /> {semana.curtidas} esta semana
+                  <span className="font-medium text-muted-2">
+                    · {semana.total ?? semana.curtidas} no total
+                  </span>
                 </div>
               </div>
               <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-accent text-black">
