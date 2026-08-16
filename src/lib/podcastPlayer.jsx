@@ -13,6 +13,9 @@ import { useDesktop } from './useDesktop.js'
 const Ctx = createContext(null)
 export const usePodcastPlayer = () => useContext(Ctx)
 
+// Velocidades de reprodução (1x até 2x).
+const VELOCIDADES = [1, 1.25, 1.5, 1.75, 2]
+
 export function PodcastPlayerProvider({ children }) {
   const audioRef = useRef(null)
   const [carregando, setCarregando] = useState(false)
@@ -22,8 +25,18 @@ export function PodcastPlayerProvider({ children }) {
   const [duracao, setDuracao] = useState(0)
   const [concluidos, setConcluidos] = useState(() => new Set())
   const [aviso, setAviso] = useState('')
+  const [velocidade, setVelocidadeState] = useState(1)
+  const velRef = useRef(1) // velocidade atual (aplicada mesmo após trocar de faixa)
   const maxRef = useRef(0) // ponto máximo já ouvido (trava o avançar)
   const avisoTimer = useRef(null)
+
+  const ciclarVelocidade = useCallback(() => {
+    const i = VELOCIDADES.indexOf(velRef.current)
+    const nova = VELOCIDADES[(i + 1) % VELOCIDADES.length]
+    velRef.current = nova
+    setVelocidadeState(nova)
+    if (audioRef.current) audioRef.current.playbackRate = nova
+  }, [])
 
   // Toca um episódio (áudio hospedado no bucket 'podcast'). Como o player é
   // global, segue tocando ao navegar. Mesmo episódio → alterna play/pause.
@@ -45,6 +58,7 @@ export function PodcastPlayerProvider({ children }) {
       if (!el) return
       el.src = ep.audio_url
       el.currentTime = 0
+      el.playbackRate = velRef.current
       el.play().catch(() => {})
     },
     [atual],
@@ -93,6 +107,7 @@ export function PodcastPlayerProvider({ children }) {
 
   const value = {
     atual, tocando, tempo, duracao, pct, carregando, aviso,
+    velocidade, ciclarVelocidade,
     tocar, toggle, fechar, estaConcluido,
   }
 
@@ -114,7 +129,10 @@ export function PodcastPlayerProvider({ children }) {
         onEnded={concluir}
         onSeeking={impedirAvanco}
         onTimeUpdate={aoTempo}
-        onLoadedMetadata={(e) => setDuracao(e.currentTarget.duration)}
+        onLoadedMetadata={(e) => {
+          setDuracao(e.currentTarget.duration)
+          e.currentTarget.playbackRate = velRef.current
+        }}
       />
     </Ctx.Provider>
   )

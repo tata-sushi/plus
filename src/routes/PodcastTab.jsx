@@ -73,8 +73,14 @@ export function PodcastTab({ episodios = [] }) {
                 key={ep.id}
                 className={cn('card gap-3 p-2.5 transition-colors', ativo ? 'border-accent/50' : '')}
               >
-                <div className="hstack items-start gap-3">
-                  <Capa ep={ep} />
+                <div className="hstack items-center gap-3">
+                  {/* Capa + pontuação logo abaixo dela (alinhada no centro) */}
+                  <div className="flex shrink-0 flex-col items-center gap-1">
+                    <Capa ep={ep} />
+                    <span className="rounded-pill bg-accent-soft px-2 py-0.5 text-[10px] font-bold text-accent">
+                      +{ep.pontos} pts
+                    </span>
+                  </div>
                   <div className="min-w-0 flex-1">
                     <div className="text-sm font-bold leading-tight">{ep.titulo}</div>
                     {ep.legenda && (
@@ -102,15 +108,6 @@ export function PodcastTab({ episodios = [] }) {
                         </span>
                       )}
                     </div>
-                    <div className="mt-1.5 text-[11px] text-muted-2">
-                      {concluido ? (
-                        <span className="font-semibold text-accent">+{ep.pontos} pts ganhos</span>
-                      ) : (
-                        <>
-                          vale <b className="font-semibold text-muted">+{ep.pontos} pts</b>
-                        </>
-                      )}
-                    </div>
                   </div>
                   <button
                     onClick={() => player.tocar(ep)}
@@ -135,8 +132,15 @@ export function PodcastTab({ episodios = [] }) {
                         style={{ width: `${player.pct}%` }}
                       />
                     </div>
-                    <div className="mt-1 flex justify-between text-[10px] tabular-nums text-muted-2">
+                    <div className="mt-1.5 flex items-center justify-between text-[10px] tabular-nums text-muted-2">
                       <span>{mmss(player.tempo)}</span>
+                      <button
+                        onClick={player.ciclarVelocidade}
+                        aria-label="Velocidade de reprodução"
+                        className="rounded-pill bg-fill px-2 py-0.5 text-[10px] font-bold text-muted tap"
+                      >
+                        {player.velocidade}x
+                      </button>
                       <span>{mmss(player.duracao)}</span>
                     </div>
                   </div>
