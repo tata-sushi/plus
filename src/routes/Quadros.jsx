@@ -72,8 +72,9 @@ import { useDesktopCanvas } from '../lib/desktopCanvas.js'
 import { supabase } from '../lib/supabase.js'
 
 // ── Painel Kanban (Quadros) — ligado ao backend (schema tata_kanban via RPCs) ──
-// Membros criam cartões; editar/mover/arquivar/excluir e gerir o quadro é do
-// admin. Tempo real via realtime do Supabase. Notificação só por @menção.
+// Membros criam cartões e podem mover/arrastar entre listas; editar/arquivar/
+// excluir e gerir o quadro é do admin. Tempo real via realtime do Supabase.
+// Notificação só por @menção.
 
 const CORES = ['#2f7d4f', '#d98a2b', '#c2453f', '#3b6fb3', '#7a4fb3', '#0f766e', '#64748b']
 const TABELAS_RT = ['cards', 'colunas', 'etiquetas', 'membros', 'card_comentarios', 'card_checklist', 'card_anexos']
@@ -98,6 +99,17 @@ const ICONES_QUADRO = {
   festa: PartyPopper,
 }
 const iconeQuadro = (chave) => ICONES_QUADRO[chave] || KanbanSquare
+
+// Cor de fundo do quadro: guardamos o hex "cheio" (ex.: #3b6fb3) e aplicamos como
+// um leve banho translúcido, pra ficar sutil e continuar legível no claro e no
+// escuro. Sem cor (null/''), volta o fundo padrão do tema.
+function corFundoStyle(hex) {
+  if (typeof hex !== 'string') return undefined
+  const m = /^#([0-9a-f]{6})$/i.exec(hex.trim())
+  if (!m) return undefined
+  const n = parseInt(m[1], 16)
+  return { backgroundColor: `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, 0.13)` }
+}
 
 // Ações do quadro compartilhadas com os cartões/colunas (evita threading de props)
 const QuadroCtx = createContext(null)
@@ -489,7 +501,10 @@ function VisaoQuadro({ quadroId, onVoltar, emCanvas, cardInicial, cardNonce }) {
       .filter((g) => g.cols.some((c) => c.cards.length > 0))
   }, [agrupar, colsFiltradas, board])
 
-  const dragEnabled = admin && !filtrando && !agrupar && vista === 'kanban'
+  // Arrastar liberado para qualquer membro do quadro (o backend confere a
+  // participação). Continua só no modo kanban, sem filtro/busca e sem agrupar —
+  // aí a ordem exibida bate com a ordem persistida.
+  const dragEnabled = !filtrando && !agrupar && vista === 'kanban'
   function abrirCard(colId, card) {
     setCardAberto({ modo: admin ? 'editar' : 'ver', cardId: card.id, colunaId: colId })
   }
@@ -525,6 +540,7 @@ function VisaoQuadro({ quadroId, onVoltar, emCanvas, cardInicial, cardNonce }) {
   }
 
   const IconeBoard = iconeQuadro(board.icone)
+  const fundo = corFundoStyle(board.cor_fundo)
   // Barra enxuta no mobile: só nome + participantes + um "⋮" que abre todas as
   // ações e opções (busca, filtros, agrupar, arquivados, gerenciar). Assim o
   // nome do quadro respira. Um pontinho no ⋮ avisa que há filtro/busca ativos.
@@ -625,7 +641,7 @@ function VisaoQuadro({ quadroId, onVoltar, emCanvas, cardInicial, cardNonce }) {
       <div className="flex h-full flex-col bg-bg pt-3">
         {barra}
         {toolbar}
-        <div className="min-h-0 flex-1 overflow-y-auto">{conteudoProvido}</div>
+        <div className="min-h-0 flex-1 overflow-y-auto" style={fundo}>{conteudoProvido}</div>
         {overlays}
       </div>
     )
@@ -635,7 +651,7 @@ function VisaoQuadro({ quadroId, onVoltar, emCanvas, cardInicial, cardNonce }) {
       <Header title="Kanban Tatá" />
       {barra}
       {toolbar}
-      {conteudoProvido}
+      <div className="min-h-full" style={fundo}>{conteudoProvido}</div>
       {overlays}
     </>
   )
@@ -2241,12 +2257,13 @@ function ColunasSheet({ board, onClose, onFeito }) {
 function EditarQuadroSheet({ board, onClose, onFeito }) {
   const [nome, setNome] = useState(board.nome)
   const [icone, setIcone] = useState(board.icone || 'quadro')
+  const [cor, setCor] = useState(board.cor_fundo || '')
   const [salvando, setSalvando] = useState(false)
   async function salvar() {
     if (!nome.trim()) return
     setSalvando(true)
     try {
-      await call('kanban_quadro_set', { p_quadro: board.id, p_nome: nome.trim(), p_icone: icone })
+      await call('kanban_quadro_set', { p_quadro: board.id, p_nome: nome.trim(), p_icone: icone, p_cor_fundo: cor })
       await onFeito()
       onClose()
     } catch (e) {
@@ -2272,6 +2289,30 @@ function EditarQuadroSheet({ board, onClose, onFeito }) {
               className={cn('grid aspect-square place-items-center rounded-card border tap', icone === chave ? 'border-accent bg-accent-soft text-accent' : 'border-line text-muted')}
             >
               <Ic size={20} />
+            </button>
+          ))}
+        </div>
+      </div>
+      <div className="mt-4">
+        <div className="text-[11px] font-semibold uppercase tracking-wide text-muted">Cor de fundo</div>
+        <div className="mt-2 flex flex-wrap gap-2">
+          <button
+            onClick={() => setCor('')}
+            aria-label="Padrão (sem cor)"
+            title="Padrão"
+            className={cn('grid h-9 w-9 place-items-center rounded-full border tap', cor ? 'border-line text-muted-2' : 'border-accent text-accent ring-2 ring-accent')}
+          >
+            <Circle size={16} />
+          </button>
+          {CORES.map((c) => (
+            <button
+              key={c}
+              onClick={() => setCor(c)}
+              aria-label={`Cor ${c}`}
+              className={cn('grid h-9 w-9 place-items-center rounded-full border tap', cor === c ? 'border-accent ring-2 ring-accent' : 'border-line')}
+              style={{ backgroundColor: c }}
+            >
+              {cor === c && <Check size={16} className="text-white" />}
             </button>
           ))}
         </div>
