@@ -101,15 +101,13 @@ const ICONES_QUADRO = {
 }
 const iconeQuadro = (chave) => ICONES_QUADRO[chave] || KanbanSquare
 
-// Cor de fundo do quadro: guardamos o hex "cheio" (ex.: #3b6fb3) e aplicamos como
-// um leve banho translúcido, pra ficar sutil e continuar legível no claro e no
-// escuro. Sem cor (null/''), volta o fundo padrão do tema.
+// Cor de fundo pessoal do quadro: aplica a cor cheia (sólida) atrás das colunas.
+// Sem cor (null/''), volta o fundo padrão do tema.
 function corFundoStyle(hex) {
   if (typeof hex !== 'string') return undefined
-  const m = /^#([0-9a-f]{6})$/i.exec(hex.trim())
-  if (!m) return undefined
-  const n = parseInt(m[1], 16)
-  return { backgroundColor: `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, 0.13)` }
+  const v = hex.trim()
+  if (!/^#[0-9a-f]{6}$/i.test(v)) return undefined
+  return { backgroundColor: v }
 }
 
 // Ações do quadro compartilhadas com os cartões/colunas (evita threading de props)
@@ -409,6 +407,13 @@ function VisaoQuadro({ quadroId, onVoltar, emCanvas, cardInicial, cardNonce }) {
     }
   }, [quadroId])
 
+  // Troca da cor de fundo (pessoal) atualiza só esse campo no board, sem
+  // recarregar o quadro inteiro — evita o re-render/reflow do topo. A cor já é
+  // persistida via RPC pelo próprio sheet.
+  const aplicarCorLocal = useCallback((cor) => {
+    setBoard((b) => (b ? { ...b, cor_fundo: cor || null } : b))
+  }, [])
+
   const timerRef = useRef(null)
   const agendar = useCallback(() => {
     clearTimeout(timerRef.current)
@@ -616,7 +621,7 @@ function VisaoQuadro({ quadroId, onVoltar, emCanvas, cardInicial, cardNonce }) {
       {sheet === 'colunas' && <ColunasSheet board={board} onClose={() => setSheet(null)} onFeito={recarregar} />}
       {sheet === 'arquivados' && <ArquivadosSheet board={board} admin={admin} onClose={() => setSheet(null)} onFeito={recarregar} />}
       {sheet === 'editar' && <EditarQuadroSheet board={board} onClose={() => setSheet(null)} onFeito={recarregar} />}
-      {sheet === 'corfundo' && <CorFundoSheet board={board} onClose={() => setSheet(null)} onFeito={recarregar} />}
+      {sheet === 'corfundo' && <CorFundoSheet board={board} onClose={() => setSheet(null)} onCor={aplicarCorLocal} />}
       {sheet === 'modelos' && <ModelosSheet board={board} onClose={() => setSheet(null)} />}
       {sheet === 'menu' && (
         <MenuGerenciar
@@ -2263,19 +2268,20 @@ function ColunasSheet({ board, onClose, onFeito }) {
 // Preferência por (usuário, quadro): qualquer membro define a SUA cor, aplicada
 // só pra ele. O backend grava em tata_kanban.pref_cor_fundo e o kanban_carregar
 // devolve a cor do usuário logado. Aplica na hora (recarrega o board).
-function CorFundoSheet({ board, onClose, onFeito }) {
+function CorFundoSheet({ board, onClose, onCor }) {
   const [cor, setCor] = useState(board.cor_fundo || '')
   const [salvando, setSalvando] = useState(false)
   async function escolher(nova) {
     if (salvando) return
     const antes = cor
     setCor(nova)
+    onCor(nova) // aplica na hora, sem recarregar o quadro (evita o pulo no topo)
     setSalvando(true)
     try {
       await call('kanban_cor_fundo_set', { p_quadro: board.id, p_cor: nova })
-      await onFeito()
     } catch (e) {
       setCor(antes)
+      onCor(antes) // reverte se falhar
       avisarErro(e)
     } finally {
       setSalvando(false)
