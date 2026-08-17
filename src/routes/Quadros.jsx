@@ -553,7 +553,7 @@ function VisaoQuadro({ quadroId, onVoltar, emCanvas, cardInicial, cardNonce }) {
   const btnQuadro = 'grid h-8 w-8 shrink-0 place-items-center rounded-full tap'
   const btnOff = 'bg-surface text-muted'
   const barra = (
-    <div className="hstack gap-2 px-5 pt-1">
+    <div className="hstack shrink-0 gap-2 px-5 pt-1 pb-2">
       <button onClick={onVoltar} aria-label="Voltar" className={cn(btnQuadro, btnOff)}>
         <ChevronLeft size={18} />
       </button>
@@ -573,7 +573,7 @@ function VisaoQuadro({ quadroId, onVoltar, emCanvas, cardInicial, cardNonce }) {
   )
 
   const toolbar = buscaAberta ? (
-    <div className="mt-2 px-5">
+    <div className="mt-2 shrink-0 px-5">
       <div className="hstack gap-2 rounded-pill border border-line bg-surface px-3 py-1.5">
         <Search size={14} className="shrink-0 text-muted-2" />
         <input autoFocus value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Buscar cartão…" className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-2" />
