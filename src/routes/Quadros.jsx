@@ -47,6 +47,7 @@ import {
   ExternalLink,
   FileText,
   Pencil,
+  Palette,
   KanbanSquare,
   ClipboardList,
   Rocket,
@@ -615,6 +616,7 @@ function VisaoQuadro({ quadroId, onVoltar, emCanvas, cardInicial, cardNonce }) {
       {sheet === 'colunas' && <ColunasSheet board={board} onClose={() => setSheet(null)} onFeito={recarregar} />}
       {sheet === 'arquivados' && <ArquivadosSheet board={board} admin={admin} onClose={() => setSheet(null)} onFeito={recarregar} />}
       {sheet === 'editar' && <EditarQuadroSheet board={board} onClose={() => setSheet(null)} onFeito={recarregar} />}
+      {sheet === 'corfundo' && <CorFundoSheet board={board} onClose={() => setSheet(null)} onFeito={recarregar} />}
       {sheet === 'modelos' && <ModelosSheet board={board} onClose={() => setSheet(null)} />}
       {sheet === 'menu' && (
         <MenuGerenciar
@@ -1875,6 +1877,10 @@ function MenuGerenciar({ board, admin, masterAdmin, vista, setVista, temFiltro, 
             {vista === v && <Check size={16} className="ml-auto" />}
           </button>
         ))}
+        <button className={item} onClick={() => onEscolher('corfundo')}>
+          <Palette size={17} className="text-accent" /> Cor de fundo
+          {board.cor_fundo && <span className="ml-auto h-4 w-4 rounded-full border border-line" style={{ backgroundColor: board.cor_fundo }} />}
+        </button>
       </div>
 
       {admin && (
@@ -2253,17 +2259,69 @@ function ColunasSheet({ board, onClose, onFeito }) {
   )
 }
 
+// ── Cor de fundo (pessoal — cada um escolhe a sua neste quadro) ──────────────
+// Preferência por (usuário, quadro): qualquer membro define a SUA cor, aplicada
+// só pra ele. O backend grava em tata_kanban.pref_cor_fundo e o kanban_carregar
+// devolve a cor do usuário logado. Aplica na hora (recarrega o board).
+function CorFundoSheet({ board, onClose, onFeito }) {
+  const [cor, setCor] = useState(board.cor_fundo || '')
+  const [salvando, setSalvando] = useState(false)
+  async function escolher(nova) {
+    if (salvando) return
+    const antes = cor
+    setCor(nova)
+    setSalvando(true)
+    try {
+      await call('kanban_cor_fundo_set', { p_quadro: board.id, p_cor: nova })
+      await onFeito()
+    } catch (e) {
+      setCor(antes)
+      avisarErro(e)
+    } finally {
+      setSalvando(false)
+    }
+  }
+  return (
+    <Sheet onClose={onClose}>
+      <div className="font-display text-lg font-bold">Cor de fundo</div>
+      <p className="mt-1 text-xs text-muted">Só pra você — cada pessoa escolhe a sua neste quadro.</p>
+      <div className="mt-4 flex flex-wrap gap-2">
+        <button
+          onClick={() => escolher('')}
+          disabled={salvando}
+          aria-label="Padrão (sem cor)"
+          title="Padrão"
+          className={cn('grid h-10 w-10 place-items-center rounded-full border tap disabled:opacity-50', cor ? 'border-line text-muted-2' : 'border-accent text-accent ring-2 ring-accent')}
+        >
+          <Circle size={18} />
+        </button>
+        {CORES.map((c) => (
+          <button
+            key={c}
+            onClick={() => escolher(c)}
+            disabled={salvando}
+            aria-label={`Cor ${c}`}
+            className={cn('grid h-10 w-10 place-items-center rounded-full border tap disabled:opacity-50', cor === c ? 'border-accent ring-2 ring-accent' : 'border-line')}
+            style={{ backgroundColor: c }}
+          >
+            {cor === c && <Check size={18} className="text-white" />}
+          </button>
+        ))}
+      </div>
+    </Sheet>
+  )
+}
+
 // ── Editar quadro (nome + ícone) ─────────────────────────────────────────────
 function EditarQuadroSheet({ board, onClose, onFeito }) {
   const [nome, setNome] = useState(board.nome)
   const [icone, setIcone] = useState(board.icone || 'quadro')
-  const [cor, setCor] = useState(board.cor_fundo || '')
   const [salvando, setSalvando] = useState(false)
   async function salvar() {
     if (!nome.trim()) return
     setSalvando(true)
     try {
-      await call('kanban_quadro_set', { p_quadro: board.id, p_nome: nome.trim(), p_icone: icone, p_cor_fundo: cor })
+      await call('kanban_quadro_set', { p_quadro: board.id, p_nome: nome.trim(), p_icone: icone })
       await onFeito()
       onClose()
     } catch (e) {
@@ -2289,30 +2347,6 @@ function EditarQuadroSheet({ board, onClose, onFeito }) {
               className={cn('grid aspect-square place-items-center rounded-card border tap', icone === chave ? 'border-accent bg-accent-soft text-accent' : 'border-line text-muted')}
             >
               <Ic size={20} />
-            </button>
-          ))}
-        </div>
-      </div>
-      <div className="mt-4">
-        <div className="text-[11px] font-semibold uppercase tracking-wide text-muted">Cor de fundo</div>
-        <div className="mt-2 flex flex-wrap gap-2">
-          <button
-            onClick={() => setCor('')}
-            aria-label="Padrão (sem cor)"
-            title="Padrão"
-            className={cn('grid h-9 w-9 place-items-center rounded-full border tap', cor ? 'border-line text-muted-2' : 'border-accent text-accent ring-2 ring-accent')}
-          >
-            <Circle size={16} />
-          </button>
-          {CORES.map((c) => (
-            <button
-              key={c}
-              onClick={() => setCor(c)}
-              aria-label={`Cor ${c}`}
-              className={cn('grid h-9 w-9 place-items-center rounded-full border tap', cor === c ? 'border-accent ring-2 ring-accent' : 'border-line')}
-              style={{ backgroundColor: c }}
-            >
-              {cor === c && <Check size={16} className="text-white" />}
             </button>
           ))}
         </div>
