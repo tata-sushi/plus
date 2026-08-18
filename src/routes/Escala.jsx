@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Navigate } from 'react-router-dom'
-import { Loader2, ChevronLeft, ChevronRight, CalendarClock, Check, X, Sun, CircleCheck, Coins, MessageCircle, Palmtree, CircleDot } from 'lucide-react'
+import { Loader2, ChevronLeft, ChevronRight, CalendarClock, Check, X, Sun, CircleCheck, Coins, MessageCircle, Palmtree, CircleDot, Info } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Voltar } from '../components/Voltar.jsx'
 import { Avatar } from '../components/Avatar.jsx'
@@ -27,10 +27,10 @@ function tintCell(hex) {
   return { backgroundColor: `rgba(${r}, ${g}, ${b}, 0.16)`, borderColor: `rgba(${r}, ${g}, ${b}, 0.5)` }
 }
 const AUS = {
-  vermelho: { label: 'Falta / suspensão', cor: '#ef4444' },
-  ambar: { label: 'Atestado / licença', cor: '#f59e0b' },
+  vermelho: { label: 'Falta / suspensão', cor: '#ef4444', dentro: 'Falta, Suspensão' },
+  ambar: { label: 'Atestado / licença', cor: '#f59e0b', dentro: 'Atestado, INSS, licença maternidade/paternidade' },
   // Folga/banco em "branco": cartão neutro do tema (branco no claro, surface no escuro).
-  folga: { label: 'Folga / banco de horas', cor: '#64748b', branco: true },
+  folga: { label: 'Folga / banco de horas', cor: '#64748b', branco: true, dentro: 'Folga, folga feriado/aniversário, banco de horas' },
 }
 for (const a of Object.values(AUS)) a.cell = a.branco ? null : tintCell(a.cor)
 // 'Esqueceu o ponto' fica de fora. Vermelho = falta/suspensão; âmbar =
@@ -116,6 +116,7 @@ function Calendario() {
   const [ausencias, setAusencias] = useState(null) // { 'YYYY-MM-DD': { tipo } }
   const [det, setDet] = useState(null) // { info, dia, evts } — detalhe do dia
   const [checando, setChecando] = useState(false)
+  const [legendaAberta, setLegendaAberta] = useState(false)
 
   // Valida a presença de HOJE (+5) de dentro do modal — mesma ação do card da Home.
   async function validarDetalhe() {
@@ -176,6 +177,11 @@ function Calendario() {
   const hoje = hojeISO()
   return (
     <div className="px-5 pt-4 pb-24">
+      <div className="mb-3 flex justify-end">
+        <button onClick={() => setLegendaAberta(true)} aria-label="Legenda" title="Legenda" className="grid h-8 w-8 place-items-center rounded-full bg-surface text-muted tap">
+          <Info size={16} />
+        </button>
+      </div>
       <div className="hstack justify-between">
         <button onClick={() => setMesOffset((o) => o - 1)} aria-label="Mês anterior" className="grid h-8 w-8 place-items-center rounded-full bg-surface text-muted tap">
           <ChevronLeft size={16} />
@@ -278,44 +284,7 @@ function Calendario() {
         )}
       </div>
 
-      <div className="mt-6 flex flex-col items-start gap-5 text-[11px] text-muted">
-        <div className="flex flex-wrap gap-x-4 gap-y-2">
-          <span className="hstack gap-1.5">
-            <span className="h-3.5 w-3.5 rounded border border-accent/30 bg-accent-soft" /> Trabalho
-          </span>
-          <span className="hstack gap-1.5">
-            <span className="grid h-3.5 w-3.5 place-items-center rounded border border-line bg-fill">
-              <Sun size={8} className="text-muted-2" />
-            </span>
-            Folga
-          </span>
-          <span className="hstack gap-1.5">
-            <span className="grid h-3.5 w-3.5 place-items-center rounded border" style={FERIAS_CELL}>
-              <Palmtree size={8} style={{ color: FERIAS_TXT }} />
-            </span>
-            Férias
-          </span>
-          <span className="hstack gap-1.5">
-            <Check size={13} strokeWidth={3} className="text-accent" /> Validou
-          </span>
-          <span className="hstack gap-1.5">
-            <X size={13} strokeWidth={3} className="text-muted-2/70" /> Não pontuou
-          </span>
-        </div>
-        <div className="flex flex-wrap gap-x-4 gap-y-2">
-          {Object.values(AUS).map((a) => (
-            <span key={a.label} className="hstack gap-1.5">
-              <span className={cn('h-3.5 w-3.5 rounded border', a.branco && 'border-line bg-surface')} style={a.branco ? undefined : a.cell} />
-              {a.label}
-            </span>
-          ))}
-        </div>
-        <div className="flex flex-wrap gap-4">
-          <span className="hstack gap-1.5">
-            <MessageCircle size={13} className="text-accent" /> Conversa com o RH
-          </span>
-        </div>
-      </div>
+      {legendaAberta && <LegendaSheet onClose={() => setLegendaAberta(false)} />}
 
       {det && (
         <Folha onClose={() => setDet(null)}>
@@ -401,6 +370,53 @@ function Calendario() {
         </Folha>
       )}
     </div>
+  )
+}
+
+// Legenda completa (abre pelo ⓘ no topo). 3 seções: Ponto, Situações, Agenda.
+function LegendaSheet({ onClose }) {
+  const Titulo = ({ children }) => (
+    <div className="mt-5 text-[11px] font-semibold uppercase tracking-wide text-muted-2 first:mt-4">{children}</div>
+  )
+  const Item = ({ swatch, label, dentro }) => (
+    <div className="hstack items-center gap-2.5">
+      <span className="grid h-4 w-4 shrink-0 place-items-center">{swatch}</span>
+      <div className="min-w-0">
+        <div className="text-sm font-semibold leading-tight">{label}</div>
+        {dentro && <div className="text-[11px] text-muted">{dentro}</div>}
+      </div>
+    </div>
+  )
+  return (
+    <Folha onClose={onClose}>
+      <div className="font-display text-lg font-bold">Legenda</div>
+
+      <Titulo>Ponto</Titulo>
+      <div className="mt-2 flex flex-col gap-2.5">
+        <Item swatch={<Check size={16} strokeWidth={3} className="text-accent" />} label="Pontuou" dentro="Validou a presença do dia (+5)" />
+        <Item swatch={<X size={16} strokeWidth={3} className="text-muted-2/70" />} label="Não pontuou" dentro="Dia de trabalho sem validação" />
+      </div>
+
+      <Titulo>Situações</Titulo>
+      <div className="mt-2 flex flex-col gap-2.5">
+        <Item swatch={<span className="h-4 w-4 rounded border border-accent/30 bg-accent-soft" />} label="Trabalho" dentro="Dia de trabalho com horário" />
+        <Item swatch={<span className="grid h-4 w-4 place-items-center rounded border border-line bg-fill"><Sun size={10} className="text-muted-2" /></span>} label="Folga" dentro="Folga da escala" />
+        <Item swatch={<span className="grid h-4 w-4 place-items-center rounded border" style={FERIAS_CELL}><Palmtree size={10} style={{ color: FERIAS_TXT }} /></span>} label="Férias" dentro="Férias aprovadas" />
+        {Object.values(AUS).map((a) => (
+          <Item
+            key={a.label}
+            swatch={<span className={cn('h-4 w-4 rounded border', a.branco && 'border-line bg-surface')} style={a.branco ? undefined : a.cell} />}
+            label={a.label}
+            dentro={a.dentro}
+          />
+        ))}
+      </div>
+
+      <Titulo>Agenda</Titulo>
+      <div className="mt-2 flex flex-col gap-2.5">
+        <Item swatch={<MessageCircle size={16} className="text-accent" />} label="Conversa com o RH" dentro="Reunião/alinhamento marcado" />
+      </div>
+    </Folha>
   )
 }
 
