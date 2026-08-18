@@ -91,10 +91,22 @@ function Escala() {
 
 function Painel() {
   // Montar escala saiu do app (é feito na governança). O app é só a consulta.
+  const navigate = useNavigate()
+  const [legendaAberta, setLegendaAberta] = useState(false)
   return (
     <>
       <Header title="Agenda" />
+      {/* Voltar (esq.) e legenda ⓘ (dir.) na mesma linha, logo abaixo do header. */}
+      <div className="flex items-center justify-between px-5 pt-2">
+        <button onClick={() => { tapHaptic(); navigate(-1) }} className="hstack gap-1 text-sm font-medium text-muted tap">
+          <ArrowLeft size={16} /> Voltar
+        </button>
+        <button onClick={() => setLegendaAberta(true)} aria-label="Legenda" title="Legenda" className="grid h-8 w-8 place-items-center rounded-full text-muted tap">
+          <Info size={16} />
+        </button>
+      </div>
       <Calendario />
+      {legendaAberta && <LegendaSheet onClose={() => setLegendaAberta(false)} />}
     </>
   )
 }
@@ -115,8 +127,6 @@ function Calendario() {
   const [ausencias, setAusencias] = useState(null) // { 'YYYY-MM-DD': { tipo } }
   const [det, setDet] = useState(null) // { info, dia, evts } — detalhe do dia
   const [checando, setChecando] = useState(false)
-  const [legendaAberta, setLegendaAberta] = useState(false)
-  const navigate = useNavigate()
 
   // Valida a presença de HOJE (+5) de dentro do modal — mesma ação do card da Home.
   async function validarDetalhe() {
@@ -177,14 +187,6 @@ function Calendario() {
   const hoje = hojeISO()
   return (
     <div className="px-5 pt-4 pb-24">
-      <div className="mb-2 flex items-center justify-between">
-        <button onClick={() => { tapHaptic(); navigate(-1) }} className="hstack gap-1 text-sm font-medium text-muted tap">
-          <ArrowLeft size={16} /> Voltar
-        </button>
-        <button onClick={() => setLegendaAberta(true)} aria-label="Legenda" title="Legenda" className="grid h-8 w-8 place-items-center rounded-full text-muted tap">
-          <Info size={16} />
-        </button>
-      </div>
       <div className="hstack justify-between">
         <button onClick={() => setMesOffset((o) => o - 1)} aria-label="Mês anterior" className="grid h-8 w-8 place-items-center rounded-full bg-surface text-muted tap">
           <ChevronLeft size={16} />
@@ -290,8 +292,6 @@ function Calendario() {
           </div>
         )}
       </div>
-
-      {legendaAberta && <LegendaSheet onClose={() => setLegendaAberta(false)} />}
 
       {det && (
         <Folha onClose={() => setDet(null)}>
@@ -406,7 +406,7 @@ function LegendaSheet({ onClose }) {
 
       <Titulo>Situações</Titulo>
       <div className="mt-2 flex flex-col gap-2.5">
-        <Item swatch={<span className="h-4 w-4 rounded border border-accent/30 bg-accent-soft" />} label="Trabalho" dentro="Dia de trabalho com horário" />
+        <Item swatch={<span className="h-4 w-4 rounded border border-accent/30 bg-accent-soft" />} label="Trabalho" dentro="Dias trabalhados" />
         <Item swatch={<span className="grid h-4 w-4 place-items-center rounded border" style={FERIAS_CELL}><Palmtree size={10} style={{ color: FERIAS_TXT }} /></span>} label="Férias" dentro="Férias aprovadas" />
         {Object.values(AUS).map((a) => (
           <Item
