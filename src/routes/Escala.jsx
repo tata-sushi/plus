@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Navigate } from 'react-router-dom'
-import { Loader2, ChevronLeft, ChevronRight, CalendarClock, Check, X, Sun, CircleCheck, Coins, MessageCircle, Palmtree, CircleDot, Info } from 'lucide-react'
+import { Navigate, useNavigate } from 'react-router-dom'
+import { Loader2, ChevronLeft, ChevronRight, CalendarClock, Check, X, Sun, CircleCheck, Coins, MessageCircle, Palmtree, CircleDot, Info, ArrowLeft } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
-import { Voltar } from '../components/Voltar.jsx'
+import { tapHaptic } from '../lib/haptics.js'
 import { Avatar } from '../components/Avatar.jsx'
 import { cn } from '../lib/cn'
 import { useAuth } from '../lib/AuthContext.jsx'
@@ -94,7 +94,6 @@ function Painel() {
   return (
     <>
       <Header title="Agenda" />
-      <Voltar />
       <Calendario />
     </>
   )
@@ -117,6 +116,7 @@ function Calendario() {
   const [det, setDet] = useState(null) // { info, dia, evts } — detalhe do dia
   const [checando, setChecando] = useState(false)
   const [legendaAberta, setLegendaAberta] = useState(false)
+  const navigate = useNavigate()
 
   // Valida a presença de HOJE (+5) de dentro do modal — mesma ação do card da Home.
   async function validarDetalhe() {
@@ -177,7 +177,10 @@ function Calendario() {
   const hoje = hojeISO()
   return (
     <div className="px-5 pt-4 pb-24">
-      <div className="mb-3 flex justify-end">
+      <div className="mb-2 flex items-center justify-between">
+        <button onClick={() => { tapHaptic(); navigate(-1) }} className="hstack gap-1 text-sm font-medium text-muted tap">
+          <ArrowLeft size={16} /> Voltar
+        </button>
         <button onClick={() => setLegendaAberta(true)} aria-label="Legenda" title="Legenda" className="grid h-8 w-8 place-items-center rounded-full text-muted tap">
           <Info size={16} />
         </button>
