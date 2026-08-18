@@ -28,25 +28,24 @@ function tintCell(hex) {
 }
 const AUS = {
   falta: { label: 'Falta', cor: '#ef4444' },
+  justif: { label: 'Atestado / licença', cor: '#f59e0b' },
   suspensao: { label: 'Suspensão', cor: '#64748b' },
-  atestado: { label: 'Atestado', cor: '#f59e0b' },
-  licenca: { label: 'Licença / afastamento', cor: '#8b5cf6' },
   banco: { label: 'Banco de horas', cor: '#0ea5e9' },
-  folga_esp: { label: 'Folga', cor: '#14b8a6' },
+  folga_esp: { label: 'Folga especial', cor: '#14b8a6' },
   ponto: { label: 'Esqueceu o ponto', cor: '#94a3b8' },
 }
 for (const a of Object.values(AUS)) a.cell = tintCell(a.cor)
+// 'Folga' normal fica de fora (não é ausência). Os demais tipos entram.
 const TIPO_GRUPO = {
   Falta: 'falta',
+  Atestado: 'justif',
+  'Atestado Médico': 'justif',
+  'Afastamento INSS': 'justif',
+  'Licença Maternidade': 'justif',
+  'Licença Paternidade': 'justif',
   Suspensão: 'suspensao',
   'Suspensão de Contrato': 'suspensao',
-  Atestado: 'atestado',
-  'Atestado Médico': 'atestado',
-  'Afastamento INSS': 'licenca',
-  'Licença Maternidade': 'licenca',
-  'Licença Paternidade': 'licenca',
   'Banco de Horas': 'banco',
-  Folga: 'folga_esp',
   'Folga Aniversário': 'folga_esp',
   'Folga Feriado': 'folga_esp',
   'Trabalhou, mas esqueceu de registrar o ponto': 'ponto',
