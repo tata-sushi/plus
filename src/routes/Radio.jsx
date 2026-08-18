@@ -202,9 +202,15 @@ export function Radio() {
 
   async function curtir(m) {
     // Otimista: reflete na hora; reconcilia com a resposta do servidor.
+    // A curtida é por semana: 'semana' (contagem desta semana) e 'curtidas'
+    // (total acumulado) andam juntas ao curtir/descurtir. euCurti = curtiu
+    // NESTA semana — em semana nova volta a false e dá pra votar de novo.
+    const d = m.euCurti ? -1 : 1
     setLista((l) =>
       l.map((x) =>
-        x.id === m.id ? { ...x, euCurti: !x.euCurti, curtidas: x.curtidas + (x.euCurti ? -1 : 1) } : x,
+        x.id === m.id
+          ? { ...x, euCurti: !x.euCurti, curtidas: x.curtidas + d, semana: (x.semana || 0) + d }
+          : x,
       ),
     )
     const { data, error } = await supabase.rpc('radio_curtir_toggle', { p_musica: m.id })
@@ -212,8 +218,8 @@ export function Radio() {
       l.map((x) =>
         x.id === m.id
           ? error || !data?.ok
-            ? { ...x, euCurti: m.euCurti, curtidas: m.curtidas } // reverte
-            : { ...x, euCurti: data.euCurti, curtidas: data.curtidas }
+            ? { ...x, euCurti: m.euCurti, curtidas: m.curtidas, semana: m.semana } // reverte
+            : { ...x, euCurti: data.euCurti, curtidas: data.curtidas, semana: data.semana }
           : x,
       ),
     )
@@ -425,7 +431,10 @@ export function Radio() {
                   <Capa src={m.capa} />
                   <div className="min-w-0 flex-1">
                     <div className="truncate text-sm font-semibold">{m.titulo || 'Faixa do Spotify'}</div>
-                    <div className="truncate text-[11px] text-muted">por {m.por}</div>
+                    <div className="truncate text-[11px] text-muted">
+                      por {m.por}
+                      {m.semana > 0 && <span className="font-semibold text-accent"> · {m.semana} esta semana</span>}
+                    </div>
                   </div>
                   <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-accent text-black">
                     <Play size={14} fill="currentColor" />
