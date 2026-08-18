@@ -27,28 +27,24 @@ function tintCell(hex) {
   return { backgroundColor: `rgba(${r}, ${g}, ${b}, 0.16)`, borderColor: `rgba(${r}, ${g}, ${b}, 0.5)` }
 }
 const AUS = {
-  falta: { label: 'Falta', cor: '#ef4444' },
-  justif: { label: 'Atestado / licença', cor: '#f59e0b' },
-  suspensao: { label: 'Suspensão', cor: '#64748b' },
-  banco: { label: 'Banco de horas', cor: '#0ea5e9' },
-  folga_esp: { label: 'Folga especial', cor: '#14b8a6' },
-  ponto: { label: 'Esqueceu o ponto', cor: '#94a3b8' },
+  vermelho: { label: 'Falta / suspensão', cor: '#ef4444' },
+  ambar: { label: 'Atestado / licença / folga', cor: '#f59e0b' },
 }
 for (const a of Object.values(AUS)) a.cell = tintCell(a.cor)
-// 'Folga' normal fica de fora (não é ausência). Os demais tipos entram.
+// 'Folga' normal e 'esqueceu o ponto' ficam de fora. Vermelho = falta/suspensão;
+// âmbar = tudo o mais (atestado, licença, banco de horas, folga especial).
 const TIPO_GRUPO = {
-  Falta: 'falta',
-  Atestado: 'justif',
-  'Atestado Médico': 'justif',
-  'Afastamento INSS': 'justif',
-  'Licença Maternidade': 'justif',
-  'Licença Paternidade': 'justif',
-  Suspensão: 'suspensao',
-  'Suspensão de Contrato': 'suspensao',
-  'Banco de Horas': 'banco',
-  'Folga Aniversário': 'folga_esp',
-  'Folga Feriado': 'folga_esp',
-  'Trabalhou, mas esqueceu de registrar o ponto': 'ponto',
+  Falta: 'vermelho',
+  Suspensão: 'vermelho',
+  'Suspensão de Contrato': 'vermelho',
+  Atestado: 'ambar',
+  'Atestado Médico': 'ambar',
+  'Afastamento INSS': 'ambar',
+  'Licença Maternidade': 'ambar',
+  'Licença Paternidade': 'ambar',
+  'Banco de Horas': 'ambar',
+  'Folga Aniversário': 'ambar',
+  'Folga Feriado': 'ambar',
 }
 const grupoAus = (tipo) => AUS[TIPO_GRUPO[tipo]] || null
 
