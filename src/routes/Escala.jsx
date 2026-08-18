@@ -30,7 +30,7 @@ const AUS = {
   vermelho: { label: 'Falta / suspensão', cor: '#ef4444', dentro: 'Falta, Suspensão' },
   ambar: { label: 'Atestado / licença', cor: '#f59e0b', dentro: 'Atestado, INSS, licença maternidade/paternidade' },
   // Folga/banco em "branco": cartão neutro do tema (branco no claro, surface no escuro).
-  folga: { label: 'Folga / banco de horas', cor: '#64748b', branco: true, dentro: 'Folga, folga feriado/aniversário, banco de horas' },
+  folga: { label: 'Folga / banco de horas', cor: '#64748b', branco: true, dentro: 'Folga da escala, folga feriado/aniversário, banco de horas' },
 }
 for (const a of Object.values(AUS)) a.cell = a.branco ? null : tintCell(a.cor)
 // 'Esqueceu o ponto' fica de fora. Vermelho = falta/suspensão; âmbar =
@@ -178,7 +178,7 @@ function Calendario() {
   return (
     <div className="px-5 pt-4 pb-24">
       <div className="mb-3 flex justify-end">
-        <button onClick={() => setLegendaAberta(true)} aria-label="Legenda" title="Legenda" className="grid h-8 w-8 place-items-center rounded-full bg-surface text-muted tap">
+        <button onClick={() => setLegendaAberta(true)} aria-label="Legenda" title="Legenda" className="grid h-8 w-8 place-items-center rounded-full text-muted tap">
           <Info size={16} />
         </button>
       </div>
@@ -244,7 +244,7 @@ function Calendario() {
                         : trab
                           ? 'border-accent/30 bg-accent-soft'
                           : folga
-                            ? 'border-line bg-fill'
+                            ? 'border-line bg-surface'
                             : 'border-line',
               )}
             >
@@ -265,7 +265,11 @@ function Calendario() {
               {noMes && ehFerias ? (
                 <Palmtree size={9} style={{ color: FERIAS_TXT }} />
               ) : noMes && gAus ? (
-                <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: gAus.cor }} />
+                gAus.branco ? (
+                  <Sun size={9} className="text-muted-2" />
+                ) : (
+                  <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: gAus.cor }} />
+                )
               ) : (
                 <>
                   {noMes && folga && <Sun size={9} className="text-muted-2" />}
@@ -400,12 +404,19 @@ function LegendaSheet({ onClose }) {
       <Titulo>Situações</Titulo>
       <div className="mt-2 flex flex-col gap-2.5">
         <Item swatch={<span className="h-4 w-4 rounded border border-accent/30 bg-accent-soft" />} label="Trabalho" dentro="Dia de trabalho com horário" />
-        <Item swatch={<span className="grid h-4 w-4 place-items-center rounded border border-line bg-fill"><Sun size={10} className="text-muted-2" /></span>} label="Folga" dentro="Folga da escala" />
         <Item swatch={<span className="grid h-4 w-4 place-items-center rounded border" style={FERIAS_CELL}><Palmtree size={10} style={{ color: FERIAS_TXT }} /></span>} label="Férias" dentro="Férias aprovadas" />
         {Object.values(AUS).map((a) => (
           <Item
             key={a.label}
-            swatch={<span className={cn('h-4 w-4 rounded border', a.branco && 'border-line bg-surface')} style={a.branco ? undefined : a.cell} />}
+            swatch={
+              a.branco ? (
+                <span className="grid h-4 w-4 place-items-center rounded border border-line bg-surface">
+                  <Sun size={10} className="text-muted-2" />
+                </span>
+              ) : (
+                <span className="h-4 w-4 rounded border" style={a.cell} />
+              )
+            }
             label={a.label}
             dentro={a.dentro}
           />
