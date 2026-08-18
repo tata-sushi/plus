@@ -431,10 +431,7 @@ export function Radio() {
                   <Capa src={m.capa} />
                   <div className="min-w-0 flex-1">
                     <div className="truncate text-sm font-semibold">{m.titulo || 'Faixa do Spotify'}</div>
-                    <div className="truncate text-[11px] text-muted">
-                      por {m.por}
-                      {m.semana > 0 && <span className="font-semibold text-accent"> · {m.semana} esta semana</span>}
-                    </div>
+                    <div className="truncate text-[11px] text-muted">por {m.por}</div>
                   </div>
                   <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-accent text-black">
                     <Play size={14} fill="currentColor" />
@@ -448,7 +445,8 @@ export function Radio() {
                       m.euCurti ? 'bg-accent-soft text-accent' : 'bg-fill text-muted',
                     )}
                   >
-                    <Heart size={13} className={cn(m.euCurti && 'fill-current')} /> {m.curtidas}
+                    <Heart size={13} className={cn(m.euCurti && 'fill-current')} /> {m.semana ?? 0}
+                    <span className="font-normal opacity-60">· {m.curtidas}</span>
                   </button>
                   {(admin || m.porMatricula === minhaMatricula) && (
                     <button
