@@ -103,7 +103,7 @@ function Painel() {
   const navigate = useNavigate()
   const [legendaAberta, setLegendaAberta] = useState(false)
   return (
-    <>
+    <div className="flex min-h-[calc(100dvh-6rem)] flex-col">
       <Header title="Agenda" />
       {/* Voltar (igual às outras páginas) + legenda ⓘ na mesma linha. O ⓘ é
           pequeno (não aumenta a altura da linha); o padding/margem negativa dá
@@ -117,8 +117,12 @@ function Painel() {
         </button>
       </div>
       <Calendario />
+      {/* Aviso no rodapé — empurrado pro fundo, logo acima da barra de navegação. */}
+      <p className="mt-auto px-5 pb-3 pt-8 text-[10px] leading-relaxed text-muted-2">
+        Informações de fácil acesso e visualização — não substituem o documento oficial, como o cartão de ponto.
+      </p>
       {legendaAberta && <LegendaSheet onClose={() => setLegendaAberta(false)} />}
-    </>
+    </div>
   )
 }
 
@@ -207,7 +211,7 @@ function Calendario() {
 
   const hoje = hojeISO()
   return (
-    <div className="px-5 pt-4 pb-24">
+    <div className="px-5 pt-4">
       <div className="hstack justify-between">
         <button onClick={() => setMesOffset((o) => o - 1)} aria-label="Mês anterior" className="grid h-8 w-8 place-items-center rounded-full text-muted tap">
           <ChevronLeft size={16} />
@@ -347,18 +351,13 @@ function Calendario() {
       </div>
 
       {/* Saldo do banco de horas — texto direto na página (sem card) */}
-      <div className="mt-4 hstack items-center justify-between px-1">
+      <div className="mt-4 hstack items-center justify-between px-4">
         <div className="min-w-0">
           <div className="text-sm font-semibold">Saldo do banco de horas</div>
           {banco?.data && <div className="text-[11px] text-muted">até {banco.data}</div>}
         </div>
         <div className="shrink-0 text-lg font-bold">{banco == null ? '—' : fmtHoras(banco.saldo)}</div>
       </div>
-
-      {/* Aviso de rodapé */}
-      <p className="mt-6 px-1 text-[10px] leading-relaxed text-muted-2">
-        Informações de fácil acesso e visualização — não substituem o documento oficial, como o cartão de ponto.
-      </p>
 
       {det && (
         <Folha onClose={() => setDet(null)}>
