@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Navigate, useNavigate } from 'react-router-dom'
-import { Loader2, ChevronLeft, ChevronRight, CalendarClock, Check, X, Sun, CircleCheck, Coins, MessageCircle, Palmtree, CircleDot, Info, ArrowLeft } from 'lucide-react'
+import { Loader2, ChevronLeft, ChevronRight, CalendarClock, Check, X, Sun, CircleCheck, Coins, MessageCircle, Palmtree, CircleDot, Info, ArrowLeft, Clock } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { tapHaptic } from '../lib/haptics.js'
 import { Avatar } from '../components/Avatar.jsx'
@@ -60,6 +60,15 @@ function segunda(offset) {
   return x
 }
 const hm = (t) => (t ? String(t).slice(0, 5) : '')
+// Saldo do banco de horas (decimal) → "12h30". 0 → "0h".
+function fmtHoras(v) {
+  const n = Number(v) || 0
+  const abs = Math.abs(n)
+  let h = Math.floor(abs)
+  let m = Math.round((abs - h) * 60)
+  if (m === 60) { h += 1; m = 0 }
+  return `${n < 0 ? '−' : ''}${h}h${m > 0 ? String(m).padStart(2, '0') : ''}`
+}
 const hojeISO = () => isoLocal(new Date())
 const ddmm = (iso) => {
   const p = String(iso).split('-')
@@ -129,15 +138,25 @@ function Calendario() {
   const [ausencias, setAusencias] = useState(null) // { 'YYYY-MM-DD': { tipo } }
   const [det, setDet] = useState(null) // { info, dia, evts } — detalhe do dia
   const [checando, setChecando] = useState(false)
+  const [banco, setBanco] = useState(null) // { data, saldo }
+  const [chk, setChk] = useState(null) // { data, controla, tem_hoje, confirmado }
 
-  // Valida a presença de HOJE (+5) de dentro do modal — mesma ação do card da Home.
-  async function validarDetalhe() {
-    if (!det) return
+  // Banco de horas e status de presença de HOJE — independem do mês exibido.
+  useEffect(() => {
+    let a = true
+    call('escala_banco_horas').then((d) => a && setBanco(d && typeof d === 'object' ? d : null)).catch(() => {})
+    call('escala_check_status').then((d) => a && setChk(d && typeof d === 'object' ? d : null)).catch(() => {})
+    return () => { a = false }
+  }, [])
+
+  // Confirma a presença de HOJE (+5). Reflete no card e no dia de hoje do calendário.
+  async function validarHoje() {
+    if (!chk?.tem_hoje || chk?.confirmado || checando) return
     setChecando(true)
     try {
       await call('escala_check')
-      const iso = isoLocal(det.dia)
-      setDet((c) => (c ? { ...c, info: { ...c.info, validado: true } } : c))
+      setChk((c) => ({ ...(c || {}), confirmado: true }))
+      const iso = hojeISO()
       setMapa((m) => (m ? { ...m, [iso]: { ...(m[iso] || {}), validado: true } } : m))
     } catch (e) {
       avisar(e)
@@ -295,6 +314,54 @@ function Calendario() {
         )}
       </div>
 
+      {/* Saldo do banco de horas */}
+      <div className="mt-5 hstack items-center justify-between rounded-card border border-line bg-surface px-4 py-3.5">
+        <div className="hstack gap-2.5">
+          <span className="grid h-9 w-9 place-items-center rounded-full bg-accent-soft text-accent">
+            <Clock size={18} />
+          </span>
+          <div>
+            <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-2">Saldo do banco de horas</div>
+            <div className="text-lg font-bold leading-tight">{banco == null ? '—' : fmtHoras(banco.saldo)}</div>
+          </div>
+        </div>
+        {banco?.data && <span className="text-[11px] text-muted">até {banco.data}</span>}
+      </div>
+
+      {/* Confirmação de presença de hoje (saiu do modal) */}
+      <div className="mt-3 hstack items-center justify-between rounded-card border border-line bg-surface px-4 py-3">
+        <div className="min-w-0">
+          <div className="text-sm font-semibold">Confirmação de presença</div>
+          <div className="text-[11px] text-muted">
+            {chk == null
+              ? '…'
+              : !chk.tem_hoje
+                ? 'Hoje não é dia de ponto'
+                : chk.confirmado
+                  ? 'Presença de hoje confirmada'
+                  : 'Confirme sua presença de hoje'}
+          </div>
+        </div>
+        {chk?.tem_hoje &&
+          (chk.confirmado ? (
+            <span className="hstack shrink-0 gap-1.5 rounded-pill bg-accent-soft px-3 py-1.5 text-xs font-semibold text-carbon dark:text-accent">
+              <CircleCheck size={16} /> Confirmada
+            </span>
+          ) : (
+            <button
+              onClick={validarHoje}
+              disabled={checando}
+              className="btn-primary hstack shrink-0 items-center gap-1.5 px-3 py-2 text-sm disabled:opacity-50"
+            >
+              {checando ? <Loader2 size={14} className="animate-spin" /> : <CircleCheck size={16} />}
+              Confirmar
+              <span className="hstack shrink-0 gap-1 rounded-pill bg-black/15 px-1.5 py-0.5 text-[11px] font-bold">
+                <Coins size={11} /> +5
+              </span>
+            </button>
+          ))}
+      </div>
+
       {det && (
         <Folha onClose={() => setDet(null)}>
           <div className="hstack gap-3">
@@ -357,25 +424,6 @@ function Calendario() {
               </div>
             ))}
           </div>
-          {isoLocal(det.dia) === hoje && det.info && !det.info.folga && !det.fer && !det.aus && (
-            det.info.validado ? (
-              <div className="mt-3 hstack justify-center gap-2 rounded-card border border-accent/40 bg-accent-soft px-4 py-3 text-sm font-semibold text-carbon dark:text-accent">
-                <CircleCheck size={18} /> Presença confirmada
-              </div>
-            ) : (
-              <button
-                onClick={validarDetalhe}
-                disabled={checando}
-                className="btn-primary mt-3 hstack w-full items-center justify-center gap-2 py-3 text-sm disabled:opacity-50"
-              >
-                {checando ? <Loader2 size={16} className="animate-spin" /> : <CircleCheck size={16} />}
-                Validar presença de hoje
-                <span className="hstack shrink-0 gap-1 rounded-pill bg-black/15 px-2 py-0.5 text-xs font-bold">
-                  <Coins size={12} /> +5
-                </span>
-              </button>
-            )
-          )}
         </Folha>
       )}
     </div>
