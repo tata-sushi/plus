@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Navigate } from 'react-router-dom'
-import { Loader2, ChevronLeft, ChevronRight, CalendarClock, Check, X, Sun, CircleCheck, Coins, MessageCircle } from 'lucide-react'
+import { Loader2, ChevronLeft, ChevronRight, CalendarClock, Check, X, Sun, CircleCheck, Coins, MessageCircle, Palmtree } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Voltar } from '../components/Voltar.jsx'
 import { Avatar } from '../components/Avatar.jsx'
@@ -14,6 +14,11 @@ import { supabase } from '../lib/supabase.js'
 // revezamento e "vale a partir de"), que o backend materializa semana a semana.
 // O líder pode fazer um ajuste PONTUAL num dia (override manual) sem mexer no molde.
 const DIAS = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom']
+
+// Férias: o tema não tem token azul, então uso um azul suave inline que fica
+// legível no claro e no escuro (distinto de Trabalho/accent e Folga/fill).
+const FERIAS_CELL = { backgroundColor: 'rgb(59 130 246 / 0.16)', borderColor: 'rgb(59 130 246 / 0.45)' }
+const FERIAS_TXT = '#3b82f6'
 
 const pad = (n) => String(n).padStart(2, '0')
 const isoLocal = (d) => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate())
@@ -76,6 +81,7 @@ function Calendario() {
   const [mesOffset, setMesOffset] = useState(0)
   const [mapa, setMapa] = useState(null) // { 'YYYY-MM-DD': { entrada, saida, folga, marcacoes } }
   const [eventos, setEventos] = useState(null) // { 'YYYY-MM-DD': [ { tipo, hora, titulo, status } ] }
+  const [ferias, setFerias] = useState(null) // { 'YYYY-MM-DD': { aprovado } }
   const [det, setDet] = useState(null) // { info, dia, evts } — detalhe do dia
   const [checando, setChecando] = useState(false)
 
@@ -116,12 +122,16 @@ function Calendario() {
     let a = true
     setMapa(null)
     setEventos(null)
+    setFerias(null)
     call('escala_meu_periodo', { p_inicio: grid.startISO, p_fim: grid.endISO })
       .then((d) => a && setMapa(d && typeof d === 'object' ? d : {}))
       .catch(() => a && setMapa({}))
     call('agenda_meus_eventos', { p_inicio: grid.startISO, p_fim: grid.endISO })
       .then((d) => a && setEventos(d && typeof d === 'object' ? d : {}))
       .catch(() => a && setEventos({}))
+    call('escala_ferias_periodo', { p_inicio: grid.startISO, p_fim: grid.endISO })
+      .then((d) => a && setFerias(d && typeof d === 'object' ? d : {}))
+      .catch(() => a && setFerias({}))
     return () => {
       a = false
     }
@@ -158,18 +168,21 @@ function Calendario() {
           const noMes = d.getMonth() === mes
           const info = mapa?.[iso]
           const evts = eventos?.[iso]
+          const fer = noMes ? ferias?.[iso] : null
+          const ehFerias = !!fer
           const temEvt = noMes && Array.isArray(evts) && evts.length > 0
           const isHoje = iso === hoje
-          const folga = !!info?.folga
-          const trab = !!info && !info.folga
+          const folga = !ehFerias && !!info?.folga
+          const trab = !ehFerias && !!info && !info.folga
           const pares = paresDe(info)
-          const clicavel = noMes && (!!info || temEvt)
+          const clicavel = noMes && (!!info || temEvt || ehFerias)
           return (
             <button
               key={iso}
               type="button"
-              onClick={clicavel ? () => setDet({ info, dia: d, evts }) : undefined}
+              onClick={clicavel ? () => setDet({ info, dia: d, evts, fer }) : undefined}
               disabled={!clicavel}
+              style={ehFerias && !isHoje ? FERIAS_CELL : undefined}
               className={cn(
                 'relative flex aspect-square flex-col items-center justify-center gap-0.5 rounded-lg border text-[11px]',
                 clicavel && 'tap',
@@ -177,11 +190,13 @@ function Calendario() {
                   ? 'border-transparent text-muted-2/40'
                   : isHoje
                     ? 'border-accent ring-1 ring-accent'
-                    : trab
-                      ? 'border-accent/30 bg-accent-soft'
-                      : folga
-                        ? 'border-line bg-fill'
-                        : 'border-line',
+                    : ehFerias
+                      ? ''
+                      : trab
+                        ? 'border-accent/30 bg-accent-soft'
+                        : folga
+                          ? 'border-line bg-fill'
+                          : 'border-line',
               )}
             >
               {/* dia passado de trabalho: ✓ validou o check / ✗ não pontuou */}
@@ -192,10 +207,21 @@ function Calendario() {
                   <X size={9} strokeWidth={3} className="absolute right-0.5 top-0.5 text-muted-2/70" />
                 ))}
               {temEvt && <span className="absolute bottom-1 left-1/2 h-1.5 w-5 -translate-x-1/2 rounded-full bg-accent" />}
-              <span className={cn('font-bold', isHoje ? 'text-accent' : trab ? 'text-carbon dark:text-accent' : '')}>{d.getDate()}</span>
-              {noMes && folga && <Sun size={9} className="text-muted-2" />}
-              {noMes && trab && pares.length > 0 && (
-                <span className="text-[8px] font-semibold text-muted">{pares[0][0]}</span>
+              <span
+                className={cn('font-bold', isHoje ? 'text-accent' : trab ? 'text-carbon dark:text-accent' : '')}
+                style={ehFerias && !isHoje ? { color: FERIAS_TXT } : undefined}
+              >
+                {d.getDate()}
+              </span>
+              {noMes && ehFerias ? (
+                <Palmtree size={9} style={{ color: FERIAS_TXT }} />
+              ) : (
+                <>
+                  {noMes && folga && <Sun size={9} className="text-muted-2" />}
+                  {noMes && trab && pares.length > 0 && (
+                    <span className="text-[8px] font-semibold text-muted">{pares[0][0]}</span>
+                  )}
+                </>
               )}
             </button>
           )
@@ -217,6 +243,12 @@ function Calendario() {
               <Sun size={8} className="text-muted-2" />
             </span>
             Folga
+          </span>
+          <span className="hstack gap-1.5">
+            <span className="grid h-3.5 w-3.5 place-items-center rounded border" style={FERIAS_CELL}>
+              <Palmtree size={8} style={{ color: FERIAS_TXT }} />
+            </span>
+            Férias
           </span>
           <span className="hstack gap-1.5">
             <Check size={13} strokeWidth={3} className="text-accent" /> Validou
@@ -246,7 +278,13 @@ function Calendario() {
             </div>
           </div>
           <div className="mt-4 flex flex-col gap-3">
-            {det.info &&
+            {det.fer && (
+              <div className="hstack items-center gap-2 rounded-card border px-4 py-3 text-sm font-semibold" style={{ ...FERIAS_CELL, color: FERIAS_TXT }}>
+                <Palmtree size={16} /> Férias
+                <span className="ml-auto text-[11px] font-medium opacity-80">{det.fer.aprovado ? 'aprovada' : 'a confirmar'}</span>
+              </div>
+            )}
+            {det.info && !det.fer &&
               (det.info.folga ? (
                 <div className="hstack gap-2 rounded-card border border-line bg-fill px-4 py-3 text-sm font-semibold text-muted">
                   <Sun size={16} /> {det.info.tipo_folga || 'Folga'}
@@ -281,7 +319,7 @@ function Calendario() {
               </div>
             ))}
           </div>
-          {isoLocal(det.dia) === hoje && det.info && !det.info.folga && (
+          {isoLocal(det.dia) === hoje && det.info && !det.info.folga && !det.fer && (
             det.info.validado ? (
               <div className="mt-3 hstack justify-center gap-2 rounded-card border border-accent/40 bg-accent-soft px-4 py-3 text-sm font-semibold text-carbon dark:text-accent">
                 <CircleCheck size={18} /> Presença confirmada
