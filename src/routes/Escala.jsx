@@ -103,7 +103,7 @@ function Painel() {
   const navigate = useNavigate()
   const [legendaAberta, setLegendaAberta] = useState(false)
   return (
-    <div className="flex min-h-[calc(100dvh-6rem)] flex-col">
+    <div className="flex min-h-[calc(100dvh-5rem)] flex-col">
       <Header title="Agenda" />
       {/* Voltar (igual às outras páginas) + legenda ⓘ na mesma linha. O ⓘ é
           pequeno (não aumenta a altura da linha); o padding/margem negativa dá
@@ -118,7 +118,7 @@ function Painel() {
       </div>
       <Calendario />
       {/* Aviso no rodapé — empurrado pro fundo, logo acima da barra de navegação. */}
-      <p className="mt-auto px-5 pb-3 pt-8 text-[10px] leading-relaxed text-muted-2">
+      <p className="mt-auto px-6 pb-2 pt-8 text-center text-[10px] leading-relaxed text-muted-2">
         Informações de fácil acesso e visualização — não substituem o documento oficial, como o cartão de ponto.
       </p>
       {legendaAberta && <LegendaSheet onClose={() => setLegendaAberta(false)} />}
@@ -210,6 +210,7 @@ function Calendario() {
   }, [grid.startISO, grid.endISO])
 
   const hoje = hojeISO()
+  const horarioHoje = chk ? paresDe(chk).map((p) => `${p[0]}–${p[1]}`).join(' · ') : ''
   return (
     <div className="px-5 pt-4">
       <div className="hstack justify-between">
@@ -327,9 +328,9 @@ function Calendario() {
               ? '…'
               : !chk.tem_hoje
                 ? 'Hoje não é dia de ponto'
-                : chk.confirmado
-                  ? 'Presença de hoje confirmada'
-                  : 'Confirme sua presença de hoje · +5'}
+                : horarioHoje
+                  ? `Hoje • ${horarioHoje}`
+                  : 'Hoje'}
           </div>
         </div>
         {chk?.tem_hoje &&
