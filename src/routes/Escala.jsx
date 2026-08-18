@@ -28,11 +28,12 @@ function tintCell(hex) {
 }
 const AUS = {
   vermelho: { label: 'Falta / suspensão', cor: '#ef4444' },
-  ambar: { label: 'Atestado / licença / folga', cor: '#f59e0b' },
+  ambar: { label: 'Atestado / licença', cor: '#f59e0b' },
+  folga: { label: 'Folga / banco de horas', cor: '#8b5cf6' },
 }
 for (const a of Object.values(AUS)) a.cell = tintCell(a.cor)
-// 'Folga' normal e 'esqueceu o ponto' ficam de fora. Vermelho = falta/suspensão;
-// âmbar = tudo o mais (atestado, licença, banco de horas, folga especial).
+// 'Esqueceu o ponto' fica de fora. Vermelho = falta/suspensão; âmbar =
+// atestado/licença; violeta = folga (normal/aniversário/feriado) e banco de horas.
 const TIPO_GRUPO = {
   Falta: 'vermelho',
   Suspensão: 'vermelho',
@@ -42,9 +43,10 @@ const TIPO_GRUPO = {
   'Afastamento INSS': 'ambar',
   'Licença Maternidade': 'ambar',
   'Licença Paternidade': 'ambar',
-  'Banco de Horas': 'ambar',
-  'Folga Aniversário': 'ambar',
-  'Folga Feriado': 'ambar',
+  Folga: 'folga',
+  'Folga Aniversário': 'folga',
+  'Folga Feriado': 'folga',
+  'Banco de Horas': 'folga',
 }
 const grupoAus = (tipo) => AUS[TIPO_GRUPO[tipo]] || null
 
