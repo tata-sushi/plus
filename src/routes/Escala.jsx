@@ -314,22 +314,8 @@ function Calendario() {
         )}
       </div>
 
-      {/* Saldo do banco de horas */}
-      <div className="mt-5 hstack items-center justify-between rounded-card border border-line bg-surface px-4 py-3.5">
-        <div className="hstack gap-2.5">
-          <span className="grid h-9 w-9 place-items-center rounded-full bg-accent-soft text-accent">
-            <Clock size={18} />
-          </span>
-          <div>
-            <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-2">Saldo do banco de horas</div>
-            <div className="text-lg font-bold leading-tight">{banco == null ? '—' : fmtHoras(banco.saldo)}</div>
-          </div>
-        </div>
-        {banco?.data && <span className="text-[11px] text-muted">até {banco.data}</span>}
-      </div>
-
-      {/* Confirmação de presença de hoje (saiu do modal) */}
-      <div className="mt-3 hstack items-center justify-between rounded-card border border-line bg-surface px-4 py-3">
+      {/* Confirmação de presença de hoje (em cima) — confirmar é só um círculo */}
+      <div className="mt-5 hstack items-center justify-between rounded-card border border-line bg-surface px-4 py-3">
         <div className="min-w-0">
           <div className="text-sm font-semibold">Confirmação de presença</div>
           <div className="text-[11px] text-muted">
@@ -339,27 +325,34 @@ function Calendario() {
                 ? 'Hoje não é dia de ponto'
                 : chk.confirmado
                   ? 'Presença de hoje confirmada'
-                  : 'Confirme sua presença de hoje'}
+                  : 'Confirme sua presença de hoje · +5'}
           </div>
         </div>
         {chk?.tem_hoje &&
           (chk.confirmado ? (
-            <span className="hstack shrink-0 gap-1.5 rounded-pill bg-accent-soft px-3 py-1.5 text-xs font-semibold text-carbon dark:text-accent">
-              <CircleCheck size={16} /> Confirmada
+            <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-accent text-black">
+              <Check size={18} strokeWidth={3} />
             </span>
           ) : (
             <button
               onClick={validarHoje}
               disabled={checando}
-              className="btn-primary hstack shrink-0 items-center gap-1.5 px-3 py-2 text-sm disabled:opacity-50"
+              aria-label="Confirmar presença de hoje (+5)"
+              title="Confirmar presença (+5)"
+              className="grid h-8 w-8 shrink-0 place-items-center rounded-full border-2 border-line text-muted-2 tap disabled:opacity-50"
             >
-              {checando ? <Loader2 size={14} className="animate-spin" /> : <CircleCheck size={16} />}
-              Confirmar
-              <span className="hstack shrink-0 gap-1 rounded-pill bg-black/15 px-1.5 py-0.5 text-[11px] font-bold">
-                <Coins size={11} /> +5
-              </span>
+              {checando && <Loader2 size={15} className="animate-spin" />}
             </button>
           ))}
+      </div>
+
+      {/* Saldo do banco de horas — texto direto na página (sem card) */}
+      <div className="mt-4 hstack items-center justify-between px-1">
+        <div className="min-w-0">
+          <div className="text-sm font-semibold">Saldo do banco de horas</div>
+          {banco?.data && <div className="text-[11px] text-muted">até {banco.data}</div>}
+        </div>
+        <div className="shrink-0 text-lg font-bold">{banco == null ? '—' : fmtHoras(banco.saldo)}</div>
       </div>
 
       {det && (
