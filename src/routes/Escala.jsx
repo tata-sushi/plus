@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Navigate, useNavigate } from 'react-router-dom'
-import { Loader2, ChevronLeft, ChevronRight, CalendarClock, Check, X, Sun, CircleCheck, Coins, MessageCircle, Palmtree, CircleDot, Info, ArrowLeft } from 'lucide-react'
+import { Navigate } from 'react-router-dom'
+import { Loader2, ChevronLeft, ChevronRight, CalendarClock, Check, X, Sun, CircleCheck, Coins, MessageCircle, Palmtree, CircleDot, Info } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
-import { tapHaptic } from '../lib/haptics.js'
+import { Voltar } from '../components/Voltar.jsx'
 import { Avatar } from '../components/Avatar.jsx'
 import { cn } from '../lib/cn'
 import { useAuth } from '../lib/AuthContext.jsx'
@@ -91,17 +91,15 @@ function Escala() {
 
 function Painel() {
   // Montar escala saiu do app (é feito na governança). O app é só a consulta.
-  const navigate = useNavigate()
   const [legendaAberta, setLegendaAberta] = useState(false)
   return (
     <>
       <Header title="Agenda" />
-      {/* Voltar (esq.) e legenda ⓘ (dir.) na mesma linha, logo abaixo do header. */}
-      <div className="flex items-center justify-between px-5 pt-2">
-        <button onClick={() => { tapHaptic(); navigate(-1) }} className="hstack gap-1 text-sm font-medium text-muted tap">
-          <ArrowLeft size={16} /> Voltar
-        </button>
-        <button onClick={() => setLegendaAberta(true)} aria-label="Legenda" title="Legenda" className="grid h-8 w-8 place-items-center rounded-full text-muted tap">
+      {/* Voltar padrão (mesma posição das outras páginas); legenda ⓘ flutua à direita
+          sem alterar a altura da linha do Voltar. */}
+      <div className="relative">
+        <Voltar />
+        <button onClick={() => setLegendaAberta(true)} aria-label="Legenda" title="Legenda" className="absolute right-5 top-0.5 grid h-8 w-8 place-items-center rounded-full text-muted tap">
           <Info size={16} />
         </button>
       </div>
