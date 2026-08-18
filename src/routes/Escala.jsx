@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Navigate } from 'react-router-dom'
-import { Loader2, ChevronLeft, ChevronRight, CalendarClock, Check, X, Sun, CircleCheck, Coins, MessageCircle, Palmtree } from 'lucide-react'
+import { Loader2, ChevronLeft, ChevronRight, CalendarClock, Check, X, Sun, CircleCheck, Coins, MessageCircle, Palmtree, CircleDot } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Voltar } from '../components/Voltar.jsx'
 import { Avatar } from '../components/Avatar.jsx'
@@ -19,6 +19,39 @@ const DIAS = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom']
 // legível no claro e no escuro (distinto de Trabalho/accent e Folga/fill).
 const FERIAS_CELL = { backgroundColor: 'rgb(59 130 246 / 0.16)', borderColor: 'rgb(59 130 246 / 0.45)' }
 const FERIAS_TXT = '#3b82f6'
+
+// Ausências (dp_rh.ausencias): 13 tipos → 7 grupos, cada um com sua cor.
+function tintCell(hex) {
+  const n = parseInt(hex.slice(1), 16)
+  const r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255
+  return { backgroundColor: `rgba(${r}, ${g}, ${b}, 0.16)`, borderColor: `rgba(${r}, ${g}, ${b}, 0.5)` }
+}
+const AUS = {
+  falta: { label: 'Falta', cor: '#ef4444' },
+  suspensao: { label: 'Suspensão', cor: '#64748b' },
+  atestado: { label: 'Atestado', cor: '#f59e0b' },
+  licenca: { label: 'Licença / afastamento', cor: '#8b5cf6' },
+  banco: { label: 'Banco de horas', cor: '#0ea5e9' },
+  folga_esp: { label: 'Folga', cor: '#14b8a6' },
+  ponto: { label: 'Esqueceu o ponto', cor: '#94a3b8' },
+}
+for (const a of Object.values(AUS)) a.cell = tintCell(a.cor)
+const TIPO_GRUPO = {
+  Falta: 'falta',
+  Suspensão: 'suspensao',
+  'Suspensão de Contrato': 'suspensao',
+  Atestado: 'atestado',
+  'Atestado Médico': 'atestado',
+  'Afastamento INSS': 'licenca',
+  'Licença Maternidade': 'licenca',
+  'Licença Paternidade': 'licenca',
+  'Banco de Horas': 'banco',
+  Folga: 'folga_esp',
+  'Folga Aniversário': 'folga_esp',
+  'Folga Feriado': 'folga_esp',
+  'Trabalhou, mas esqueceu de registrar o ponto': 'ponto',
+}
+const grupoAus = (tipo) => AUS[TIPO_GRUPO[tipo]] || null
 
 const pad = (n) => String(n).padStart(2, '0')
 const isoLocal = (d) => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate())
@@ -82,6 +115,7 @@ function Calendario() {
   const [mapa, setMapa] = useState(null) // { 'YYYY-MM-DD': { entrada, saida, folga, marcacoes } }
   const [eventos, setEventos] = useState(null) // { 'YYYY-MM-DD': [ { tipo, hora, titulo, status } ] }
   const [ferias, setFerias] = useState(null) // { 'YYYY-MM-DD': { aprovado } }
+  const [ausencias, setAusencias] = useState(null) // { 'YYYY-MM-DD': { tipo } }
   const [det, setDet] = useState(null) // { info, dia, evts } — detalhe do dia
   const [checando, setChecando] = useState(false)
 
@@ -123,6 +157,7 @@ function Calendario() {
     setMapa(null)
     setEventos(null)
     setFerias(null)
+    setAusencias(null)
     call('escala_meu_periodo', { p_inicio: grid.startISO, p_fim: grid.endISO })
       .then((d) => a && setMapa(d && typeof d === 'object' ? d : {}))
       .catch(() => a && setMapa({}))
@@ -132,6 +167,9 @@ function Calendario() {
     call('escala_ferias_periodo', { p_inicio: grid.startISO, p_fim: grid.endISO })
       .then((d) => a && setFerias(d && typeof d === 'object' ? d : {}))
       .catch(() => a && setFerias({}))
+    call('escala_ausencias_periodo', { p_inicio: grid.startISO, p_fim: grid.endISO })
+      .then((d) => a && setAusencias(d && typeof d === 'object' ? d : {}))
+      .catch(() => a && setAusencias({}))
     return () => {
       a = false
     }
@@ -170,19 +208,23 @@ function Calendario() {
           const evts = eventos?.[iso]
           const fer = noMes ? ferias?.[iso] : null
           const ehFerias = !!fer
+          const ausRaw = !ehFerias && noMes ? ausencias?.[iso] : null
+          const gAus = ausRaw ? grupoAus(ausRaw.tipo) : null
           const temEvt = noMes && Array.isArray(evts) && evts.length > 0
           const isHoje = iso === hoje
-          const folga = !ehFerias && !!info?.folga
-          const trab = !ehFerias && !!info && !info.folga
+          const folga = !ehFerias && !gAus && !!info?.folga
+          const trab = !ehFerias && !gAus && !!info && !info.folga
           const pares = paresDe(info)
-          const clicavel = noMes && (!!info || temEvt || ehFerias)
+          const clicavel = noMes && (!!info || temEvt || ehFerias || !!gAus)
+          const tint = ehFerias ? FERIAS_CELL : gAus ? gAus.cell : null
+          const tintTxt = ehFerias ? FERIAS_TXT : gAus ? gAus.cor : null
           return (
             <button
               key={iso}
               type="button"
-              onClick={clicavel ? () => setDet({ info, dia: d, evts, fer }) : undefined}
+              onClick={clicavel ? () => setDet({ info, dia: d, evts, fer, aus: gAus ? { ...gAus, tipo: ausRaw.tipo } : null }) : undefined}
               disabled={!clicavel}
-              style={ehFerias && !isHoje ? FERIAS_CELL : undefined}
+              style={tint && !isHoje ? tint : undefined}
               className={cn(
                 'relative flex aspect-square flex-col items-center justify-center gap-0.5 rounded-lg border text-[11px]',
                 clicavel && 'tap',
@@ -190,7 +232,7 @@ function Calendario() {
                   ? 'border-transparent text-muted-2/40'
                   : isHoje
                     ? 'border-accent ring-1 ring-accent'
-                    : ehFerias
+                    : tint
                       ? ''
                       : trab
                         ? 'border-accent/30 bg-accent-soft'
@@ -209,12 +251,14 @@ function Calendario() {
               {temEvt && <span className="absolute bottom-1 left-1/2 h-1.5 w-5 -translate-x-1/2 rounded-full bg-accent" />}
               <span
                 className={cn('font-bold', isHoje ? 'text-accent' : trab ? 'text-carbon dark:text-accent' : '')}
-                style={ehFerias && !isHoje ? { color: FERIAS_TXT } : undefined}
+                style={tintTxt && !isHoje ? { color: tintTxt } : undefined}
               >
                 {d.getDate()}
               </span>
               {noMes && ehFerias ? (
                 <Palmtree size={9} style={{ color: FERIAS_TXT }} />
+              ) : noMes && gAus ? (
+                <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: gAus.cor }} />
               ) : (
                 <>
                   {noMes && folga && <Sun size={9} className="text-muted-2" />}
@@ -257,6 +301,14 @@ function Calendario() {
             <X size={13} strokeWidth={3} className="text-muted-2/70" /> Não pontuou
           </span>
         </div>
+        <div className="flex flex-wrap gap-x-4 gap-y-2">
+          {Object.values(AUS).map((a) => (
+            <span key={a.label} className="hstack gap-1.5">
+              <span className="h-3.5 w-3.5 rounded border" style={a.cell} />
+              {a.label}
+            </span>
+          ))}
+        </div>
         <div className="flex flex-wrap gap-4">
           <span className="hstack gap-1.5">
             <MessageCircle size={13} className="text-accent" /> Conversa com o RH
@@ -281,10 +333,14 @@ function Calendario() {
             {det.fer && (
               <div className="hstack items-center gap-2 rounded-card border px-4 py-3 text-sm font-semibold" style={{ ...FERIAS_CELL, color: FERIAS_TXT }}>
                 <Palmtree size={16} /> Férias
-                <span className="ml-auto text-[11px] font-medium opacity-80">{det.fer.aprovado ? 'aprovada' : 'a confirmar'}</span>
               </div>
             )}
-            {det.info && !det.fer &&
+            {det.aus && (
+              <div className="hstack items-center gap-2 rounded-card border px-4 py-3 text-sm font-semibold" style={{ ...det.aus.cell, color: det.aus.cor }}>
+                <CircleDot size={16} /> {det.aus.tipo}
+              </div>
+            )}
+            {det.info && !det.fer && !det.aus &&
               (det.info.folga ? (
                 <div className="hstack gap-2 rounded-card border border-line bg-fill px-4 py-3 text-sm font-semibold text-muted">
                   <Sun size={16} /> {det.info.tipo_folga || 'Folga'}
@@ -319,7 +375,7 @@ function Calendario() {
               </div>
             ))}
           </div>
-          {isoLocal(det.dia) === hoje && det.info && !det.info.folga && !det.fer && (
+          {isoLocal(det.dia) === hoje && det.info && !det.info.folga && !det.fer && !det.aus && (
             det.info.validado ? (
               <div className="mt-3 hstack justify-center gap-2 rounded-card border border-accent/40 bg-accent-soft px-4 py-3 text-sm font-semibold text-carbon dark:text-accent">
                 <CircleCheck size={18} /> Presença confirmada
