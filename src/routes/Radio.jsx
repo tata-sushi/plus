@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { useSearchParams } from 'react-router-dom'
 import { Heart, Trash2, Plus, Music2, Trophy, Play, Loader2, Headphones } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
@@ -479,9 +480,9 @@ export function Radio() {
       </div>
       )}
 
-      {policyOpen && (
+      {policyOpen && createPortal(
         <div
-          className="fixed inset-0 z-50 grid place-items-center bg-black/50 p-5"
+          className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/50 p-5 pt-20"
           role="dialog"
           aria-modal="true"
           onClick={() => setPolicyOpen(false)}
@@ -509,7 +510,8 @@ export function Radio() {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body,
       )}
     </>
   )
