@@ -29,9 +29,10 @@ function tintCell(hex) {
 const AUS = {
   vermelho: { label: 'Falta / suspensão', cor: '#ef4444' },
   ambar: { label: 'Atestado / licença', cor: '#f59e0b' },
-  folga: { label: 'Folga / banco de horas', cor: '#8b5cf6' },
+  // Folga/banco em "branco": cartão neutro do tema (branco no claro, surface no escuro).
+  folga: { label: 'Folga / banco de horas', cor: '#64748b', branco: true },
 }
-for (const a of Object.values(AUS)) a.cell = tintCell(a.cor)
+for (const a of Object.values(AUS)) a.cell = a.branco ? null : tintCell(a.cor)
 // 'Esqueceu o ponto' fica de fora. Vermelho = falta/suspensão; âmbar =
 // atestado/licença; violeta = folga (normal/aniversário/feriado) e banco de horas.
 const TIPO_GRUPO = {
@@ -213,8 +214,9 @@ function Calendario() {
           const trab = !ehFerias && !gAus && !!info && !info.folga
           const pares = paresDe(info)
           const clicavel = noMes && (!!info || temEvt || ehFerias || !!gAus)
-          const tint = ehFerias ? FERIAS_CELL : gAus ? gAus.cell : null
-          const tintTxt = ehFerias ? FERIAS_TXT : gAus ? gAus.cor : null
+          const branco = !!gAus?.branco
+          const tint = ehFerias ? FERIAS_CELL : gAus && !branco ? gAus.cell : null
+          const tintTxt = ehFerias ? FERIAS_TXT : gAus && !branco ? gAus.cor : null
           return (
             <button
               key={iso}
@@ -231,11 +233,13 @@ function Calendario() {
                     ? 'border-accent ring-1 ring-accent'
                     : tint
                       ? ''
-                      : trab
-                        ? 'border-accent/30 bg-accent-soft'
-                        : folga
-                          ? 'border-line bg-fill'
-                          : 'border-line',
+                      : branco
+                        ? 'border-line bg-surface'
+                        : trab
+                          ? 'border-accent/30 bg-accent-soft'
+                          : folga
+                            ? 'border-line bg-fill'
+                            : 'border-line',
               )}
             >
               {/* dia passado de trabalho: ✓ validou o check / ✗ não pontuou */}
@@ -301,7 +305,7 @@ function Calendario() {
         <div className="flex flex-wrap gap-x-4 gap-y-2">
           {Object.values(AUS).map((a) => (
             <span key={a.label} className="hstack gap-1.5">
-              <span className="h-3.5 w-3.5 rounded border" style={a.cell} />
+              <span className={cn('h-3.5 w-3.5 rounded border', a.branco && 'border-line bg-surface')} style={a.branco ? undefined : a.cell} />
               {a.label}
             </span>
           ))}
@@ -333,7 +337,10 @@ function Calendario() {
               </div>
             )}
             {det.aus && (
-              <div className="hstack items-center gap-2 rounded-card border px-4 py-3 text-sm font-semibold" style={{ ...det.aus.cell, color: det.aus.cor }}>
+              <div
+                className={cn('hstack items-center gap-2 rounded-card border px-4 py-3 text-sm font-semibold', det.aus.branco && 'border-line bg-surface')}
+                style={det.aus.branco ? { color: det.aus.cor } : { ...det.aus.cell, color: det.aus.cor }}
+              >
                 <CircleDot size={16} /> {det.aus.tipo}
               </div>
             )}
