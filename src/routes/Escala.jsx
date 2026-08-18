@@ -190,7 +190,7 @@ function Calendario() {
   return (
     <div className="px-5 pt-4 pb-24">
       <div className="hstack justify-between">
-        <button onClick={() => setMesOffset((o) => o - 1)} aria-label="Mês anterior" className="grid h-8 w-8 place-items-center rounded-full bg-surface text-muted tap">
+        <button onClick={() => setMesOffset((o) => o - 1)} aria-label="Mês anterior" className="grid h-8 w-8 place-items-center rounded-full text-muted tap">
           <ChevronLeft size={16} />
         </button>
         <div className="hstack gap-2 text-sm font-bold">
@@ -201,7 +201,7 @@ function Calendario() {
             </button>
           )}
         </div>
-        <button onClick={() => setMesOffset((o) => o + 1)} aria-label="Próximo mês" className="grid h-8 w-8 place-items-center rounded-full bg-surface text-muted tap">
+        <button onClick={() => setMesOffset((o) => o + 1)} aria-label="Próximo mês" className="grid h-8 w-8 place-items-center rounded-full text-muted tap">
           <ChevronRight size={16} />
         </button>
       </div>
