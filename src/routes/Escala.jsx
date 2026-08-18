@@ -330,7 +330,7 @@ function Calendario() {
         </div>
         {chk?.tem_hoje &&
           (chk.confirmado ? (
-            <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-accent text-black">
+            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-accent text-black">
               <Check size={18} strokeWidth={3} />
             </span>
           ) : (
@@ -339,9 +339,9 @@ function Calendario() {
               disabled={checando}
               aria-label="Confirmar presença de hoje (+5)"
               title="Confirmar presença (+5)"
-              className="grid h-8 w-8 shrink-0 place-items-center rounded-full border-2 border-line text-muted-2 tap disabled:opacity-50"
+              className="grid h-9 w-9 shrink-0 place-items-center rounded-full border-2 border-accent bg-accent-soft text-accent tap disabled:opacity-50"
             >
-              {checando && <Loader2 size={15} className="animate-spin" />}
+              {checando ? <Loader2 size={16} className="animate-spin" /> : <Check size={18} strokeWidth={3} />}
             </button>
           ))}
       </div>
@@ -354,6 +354,11 @@ function Calendario() {
         </div>
         <div className="shrink-0 text-lg font-bold">{banco == null ? '—' : fmtHoras(banco.saldo)}</div>
       </div>
+
+      {/* Aviso de rodapé */}
+      <p className="mt-6 px-1 text-[10px] leading-relaxed text-muted-2">
+        Informações de fácil acesso e visualização — não substituem o documento oficial, como o cartão de ponto.
+      </p>
 
       {det && (
         <Folha onClose={() => setDet(null)}>
