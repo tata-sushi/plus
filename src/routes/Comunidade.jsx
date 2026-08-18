@@ -230,16 +230,25 @@ function PostCard({ post, matricula, admin, meuNome, meuAvatar, onCurtir, onExcl
       {/* Mídia — carrossel (várias) ou foto única */}
       <PostMidia post={post} />
 
-      {/* Link / botão de ação (CTA) */}
+      {/* Link / botão de ação (CTA): rota interna (/...) navega no app; externa abre nova aba */}
       {post.link_url && post.link_label && (
-        <a
-          href={post.link_url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="btn-primary mt-3 flex w-full justify-center !py-2.5 text-xs"
-        >
-          {post.link_label}
-        </a>
+        post.link_url.startsWith('/') ? (
+          <button
+            onClick={() => navigate(post.link_url)}
+            className="btn-primary mt-3 flex w-full justify-center !py-2.5 text-xs"
+          >
+            {post.link_label}
+          </button>
+        ) : (
+          <a
+            href={post.link_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn-primary mt-3 flex w-full justify-center !py-2.5 text-xs"
+          >
+            {post.link_label}
+          </a>
+        )
       )}
 
       {/* Ações */}

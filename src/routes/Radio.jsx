@@ -109,6 +109,8 @@ export function Radio() {
       setLink(`https://open.spotify.com/track/${add}`)
       setPolicyOpen(true)
     }
+    // Deep-link do feed (post do podcast) → abre direto na aba Podcast.
+    if (searchParams.get('tab') === 'podcast') setAba('podcast')
   }, [searchParams])
 
   // Enriquece com capa (oEmbed) as faixas que ainda não têm — uma vez cada (só p/ exibir).
