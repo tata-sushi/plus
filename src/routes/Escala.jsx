@@ -601,7 +601,6 @@ function FolgaAniversario({ status }) {
           Cai no domingo: a folga é compensada com o domingo do mês (a critério do líder).
         </p>
       )}
-      <p className="mt-2 text-[11px] text-muted-2">Confirme sempre com seu líder / RH.</p>
     </div>
   )
 }
