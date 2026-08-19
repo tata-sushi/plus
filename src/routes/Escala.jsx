@@ -315,7 +315,7 @@ function Calendario() {
               disabled={!clicavel}
               style={tint && !isHoje ? tint : undefined}
               className={cn(
-                'relative flex aspect-square flex-col items-center justify-center gap-0.5 rounded-lg border text-[11px]',
+                'relative flex aspect-square flex-col items-center gap-0.5 rounded-lg border px-0.5 pb-0.5 pt-1 text-[11px]',
                 clicavel && 'tap',
                 !noMes
                   ? 'border-transparent text-muted-2/40'
@@ -339,14 +339,6 @@ function Calendario() {
                 ) : (
                   <X size={9} strokeWidth={3} className="absolute right-0.5 top-0.5 text-muted-2/70" />
                 ))}
-              {temEvt && <span className="absolute bottom-1 left-1/2 h-1.5 w-5 -translate-x-1/2 rounded-full bg-accent" />}
-              {temAniv && <Cake size={9} className="absolute left-0.5 top-0.5" style={{ color: ANIV_COR }} />}
-              {temFeriado && (
-                <span
-                  className={cn('absolute bottom-0.5 right-0.5 h-1.5 w-1.5 rounded-full', !feriadoReal && 'border')}
-                  style={feriadoReal ? { backgroundColor: FER_COR } : { borderColor: FER_COR }}
-                />
-              )}
               <span
                 className={cn('font-bold', isHoje ? 'text-accent' : trab ? 'text-carbon dark:text-accent' : '')}
                 style={tintTxt && !isHoje ? { color: tintTxt } : undefined}
@@ -368,6 +360,21 @@ function Calendario() {
                     <span className="text-[8px] font-semibold text-muted">{pares[0][0]}</span>
                   )}
                 </>
+              )}
+              {/* Observações do dia como pílulas no rodapé (estilo agenda):
+                  feriado (índigo), data comercial (índigo claro), aniversário
+                  (rosa), conversa com o RH (accent). Nome completo no detalhe. */}
+              {noMes && (temFeriado || temAniv || temEvt) && (
+                <div className="mt-auto flex w-full flex-col items-center gap-[2px] pt-0.5">
+                  {temFeriado && feris.some((f) => f.grupo === 'feriado') && (
+                    <span className="h-[3px] w-full max-w-[22px] rounded-full" style={{ backgroundColor: FER_COR }} />
+                  )}
+                  {temFeriado && feris.some((f) => f.grupo === 'comercial') && (
+                    <span className="h-[3px] w-full max-w-[22px] rounded-full" style={{ backgroundColor: 'rgba(99,102,241,0.4)' }} />
+                  )}
+                  {temAniv && <span className="h-[3px] w-full max-w-[22px] rounded-full" style={{ backgroundColor: ANIV_COR }} />}
+                  {temEvt && <span className="h-[3px] w-full max-w-[22px] rounded-full bg-accent" />}
+                </div>
               )}
             </button>
           )
@@ -687,10 +694,10 @@ function LegendaSheet({ onClose }) {
 
       <Titulo>Agenda</Titulo>
       <div className="mt-2 flex flex-col gap-2.5">
-        <Item swatch={<MessageCircle size={16} className="text-accent" />} label="Conversa com o RH" dentro="Reunião/alinhamento marcado" />
-        <Item swatch={<Cake size={16} style={{ color: ANIV_COR }} />} label="Aniversário" dentro="Colegas que fazem aniversário no dia" />
-        <Item swatch={<span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: FER_COR }} />} label="Feriado" dentro="Nacional, estadual ou municipal" />
-        <Item swatch={<span className="h-2.5 w-2.5 rounded-full border-2" style={{ borderColor: FER_COR }} />} label="Data comercial" dentro="Ação de marketing (não é folga)" />
+        <Item swatch={<span className="h-1 w-4 rounded-full bg-accent" />} label="Conversa com o RH" dentro="Reunião/alinhamento marcado" />
+        <Item swatch={<span className="h-1 w-4 rounded-full" style={{ backgroundColor: ANIV_COR }} />} label="Aniversário" dentro="Colegas que fazem aniversário no dia" />
+        <Item swatch={<span className="h-1 w-4 rounded-full" style={{ backgroundColor: FER_COR }} />} label="Feriado" dentro="Nacional, estadual ou municipal" />
+        <Item swatch={<span className="h-1 w-4 rounded-full" style={{ backgroundColor: 'rgba(99,102,241,0.4)' }} />} label="Data comercial" dentro="Ação de marketing (não é folga)" />
       </div>
     </Folha>
   )
