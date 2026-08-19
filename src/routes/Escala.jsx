@@ -227,19 +227,6 @@ function Calendario() {
     }
   }, [grid.startISO, grid.endISO])
 
-  // Aniversariantes do mês exibido (a partir do mesmo mapa por dia).
-  const anivDoMes = useMemo(() => {
-    if (!aniversarios) return []
-    const out = []
-    for (const [iso, pessoas] of Object.entries(aniversarios)) {
-      const [y, m, dd] = iso.split('-').map(Number)
-      if (m - 1 !== mes || y !== ano || !Array.isArray(pessoas)) continue
-      for (const p of pessoas) out.push({ dia: dd, ...p })
-    }
-    out.sort((a2, b2) => a2.dia - b2.dia || String(a2.nome).localeCompare(String(b2.nome)))
-    return out
-  }, [aniversarios, mes, ano])
-
   // Ao abrir o detalhe do próprio aniversário, calcula a elegibilidade da folga.
   useEffect(() => {
     const meu = det?.aniv?.some((p) => p.eu)
@@ -443,37 +430,6 @@ function Calendario() {
           {banco?.data && <div className="text-[11px] text-muted">até {banco.data}</div>}
         </div>
         <div className="shrink-0 text-lg font-bold">{banco == null ? '—' : fmtHoras(banco.saldo)}</div>
-      </div>
-
-      {/* Aniversariantes do mês exibido (empresa toda, só ativos) */}
-      <div className="mt-6 px-4">
-        <div className="hstack items-center gap-2">
-          <Cake size={16} style={{ color: ANIV_COR }} />
-          <div className="text-sm font-semibold">Aniversariantes de {MESES[mes]}</div>
-        </div>
-        {aniversarios == null ? (
-          <div className="mt-2 text-[11px] text-muted">…</div>
-        ) : anivDoMes.length === 0 ? (
-          <div className="mt-2 text-[11px] text-muted">Ninguém faz aniversário neste mês.</div>
-        ) : (
-          <div className="mt-3 flex flex-col gap-2.5">
-            {anivDoMes.map((p, i) => (
-              <div key={`am${i}`} className="hstack items-center gap-2.5">
-                <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-fill text-[11px] font-bold text-muted">
-                  {pad(p.dia)}
-                </span>
-                <Avatar name={p.nome} src={p.avatar_url} size={28} />
-                <div className="min-w-0 flex-1">
-                  <div className="truncate text-sm font-medium">
-                    {p.nome}
-                    {p.eu && <span className="font-semibold" style={{ color: ANIV_COR }}> · você</span>}
-                  </div>
-                  {p.unidade && <div className="truncate text-[11px] text-muted">{p.unidade}</div>}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
       </div>
 
       {det && (
@@ -695,7 +651,7 @@ function LegendaSheet({ onClose }) {
       <Titulo>Agenda</Titulo>
       <div className="mt-2 flex flex-col gap-2.5">
         <Item swatch={<span className="h-1 w-4 rounded-full bg-accent" />} label="Conversa com o RH" dentro="Reunião/alinhamento marcado" />
-        <Item swatch={<span className="h-1 w-4 rounded-full" style={{ backgroundColor: ANIV_COR }} />} label="Aniversário" dentro="Colegas que fazem aniversário no dia" />
+        <Item swatch={<span className="h-1 w-4 rounded-full" style={{ backgroundColor: ANIV_COR }} />} label="Seu aniversário" dentro="Marca o seu dia" />
         <Item swatch={<span className="h-1 w-4 rounded-full" style={{ backgroundColor: FER_COR }} />} label="Feriado" dentro="Nacional, estadual ou municipal" />
         <Item swatch={<span className="h-1 w-4 rounded-full" style={{ backgroundColor: 'rgba(99,102,241,0.4)' }} />} label="Data comercial" dentro="Ação de marketing (não é folga)" />
       </div>
