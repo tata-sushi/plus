@@ -446,9 +446,6 @@ function Calendario() {
           onClick={() => setFolgaAberta({ iso: meuAnivISO, pessoa: meuAnivPessoa })}
           className="mt-4 flex w-full items-center gap-3 px-4 tap"
         >
-          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-accent-soft text-accent">
-            <Gift size={18} />
-          </span>
           <div className="min-w-0 flex-1 text-left">
             <div className="text-sm font-semibold">Folga Aniversário</div>
             <div className="text-[11px] text-muted">Seu aniversário • {ddmm(meuAnivISO)} · ver elegibilidade</div>
