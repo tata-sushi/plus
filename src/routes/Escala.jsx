@@ -343,11 +343,7 @@ function Calendario() {
               {noMes && ehFerias ? (
                 <Palmtree size={9} style={{ color: FERIAS_TXT }} />
               ) : noMes && gAus ? (
-                gAus.branco ? (
-                  <Sun size={9} className="text-muted-2" />
-                ) : (
-                  <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: gAus.cor }} />
-                )
+                gAus.branco ? <Sun size={9} className="text-muted-2" /> : null
               ) : (
                 <>
                   {noMes && folga && <Sun size={9} className="text-muted-2" />}
@@ -359,8 +355,11 @@ function Calendario() {
               {/* Observações do dia como pílulas no rodapé (estilo agenda):
                   feriado (índigo), data comercial (índigo claro), aniversário
                   (rosa), conversa com o RH (accent). Nome completo no detalhe. */}
-              {noMes && (temFeriado || temAniv || temEvt) && (
+              {noMes && ((gAus && !gAus.branco) || temFeriado || temAniv || temEvt) && (
                 <div className="mt-auto flex w-full flex-col items-center gap-[2px] pt-0.5">
+                  {gAus && !gAus.branco && (
+                    <span className="h-[3px] w-full max-w-[22px] rounded-full" style={{ backgroundColor: gAus.cor }} />
+                  )}
                   {temFeriado && feris.some((f) => f.grupo === 'feriado') && (
                     <span className="h-[3px] w-full max-w-[22px] rounded-full" style={{ backgroundColor: FER_COR }} />
                   )}
@@ -654,7 +653,7 @@ function LegendaSheet({ onClose }) {
                   <Sun size={10} className="text-muted-2" />
                 </span>
               ) : (
-                <span className="h-4 w-4 rounded border" style={a.cell} />
+                <span className="h-1 w-4 rounded-full" style={{ backgroundColor: a.cor }} />
               )
             }
             label={a.label}
