@@ -19,6 +19,7 @@ import { Comunidade } from './routes/Comunidade.jsx'
 import { Ouvidoria } from './routes/Ouvidoria.jsx'
 import { Governanca } from './routes/Governanca.jsx'
 import { Organograma } from './routes/Organograma.jsx'
+import { ControleEscala } from './routes/ControleEscala.jsx'
 import { GerenciarAtalhos } from './routes/GerenciarAtalhos.jsx'
 import { QuestionarioDisc } from './routes/QuestionarioDisc.jsx'
 import { PainelExterno } from './routes/PainelExterno.jsx'
@@ -73,6 +74,7 @@ export function App() {
         <Route path="/comunidade" element={<Comunidade />} />
         <Route path="/governanca" element={<Governanca />} />
         <Route path="/organograma" element={<Organograma />} />
+        <Route path="/controle-escala" element={<ControleEscala />} />
         <Route path="/radio" element={<Radio />} />
         <Route path="/compartilhar" element={<Compartilhar />} />
         <Route path="/atalhos-governanca" element={<GerenciarAtalhos />} />

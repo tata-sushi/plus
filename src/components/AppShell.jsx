@@ -8,7 +8,7 @@ import { cn } from '../lib/cn'
 import { PodcastPlayerProvider } from '../lib/podcastPlayer.jsx'
 
 // Rotas em tela cheia, sem a barra de navegação (ex.: organograma em paisagem).
-const SEM_NAV = ['/organograma', '/governanca', '/perfil-disc']
+const SEM_NAV = ['/organograma', '/governanca', '/perfil-disc', '/controle-escala']
 
 // Orientação: o app fica travado em RETRATO pelo manifesto do PWA. O organograma
 // vai para PAISAGEM por conta própria (tela cheia + orientation.lock — ver
@@ -21,7 +21,9 @@ export function AppShell() {
   const desktop = useDesktop()
   // Rotas fixas ficam em tela cheia (sem a barra de navegação).
   const semNav = SEM_NAV.includes(location.pathname)
-  const ehGov = location.pathname === '/governanca'
+  // Governança e Controle de Escala embutem o portal com a mesma moldura.
+  const ehPortal =
+    location.pathname === '/governanca' || location.pathname === '/controle-escala'
 
   // Primeiro acesso: sobe o pop-up NATIVO de permissão de notificação uma vez.
   // Se a pessoa não ativar aqui, o toggle continua no Painel de manutenção.
@@ -36,9 +38,9 @@ export function AppShell() {
   }, [])
 
   let conteudo
-  if (ehGov && !desktop) {
-    // Celular na Governança: mantém a barra de navegação em fluxo na base; o
-    // iframe ocupa o espaço acima dela.
+  if (ehPortal && !desktop) {
+    // Celular no portal (Governança / Controle de Escala): mantém a barra de
+    // navegação em fluxo na base; o iframe ocupa o espaço acima dela.
     conteudo = (
       <div className="flex h-[100dvh] flex-col bg-bg">
         <main key={location.pathname} className="animate-page min-h-0 flex-1 overflow-hidden">
@@ -51,7 +53,7 @@ export function AppShell() {
     // Telas cheias (organograma, DISC e a Governança no desktop) ocupam tudo.
     conteudo = (
       <div className="min-h-[100dvh] bg-bg">
-        <main key={location.pathname} className={cn('animate-page', ehGov && 'h-[100dvh]')}>
+        <main key={location.pathname} className={cn('animate-page', ehPortal && 'h-[100dvh]')}>
           <Outlet />
         </main>
       </div>
