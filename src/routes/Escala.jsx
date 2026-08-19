@@ -319,7 +319,9 @@ function Calendario() {
         )}
       </div>
 
-      {/* Confirmação de presença de hoje (em cima) — confirmar é só um círculo */}
+      {/* Confirmação de presença de hoje (em cima) — validar por um toggle
+          liga/desliga. Uma vez confirmado fica ligado e travado (não dá pra
+          desfazer: a validação credita +5). */}
       <div className="mt-5 hstack items-center justify-between rounded-card border border-line bg-surface px-4 py-3">
         <div className="min-w-0">
           <div className="text-sm font-semibold">Confirmação de presença</div>
@@ -328,27 +330,43 @@ function Calendario() {
               ? '…'
               : !chk.tem_hoje
                 ? 'Hoje não é dia de ponto'
-                : horarioHoje
-                  ? `Hoje • ${horarioHoje}`
-                  : 'Hoje'}
+                : chk.confirmado
+                  ? horarioHoje
+                    ? `Presença confirmada • ${horarioHoje}`
+                    : 'Presença confirmada'
+                  : horarioHoje
+                    ? `Hoje • ${horarioHoje}`
+                    : 'Hoje'}
           </div>
         </div>
-        {chk?.tem_hoje &&
-          (chk.confirmado ? (
-            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-accent text-black">
-              <Check size={18} strokeWidth={3} />
-            </span>
-          ) : (
-            <button
-              onClick={validarHoje}
-              disabled={checando}
-              aria-label="Confirmar presença de hoje (+5)"
-              title="Confirmar presença (+5)"
-              className="grid h-9 w-9 shrink-0 place-items-center rounded-full border-2 border-accent bg-accent-soft text-accent tap disabled:opacity-50"
+        {chk?.tem_hoje && (
+          <button
+            onClick={validarHoje}
+            disabled={checando || chk.confirmado}
+            role="switch"
+            aria-checked={!!chk.confirmado}
+            aria-label="Confirmar presença de hoje (+5)"
+            title={chk.confirmado ? 'Presença confirmada' : 'Confirmar presença (+5)'}
+            className={cn(
+              'relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors tap',
+              chk.confirmado ? 'bg-accent' : 'bg-line',
+              checando && 'opacity-70',
+            )}
+          >
+            <span
+              className={cn(
+                'grid h-5 w-5 place-items-center rounded-full bg-white shadow transition-transform',
+                chk.confirmado ? 'translate-x-[22px]' : 'translate-x-0.5',
+              )}
             >
-              {checando ? <Loader2 size={16} className="animate-spin" /> : <Check size={18} strokeWidth={3} />}
-            </button>
-          ))}
+              {checando ? (
+                <Loader2 size={12} className="animate-spin text-muted" />
+              ) : chk.confirmado ? (
+                <Check size={12} strokeWidth={3} className="text-accent" />
+              ) : null}
+            </span>
+          </button>
+        )}
       </div>
 
       {/* Saldo do banco de horas — texto direto na página (sem card) */}
