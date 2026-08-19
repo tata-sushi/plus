@@ -166,10 +166,15 @@ function Calendario() {
     if (!chk?.tem_hoje || chk?.confirmado || checando) return
     setChecando(true)
     try {
-      await call('escala_check')
-      setChk((c) => ({ ...(c || {}), confirmado: true }))
-      const iso = hojeISO()
-      setMapa((m) => (m ? { ...m, [iso]: { ...(m[iso] || {}), validado: true } } : m))
+      const r = await call('escala_check')
+      if (r && r.motivo === 'ausencia') {
+        // Ausência entrou no dia: não pontua.
+        setChk((c) => ({ ...(c || {}), ausencia: true }))
+      } else {
+        setChk((c) => ({ ...(c || {}), confirmado: true }))
+        const iso = hojeISO()
+        setMapa((m) => (m ? { ...m, [iso]: { ...(m[iso] || {}), validado: true } } : m))
+      }
     } catch (e) {
       avisar(e)
     } finally {
@@ -391,43 +396,50 @@ function Calendario() {
               ? '…'
               : !chk.tem_hoje
                 ? 'Hoje não é dia de ponto'
-                : chk.confirmado
-                  ? horarioHoje
-                    ? `Presença confirmada • ${horarioHoje}`
-                    : 'Presença confirmada'
-                  : horarioHoje
-                    ? `Hoje • ${horarioHoje}`
-                    : 'Hoje'}
+                : chk.ausencia
+                  ? 'Não pontua — há ausência no dia'
+                  : chk.confirmado
+                    ? horarioHoje
+                      ? `Presença confirmada • ${horarioHoje}`
+                      : 'Presença confirmada'
+                    : horarioHoje
+                      ? `Hoje • ${horarioHoje}`
+                      : 'Hoje'}
           </div>
         </div>
-        {chk?.tem_hoje && (
-          <button
-            onClick={validarHoje}
-            disabled={checando || chk.confirmado}
-            role="switch"
-            aria-checked={!!chk.confirmado}
-            aria-label="Confirmar presença de hoje (+5)"
-            title={chk.confirmado ? 'Presença confirmada' : 'Confirmar presença (+5)'}
-            className={cn(
-              'relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors tap',
-              chk.confirmado ? 'bg-accent' : 'bg-line',
-              checando && 'opacity-70',
-            )}
-          >
-            <span
+        {chk?.tem_hoje &&
+          (chk.ausencia ? (
+            <span className="shrink-0 rounded-pill bg-fill px-3 py-1 text-[11px] font-semibold text-muted-2">
+              Não pontuado
+            </span>
+          ) : (
+            <button
+              onClick={validarHoje}
+              disabled={checando || chk.confirmado}
+              role="switch"
+              aria-checked={!!chk.confirmado}
+              aria-label="Confirmar presença de hoje (+5)"
+              title={chk.confirmado ? 'Presença confirmada' : 'Confirmar presença (+5)'}
               className={cn(
-                'grid h-5 w-5 place-items-center rounded-full bg-white shadow transition-transform',
-                chk.confirmado ? 'translate-x-[22px]' : 'translate-x-0.5',
+                'relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors tap',
+                chk.confirmado ? 'bg-accent' : 'bg-line',
+                checando && 'opacity-70',
               )}
             >
-              {checando ? (
-                <Loader2 size={12} className="animate-spin text-muted" />
-              ) : chk.confirmado ? (
-                <Check size={12} strokeWidth={3} className="text-accent" />
-              ) : null}
-            </span>
-          </button>
-        )}
+              <span
+                className={cn(
+                  'grid h-5 w-5 place-items-center rounded-full bg-white shadow transition-transform',
+                  chk.confirmado ? 'translate-x-[22px]' : 'translate-x-0.5',
+                )}
+              >
+                {checando ? (
+                  <Loader2 size={12} className="animate-spin text-muted" />
+                ) : chk.confirmado ? (
+                  <Check size={12} strokeWidth={3} className="text-accent" />
+                ) : null}
+              </span>
+            </button>
+          ))}
       </div>
 
       {/* Saldo do banco de horas — texto direto na página (sem card) */}
