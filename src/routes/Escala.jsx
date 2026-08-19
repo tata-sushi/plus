@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Navigate, useNavigate } from 'react-router-dom'
-import { Loader2, ChevronLeft, ChevronRight, CalendarClock, Check, X, Sun, CircleCheck, Coins, MessageCircle, Palmtree, CircleDot, Info, ArrowLeft, Clock, Cake, Gift } from 'lucide-react'
+import { Loader2, ChevronLeft, ChevronRight, CalendarClock, Check, X, Sun, CircleCheck, Coins, MessageCircle, Palmtree, CircleDot, Info, ArrowLeft, Clock, Cake, Gift, Flag, Sparkles } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { tapHaptic } from '../lib/haptics.js'
 import { Avatar } from '../components/Avatar.jsx'
@@ -22,6 +22,10 @@ const FERIAS_TXT = '#3b82f6'
 
 // Aniversário: rosa (distinto de todo o resto). Só marca o dia e lista quem faz.
 const ANIV_COR = '#ec4899'
+
+// Feriado: índigo. Ponto cheio = feriado (nacional/estadual/municipal);
+// ponto vazado = data comercial (marketing, não é folga).
+const FER_COR = '#6366f1'
 
 // Ausências (dp_rh.ausencias): 13 tipos → 7 grupos, cada um com sua cor.
 function tintCell(hex) {
@@ -144,6 +148,7 @@ function Calendario() {
   const [ferias, setFerias] = useState(null) // { 'YYYY-MM-DD': { aprovado } }
   const [ausencias, setAusencias] = useState(null) // { 'YYYY-MM-DD': { tipo } }
   const [aniversarios, setAniversarios] = useState(null) // { 'YYYY-MM-DD': [ { nome, unidade, avatar_url, eu } ] }
+  const [feriados, setFeriados] = useState(null) // { 'YYYY-MM-DD': [ { nome, grupo, tipo } ] }
   const [det, setDet] = useState(null) // { info, dia, evts } — detalhe do dia
   const [folga, setFolga] = useState(null) // status da Folga Aniversário (só no meu dia): null=off, undefined=carregando, obj=dados
   const [checando, setChecando] = useState(false)
@@ -198,6 +203,7 @@ function Calendario() {
     setFerias(null)
     setAusencias(null)
     setAniversarios(null)
+    setFeriados(null)
     call('escala_meu_periodo', { p_inicio: grid.startISO, p_fim: grid.endISO })
       .then((d) => a && setMapa(d && typeof d === 'object' ? d : {}))
       .catch(() => a && setMapa({}))
@@ -213,6 +219,9 @@ function Calendario() {
     call('escala_aniversarios_periodo', { p_inicio: grid.startISO, p_fim: grid.endISO })
       .then((d) => a && setAniversarios(d && typeof d === 'object' ? d : {}))
       .catch(() => a && setAniversarios({}))
+    call('escala_feriados_periodo', { p_inicio: grid.startISO, p_fim: grid.endISO })
+      .then((d) => a && setFeriados(d && typeof d === 'object' ? d : {}))
+      .catch(() => a && setFeriados({}))
     return () => {
       a = false
     }
@@ -287,11 +296,14 @@ function Calendario() {
           const temEvt = noMes && Array.isArray(evts) && evts.length > 0
           const anivs = noMes ? aniversarios?.[iso] : null
           const temAniv = Array.isArray(anivs) && anivs.length > 0
+          const feris = noMes ? feriados?.[iso] : null
+          const temFeriado = Array.isArray(feris) && feris.length > 0
+          const feriadoReal = temFeriado && feris.some((f) => f.grupo === 'feriado')
           const isHoje = iso === hoje
           const folga = !ehFerias && !gAus && !!info?.folga
           const trab = !ehFerias && !gAus && !!info && !info.folga
           const pares = paresDe(info)
-          const clicavel = noMes && (!!info || temEvt || ehFerias || !!gAus || temAniv)
+          const clicavel = noMes && (!!info || temEvt || ehFerias || !!gAus || temAniv || temFeriado)
           const branco = !!gAus?.branco
           const tint = ehFerias ? FERIAS_CELL : gAus && !branco ? gAus.cell : null
           const tintTxt = ehFerias ? FERIAS_TXT : gAus && !branco ? gAus.cor : null
@@ -299,7 +311,7 @@ function Calendario() {
             <button
               key={iso}
               type="button"
-              onClick={clicavel ? () => setDet({ info, dia: d, evts, fer, aus: gAus ? { ...gAus, tipo: ausRaw.tipo } : null, aniv: temAniv ? anivs : null }) : undefined}
+              onClick={clicavel ? () => setDet({ info, dia: d, evts, fer, aus: gAus ? { ...gAus, tipo: ausRaw.tipo } : null, aniv: temAniv ? anivs : null, feriado: temFeriado ? feris : null }) : undefined}
               disabled={!clicavel}
               style={tint && !isHoje ? tint : undefined}
               className={cn(
@@ -329,6 +341,12 @@ function Calendario() {
                 ))}
               {temEvt && <span className="absolute bottom-1 left-1/2 h-1.5 w-5 -translate-x-1/2 rounded-full bg-accent" />}
               {temAniv && <Cake size={9} className="absolute left-0.5 top-0.5" style={{ color: ANIV_COR }} />}
+              {temFeriado && (
+                <span
+                  className={cn('absolute bottom-0.5 right-0.5 h-1.5 w-1.5 rounded-full', !feriadoReal && 'border')}
+                  style={feriadoReal ? { backgroundColor: FER_COR } : { borderColor: FER_COR }}
+                />
+              )}
               <span
                 className={cn('font-bold', isHoje ? 'text-accent' : trab ? 'text-carbon dark:text-accent' : '')}
                 style={tintTxt && !isHoje ? { color: tintTxt } : undefined}
@@ -465,6 +483,22 @@ function Calendario() {
             </div>
           </div>
           <div className="mt-4 flex flex-col gap-3">
+            {det.feriado?.map((f, i) => (
+              <div
+                key={`fe${i}`}
+                className={cn(
+                  'hstack items-center gap-2 rounded-card border px-4 py-3 text-sm font-semibold',
+                  f.grupo !== 'feriado' && 'border-line text-muted',
+                )}
+                style={f.grupo === 'feriado' ? { borderColor: FER_COR, backgroundColor: 'rgba(99,102,241,0.10)', color: FER_COR } : undefined}
+              >
+                {f.grupo === 'feriado' ? <Flag size={16} className="shrink-0" /> : <Sparkles size={16} className="shrink-0" />}
+                <div className="min-w-0">
+                  <div className="leading-tight">{f.nome}</div>
+                  {f.tipo && <div className={cn('text-[11px] font-normal', f.grupo === 'feriado' ? 'opacity-80' : 'text-muted-2')}>{f.tipo}</div>}
+                </div>
+              </div>
+            ))}
             {det.fer && (
               <div className="hstack items-center gap-2 rounded-card border px-4 py-3 text-sm font-semibold" style={{ ...FERIAS_CELL, color: FERIAS_TXT }}>
                 <Palmtree size={16} /> Férias
@@ -655,6 +689,8 @@ function LegendaSheet({ onClose }) {
       <div className="mt-2 flex flex-col gap-2.5">
         <Item swatch={<MessageCircle size={16} className="text-accent" />} label="Conversa com o RH" dentro="Reunião/alinhamento marcado" />
         <Item swatch={<Cake size={16} style={{ color: ANIV_COR }} />} label="Aniversário" dentro="Colegas que fazem aniversário no dia" />
+        <Item swatch={<span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: FER_COR }} />} label="Feriado" dentro="Nacional, estadual ou municipal" />
+        <Item swatch={<span className="h-2.5 w-2.5 rounded-full border-2" style={{ borderColor: FER_COR }} />} label="Data comercial" dentro="Ação de marketing (não é folga)" />
       </div>
     </Folha>
   )
