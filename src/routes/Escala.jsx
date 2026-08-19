@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Navigate, useNavigate } from 'react-router-dom'
-import { Loader2, ChevronLeft, ChevronRight, CalendarClock, Check, X, Sun, CircleCheck, Coins, MessageCircle, Palmtree, CircleDot, Info, ArrowLeft, Clock, Cake, Gift, Flag, Sparkles } from 'lucide-react'
+import { Loader2, ChevronLeft, ChevronRight, CalendarClock, Check, X, Sun, CircleCheck, Coins, MessageCircle, Palmtree, CircleDot, Info, ArrowLeft, Clock, Gift, Flag, Sparkles } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { tapHaptic } from '../lib/haptics.js'
 import { Avatar } from '../components/Avatar.jsx'
@@ -19,9 +19,6 @@ const DIAS = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom']
 // legível no claro e no escuro (distinto de Trabalho/accent e Folga/fill).
 const FERIAS_CELL = { backgroundColor: 'rgb(59 130 246 / 0.16)', borderColor: 'rgb(59 130 246 / 0.45)' }
 const FERIAS_TXT = '#3b82f6'
-
-// Aniversário: rosa (distinto de todo o resto). Só marca o dia e lista quem faz.
-const ANIV_COR = '#ec4899'
 
 // Feriado: índigo. Ponto cheio = feriado (nacional/estadual/municipal);
 // ponto vazado = data comercial (marketing, não é folga).
@@ -150,7 +147,8 @@ function Calendario() {
   const [aniversarios, setAniversarios] = useState(null) // { 'YYYY-MM-DD': [ { nome, unidade, avatar_url, eu } ] }
   const [feriados, setFeriados] = useState(null) // { 'YYYY-MM-DD': [ { nome, grupo, tipo } ] }
   const [det, setDet] = useState(null) // { info, dia, evts } — detalhe do dia
-  const [folga, setFolga] = useState(null) // status da Folga Aniversário (só no meu dia): null=off, undefined=carregando, obj=dados
+  const [folga, setFolga] = useState(null) // status da Folga Aniversário: null=off, undefined=carregando, obj=dados
+  const [folgaAberta, setFolgaAberta] = useState(null) // ISO do aniversário quando a folha está aberta
   const [checando, setChecando] = useState(false)
   const [banco, setBanco] = useState(null) // { data, saldo }
   const [chk, setChk] = useState(null) // { data, controla, tem_hoje, confirmado }
@@ -227,22 +225,32 @@ function Calendario() {
     }
   }, [grid.startISO, grid.endISO])
 
-  // Ao abrir o detalhe do próprio aniversário, calcula a elegibilidade da folga.
+  // Meu aniversário no mês exibido (a RPC só traz o próprio). null se não for este mês.
+  const meuAnivISO = useMemo(() => {
+    if (!aniversarios) return null
+    for (const iso of Object.keys(aniversarios)) {
+      const [y, m] = iso.split('-').map(Number)
+      if (m - 1 === mes && y === ano && Array.isArray(aniversarios[iso]) && aniversarios[iso].length) return iso
+    }
+    return null
+  }, [aniversarios, mes, ano])
+  const meuAnivPessoa = meuAnivISO ? aniversarios[meuAnivISO][0] : null
+
+  // Folga Aniversário — abre pela folha (item abaixo do banco). Calcula a elegibilidade.
   useEffect(() => {
-    const meu = det?.aniv?.some((p) => p.eu)
-    if (!meu) {
+    if (!folgaAberta) {
       setFolga(null)
       return
     }
     let a = true
     setFolga(undefined) // carregando
-    call('escala_folga_aniversario', { p_data: isoLocal(det.dia) })
+    call('escala_folga_aniversario', { p_data: folgaAberta.iso })
       .then((d) => a && setFolga(d && typeof d === 'object' && d.eh_meu ? d : null))
       .catch(() => a && setFolga(null))
     return () => {
       a = false
     }
-  }, [det])
+  }, [folgaAberta])
 
   const hoje = hojeISO()
   const horarioHoje = chk ? paresDe(chk).map((p) => `${p[0]}–${p[1]}`).join(' · ') : ''
@@ -290,7 +298,7 @@ function Calendario() {
           const folga = !ehFerias && !gAus && !!info?.folga
           const trab = !ehFerias && !gAus && !!info && !info.folga
           const pares = paresDe(info)
-          const clicavel = noMes && (!!info || temEvt || ehFerias || !!gAus || temAniv || temFeriado)
+          const clicavel = noMes && (!!info || temEvt || ehFerias || !!gAus || temFeriado)
           const branco = !!gAus?.branco
           const tint = ehFerias ? FERIAS_CELL : gAus && !branco ? gAus.cell : null
           const tintTxt = ehFerias ? FERIAS_TXT : gAus && !branco ? gAus.cor : null
@@ -298,7 +306,7 @@ function Calendario() {
             <button
               key={iso}
               type="button"
-              onClick={clicavel ? () => setDet({ info, dia: d, evts, fer, aus: gAus ? { ...gAus, tipo: ausRaw.tipo } : null, aniv: temAniv ? anivs : null, feriado: temFeriado ? feris : null }) : undefined}
+              onClick={clicavel ? () => setDet({ info, dia: d, evts, fer, aus: gAus ? { ...gAus, tipo: ausRaw.tipo } : null, feriado: temFeriado ? feris : null }) : undefined}
               disabled={!clicavel}
               style={tint && !isHoje ? tint : undefined}
               className={cn(
@@ -359,7 +367,7 @@ function Calendario() {
                   {temFeriado && feris.some((f) => f.grupo === 'comercial') && (
                     <span className="h-[3px] w-full max-w-[22px] rounded-full" style={{ backgroundColor: 'rgba(99,102,241,0.4)' }} />
                   )}
-                  {temAniv && <span className="h-[3px] w-full max-w-[22px] rounded-full" style={{ backgroundColor: ANIV_COR }} />}
+                  {temAniv && <span className="h-[3px] w-full max-w-[22px] rounded-full bg-accent" />}
                   {temEvt && <span className="h-[3px] w-full max-w-[22px] rounded-full bg-accent" />}
                 </div>
               )}
@@ -431,6 +439,23 @@ function Calendario() {
         </div>
         <div className="shrink-0 text-lg font-bold">{banco == null ? '—' : fmtHoras(banco.saldo)}</div>
       </div>
+
+      {/* Folga Aniversário — só no mês do aniversário; some ao trocar de mês. */}
+      {meuAnivISO && (
+        <button
+          onClick={() => setFolgaAberta({ iso: meuAnivISO, pessoa: meuAnivPessoa })}
+          className="mt-4 flex w-full items-center gap-3 px-4 tap"
+        >
+          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-accent-soft text-accent">
+            <Gift size={18} />
+          </span>
+          <div className="min-w-0 flex-1 text-left">
+            <div className="text-sm font-semibold">Folga Aniversário</div>
+            <div className="text-[11px] text-muted">Seu aniversário • {ddmm(meuAnivISO)} · ver elegibilidade</div>
+          </div>
+          <ChevronRight size={16} className="shrink-0 text-muted-2" />
+        </button>
+      )}
 
       {det && (
         <Folha onClose={() => setDet(null)}>
@@ -509,32 +534,25 @@ function Calendario() {
                 {ev.titulo && <div className="mt-0.5 text-xs text-muted">{ev.titulo}</div>}
               </div>
             ))}
-            {det.aniv && (
-              <div className="flex flex-col gap-2">
-                <div className="hstack items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide" style={{ color: ANIV_COR }}>
-                  <Cake size={13} /> Aniversário{det.aniv.length > 1 ? 's' : ''}
-                </div>
-                {det.aniv.map((p, i) => (
-                  <div
-                    key={`an${i}`}
-                    className={cn('hstack items-center gap-3 rounded-card border px-4 py-3', p.eu ? 'border-2' : 'border-line')}
-                    style={p.eu ? { borderColor: ANIV_COR } : undefined}
-                  >
-                    <Avatar name={p.nome} src={p.avatar_url} size={36} />
-                    <div className="min-w-0 flex-1">
-                      <div className="truncate text-sm font-semibold">
-                        {p.nome}
-                        {p.eu && <span className="font-bold" style={{ color: ANIV_COR }}> · você 🎉</span>}
-                      </div>
-                      {[p.cargo, p.unidade].filter(Boolean).length > 0 && (
-                        <div className="truncate text-[11px] text-muted">{[p.cargo, p.unidade].filter(Boolean).join(' · ')}</div>
-                      )}
-                    </div>
-                  </div>
-                ))}
+          </div>
+        </Folha>
+      )}
+
+      {/* Folha da Folga Aniversário — aberta pelo item abaixo do banco. */}
+      {folgaAberta && (
+        <Folha onClose={() => setFolgaAberta(null)}>
+          <div className="hstack gap-3">
+            <Avatar name={folgaAberta.pessoa?.nome} src={folgaAberta.pessoa?.avatar_url} size={44} />
+            <div className="min-w-0">
+              <div className="font-display text-base font-bold">Seu aniversário 🎉</div>
+              <div className="text-xs text-muted">
+                {ddmm(folgaAberta.iso)}
+                {folgaAberta.pessoa?.nome ? ` · ${folgaAberta.pessoa.nome}` : ''}
               </div>
-            )}
-            {det.aniv?.some((p) => p.eu) && <FolgaAniversario status={folga} />}
+            </div>
+          </div>
+          <div className="mt-4">
+            <FolgaAniversario status={folga} />
           </div>
         </Folha>
       )}
@@ -564,8 +582,8 @@ function FolgaAniversario({ status }) {
     </div>
   )
   return (
-    <div className="rounded-card border px-4 py-3" style={{ borderColor: ANIV_COR }}>
-      <div className="hstack items-center gap-2" style={{ color: ANIV_COR }}>
+    <div className="rounded-card border border-accent px-4 py-3">
+      <div className="hstack items-center gap-2 text-accent">
         <Gift size={16} />
         <span className="text-sm font-bold">Folga Aniversário</span>
       </div>
@@ -651,7 +669,7 @@ function LegendaSheet({ onClose }) {
       <Titulo>Agenda</Titulo>
       <div className="mt-2 flex flex-col gap-2.5">
         <Item swatch={<span className="h-1 w-4 rounded-full bg-accent" />} label="Conversa com o RH" dentro="Reunião/alinhamento marcado" />
-        <Item swatch={<span className="h-1 w-4 rounded-full" style={{ backgroundColor: ANIV_COR }} />} label="Seu aniversário" dentro="Marca o seu dia" />
+        <Item swatch={<span className="h-1 w-4 rounded-full bg-accent" />} label="Seu aniversário" dentro="Marca o seu dia" />
         <Item swatch={<span className="h-1 w-4 rounded-full" style={{ backgroundColor: FER_COR }} />} label="Feriado" dentro="Nacional, estadual ou municipal" />
         <Item swatch={<span className="h-1 w-4 rounded-full" style={{ backgroundColor: 'rgba(99,102,241,0.4)' }} />} label="Data comercial" dentro="Ação de marketing (não é folga)" />
       </div>
