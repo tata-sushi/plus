@@ -537,7 +537,9 @@ function Calendario() {
                 ))}
               </div>
             )}
-            {det.aniv?.some((p) => p.eu) && <FolgaAniversario status={folga} />}
+            {det.aniv?.some((p) => p.eu) && (
+              <FolgaAniversario status={folga} caiEmFolga={!!det.info?.folga || !!det.aus?.branco} />
+            )}
           </div>
         </Folha>
       )}
@@ -547,7 +549,7 @@ function Calendario() {
 
 // Folga Aniversário (só aparece no aniversário do próprio usuário). Mostra os
 // critérios da política calculados no banco; o "domingo do mês" fica com o líder.
-function FolgaAniversario({ status }) {
+function FolgaAniversario({ status, caiEmFolga }) {
   if (status === undefined) {
     return (
       <div className="hstack items-center gap-2 rounded-card border border-line px-4 py-3 text-sm text-muted">
@@ -596,14 +598,16 @@ function FolgaAniversario({ status }) {
         {status.elegivel ? 'Elegível pela regra 🎉' : 'Ainda não elegível pela regra'}
         {status.previa && <span className="font-normal"> · prévia, ainda pode mudar até a data</span>}
       </div>
-      {status.domingo && (
+      {status.domingo ? (
         <p className="mt-2 text-[11px] text-muted">
           Cai no domingo: a folga é compensada com o domingo do mês (a critério do líder).
         </p>
-      )}
-      <p className="mt-2 text-[11px] text-muted-2">
-        Se cair em dia de folga, não troca de data. Confirme sempre com seu líder / RH.
-      </p>
+      ) : caiEmFolga ? (
+        <p className="mt-2 text-[11px] text-muted">
+          Cai em dia de folga: pela política, não troca para outra data.
+        </p>
+      ) : null}
+      <p className="mt-2 text-[11px] text-muted-2">Confirme sempre com seu líder / RH.</p>
     </div>
   )
 }
