@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Navigate, useNavigate } from 'react-router-dom'
-import { Loader2, ChevronLeft, ChevronRight, CalendarClock, Check, X, Sun, CircleCheck, Coins, MessageCircle, Palmtree, CircleDot, Info, ArrowLeft, Clock } from 'lucide-react'
+import { Loader2, ChevronLeft, ChevronRight, CalendarClock, Check, X, Sun, CircleCheck, Coins, MessageCircle, Palmtree, CircleDot, Info, ArrowLeft, Clock, Cake } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { tapHaptic } from '../lib/haptics.js'
 import { Avatar } from '../components/Avatar.jsx'
@@ -19,6 +19,9 @@ const DIAS = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom']
 // legível no claro e no escuro (distinto de Trabalho/accent e Folga/fill).
 const FERIAS_CELL = { backgroundColor: 'rgb(59 130 246 / 0.16)', borderColor: 'rgb(59 130 246 / 0.45)' }
 const FERIAS_TXT = '#3b82f6'
+
+// Aniversário: rosa (distinto de todo o resto). Só marca o dia e lista quem faz.
+const ANIV_COR = '#ec4899'
 
 // Ausências (dp_rh.ausencias): 13 tipos → 7 grupos, cada um com sua cor.
 function tintCell(hex) {
@@ -140,6 +143,7 @@ function Calendario() {
   const [eventos, setEventos] = useState(null) // { 'YYYY-MM-DD': [ { tipo, hora, titulo, status } ] }
   const [ferias, setFerias] = useState(null) // { 'YYYY-MM-DD': { aprovado } }
   const [ausencias, setAusencias] = useState(null) // { 'YYYY-MM-DD': { tipo } }
+  const [aniversarios, setAniversarios] = useState(null) // { 'YYYY-MM-DD': [ { nome, unidade, avatar_url, eu } ] }
   const [det, setDet] = useState(null) // { info, dia, evts } — detalhe do dia
   const [checando, setChecando] = useState(false)
   const [banco, setBanco] = useState(null) // { data, saldo }
@@ -192,6 +196,7 @@ function Calendario() {
     setEventos(null)
     setFerias(null)
     setAusencias(null)
+    setAniversarios(null)
     call('escala_meu_periodo', { p_inicio: grid.startISO, p_fim: grid.endISO })
       .then((d) => a && setMapa(d && typeof d === 'object' ? d : {}))
       .catch(() => a && setMapa({}))
@@ -204,10 +209,26 @@ function Calendario() {
     call('escala_ausencias_periodo', { p_inicio: grid.startISO, p_fim: grid.endISO })
       .then((d) => a && setAusencias(d && typeof d === 'object' ? d : {}))
       .catch(() => a && setAusencias({}))
+    call('escala_aniversarios_periodo', { p_inicio: grid.startISO, p_fim: grid.endISO })
+      .then((d) => a && setAniversarios(d && typeof d === 'object' ? d : {}))
+      .catch(() => a && setAniversarios({}))
     return () => {
       a = false
     }
   }, [grid.startISO, grid.endISO])
+
+  // Aniversariantes do mês exibido (a partir do mesmo mapa por dia).
+  const anivDoMes = useMemo(() => {
+    if (!aniversarios) return []
+    const out = []
+    for (const [iso, pessoas] of Object.entries(aniversarios)) {
+      const [y, m, dd] = iso.split('-').map(Number)
+      if (m - 1 !== mes || y !== ano || !Array.isArray(pessoas)) continue
+      for (const p of pessoas) out.push({ dia: dd, ...p })
+    }
+    out.sort((a2, b2) => a2.dia - b2.dia || String(a2.nome).localeCompare(String(b2.nome)))
+    return out
+  }, [aniversarios, mes, ano])
 
   const hoje = hojeISO()
   const horarioHoje = chk ? paresDe(chk).map((p) => `${p[0]}–${p[1]}`).join(' · ') : ''
@@ -246,11 +267,13 @@ function Calendario() {
           const ausRaw = !ehFerias && noMes ? ausencias?.[iso] : null
           const gAus = ausRaw ? grupoAus(ausRaw.tipo) : null
           const temEvt = noMes && Array.isArray(evts) && evts.length > 0
+          const anivs = noMes ? aniversarios?.[iso] : null
+          const temAniv = Array.isArray(anivs) && anivs.length > 0
           const isHoje = iso === hoje
           const folga = !ehFerias && !gAus && !!info?.folga
           const trab = !ehFerias && !gAus && !!info && !info.folga
           const pares = paresDe(info)
-          const clicavel = noMes && (!!info || temEvt || ehFerias || !!gAus)
+          const clicavel = noMes && (!!info || temEvt || ehFerias || !!gAus || temAniv)
           const branco = !!gAus?.branco
           const tint = ehFerias ? FERIAS_CELL : gAus && !branco ? gAus.cell : null
           const tintTxt = ehFerias ? FERIAS_TXT : gAus && !branco ? gAus.cor : null
@@ -258,7 +281,7 @@ function Calendario() {
             <button
               key={iso}
               type="button"
-              onClick={clicavel ? () => setDet({ info, dia: d, evts, fer, aus: gAus ? { ...gAus, tipo: ausRaw.tipo } : null }) : undefined}
+              onClick={clicavel ? () => setDet({ info, dia: d, evts, fer, aus: gAus ? { ...gAus, tipo: ausRaw.tipo } : null, aniv: temAniv ? anivs : null }) : undefined}
               disabled={!clicavel}
               style={tint && !isHoje ? tint : undefined}
               className={cn(
@@ -287,6 +310,7 @@ function Calendario() {
                   <X size={9} strokeWidth={3} className="absolute right-0.5 top-0.5 text-muted-2/70" />
                 ))}
               {temEvt && <span className="absolute bottom-1 left-1/2 h-1.5 w-5 -translate-x-1/2 rounded-full bg-accent" />}
+              {temAniv && <Cake size={9} className="absolute left-0.5 top-0.5" style={{ color: ANIV_COR }} />}
               <span
                 className={cn('font-bold', isHoje ? 'text-accent' : trab ? 'text-carbon dark:text-accent' : '')}
                 style={tintTxt && !isHoje ? { color: tintTxt } : undefined}
@@ -378,6 +402,37 @@ function Calendario() {
         <div className="shrink-0 text-lg font-bold">{banco == null ? '—' : fmtHoras(banco.saldo)}</div>
       </div>
 
+      {/* Aniversariantes do mês exibido (empresa toda, só ativos) */}
+      <div className="mt-6 px-4">
+        <div className="hstack items-center gap-2">
+          <Cake size={16} style={{ color: ANIV_COR }} />
+          <div className="text-sm font-semibold">Aniversariantes de {MESES[mes]}</div>
+        </div>
+        {aniversarios == null ? (
+          <div className="mt-2 text-[11px] text-muted">…</div>
+        ) : anivDoMes.length === 0 ? (
+          <div className="mt-2 text-[11px] text-muted">Ninguém faz aniversário neste mês.</div>
+        ) : (
+          <div className="mt-3 flex flex-col gap-2.5">
+            {anivDoMes.map((p, i) => (
+              <div key={`am${i}`} className="hstack items-center gap-2.5">
+                <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-fill text-[11px] font-bold text-muted">
+                  {pad(p.dia)}
+                </span>
+                <Avatar name={p.nome} src={p.avatar_url} size={28} />
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-sm font-medium">
+                    {p.nome}
+                    {p.eu && <span className="font-semibold" style={{ color: ANIV_COR }}> · você</span>}
+                  </div>
+                  {p.unidade && <div className="truncate text-[11px] text-muted">{p.unidade}</div>}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
       {det && (
         <Folha onClose={() => setDet(null)}>
           <div className="hstack gap-3">
@@ -439,6 +494,31 @@ function Calendario() {
                 {ev.titulo && <div className="mt-0.5 text-xs text-muted">{ev.titulo}</div>}
               </div>
             ))}
+            {det.aniv && (
+              <div className="flex flex-col gap-2">
+                <div className="hstack items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide" style={{ color: ANIV_COR }}>
+                  <Cake size={13} /> Aniversário{det.aniv.length > 1 ? 's' : ''}
+                </div>
+                {det.aniv.map((p, i) => (
+                  <div
+                    key={`an${i}`}
+                    className={cn('hstack items-center gap-3 rounded-card border px-4 py-3', p.eu ? 'border-2' : 'border-line')}
+                    style={p.eu ? { borderColor: ANIV_COR } : undefined}
+                  >
+                    <Avatar name={p.nome} src={p.avatar_url} size={36} />
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate text-sm font-semibold">
+                        {p.nome}
+                        {p.eu && <span className="font-bold" style={{ color: ANIV_COR }}> · você 🎉</span>}
+                      </div>
+                      {[p.cargo, p.unidade].filter(Boolean).length > 0 && (
+                        <div className="truncate text-[11px] text-muted">{[p.cargo, p.unidade].filter(Boolean).join(' · ')}</div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </Folha>
       )}
@@ -495,6 +575,7 @@ function LegendaSheet({ onClose }) {
       <Titulo>Agenda</Titulo>
       <div className="mt-2 flex flex-col gap-2.5">
         <Item swatch={<MessageCircle size={16} className="text-accent" />} label="Conversa com o RH" dentro="Reunião/alinhamento marcado" />
+        <Item swatch={<Cake size={16} style={{ color: ANIV_COR }} />} label="Aniversário" dentro="Colegas que fazem aniversário no dia" />
       </div>
     </Folha>
   )
