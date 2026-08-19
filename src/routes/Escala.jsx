@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Navigate, useNavigate } from 'react-router-dom'
-import { Loader2, ChevronLeft, ChevronRight, CalendarClock, Check, X, Sun, CircleCheck, Coins, MessageCircle, Palmtree, CircleDot, Info, ArrowLeft, Clock, Cake } from 'lucide-react'
+import { Loader2, ChevronLeft, ChevronRight, CalendarClock, Check, X, Sun, CircleCheck, Coins, MessageCircle, Palmtree, CircleDot, Info, ArrowLeft, Clock, Cake, Gift } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { tapHaptic } from '../lib/haptics.js'
 import { Avatar } from '../components/Avatar.jsx'
@@ -145,6 +145,7 @@ function Calendario() {
   const [ausencias, setAusencias] = useState(null) // { 'YYYY-MM-DD': { tipo } }
   const [aniversarios, setAniversarios] = useState(null) // { 'YYYY-MM-DD': [ { nome, unidade, avatar_url, eu } ] }
   const [det, setDet] = useState(null) // { info, dia, evts } — detalhe do dia
+  const [folga, setFolga] = useState(null) // status da Folga Aniversário (só no meu dia): null=off, undefined=carregando, obj=dados
   const [checando, setChecando] = useState(false)
   const [banco, setBanco] = useState(null) // { data, saldo }
   const [chk, setChk] = useState(null) // { data, controla, tem_hoje, confirmado }
@@ -229,6 +230,23 @@ function Calendario() {
     out.sort((a2, b2) => a2.dia - b2.dia || String(a2.nome).localeCompare(String(b2.nome)))
     return out
   }, [aniversarios, mes, ano])
+
+  // Ao abrir o detalhe do próprio aniversário, calcula a elegibilidade da folga.
+  useEffect(() => {
+    const meu = det?.aniv?.some((p) => p.eu)
+    if (!meu) {
+      setFolga(null)
+      return
+    }
+    let a = true
+    setFolga(undefined) // carregando
+    call('escala_folga_aniversario', { p_data: isoLocal(det.dia) })
+      .then((d) => a && setFolga(d && typeof d === 'object' && d.eh_meu ? d : null))
+      .catch(() => a && setFolga(null))
+    return () => {
+      a = false
+    }
+  }, [det])
 
   const hoje = hojeISO()
   const horarioHoje = chk ? paresDe(chk).map((p) => `${p[0]}–${p[1]}`).join(' · ') : ''
@@ -519,9 +537,73 @@ function Calendario() {
                 ))}
               </div>
             )}
+            {det.aniv?.some((p) => p.eu) && <FolgaAniversario status={folga} />}
           </div>
         </Folha>
       )}
+    </div>
+  )
+}
+
+// Folga Aniversário (só aparece no aniversário do próprio usuário). Mostra os
+// critérios da política calculados no banco; o "domingo do mês" fica com o líder.
+function FolgaAniversario({ status }) {
+  if (status === undefined) {
+    return (
+      <div className="hstack items-center gap-2 rounded-card border border-line px-4 py-3 text-sm text-muted">
+        <Loader2 size={16} className="animate-spin" /> Verificando a folga de aniversário…
+      </div>
+    )
+  }
+  if (!status) return null
+  const Crit = ({ ok, children }) => (
+    <div className="hstack items-start gap-2 text-[13px] leading-snug">
+      {ok ? (
+        <Check size={15} strokeWidth={3} className="mt-px shrink-0 text-accent" />
+      ) : (
+        <X size={15} strokeWidth={3} className="mt-px shrink-0" style={{ color: '#ef4444' }} />
+      )}
+      <span className={ok ? '' : 'text-muted'}>{children}</span>
+    </div>
+  )
+  return (
+    <div className="rounded-card border px-4 py-3" style={{ borderColor: ANIV_COR }}>
+      <div className="hstack items-center gap-2" style={{ color: ANIV_COR }}>
+        <Gift size={16} />
+        <span className="text-sm font-bold">Folga Aniversário</span>
+      </div>
+      <p className="mt-1 text-[12px] text-muted">Caixa de bombons + cartão e um dia de folga pra comemorar.</p>
+      <div className="mt-3 flex flex-col gap-1.5">
+        <Crit ok={status.experiencia_ok}>
+          Passou da experiência (60 dias) <span className="text-muted-2">· desde {status.admissao}</span>
+        </Crit>
+        <Crit ok={status.banco_ok}>
+          Banco de horas não negativo <span className="text-muted-2">· saldo {fmtHoras(status.banco_saldo)}</span>
+        </Crit>
+        <Crit ok={status.faltas_ok}>
+          Sem faltas injustificadas nos últimos 30 dias
+          {status.faltas_qtd > 0 && <span className="text-muted-2"> · {status.faltas_qtd}</span>}
+        </Crit>
+        <Crit ok={status.sancoes_ok}>
+          Sem advertências/suspensões nos 30 dias anteriores
+          {status.sancoes_qtd > 0 && <span className="text-muted-2"> · {status.sancoes_qtd}</span>}
+        </Crit>
+      </div>
+      <div
+        className={cn('mt-3 rounded-lg px-3 py-2 text-[13px] font-semibold', status.elegivel && 'bg-accent-soft text-accent')}
+        style={status.elegivel ? undefined : { backgroundColor: 'rgba(239,68,68,0.10)', color: '#ef4444' }}
+      >
+        {status.elegivel ? 'Elegível pela regra 🎉' : 'Ainda não elegível pela regra'}
+        {status.previa && <span className="font-normal"> · prévia, ainda pode mudar até a data</span>}
+      </div>
+      {status.domingo && (
+        <p className="mt-2 text-[11px] text-muted">
+          Cai no domingo: a folga é compensada com o domingo do mês (a critério do líder).
+        </p>
+      )}
+      <p className="mt-2 text-[11px] text-muted-2">
+        Se cair em dia de folga, não troca de data. Confirme sempre com seu líder / RH.
+      </p>
     </div>
   )
 }
