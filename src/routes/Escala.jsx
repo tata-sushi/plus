@@ -119,7 +119,7 @@ function Painel() {
       <Calendario />
       {/* Aviso no rodapé — empurrado pro fundo, logo acima da barra de navegação. */}
       <p className="mt-auto px-6 pb-2 pt-8 text-center text-[10px] leading-relaxed text-muted-2">
-        Informações de fácil acesso e visualização — não substituem o documento oficial, como o cartão de ponto.
+        Informações de fácil para visualização e consulta rápida. Não substituem documentos oficiais, como o cartão de ponto.
       </p>
       {legendaAberta && <LegendaSheet onClose={() => setLegendaAberta(false)} />}
     </div>
