@@ -31,7 +31,7 @@ import { Compartilhar } from './routes/Compartilhar.jsx'
 // Painel Kanban (Quadros) — carregado sob demanda (poucos têm acesso), pra não
 // pesar o bundle de todo mundo com a lib de drag-and-drop.
 const Quadros = lazy(() => import('./routes/Quadros.jsx'))
-// Escala de trabalho — carregada sob demanda (liberada pelo painel de admin).
+// Agenda/Escala do colaborador — carregada sob demanda (liberada a todo colaborador ativo).
 const Escala = lazy(() => import('./routes/Escala.jsx'))
 // Limpeza de banheiros — check via QR, carregada sob demanda.
 const Limpeza = lazy(() => import('./routes/Limpeza.jsx'))

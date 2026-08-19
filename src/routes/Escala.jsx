@@ -9,7 +9,7 @@ import { cn } from '../lib/cn'
 import { useAuth } from '../lib/AuthContext.jsx'
 import { supabase } from '../lib/supabase.js'
 
-// ── Escala de trabalho (teste — liberado pelo painel de admin) ────────────────
+// ── Agenda/Escala do colaborador (liberada a todo colaborador ativo) ──────────
 // Modelo novo (schema dp_rh): cada colaborador tem um PADRÃO recorrente (com
 // revezamento e "vale a partir de"), que o backend materializa semana a semana.
 // O líder pode fazer um ajuste PONTUAL num dia (override manual) sem mexer no molde.

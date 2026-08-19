@@ -18,7 +18,7 @@ export function AuthProvider({ children }) {
   const [podePublicar, setPodePublicar] = useState(false)
   const [podeQuadros, setPodeQuadros] = useState(null) // acesso ao módulo Quadros (liberado OU membro de algum quadro): null = verificando
   const [podeCriarQuadros, setPodeCriarQuadros] = useState(false) // pode criar quadro (só quem é liberado no painel)
-  const [podeEscala, setPodeEscala] = useState(null) // acesso a Escala (líder): null = verificando
+  const [podeEscala, setPodeEscala] = useState(null) // acesso à Agenda/Escala (colaborador): null = verificando
   const [podeLimpeza, setPodeLimpeza] = useState(null) // acesso a Limpeza de banheiros: null = verificando
   const [govTipo, setGovTipo] = useState(null) // tipo de acesso à governança (ou null)
   const [loading, setLoading] = useState(true)
@@ -134,7 +134,9 @@ export function AuthProvider({ children }) {
     supabase.rpc('kanban_pode_criar').then(({ data }) => {
       if (ativo) setPodeCriarQuadros(data === true)
     })
-    supabase.rpc('escala_pode_gerir').then(({ data }) => {
+    // Visão do colaborador (ver a própria Agenda). A GESTÃO da escala (líder) é
+    // outra permissão (escala_pode_gerir), usada só no portal/backend.
+    supabase.rpc('escala_pode_ver').then(({ data }) => {
       if (ativo) setPodeEscala(data === true)
     })
     supabase.rpc('limpeza_pode_acessar').then(({ data }) => {
