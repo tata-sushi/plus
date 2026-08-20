@@ -35,6 +35,8 @@ const Quadros = lazy(() => import('./routes/Quadros.jsx'))
 const Escala = lazy(() => import('./routes/Escala.jsx'))
 // Limpeza de banheiros — check via QR, carregada sob demanda.
 const Limpeza = lazy(() => import('./routes/Limpeza.jsx'))
+// Desafio do dia (Tatá Tango) — jogo diário, carregado sob demanda.
+const Jogo = lazy(() => import('./routes/Jogo.jsx'))
 
 function Splash() {
   return (
@@ -101,6 +103,14 @@ export function App() {
           element={
             <Suspense fallback={<Splash />}>
               <Limpeza />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/jogo"
+          element={
+            <Suspense fallback={<Splash />}>
+              <Jogo />
             </Suspense>
           }
         />

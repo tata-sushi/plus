@@ -15,6 +15,7 @@ import {
   Search,
   KanbanSquare,
   CalendarClock,
+  Puzzle,
 } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Section } from '../components/Section.jsx'
@@ -41,6 +42,7 @@ const itens = [
   { to: '/cardapio', label: 'Cardápio', icon: UtensilsCrossed },
   { to: '/quadros', label: 'Kanban Tatá (beta)', icon: KanbanSquare, quadros: true },
   { to: '/escala', label: 'Agenda', icon: CalendarClock, escala: true },
+  { to: '/jogo', label: 'Desafio do dia', icon: Puzzle, jogo: true },
   { to: '/manutencao', label: 'Painel de Ajustes', icon: Wrench },
   { to: '/atalhos-governanca', label: 'Atalhos', icon: Pin, gov: true },
 ]
@@ -74,7 +76,8 @@ export function Mais() {
       (i) =>
         (!i.gov || usuario?.governanca?.tem) &&
         (!i.quadros || usuario?.podeQuadros) &&
-        (!i.escala || usuario?.podeEscala),
+        (!i.escala || usuario?.podeEscala) &&
+        (!i.jogo || String(usuario?.matricula) === '7'),
     )
     .sort((a, b) => a.label.localeCompare(b.label, 'pt', { sensitivity: 'base' }))
 

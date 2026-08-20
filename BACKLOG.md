@@ -17,3 +17,11 @@ Ideias e pendências levantadas para desenvolvimento futuro.
   (`podcast_meus_concluidos`). _(concluído em 2026-08-16)_
   - [ ] **Retomar de onde parou** nos episódios longos (hoje reinicia do zero). _(pendente)_
   - [ ] **Ep. 02 "Setembro Amarelo"** está como **rascunho** — ativar em setembro. _(lembrete)_
+
+- [ ] **Jogo "Rota do Sushi"** (estilo *Zip* do LinkedIn) — 2º desafio diário: ligar os
+  números 1→N arrastando e passando por todas as casas. Gerado pela data, sem manutenção.
+  Fica como alternativa/complemento ao "Tatá Tango". _(anotado em 2026-08-20)_
+
+- [ ] **Pontuação do "Tatá Tango" na carteira** — hoje o jogo roda 100% no front (estado e
+  ofensiva no localStorage) e está **travado na matrícula 7**. Ligar o backend depois:
+  creditar pontos 1×/dia com teto, entrar no ranking, e abrir o jogo para todos. _(anotado em 2026-08-20)_
