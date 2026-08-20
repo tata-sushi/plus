@@ -141,11 +141,10 @@ export function Jogo() {
         <div className="mx-auto w-full max-w-[420px] px-5 pb-28 pt-3">
           {/* título do jogo */}
           <div className="mb-3 text-center">
-            <div className="font-display text-base font-bold leading-tight">Tatá Tango</div>
-            <div className="text-[11px] text-muted">Fase {fase} · {tier.rotulo}</div>
+            <div className="font-display text-[19px] font-bold leading-tight">Tatá Tango</div>
           </div>
           {/* barra: 🔥 ofensiva · ⏱ tempo (centro) · ↺ recarregar + ? (direita) — todos no mesmo tamanho */}
-          <div className="mb-3 grid grid-cols-3 items-center text-muted">
+          <div className="mb-3 grid grid-cols-3 items-center px-2 text-muted">
             <span className="hstack justify-self-start gap-1.5 text-sm font-semibold">
               <Flame size={18} className="text-accent" /> {estado?.streak || 0}
             </span>
