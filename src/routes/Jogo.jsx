@@ -245,3 +245,6 @@ function Dica({ rel, left, top }) {
     </span>
   )
 }
+
+// React.lazy exige export default (mesma convenção de Escala/Quadros/Limpeza).
+export default Jogo
