@@ -61,7 +61,7 @@ export function Jogo() {
   // primeiro acesso: mostra o modal de boas-vindas uma única vez (por aparelho)
   useEffect(() => {
     try {
-      if (!localStorage.getItem('tatatango.intro.v2')) setIntro(true)
+      if (!localStorage.getItem('tatatango.intro.v3')) setIntro(true)
     } catch {
       /* ignore */
     }
@@ -69,7 +69,7 @@ export function Jogo() {
 
   function fecharIntro() {
     try {
-      localStorage.setItem('tatatango.intro.v2', '1')
+      localStorage.setItem('tatatango.intro.v3', '1')
     } catch {
       /* ignore */
     }
