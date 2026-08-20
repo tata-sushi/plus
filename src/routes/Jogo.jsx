@@ -16,7 +16,7 @@ import { useAuth } from '../lib/AuthContext.jsx'
 import { Header } from '../components/Header.jsx'
 
 const JOGO = 'tatatango'
-const SIM = ['🍤', '🍣'] // 0 = camarão frito · 1 = nigiri
+const SIM = ['🍙', '🍣'] // 0 = bolinho de arroz · 1 = nigiri
 
 function fmtTempo(s) {
   if (s == null) return '—'
