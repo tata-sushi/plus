@@ -67,6 +67,13 @@ export function Jogo() {
 
   const bad = useMemo(() => conflitos(grid, puzzle), [grid, puzzle])
 
+  // vitória: dispara quando a grade fica completa e correta
+  useEffect(() => {
+    if (resolvido || !puzzle) return
+    if (estaResolvido(grid, puzzle)) venceu()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [grid, resolvido])
+
   function alterna(r, c) {
     if (resolvido) return
     if (puzzle.givens[r][c] >= 0) return // given travado
@@ -74,8 +81,6 @@ export function Jogo() {
     setGrid((g) => {
       const n = g.map((row) => row.slice())
       n[r][c] = n[r][c] === -1 ? 0 : n[r][c] === 0 ? 1 : -1
-      // checa vitória
-      if (estaResolvido(n, puzzle)) venceu()
       return n
     })
   }

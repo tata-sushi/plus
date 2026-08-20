@@ -1,6 +1,7 @@
 import { lazy, Suspense } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { AppShell } from './components/AppShell.jsx'
+import { ErroBoundary } from './components/ErroBoundary.jsx'
 import { useAuth } from './lib/AuthContext.jsx'
 import { Login } from './routes/Login.jsx'
 import { Home } from './routes/Home.jsx'
@@ -109,9 +110,11 @@ export function App() {
         <Route
           path="/jogo"
           element={
-            <Suspense fallback={<Splash />}>
-              <Jogo />
-            </Suspense>
+            <ErroBoundary>
+              <Suspense fallback={<Splash />}>
+                <Jogo />
+              </Suspense>
+            </ErroBoundary>
           }
         />
         <Route path="*" element={<Navigate to="/" replace />} />
