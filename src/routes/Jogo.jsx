@@ -313,15 +313,10 @@ function FolhaIntro({ onClose }) {
           <ul className="mt-2 flex flex-col gap-1.5 text-sm leading-relaxed text-muted">
             <li>• 3 de cada por <b className="text-text">linha</b> e por <b className="text-text">coluna</b>.</li>
             <li>• Nunca <b className="text-text">3 iguais seguidos</b>.</li>
-            <li>• <b className="text-text">=</b> vizinhos iguais · <b className="text-text">✕</b> vizinhos diferentes.</li>
-          </ul>
-        </div>
-        <div className="mt-3 rounded-2xl border border-line bg-surface p-4">
-          <div className="text-sm font-bold text-text">Pontos e tempo</div>
-          <ul className="mt-2 flex flex-col gap-1.5 text-sm leading-relaxed text-muted">
-            <li>• Concluiu, <b className="text-text">ganha pontos</b> — quanto mais difícil o nível, mais vale (de <b className="text-text">10 a 25</b>).</li>
-            <li>• É <b className="text-text">1 fase por dia</b>: resolveu, volta amanhã na próxima.</li>
-            <li>• O <b className="text-text">tempo</b> é cronometrado — quanto mais rápido, melhor.</li>
+            <li>• <b className="text-text">=</b> vizinhos iguais.</li>
+            <li>• <b className="text-text">✕</b> vizinhos diferentes.</li>
+            <li>• 1 fase por dia.</li>
+            <li>• Tempo cronometrado.</li>
           </ul>
         </div>
         <button onClick={onClose} className="btn-primary mt-5 w-full !py-3 text-sm font-bold">
