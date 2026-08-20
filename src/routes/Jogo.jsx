@@ -15,7 +15,7 @@ import { useAuth } from '../lib/AuthContext.jsx'
 import { Avatar } from '../components/Avatar.jsx'
 
 const JOGO = 'tatatango'
-const SIM = ['🍥', '🍣'] // 0 = roll · 1 = nigiri
+const SIM = ['🍙', '🍣'] // 0 = bolinho de arroz · 1 = nigiri
 
 function fmtTempo(s) {
   if (s == null) return '—'
