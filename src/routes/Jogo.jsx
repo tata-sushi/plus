@@ -138,13 +138,13 @@ export function Jogo() {
           <Loader2 size={24} className="animate-spin" />
         </div>
       ) : (
-        <div className="mx-auto w-full max-w-[420px] px-5 pb-28 pt-3">
+        <div className="mx-auto w-full max-w-[420px] px-5 pb-28 pt-4">
           {/* título do jogo */}
-          <div className="mb-3 text-center">
+          <div className="mb-5 text-center">
             <div className="font-display text-[19px] font-bold leading-tight">Tatá Tango</div>
           </div>
           {/* barra: 🔥 ofensiva · ⏱ tempo (centro) · ↺ recarregar + ? (direita) — todos no mesmo tamanho */}
-          <div className="mb-3 grid grid-cols-3 items-center px-2 text-muted">
+          <div className="mb-4 grid grid-cols-3 items-center px-2 text-muted">
             <span className="hstack justify-self-start gap-1.5 text-sm font-semibold">
               <Flame size={18} className="text-accent" /> {estado?.streak || 0}
             </span>
@@ -206,22 +206,24 @@ export function Jogo() {
 
           {/* resultado */}
           {resolvido && (
-            <div className="mt-6 rounded-2xl border border-accent/40 bg-accent-soft/60 p-5 text-center">
-              <div className="mx-auto mb-2 grid h-12 w-12 place-items-center rounded-full bg-accent text-black">
-                {ganhouAgora ? <Check size={26} strokeWidth={3} /> : <Trophy size={24} />}
+            <div className="mt-5 hstack gap-3 rounded-2xl border border-accent/40 bg-accent-soft/60 px-4 py-3.5">
+              <div className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-accent text-black">
+                {ganhouAgora ? <Check size={22} strokeWidth={3} /> : <Trophy size={20} />}
               </div>
-              <div className="font-display text-lg font-bold text-accent-ink">
-                {ganhouAgora ? 'Resolvido! 🎉' : 'Fase concluída hoje'}
+              <div className="min-w-0">
+                <div className="font-display text-base font-bold text-accent-ink">
+                  {ganhouAgora ? 'Resolvido! 🎉' : 'Fase concluída hoje'}
+                </div>
+                <div className="text-sm text-muted">
+                  {ganhouAgora && pontosGanhos > 0 ? (
+                    <>
+                      <b className="text-text">+{pontosGanhos}</b> pontos · Volte amanhã
+                    </>
+                  ) : (
+                    'Volte amanhã'
+                  )}
+                </div>
               </div>
-              <div className="mt-1 text-sm text-muted">
-                {ganhouAgora && pontosGanhos > 0 && (
-                  <>
-                    <b className="text-text">+{pontosGanhos}</b> pontos ·{' '}
-                  </>
-                )}
-                Em {fmtTempo(segundos)}
-              </div>
-              <div className="mt-3 text-xs text-muted-2">Volte amanhã para a fase {fase + 1}.</div>
             </div>
           )}
         </div>
