@@ -152,17 +152,19 @@ export function Jogo() {
         </div>
       ) : (
         <div className="mx-auto max-w-[420px] px-4 pb-28 pt-4">
-          {/* barra: tempo à esquerda, reiniciar no centro */}
+          {/* barra: tempo no centro, reiniciar (só ícone) à direita */}
           <div className="mb-3 grid grid-cols-3 items-center">
-            <span className="justify-self-start font-mono text-sm text-muted">⏱ {fmtTempo(segundos)}</span>
+            <span />
+            <span className="justify-self-center font-mono text-sm text-muted">⏱ {fmtTempo(segundos)}</span>
             <button
               onClick={recomecar}
               disabled={resolvido}
-              className="hstack justify-self-center gap-1.5 rounded-pill border border-line px-3.5 py-2 text-xs font-semibold text-muted tap disabled:opacity-40"
+              aria-label="Recomeçar"
+              title="Recomeçar"
+              className="grid h-9 w-9 justify-self-end place-items-center rounded-full border border-line text-muted tap disabled:opacity-40"
             >
-              <RotateCcw size={14} /> Recomeçar
+              <RotateCcw size={16} />
             </button>
-            <span />
           </div>
 
           {/* tabuleiro */}
