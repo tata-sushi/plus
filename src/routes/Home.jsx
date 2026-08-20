@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Flag, Gift, Star, Network, Sun, Check, X, KanbanSquare, SprayCan, Radio as RadioIcon } from 'lucide-react'
+import { Flag, Gift, Star, Network, Sun, Check, X, KanbanSquare, SprayCan, Radio as RadioIcon, Puzzle } from 'lucide-react'
 import { cn } from '../lib/cn'
 import { Header } from '../components/Header.jsx'
 import { Section } from '../components/Section.jsx'
@@ -203,10 +203,14 @@ export function Home() {
   const cargo = usuario?.cargo || ''
   const loja = usuario?.loja || ''
 
-  // Ordem dos cards de Sugestões: Kanban · Desafios · Checklist · Cardápio · Recompensas · Organograma.
-  // Kanban e Checklist só aparecem pra quem tem o acesso (podeQuadros / podeLimpeza).
+  // Ordem dos cards de Sugestões: Tatá Tango · Kanban · Desafios · Checklist · Cardápio · Recompensas · Organograma.
+  // Tatá Tango segue travado na matrícula 7 (em teste); Kanban e Checklist só
+  // aparecem pra quem tem o acesso (podeQuadros / podeLimpeza).
   const [desafios, recompensas, cardapio, organograma] = sugestoesCards
   const cards = [
+    ...(String(usuario?.matricula) === '7'
+      ? [{ to: '/jogo', badgeIcon: Puzzle, title: 'Tatá Tango', subtitle: 'Desafio de lógica de hoje' }]
+      : []),
     ...(usuario?.podeQuadros
       ? [{ to: '/quadros', badgeIcon: KanbanSquare, title: 'Kanban Tatá', subtitle: 'Quadro de tarefas' }]
       : []),
