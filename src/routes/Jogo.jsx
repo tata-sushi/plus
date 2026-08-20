@@ -294,10 +294,9 @@ function FolhaAjuda({ onClose }) {
 // Boas-vindas — aparece só no primeiro acesso ao jogo.
 function FolhaIntro({ onClose }) {
   return createPortal(
-    <div className="fixed inset-0 z-50 flex flex-col justify-end sm:items-center sm:justify-center" role="dialog" aria-modal="true">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true">
       <button aria-label="Fechar" onClick={onClose} className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
-      <div className="relative max-h-[90dvh] w-full overflow-y-auto overscroll-contain rounded-t-2xl border border-line bg-bg px-5 pb-7 pt-5 shadow-xl sm:max-w-[520px] sm:rounded-2xl">
-        <div className="mx-auto mb-4 h-1 w-9 rounded-full bg-line sm:hidden" />
+      <div className="relative max-h-[86dvh] w-full max-w-[400px] overflow-y-auto overscroll-contain rounded-2xl border border-line bg-bg px-5 pb-6 pt-6 shadow-xl">
         <div className="text-center">
           <div className="mx-auto mb-3 grid h-14 w-14 place-items-center rounded-2xl bg-accent-soft text-3xl">🍣</div>
           <div className="font-display text-xl font-bold">Bem-vindo ao Tatá Tango!</div>
@@ -318,7 +317,7 @@ function FolhaIntro({ onClose }) {
           </ul>
         </div>
         <button onClick={onClose} className="btn-primary mt-5 w-full !py-3 text-sm font-bold">
-          Bora jogar! 🍣
+          Bora jogar!
         </button>
       </div>
     </div>,
