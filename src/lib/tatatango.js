@@ -263,8 +263,12 @@ export function seedDaFase(jogo, fase) {
 // no backlog); a dificuldade varia pela quantidade de dicas/peças reveladas.
 // Futuro: fase 51–100 → 8×8; 101+ → 10×10.
 export function tierDaFase(fase) {
-  if (fase <= 20) return { tamanho: 6, extras: 8, rotulo: 'Aprendiz' }
-  return { tamanho: 6, extras: 0, rotulo: 'Afiado' }
+  // tamanho fica 6×6 por ora (8×8/10×10 esperam o solver rápido — ver backlog);
+  // rótulo e pontos já seguem os 4 níveis por fase.
+  if (fase <= 20) return { tamanho: 6, extras: 8, rotulo: 'Aprendiz', pontos: 10 }
+  if (fase <= 50) return { tamanho: 6, extras: 0, rotulo: 'Afiado', pontos: 15 }
+  if (fase <= 100) return { tamanho: 6, extras: 0, rotulo: 'Mestre', pontos: 20 }
+  return { tamanho: 6, extras: 0, rotulo: 'Lenda', pontos: 25 }
 }
 
 // ── Conflitos ao vivo (células a destacar em vermelho) ──────────────────────
