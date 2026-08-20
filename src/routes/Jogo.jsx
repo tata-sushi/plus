@@ -73,6 +73,10 @@ export function Jogo() {
     } catch {
       /* ignore */
     }
+    // o cronômetro só dispara depois que o modal fecha — zera pra não contar
+    // o tempo de leitura das boas-vindas.
+    inicio.current = Date.now()
+    setSegundos(0)
     setIntro(false)
   }
 
@@ -88,10 +92,10 @@ export function Jogo() {
   }, [puzzle])
 
   useEffect(() => {
-    if (resolvido || !grid) return
+    if (resolvido || !grid || intro) return
     const t = setInterval(() => setSegundos(Math.floor((Date.now() - inicio.current) / 1000)), 1000)
     return () => clearInterval(t)
-  }, [resolvido, grid])
+  }, [resolvido, grid, intro])
 
   const bad = useMemo(() => (grid && puzzle ? conflitos(grid, puzzle) : new Set()), [grid, puzzle])
 
