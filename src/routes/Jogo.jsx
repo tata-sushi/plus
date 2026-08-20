@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Navigate, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Flame, RotateCcw, HelpCircle, Check, Trophy, Loader2, X } from 'lucide-react'
+import { ArrowLeft, Flame, RotateCcw, HelpCircle, Check, Trophy, Loader2, X, Clock } from 'lucide-react'
 import {
   N,
   montarPuzzle,
@@ -120,8 +120,8 @@ export function Jogo() {
   return (
     <div className="min-h-[100dvh] bg-bg">
       <Header />
-      {/* linha Voltar + "?" — mesmo padrão da Agenda */}
-      <div className="flex items-center justify-between px-5 pt-2">
+      {/* linha Voltar — mesmo padrão da Agenda */}
+      <div className="px-5 pt-2">
         <button
           onClick={() => {
             tapHaptic()
@@ -130,14 +130,6 @@ export function Jogo() {
           className="hstack gap-1 text-sm font-medium text-muted tap"
         >
           <ArrowLeft size={16} /> Voltar
-        </button>
-        <button
-          onClick={() => setAjudaAberta(true)}
-          aria-label="Como jogar"
-          title="Como jogar"
-          className="-m-2 grid place-items-center p-2 text-muted tap"
-        >
-          <HelpCircle size={18} />
         </button>
       </div>
 
@@ -152,25 +144,28 @@ export function Jogo() {
             <div className="font-display text-base font-bold leading-tight">Tatá Tango</div>
             <div className="text-[11px] text-muted">Fase {fase} · {tier.rotulo}</div>
           </div>
-          {/* barra: ofensiva à esquerda, tempo no centro, reiniciar à direita */}
-          <div className="mb-3 grid grid-cols-3 items-center">
-            <span className="justify-self-start">
-              {estado?.streak > 0 && (
-                <span className="hstack gap-1 rounded-pill bg-accent-soft px-2.5 py-1 text-xs font-bold text-accent-ink">
-                  <Flame size={13} /> {estado.streak}
-                </span>
-              )}
+          {/* barra: 🔥 ofensiva · ⏱ tempo (centro) · ↺ recarregar + ? (direita) — todos no mesmo tamanho */}
+          <div className="mb-3 grid grid-cols-3 items-center text-muted">
+            <span className="hstack justify-self-start gap-1.5 text-sm font-semibold">
+              <Flame size={18} className="text-accent" /> {estado?.streak || 0}
             </span>
-            <span className="justify-self-center font-mono text-sm text-muted">⏱ {fmtTempo(segundos)}</span>
-            <button
-              onClick={recomecar}
-              disabled={resolvido}
-              aria-label="Recomeçar"
-              title="Recomeçar"
-              className="grid h-9 w-9 justify-self-end place-items-center rounded-full border border-line text-muted tap disabled:opacity-40"
-            >
-              <RotateCcw size={16} />
-            </button>
+            <span className="hstack justify-self-center gap-1.5 font-mono text-sm">
+              <Clock size={18} /> {fmtTempo(segundos)}
+            </span>
+            <span className="hstack justify-self-end gap-4">
+              <button
+                onClick={recomecar}
+                disabled={resolvido}
+                aria-label="Recomeçar"
+                title="Recomeçar"
+                className="tap disabled:opacity-40"
+              >
+                <RotateCcw size={18} />
+              </button>
+              <button onClick={() => setAjudaAberta(true)} aria-label="Como jogar" title="Como jogar" className="tap">
+                <HelpCircle size={18} />
+              </button>
+            </span>
           </div>
 
           {/* tabuleiro */}
