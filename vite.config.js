@@ -4,6 +4,12 @@ import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig({
   base: '/',
+  // Carimbo do build (hora em que o deploy foi gerado no CI). Vira uma string
+  // fixa no bundle e aparece discreto no rodapé do "Mais" — assim dá pra
+  // conferir num relance se o app já pegou a versão nova ou está no cache.
+  define: {
+    __BUILD_TIME__: JSON.stringify(new Date().toISOString()),
+  },
   plugins: [
     react(),
     VitePWA({

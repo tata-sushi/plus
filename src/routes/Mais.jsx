@@ -49,6 +49,22 @@ const itens = [
 
 const TAM_MAX = 8 * 1024 * 1024 // 8 MB
 
+// Hora do build (injetada pelo Vite em vite.config.js) formatada em SP —
+// ex.: "20/08 20:01". Serve como conferência rápida da versão no rodapé.
+function versaoBuild() {
+  try {
+    return new Intl.DateTimeFormat('pt-BR', {
+      timeZone: 'America/Sao_Paulo',
+      day: '2-digit',
+      month: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+    }).format(new Date(__BUILD_TIME__))
+  } catch {
+    return '—'
+  }
+}
+
 // Abrevia os nomes do meio pra caber numa linha (mantém 1º e último inteiros):
 // "Victor Augusto Di Sessa Carvalho" -> "Victor A. D. S. Carvalho".
 function abreviarNome(nome) {
@@ -282,6 +298,7 @@ export function Mais() {
             Victor Carvalho
           </Link>
         </span>
+        <span className="mt-0.5 opacity-70">versão de {versaoBuild()}</span>
       </footer>
     </>
   )
