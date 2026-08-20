@@ -13,6 +13,7 @@ import {
 import { supabase } from '../lib/supabase.js'
 import { tapHaptic } from '../lib/haptics.js'
 import { useAuth } from '../lib/AuthContext.jsx'
+import { Header } from '../components/Header.jsx'
 
 const JOGO = 'tatatango'
 const SIM = ['🍙', '🍣'] // 0 = bolinho de arroz · 1 = nigiri
@@ -118,32 +119,26 @@ export function Jogo() {
 
   return (
     <div className="min-h-[100dvh] bg-bg">
-      {/* topo */}
-      <div className="safe-top sticky top-0 z-20 border-b border-line bg-bg/90 backdrop-blur">
-        <div className="hstack gap-3 px-4 py-3">
-          <button onClick={() => navigate(-1)} aria-label="Voltar" className="shrink-0 text-muted tap">
-            <ArrowLeft size={22} />
-          </button>
-          <div className="min-w-0 flex-1">
-            <div className="font-display text-base font-bold leading-tight">Tatá Tango</div>
-            <div className="truncate text-[11px] text-muted">
-              Fase {fase} · {tier.rotulo}
-            </div>
-          </div>
-          {estado?.streak > 0 && (
-            <span className="hstack shrink-0 gap-1 rounded-pill bg-accent-soft px-2.5 py-1 text-xs font-bold text-accent-ink">
-              <Flame size={13} /> {estado.streak}
-            </span>
-          )}
-          <button
-            onClick={() => setAjudaAberta(true)}
-            aria-label="Como jogar"
-            title="Como jogar"
-            className="-m-1 grid shrink-0 place-items-center p-1 text-muted tap"
-          >
-            <HelpCircle size={20} />
-          </button>
-        </div>
+      <Header />
+      {/* linha Voltar + "?" — mesmo padrão da Agenda */}
+      <div className="flex items-center justify-between px-5 pt-2">
+        <button
+          onClick={() => {
+            tapHaptic()
+            navigate(-1)
+          }}
+          className="hstack gap-1 text-sm font-medium text-muted tap"
+        >
+          <ArrowLeft size={16} /> Voltar
+        </button>
+        <button
+          onClick={() => setAjudaAberta(true)}
+          aria-label="Como jogar"
+          title="Como jogar"
+          className="-m-2 grid place-items-center p-2 text-muted tap"
+        >
+          <HelpCircle size={18} />
+        </button>
       </div>
 
       {!grid ? (
@@ -151,10 +146,21 @@ export function Jogo() {
           <Loader2 size={24} className="animate-spin" />
         </div>
       ) : (
-        <div className="mx-auto max-w-[420px] px-4 pb-28 pt-4">
-          {/* barra: tempo no centro, reiniciar (só ícone) à direita */}
+        <div className="mx-auto w-full max-w-[420px] px-4 pb-28 pt-3">
+          {/* título do jogo */}
+          <div className="mb-3 text-center">
+            <div className="font-display text-base font-bold leading-tight">Tatá Tango</div>
+            <div className="text-[11px] text-muted">Fase {fase} · {tier.rotulo}</div>
+          </div>
+          {/* barra: ofensiva à esquerda, tempo no centro, reiniciar à direita */}
           <div className="mb-3 grid grid-cols-3 items-center">
-            <span />
+            <span className="justify-self-start">
+              {estado?.streak > 0 && (
+                <span className="hstack gap-1 rounded-pill bg-accent-soft px-2.5 py-1 text-xs font-bold text-accent-ink">
+                  <Flame size={13} /> {estado.streak}
+                </span>
+              )}
+            </span>
             <span className="justify-self-center font-mono text-sm text-muted">⏱ {fmtTempo(segundos)}</span>
             <button
               onClick={recomecar}
