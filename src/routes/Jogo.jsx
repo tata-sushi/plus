@@ -265,9 +265,6 @@ function FolhaAjuda({ onClose }) {
           <li>• <b className="text-text">=</b> entre duas células: elas são <b className="text-text">iguais</b>.</li>
           <li>• <b className="text-text">✕</b> entre duas células: elas são <b className="text-text">diferentes</b>.</li>
         </ul>
-        <p className="mt-4 text-xs text-muted-2">
-          Tem solução única — dá pra chegar por dedução, sem chute. Erros acendem em vermelho.
-        </p>
       </div>
     </div>,
     document.body,
