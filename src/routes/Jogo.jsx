@@ -138,7 +138,7 @@ export function Jogo() {
           <Loader2 size={24} className="animate-spin" />
         </div>
       ) : (
-        <div className="mx-auto w-full max-w-[420px] px-4 pb-28 pt-3">
+        <div className="mx-auto w-full max-w-[420px] px-5 pb-28 pt-3">
           {/* título do jogo */}
           <div className="mb-3 text-center">
             <div className="font-display text-base font-bold leading-tight">Tatá Tango</div>
@@ -169,7 +169,7 @@ export function Jogo() {
           </div>
 
           {/* tabuleiro */}
-          <div className="relative mx-auto aspect-square w-full max-w-[360px] select-none">
+          <div className="relative aspect-square w-full select-none">
             <div className="grid h-full w-full grid-cols-6 overflow-hidden rounded-xl border border-line bg-surface">
               {grid.map((row, r) =>
                 row.map((v, c) => {
