@@ -36,6 +36,7 @@ export function Jogo() {
   const [pontosGanhos, setPontosGanhos] = useState(0)
   const [segundos, setSegundos] = useState(0)
   const [ajudaAberta, setAjudaAberta] = useState(false)
+  const [intro, setIntro] = useState(false)
   const inicio = useRef(Date.now())
   const enviando = useRef(false)
 
@@ -56,6 +57,24 @@ export function Jogo() {
       ativo = false
     }
   }, [])
+
+  // primeiro acesso: mostra o modal de boas-vindas uma única vez (por aparelho)
+  useEffect(() => {
+    try {
+      if (!localStorage.getItem('tatatango.intro')) setIntro(true)
+    } catch {
+      /* ignore */
+    }
+  }, [])
+
+  function fecharIntro() {
+    try {
+      localStorage.setItem('tatatango.intro', '1')
+    } catch {
+      /* ignore */
+    }
+    setIntro(false)
+  }
 
   useEffect(() => {
     if (!puzzle || !estado) return
@@ -230,6 +249,7 @@ export function Jogo() {
       )}
 
       {ajudaAberta && <FolhaAjuda onClose={() => setAjudaAberta(false)} />}
+      {intro && <FolhaIntro onClose={fecharIntro} />}
     </div>
   )
 }
@@ -265,6 +285,41 @@ function FolhaAjuda({ onClose }) {
           <li>• <b className="text-text">=</b> entre duas células: elas são <b className="text-text">iguais</b>.</li>
           <li>• <b className="text-text">✕</b> entre duas células: elas são <b className="text-text">diferentes</b>.</li>
         </ul>
+      </div>
+    </div>,
+    document.body,
+  )
+}
+
+// Boas-vindas — aparece só no primeiro acesso ao jogo.
+function FolhaIntro({ onClose }) {
+  return createPortal(
+    <div className="fixed inset-0 z-50 flex flex-col justify-end sm:items-center sm:justify-center" role="dialog" aria-modal="true">
+      <button aria-label="Fechar" onClick={onClose} className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
+      <div className="relative max-h-[90dvh] w-full overflow-y-auto overscroll-contain rounded-t-2xl border border-line bg-bg px-5 pb-7 pt-5 shadow-xl sm:max-w-[520px] sm:rounded-2xl">
+        <div className="mx-auto mb-4 h-1 w-9 rounded-full bg-line sm:hidden" />
+        <div className="text-center">
+          <div className="mx-auto mb-3 grid h-14 w-14 place-items-center rounded-2xl bg-accent-soft text-3xl">🍣</div>
+          <div className="font-display text-xl font-bold">Bem-vindo ao Tatá Tango!</div>
+          <p className="mx-auto mt-2 max-w-[340px] text-sm leading-relaxed text-muted">
+            Um desafio de lógica novo <b className="text-text">todo dia</b>. Resolva, mantenha a{' '}
+            <b className="text-text">ofensiva 🔥</b> e suba de fase.
+          </p>
+        </div>
+        <div className="mt-5 rounded-2xl border border-line bg-surface p-4">
+          <div className="text-sm font-bold text-text">Como funciona</div>
+          <p className="mt-2 text-sm leading-relaxed text-muted">
+            Preencha a grade com {SIM[0]} e {SIM[1]} (toque pra alternar), seguindo:
+          </p>
+          <ul className="mt-2 flex flex-col gap-1.5 text-sm leading-relaxed text-muted">
+            <li>• 3 de cada por <b className="text-text">linha</b> e por <b className="text-text">coluna</b>.</li>
+            <li>• Nunca <b className="text-text">3 iguais seguidos</b>.</li>
+            <li>• <b className="text-text">=</b> vizinhos iguais · <b className="text-text">✕</b> vizinhos diferentes.</li>
+          </ul>
+        </div>
+        <button onClick={onClose} className="btn-primary mt-5 w-full !py-3 text-sm font-bold">
+          Bora jogar! 🍣
+        </button>
       </div>
     </div>,
     document.body,
