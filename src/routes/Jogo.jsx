@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { Navigate, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Flame, RotateCcw, HelpCircle, Check, Trophy, Loader2, Zap } from 'lucide-react'
+import { ArrowLeft, Flame, RotateCcw, HelpCircle, Check, Trophy, Loader2, X } from 'lucide-react'
 import {
   N,
   montarPuzzle,
@@ -12,7 +13,6 @@ import {
 import { supabase } from '../lib/supabase.js'
 import { tapHaptic } from '../lib/haptics.js'
 import { useAuth } from '../lib/AuthContext.jsx'
-import { Avatar } from '../components/Avatar.jsx'
 
 const JOGO = 'tatatango'
 const SIM = ['🍙', '🍣'] // 0 = bolinho de arroz · 1 = nigiri
@@ -34,7 +34,6 @@ export function Jogo() {
   const [ganhouAgora, setGanhouAgora] = useState(false)
   const [pontosGanhos, setPontosGanhos] = useState(0)
   const [segundos, setSegundos] = useState(0)
-  const [ranking, setRanking] = useState(null)
   const [ajudaAberta, setAjudaAberta] = useState(false)
   const inicio = useRef(Date.now())
   const enviando = useRef(false)
@@ -46,7 +45,6 @@ export function Jogo() {
     [estado?.ok, fase, tier.extras],
   )
 
-  // carrega o estado do jogador
   useEffect(() => {
     let ativo = true
     supabase.rpc('jogo_estado', { p_jogo: JOGO }).then(({ data }) => {
@@ -58,7 +56,6 @@ export function Jogo() {
     }
   }, [])
 
-  // inicializa a grade quando o puzzle fica pronto
   useEffect(() => {
     if (!puzzle || !estado) return
     const jah = !!estado.jogou_hoje
@@ -70,14 +67,6 @@ export function Jogo() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [puzzle])
 
-  // ranking de velocidade da fase atual
-  useEffect(() => {
-    if (!estado?.ok) return
-    supabase.rpc('jogo_ranking', { p_jogo: JOGO, p_fase: fase }).then(({ data }) => setRanking(data || []))
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [estado?.ok, fase])
-
-  // cronômetro
   useEffect(() => {
     if (resolvido || !grid) return
     const t = setInterval(() => setSegundos(Math.floor((Date.now() - inicio.current) / 1000)), 1000)
@@ -86,7 +75,6 @@ export function Jogo() {
 
   const bad = useMemo(() => (grid && puzzle ? conflitos(grid, puzzle) : new Set()), [grid, puzzle])
 
-  // vitória: grade completa e correta → conclui no backend
   useEffect(() => {
     if (resolvido || !grid || !puzzle || enviando.current) return
     if (estaResolvido(grid, puzzle)) concluir()
@@ -103,10 +91,8 @@ export function Jogo() {
     const { data } = await supabase.rpc('jogo_concluir', { p_jogo: JOGO, p_fase: fase, p_tempo_seg: tempo })
     if (data?.ok) {
       setPontosGanhos(data.pontos_ganhos || 0)
-      // mantém a fase ATUAL na tela (não pula pra próxima); atualiza só ofensiva/pontos
       setEstado((e) => ({ ...e, jogou_hoje: true, streak: data.streak ?? e.streak, pontos_total: data.pontos_total ?? e.pontos_total }))
     }
-    supabase.rpc('jogo_ranking', { p_jogo: JOGO, p_fase: fase }).then(({ data }) => setRanking(data || []))
   }
 
   function alterna(r, c) {
@@ -149,6 +135,14 @@ export function Jogo() {
               <Flame size={13} /> {estado.streak}
             </span>
           )}
+          <button
+            onClick={() => setAjudaAberta(true)}
+            aria-label="Como jogar"
+            title="Como jogar"
+            className="-m-1 grid shrink-0 place-items-center p-1 text-muted tap"
+          >
+            <HelpCircle size={20} />
+          </button>
         </div>
       </div>
 
@@ -158,23 +152,18 @@ export function Jogo() {
         </div>
       ) : (
         <div className="mx-auto max-w-[420px] px-4 pb-28 pt-4">
-          {/* regras */}
-          <button
-            onClick={() => setAjudaAberta((v) => !v)}
-            className="hstack mb-3 w-full gap-1.5 text-left text-xs font-semibold text-muted tap"
-          >
-            <HelpCircle size={14} className="text-accent" /> Como jogar
-          </button>
-          {ajudaAberta && (
-            <div className="mb-4 rounded-card border border-line bg-surface p-3.5 text-[12.5px] leading-relaxed text-muted">
-              <p className="mb-1.5">Preencha a grade com {SIM[0]} e {SIM[1]}. Toque numa célula pra alternar.</p>
-              <ul className="ml-4 list-disc space-y-1">
-                <li>3 de cada por <b className="text-text">linha</b> e por <b className="text-text">coluna</b>.</li>
-                <li>Nunca <b className="text-text">3 iguais seguidos</b>.</li>
-                <li><b className="text-text">=</b> entre células: iguais · <b className="text-text">✕</b>: diferentes.</li>
-              </ul>
-            </div>
-          )}
+          {/* barra: tempo à esquerda, reiniciar no centro */}
+          <div className="mb-3 grid grid-cols-3 items-center">
+            <span className="justify-self-start font-mono text-sm text-muted">⏱ {fmtTempo(segundos)}</span>
+            <button
+              onClick={recomecar}
+              disabled={resolvido}
+              className="hstack justify-self-center gap-1.5 rounded-pill border border-line px-3.5 py-2 text-xs font-semibold text-muted tap disabled:opacity-40"
+            >
+              <RotateCcw size={14} /> Recomeçar
+            </button>
+            <span />
+          </div>
 
           {/* tabuleiro */}
           <div className="relative mx-auto aspect-square w-full max-w-[360px] select-none">
@@ -213,18 +202,6 @@ export function Jogo() {
             )}
           </div>
 
-          {/* status */}
-          <div className="mt-5 hstack items-center justify-between">
-            <span className="font-mono text-sm text-muted">⏱ {fmtTempo(segundos)}</span>
-            <button
-              onClick={recomecar}
-              disabled={resolvido}
-              className="hstack gap-1.5 rounded-pill border border-line px-3.5 py-2 text-xs font-semibold text-muted tap disabled:opacity-40"
-            >
-              <RotateCcw size={14} /> Recomeçar
-            </button>
-          </div>
-
           {/* resultado */}
           {resolvido && (
             <div className="mt-6 rounded-2xl border border-accent/40 bg-accent-soft/60 p-5 text-center">
@@ -245,51 +222,10 @@ export function Jogo() {
               <div className="mt-3 text-xs text-muted-2">Volte amanhã para a fase {fase + 1}.</div>
             </div>
           )}
-
-          {/* ranking de velocidade da fase */}
-          <div className="mt-7">
-            <div className="hstack mb-2 gap-1.5 px-1 text-xs font-bold uppercase tracking-wide text-muted-2">
-              <Zap size={13} className="text-accent" /> Mais rápidos · Fase {fase}
-            </div>
-            {ranking == null ? (
-              <div className="hstack justify-center py-4 text-muted-2">
-                <Loader2 size={16} className="animate-spin" />
-              </div>
-            ) : ranking.length === 0 ? (
-              <div className="rounded-card border border-line bg-surface px-4 py-5 text-center text-xs text-muted">
-                Ninguém concluiu esta fase ainda. Seja o primeiro! ⚡
-              </div>
-            ) : (
-              <div className="flex flex-col gap-1.5">
-                {ranking.map((r) => {
-                  const eu = String(r.matricula) === String(usuario?.matricula)
-                  return (
-                    <div
-                      key={r.matricula}
-                      className={[
-                        'hstack gap-3 rounded-card border px-3 py-2',
-                        eu ? 'border-accent bg-accent-soft/50' : 'border-line bg-surface',
-                      ].join(' ')}
-                    >
-                      <span className="w-5 shrink-0 text-center font-mono text-xs font-bold text-muted-2">
-                        {r.posicao}
-                      </span>
-                      <Avatar name={r.nome} src={r.avatar} size={30} />
-                      <span className="min-w-0 flex-1 truncate text-sm font-medium">
-                        {r.nome || 'Colaborador'}
-                        {eu && <span className="ml-1 text-[11px] font-bold text-accent">você</span>}
-                      </span>
-                      <span className="shrink-0 font-mono text-sm font-semibold text-accent-ink">
-                        {fmtTempo(r.tempo_seg)}
-                      </span>
-                    </div>
-                  )
-                })}
-              </div>
-            )}
-          </div>
         </div>
       )}
+
+      {ajudaAberta && <FolhaAjuda onClose={() => setAjudaAberta(false)} />}
     </div>
   )
 }
@@ -302,6 +238,35 @@ function Dica({ rel, left, top }) {
     >
       {rel === 1 ? '=' : '✕'}
     </span>
+  )
+}
+
+// Folha "Como jogar" — mesmo padrão do ⓘ da Agenda.
+function FolhaAjuda({ onClose }) {
+  return createPortal(
+    <div className="fixed inset-0 z-50 flex flex-col justify-end sm:items-center sm:justify-center" role="dialog" aria-modal="true">
+      <button aria-label="Fechar" onClick={onClose} className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
+      <div className="relative max-h-[90dvh] w-full overflow-y-auto overscroll-contain rounded-t-2xl border border-line bg-bg px-5 pb-8 pt-4 shadow-xl sm:max-w-[520px] sm:rounded-2xl">
+        <div className="mx-auto mb-3 h-1 w-9 rounded-full bg-line sm:hidden" />
+        <button onClick={onClose} aria-label="Fechar" className="absolute right-4 top-4 grid h-8 w-8 place-items-center rounded-full bg-surface text-muted tap">
+          <X size={16} />
+        </button>
+        <div className="font-display text-lg font-bold">Como jogar</div>
+        <p className="mt-3 text-sm leading-relaxed text-muted">
+          Preencha a grade com {SIM[0]} e {SIM[1]}. Toque numa célula pra alternar entre eles.
+        </p>
+        <ul className="mt-3 flex flex-col gap-2 text-sm leading-relaxed text-muted">
+          <li>• 3 de cada por <b className="text-text">linha</b> e por <b className="text-text">coluna</b>.</li>
+          <li>• Nunca <b className="text-text">3 iguais seguidos</b> (na horizontal ou vertical).</li>
+          <li>• <b className="text-text">=</b> entre duas células: elas são <b className="text-text">iguais</b>.</li>
+          <li>• <b className="text-text">✕</b> entre duas células: elas são <b className="text-text">diferentes</b>.</li>
+        </ul>
+        <p className="mt-4 text-xs text-muted-2">
+          Tem solução única — dá pra chegar por dedução, sem chute. Erros acendem em vermelho.
+        </p>
+      </div>
+    </div>,
+    document.body,
   )
 }
 
