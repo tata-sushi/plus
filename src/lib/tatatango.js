@@ -158,7 +158,7 @@ export function contarSolucoes(givens, H, V, limite = 2) {
 }
 
 // ── Monta o puzzle do dia: poucos givens + dicas até ficar único ────────────
-export function montarPuzzle(seed) {
+export function montarPuzzle(seed, extras = 0) {
   const rng = makeRng((seed ^ 0x9e3779b9) >>> 0)
   const solution = gerarSolucao(rng)
 
@@ -233,7 +233,38 @@ export function montarPuzzle(seed) {
     }
   }
 
+  // Níveis mais fáceis: revela algumas peças extras (âncoras) além do mínimo.
+  if (extras > 0) {
+    const escondidas = []
+    for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) if (givens[r][c] < 0) escondidas.push([r, c])
+    shuffle(escondidas, rng)
+    for (let i = 0; i < extras && i < escondidas.length; i++) {
+      const [r, c] = escondidas[i]
+      givens[r][c] = solution[r][c]
+    }
+  }
+
   return { solution, givens, H, V }
+}
+
+// Seed determinístico por (jogo, fase) — a MESMA fase gera o MESMO puzzle pra
+// todo mundo (tipo "nível N" de um jogo). FNV-1a.
+export function seedDaFase(jogo, fase) {
+  let h = 2166136261 >>> 0
+  const s = String(jogo) + ':' + String(fase)
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i)
+    h = Math.imul(h, 16777619) >>> 0
+  }
+  return h >>> 0
+}
+
+// Dificuldade pela fase. Por ora tudo 6×6 (o gerador rápido pra 8×8/10×10 está
+// no backlog); a dificuldade varia pela quantidade de dicas/peças reveladas.
+// Futuro: fase 51–100 → 8×8; 101+ → 10×10.
+export function tierDaFase(fase) {
+  if (fase <= 20) return { tamanho: 6, extras: 8, rotulo: 'Aprendiz' }
+  return { tamanho: 6, extras: 0, rotulo: 'Afiado' }
 }
 
 // ── Conflitos ao vivo (células a destacar em vermelho) ──────────────────────

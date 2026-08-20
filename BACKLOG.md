@@ -22,6 +22,11 @@ Ideias e pendências levantadas para desenvolvimento futuro.
   números 1→N arrastando e passando por todas as casas. Gerado pela data, sem manutenção.
   Fica como alternativa/complemento ao "Tatá Tango". _(anotado em 2026-08-20)_
 
-- [ ] **Pontuação do "Tatá Tango" na carteira** — hoje o jogo roda 100% no front (estado e
-  ofensiva no localStorage) e está **travado na matrícula 7**. Ligar o backend depois:
-  creditar pontos 1×/dia com teto, entrar no ranking, e abrir o jogo para todos. _(anotado em 2026-08-20)_
+- [ ] **Solver rápido pro Tatá Tango (8×8 e 10×10)** — o gerador atual só é rápido em 6×6
+  (10×10 leva ~5s, inviável). Implementar solver com **propagação** pra destravar
+  **fase 51+ → 8×8** e **fase 101+ → 10×10**. Sem pressa: a 1 fase/dia, a fase 51 só
+  chega em ~7 semanas. _(anotado em 2026-08-20)_
+
+- [ ] **Abrir o "Tatá Tango" para todos** — hoje travado na matrícula 7 (front + `jogo_pode_ver`).
+  Backend já pronto: fase por pessoa, pontos = **5×fase** na carteira/ranking, e **ranking de
+  velocidade por fase**. Liberar quando validar. _(anotado em 2026-08-20)_
