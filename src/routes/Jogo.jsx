@@ -235,7 +235,7 @@ export function Jogo() {
               </div>
               <div className="min-w-0">
                 <div className="font-display text-base font-bold text-accent-ink">
-                  {ganhouAgora ? 'Resolvido! 🎉' : 'Fase concluída hoje'}
+                  {ganhouAgora ? 'Resolvido!' : 'Fase concluída hoje'}
                 </div>
                 <div className="text-sm text-muted">
                   {ganhouAgora && pontosGanhos > 0 ? (
