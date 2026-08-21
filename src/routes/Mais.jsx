@@ -42,7 +42,7 @@ const itens = [
   { to: '/cardapio', label: 'Cardápio', icon: UtensilsCrossed },
   { to: '/quadros', label: 'Kanban Tatá (beta)', icon: KanbanSquare, quadros: true },
   { to: '/escala', label: 'Agenda', icon: CalendarClock, escala: true },
-  { to: '/jogo', label: 'Desafio do dia', icon: Puzzle, jogo: true },
+  { to: '/jogo', label: 'Passatempos', icon: Puzzle, jogo: true },
   { to: '/manutencao', label: 'Painel de Ajustes', icon: Wrench },
   { to: '/atalhos-governanca', label: 'Atalhos', icon: Pin, gov: true },
 ]
