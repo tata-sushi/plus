@@ -1,9 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Navigate, useNavigate } from 'react-router-dom'
+import { Navigate, useNavigate, useSearchParams } from 'react-router-dom'
 import { ArrowLeft, Flame, RotateCcw, HelpCircle, Check, Trophy, Loader2, X, Clock } from 'lucide-react'
 import {
-  N,
   montarPuzzle,
   seedDaFase,
   tierDaFase,
@@ -28,6 +27,12 @@ function fmtTempo(s) {
 export function Jogo() {
   const navigate = useNavigate()
   const { usuario } = useAuth()
+  const [params] = useSearchParams()
+  // Prévia (só matrícula 7): ?fase=51 força uma fase pra conferir 8×8/10×10 sem
+  // esperar dias. Não conta no backend nem mexe na progressão/pontos.
+  const mat7 = String(usuario?.matricula) === '7'
+  const previewFase = mat7 ? Math.floor(Number(params.get('fase'))) : 0
+  const preview = previewFase >= 1
 
   const [estado, setEstado] = useState(null) // null = carregando
   const [grid, setGrid] = useState(null)
@@ -40,12 +45,16 @@ export function Jogo() {
   const inicio = useRef(Date.now())
   const enviando = useRef(false)
 
-  const fase = estado?.fase || 1
+  const fase = preview ? previewFase : estado?.fase || 1
   const tier = useMemo(() => tierDaFase(fase), [fase])
   const puzzle = useMemo(
-    () => (estado?.ok ? montarPuzzle(seedDaFase(JOGO, fase), tier.extras) : null),
-    [estado?.ok, fase, tier.extras],
+    () =>
+      estado?.ok
+        ? montarPuzzle(seedDaFase(JOGO, fase), { tamanho: tier.tamanho, extras: tier.extras })
+        : null,
+    [estado?.ok, fase, tier.tamanho, tier.extras],
   )
+  const n = puzzle?.n || tier.tamanho
 
   useEffect(() => {
     let ativo = true
@@ -82,7 +91,7 @@ export function Jogo() {
 
   useEffect(() => {
     if (!puzzle || !estado) return
-    const jah = !!estado.jogou_hoje
+    const jah = preview ? false : !!estado.jogou_hoje
     setResolvido(jah)
     setGanhouAgora(false)
     setGrid(jah ? puzzle.solution.map((r) => r.slice()) : puzzle.givens.map((r) => r.slice()))
@@ -112,6 +121,7 @@ export function Jogo() {
     const tempo = Math.floor((Date.now() - inicio.current) / 1000)
     setSegundos(tempo)
     tapHaptic()
+    if (preview) return // prévia não submete nem pontua
     const { data } = await supabase.rpc('jogo_concluir', { p_jogo: JOGO, p_fase: fase, p_tempo_seg: tempo })
     if (data?.ok) {
       setPontosGanhos(data.pontos_ganhos || 0)
@@ -165,6 +175,11 @@ export function Jogo() {
           {/* título do jogo */}
           <div className="mb-5 text-center">
             <div className="font-display text-[19px] font-bold leading-tight">Tatá Tango</div>
+            {preview && (
+              <div className="mt-1 text-[11px] font-semibold uppercase tracking-wide text-muted-2">
+                Prévia · Fase {fase} · {tier.rotulo} {n}×{n} · não pontua
+              </div>
+            )}
           </div>
           {/* barra: 🔥 ofensiva · ⏱ tempo (centro) · ↺ recarregar + ? (direita) — todos no mesmo tamanho */}
           <div className="mb-4 grid grid-cols-3 items-center px-2 text-muted">
@@ -190,9 +205,12 @@ export function Jogo() {
             </span>
           </div>
 
-          {/* tabuleiro */}
+          {/* tabuleiro — colunas e tamanho da fonte acompanham o tamanho da grade */}
           <div className="relative aspect-square w-full select-none">
-            <div className="grid h-full w-full grid-cols-6 overflow-hidden rounded-xl border border-line bg-surface">
+            <div
+              className="grid h-full w-full overflow-hidden rounded-xl border border-line bg-surface"
+              style={{ gridTemplateColumns: `repeat(${n}, minmax(0, 1fr))` }}
+            >
               {grid.map((row, r) =>
                 row.map((v, c) => {
                   const fixo = puzzle.givens[r][c] >= 0
@@ -202,8 +220,9 @@ export function Jogo() {
                       key={r + '-' + c}
                       onClick={() => alterna(r, c)}
                       disabled={resolvido || fixo}
+                      style={{ fontSize: `clamp(12px, ${(42 / n).toFixed(1)}vw, 30px)` }}
                       className={[
-                        'flex aspect-square items-center justify-center border-[0.5px] border-line text-[clamp(18px,7vw,30px)] leading-none transition-colors',
+                        'flex aspect-square items-center justify-center border-[0.5px] border-line leading-none transition-colors',
                         fixo ? 'bg-fill/70' : 'bg-surface active:bg-fill',
                         erro ? '!bg-danger/20' : '',
                       ].join(' ')}
@@ -217,12 +236,12 @@ export function Jogo() {
             </div>
             {puzzle.H.map((row, r) =>
               row.map((rel, c) =>
-                rel ? <Dica key={'h' + r + '-' + c} rel={rel} left={((c + 1) / N) * 100} top={((r + 0.5) / N) * 100} /> : null,
+                rel ? <Dica key={'h' + r + '-' + c} rel={rel} n={n} left={((c + 1) / n) * 100} top={((r + 0.5) / n) * 100} /> : null,
               ),
             )}
             {puzzle.V.map((row, r) =>
               row.map((rel, c) =>
-                rel ? <Dica key={'v' + r + '-' + c} rel={rel} left={((c + 0.5) / N) * 100} top={((r + 1) / N) * 100} /> : null,
+                rel ? <Dica key={'v' + r + '-' + c} rel={rel} n={n} left={((c + 0.5) / n) * 100} top={((r + 1) / n) * 100} /> : null,
               ),
             )}
           </div>
@@ -238,7 +257,9 @@ export function Jogo() {
                   {ganhouAgora ? 'Resolvido!' : 'Fase concluída hoje'}
                 </div>
                 <div className="text-sm text-muted">
-                  {ganhouAgora && pontosGanhos > 0 ? (
+                  {preview ? (
+                    'Prévia — não pontua'
+                  ) : ganhouAgora && pontosGanhos > 0 ? (
                     <>
                       <b className="text-text">+{pontosGanhos}</b> pontos · Volte amanhã
                     </>
@@ -258,11 +279,13 @@ export function Jogo() {
   )
 }
 
-function Dica({ rel, left, top }) {
+function Dica({ rel, left, top, n = 6 }) {
+  // círculo menor nos tabuleiros maiores pra não encostar nas células vizinhas
+  const sz = n >= 10 ? 14 : n >= 8 ? 16 : 18
   return (
     <span
-      className="pointer-events-none absolute z-10 grid h-[18px] w-[18px] -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border border-line bg-bg text-[11px] font-extrabold text-muted"
-      style={{ left: left + '%', top: top + '%' }}
+      className="pointer-events-none absolute z-10 grid -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border border-line bg-bg font-extrabold leading-none text-muted"
+      style={{ left: left + '%', top: top + '%', width: sz, height: sz, fontSize: n >= 10 ? 9 : 11 }}
     >
       {rel === 1 ? '=' : '✕'}
     </span>
