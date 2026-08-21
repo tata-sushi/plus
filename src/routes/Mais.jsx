@@ -92,8 +92,7 @@ export function Mais() {
       (i) =>
         (!i.gov || usuario?.governanca?.tem) &&
         (!i.quadros || usuario?.podeQuadros) &&
-        (!i.escala || usuario?.podeEscala) &&
-        (!i.jogo || String(usuario?.matricula) === '7'),
+        (!i.escala || usuario?.podeEscala),
     )
     .sort((a, b) => a.label.localeCompare(b.label, 'pt', { sensitivity: 'base' }))
 

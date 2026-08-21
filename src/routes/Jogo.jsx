@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Navigate, useNavigate, useSearchParams } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { ArrowLeft, Flame, RotateCcw, HelpCircle, Check, Trophy, Loader2, X, Clock } from 'lucide-react'
 import {
   montarPuzzle,
@@ -148,8 +148,6 @@ export function Jogo() {
     setSegundos(0)
   }
 
-  if (usuario && String(usuario.matricula) !== '7') return <Navigate to="/" replace />
-
   return (
     <div className="min-h-[100dvh] bg-bg">
       <Header />
@@ -273,8 +271,8 @@ export function Jogo() {
         </div>
       )}
 
-      {ajudaAberta && <FolhaAjuda onClose={() => setAjudaAberta(false)} />}
-      {intro && <FolhaIntro onClose={fecharIntro} />}
+      {ajudaAberta && <FolhaAjuda n={n} onClose={() => setAjudaAberta(false)} />}
+      {intro && <FolhaIntro n={n} onClose={fecharIntro} />}
     </div>
   )
 }
@@ -293,7 +291,8 @@ function Dica({ rel, left, top, n = 6 }) {
 }
 
 // Folha "Como jogar" — mesmo padrão do ⓘ da Agenda.
-function FolhaAjuda({ onClose }) {
+function FolhaAjuda({ onClose, n = 6 }) {
+  const metade = n / 2
   return createPortal(
     <div className="fixed inset-0 z-50 flex flex-col justify-end sm:items-center sm:justify-center" role="dialog" aria-modal="true">
       <button aria-label="Fechar" onClick={onClose} className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
@@ -307,7 +306,7 @@ function FolhaAjuda({ onClose }) {
           Preencha a grade com {SIM[0]} e {SIM[1]}. Toque numa célula pra alternar entre eles.
         </p>
         <ul className="mt-3 flex flex-col gap-2 text-sm leading-relaxed text-muted">
-          <li>• 3 de cada por <b className="text-text">linha</b> e por <b className="text-text">coluna</b>.</li>
+          <li>• {metade} de cada por <b className="text-text">linha</b> e por <b className="text-text">coluna</b>.</li>
           <li>• Nunca <b className="text-text">3 iguais seguidos</b> (na horizontal ou vertical).</li>
           <li>• <b className="text-text">=</b> entre duas células: elas são <b className="text-text">iguais</b>.</li>
           <li>• <b className="text-text">✕</b> entre duas células: elas são <b className="text-text">diferentes</b>.</li>
@@ -319,7 +318,8 @@ function FolhaAjuda({ onClose }) {
 }
 
 // Boas-vindas — aparece só no primeiro acesso ao jogo.
-function FolhaIntro({ onClose }) {
+function FolhaIntro({ onClose, n = 6 }) {
+  const metade = n / 2
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true">
       <button aria-label="Fechar" onClick={onClose} className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
@@ -338,7 +338,7 @@ function FolhaIntro({ onClose }) {
             Preencha a grade com {SIM[0]} e {SIM[1]} (toque pra alternar), seguindo:
           </p>
           <ul className="mt-2 flex flex-col gap-1.5 text-sm leading-relaxed text-muted">
-            <li>• 3 de cada por <b className="text-text">linha</b> e por <b className="text-text">coluna</b>.</li>
+            <li>• {metade} de cada por <b className="text-text">linha</b> e por <b className="text-text">coluna</b>.</li>
             <li>• Nunca <b className="text-text">3 iguais seguidos</b>.</li>
             <li>• <b className="text-text">=</b> vizinhos iguais.</li>
             <li>• <b className="text-text">✕</b> vizinhos diferentes.</li>

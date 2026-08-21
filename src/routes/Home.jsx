@@ -204,8 +204,7 @@ export function Home() {
   const loja = usuario?.loja || ''
 
   // Ordem dos cards de Sugestões: Kanban · Desafios · Checklist · Cardápio · Recompensas · Organograma · Rádio · Passatempos.
-  // Passatempos (Tatá Tango) segue travado na matrícula 7 (em teste); Kanban e
-  // Checklist só aparecem pra quem tem o acesso (podeQuadros / podeLimpeza).
+  // Kanban e Checklist só aparecem pra quem tem o acesso (podeQuadros / podeLimpeza).
   const [desafios, recompensas, cardapio, organograma] = sugestoesCards
   const cards = [
     ...(usuario?.podeQuadros
@@ -219,9 +218,7 @@ export function Home() {
     recompensas,
     organograma,
     { to: '/radio', badgeIcon: RadioIcon, title: 'Rádio Tatá', subtitle: 'Playlist do time' },
-    ...(String(usuario?.matricula) === '7'
-      ? [{ to: '/jogo', badgeIcon: Puzzle, title: 'Passatempos', subtitle: 'Relaxe e pontue' }]
-      : []),
+    { to: '/jogo', badgeIcon: Puzzle, title: 'Passatempos', subtitle: 'Relaxe e pontue' },
   ]
   const desktop = useDesktop()
   const { setCanvas } = useDesktopCanvas()

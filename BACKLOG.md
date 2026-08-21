@@ -27,6 +27,7 @@ Ideias e pendências levantadas para desenvolvimento futuro.
   dedução ainda fecha ⇒ único e dedutível). 10×10 caiu pra ~5ms. Tiers agora: 1–20 6×6
   fácil · 21–50 6×6 · **51–100 8×8** · **101+ 10×10**. _(feito 2026-08-21)_
 
-- [ ] **Abrir o "Tatá Tango" para todos** — hoje travado na matrícula 7 (front + `jogo_pode_ver`).
-  Backend já pronto: fase por pessoa, pontos = **5×fase** na carteira/ranking, e **ranking de
-  velocidade por fase**. Liberar quando validar. _(anotado em 2026-08-20)_
+- [x] **Abrir o "Tatá Tango" para todos** — ~~travado na matrícula 7~~. Feito: gates de front
+  removidos (Jogo/Mais/Home) e `jogo_pode_ver` deixou de exigir matrícula 7. Regras do "Como
+  jogar" viraram dinâmicas (metade por linha/coluna acompanha o tamanho). Prévia `?fase=N`
+  segue só p/ matrícula 7. _(feito 2026-08-21)_
