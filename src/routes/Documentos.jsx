@@ -267,7 +267,7 @@ export function Documentos() {
 
           {/* corpo do documento — PDF (visualizador) ou texto */}
           {sel.tipo === 'pdf' ? (
-            <div className="mt-4">
+            <div className="relative mt-4">
               <div className="overflow-hidden rounded-card border border-line">
                 {pdfUrl ? (
                   <PdfViewer src={pdfUrl} inline />
@@ -283,9 +283,10 @@ export function Documentos() {
                     setPdfZoom(1)
                     setPdfCheio(true)
                   }}
-                  className="btn-ghost mt-2 w-full !py-2.5 text-xs"
+                  aria-label="Abrir em tela cheia"
+                  className="absolute right-2 top-2 z-10 grid h-9 w-9 place-items-center rounded-full border border-line bg-surface/90 text-muted shadow-sm backdrop-blur tap"
                 >
-                  <Maximize2 size={14} /> Abrir em tela cheia
+                  <Maximize2 size={16} />
                 </button>
               )}
             </div>
