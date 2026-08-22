@@ -148,11 +148,31 @@ export function Documentos() {
             .upload(assinadoPath, new Blob([carimbado], { type: 'application/pdf' }), {
               contentType: 'application/pdf',
             })
-          if (!error)
+          if (!error) {
             await supabase.rpc('docs_definir_assinado', {
               p_atribuicao_id: sel.atribuicao_id,
               p_assinado_path: assinadoPath,
             })
+            // Carimbo de tempo (RFC 3161) sobre o PDF assinado — best-effort:
+            // se a TSA/função estiver fora, a assinatura segue válida (horário do servidor).
+            try {
+              const digest = await crypto.subtle.digest('SHA-256', carimbado)
+              const sha256 = [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, '0')).join('')
+              const { data: ct } = await supabase.functions.invoke('carimbo-tempo', { body: { sha256 } })
+              if (ct?.ok && ct.token_base64) {
+                await supabase.rpc('docs_registrar_carimbo', {
+                  p_atribuicao_id: sel.atribuicao_id,
+                  p_doc_sha256: sha256,
+                  p_token_base64: ct.token_base64,
+                  p_tsa: ct.tsa || null,
+                  p_tempo: ct.tempo || null,
+                  p_serial: ct.serial || null,
+                })
+              }
+            } catch {
+              /* carimbo de tempo indisponível — não bloqueia a assinatura */
+            }
+          }
         } catch {
           /* se o carimbo falhar, a assinatura já está registrada — segue sem bloquear */
         }
