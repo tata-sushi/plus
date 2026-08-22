@@ -23,18 +23,28 @@ Coordenação entre **dois sistemas** no **mesmo projeto Supabase** (`aoqsbusfrf
 - [x] trigger `trg_assinatura_sync_dp` (push → atualiza `dp_rh.colaborador_documentos`)
 - [x] helper `eh_servico()`; testado ponta a ponta (simulado) e limpo
 
-**Portal (`dp_rh` / lideres) — em andamento:**
-- [ ] RPC de pendência aceita `link_bucket` e grava `assinatura_atribuicao_id`
-- [ ] botão "Salvar p/ Assinatura Digital" → upload em `assinaturas/docs/` + criar linha + chamar `docs_enviar_para_assinatura` + gravar `atribuicao_id`
-- [ ] filtro de escopo: **exclui** Documentos Pessoais (RG/CPF/endereço); todo o resto assina (incl. cartão de ponto)
-- [ ] `doc.html` lê `link_bucket` pra gerar a URL assinada
-- [ ] corrigir doc espelho (cartão de ponto)
+**Portal (`dp_rh` / lideres) — ✅ concluído (PR #2680):**
+- [x] RPC de pendência aceita `link_bucket` e grava `assinatura_atribuicao_id`
+- [x] botão "Salvar p/ Assinatura Digital" → upload em `assinaturas/docs/` + criar linha + chamar `docs_enviar_para_assinatura` + gravar `atribuicao_id`
+- [x] `doc.html` lê `link_bucket` no botão "Ver"
+- [x] doc espelho corrigido (cartão de ponto)
+- [ ] filtro de escopo: **exclui** Documentos Pessoais (RG/CPF/endereço) — a confirmar na tela
 
 **Aceite conjunto (definition of done):**
-- [ ] **Teste com documento REAL:** RH gera termo → envia → colaborador assina no app → PDF carimbado → linha do portal vira `entregue` → `doc.html` mostra o PDF assinado
-- [ ] leitura do PDF assinado confirmada no `doc.html` (bucket privado: `service_role`/gestor)
-- [ ] reconciliação (pull) disponível para atrasados
-- [ ] docs dos dois lados sincronizados
+- [x] **End-to-end REAL validado pelos dois lados:** app-side testou a assinatura (Cartão de Ponto real assinado no app); portal-side criou `pendente_assinatura` → `docs_enviar_para_assinatura` real → trigger → linha virou `entregue` com `link`/`link_bucket`/`mime` corretos.
+- [ ] leitura do PDF assinado a partir do `doc.html` (ver **Pendência RLS** abaixo)
+- [x] reconciliação (pull) disponível (`docs_status_por_referencia`)
+- [x] docs dos dois lados sincronizados
+
+**Novo — embutir `doc.html` no app (lado do app / plus):**
+- [ ] rota GovFrame que embute o `doc.html` (mesmo padrão do Controle de Escala). Fazer quando o
+  `doc.html` estiver limpo (sem resquício de recrutamento) e a URL/aba confirmadas.
+
+**Pendência RLS (`doc.html` × bucket `assinaturas`):** aberto standalone (sandbox, sem sessão) o
+`doc.html` não lê `assinaturas` (RLS). **Embutido no app** ele roda com a **sessão real** do usuário
+→ gestor (`docs_pode_gerir`) lê qualquer assinado, colaborador lê o próprio. Para uso standalone no
+portal, alternativa é uma **Edge Function `service_role`** que assina a URL. _Confirmar como o
+`doc.html` autentica quando embutido._
 
 **Fora do término (não bloqueia):** hardening do INSERT do bucket · Frente 4 (admissão) · ICP-Brasil (Fase 2).
 
