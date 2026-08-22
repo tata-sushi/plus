@@ -38,6 +38,8 @@ const Escala = lazy(() => import('./routes/Escala.jsx'))
 const Limpeza = lazy(() => import('./routes/Limpeza.jsx'))
 // Desafio do dia (Tatá Tango) — jogo diário, carregado sob demanda.
 const Jogo = lazy(() => import('./routes/Jogo.jsx'))
+// Assinaturas — documentos para o colaborador ler e assinar, carregado sob demanda.
+const Documentos = lazy(() => import('./routes/Documentos.jsx'))
 
 function Splash() {
   return (
@@ -113,6 +115,16 @@ export function App() {
             <ErroBoundary>
               <Suspense fallback={<Splash />}>
                 <Jogo />
+              </Suspense>
+            </ErroBoundary>
+          }
+        />
+        <Route
+          path="/documentos"
+          element={
+            <ErroBoundary>
+              <Suspense fallback={<Splash />}>
+                <Documentos />
               </Suspense>
             </ErroBoundary>
           }

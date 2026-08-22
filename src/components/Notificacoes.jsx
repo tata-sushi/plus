@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
-import { Bell, X, CheckCircle2, XCircle, Info, Loader2, BellOff, KanbanSquare } from 'lucide-react'
+import { Bell, X, CheckCircle2, XCircle, Info, Loader2, BellOff, KanbanSquare, FileSignature } from 'lucide-react'
 import { supabase } from '../lib/supabase.js'
 import { cn } from '../lib/cn'
 import { tapHaptic } from '../lib/haptics.js'
@@ -26,6 +26,7 @@ function visual(n) {
       : { Icon: CheckCircle2, cls: 'bg-accent-soft text-accent' }
   }
   if (n.categoria === 'kanban') return { Icon: KanbanSquare, cls: 'bg-accent-soft text-accent' }
+  if (n.categoria === 'assinatura') return { Icon: FileSignature, cls: 'bg-accent-soft text-accent' }
   return { Icon: Info, cls: 'bg-surface-2 text-carbon' }
 }
 
@@ -68,6 +69,8 @@ export function Notificacoes() {
     fechar()
     if (n.referencia_tipo === 'treinamento') navigate('/treinamentos')
     else if (n.referencia_tipo === 'kanban_card') navigate('/quadros')
+    else if (n.referencia_tipo === 'assinatura_atribuicao')
+      navigate(`/documentos?a=${n.referencia_id}`)
   }
 
   return (
@@ -143,6 +146,14 @@ export function Notificacoes() {
                               className="mt-2 text-xs font-semibold text-accent tap"
                             >
                               Ver desafio →
+                            </button>
+                          )}
+                          {n.referencia_tipo === 'assinatura_atribuicao' && (
+                            <button
+                              onClick={() => irPara(n)}
+                              className="mt-2 text-xs font-semibold text-accent tap"
+                            >
+                              Assinar →
                             </button>
                           )}
                         </div>

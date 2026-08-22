@@ -4,6 +4,14 @@ Ideias e pendências levantadas para desenvolvimento futuro.
 
 ## Pendências
 
+- [ ] **Assinatura digital — Fase 1b/2** — Fase 1a (feito 2026-08-22): documentos de TEXTO
+  (RH/política/recibo) com rubrica + selfie + trilha de auditoria; RH/líder atribui; colaborador
+  tem a caixa "Assinaturas" (`/documentos`) + aviso na Home + notificação. Backend: tabelas
+  `assinatura_documentos/atribuicoes/registros` (RLS, acesso só por RPC), bucket privado
+  `assinaturas`, RPCs `docs_*`. **Falta:** (1b) tela do RH pra **criar documento + atribuir +
+  acompanhar** (hoje só via SQL) e o **upload de PDF** (precisa policy de storage por atribuição);
+  (2) nível **ICP-Brasil** via provedor (o modelo já tem o campo `nivel`). _(anotado 2026-08-22)_
+
 - [ ] **Esquema de pontuação** — definir uma mecânica de pontos/recompensa (surgiu
   na conversa logo após o easter egg do rodapé do "Mais": clicar em "Victor Carvalho"
   → perfil do dev). Detalhar as regras depois. _(anotado em 2026-08-12)_

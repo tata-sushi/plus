@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Flag, Gift, Star, Network, Sun, Check, X, KanbanSquare, SprayCan, Radio as RadioIcon, Puzzle } from 'lucide-react'
+import { Flag, Gift, Star, Network, Sun, Check, X, KanbanSquare, SprayCan, Radio as RadioIcon, Puzzle, FileSignature, ChevronRight } from 'lucide-react'
 import { cn } from '../lib/cn'
 import { Header } from '../components/Header.jsx'
 import { Section } from '../components/Section.jsx'
@@ -223,6 +223,18 @@ export function Home() {
   const desktop = useDesktop()
   const { setCanvas } = useDesktopCanvas()
 
+  // Documentos pendentes de assinatura (banner de aviso)
+  const [pendAssin, setPendAssin] = useState(0)
+  useEffect(() => {
+    let ativo = true
+    supabase.rpc('docs_pendentes_contagem').then(({ data }) => {
+      if (ativo) setPendAssin(Number(data) || 0)
+    })
+    return () => {
+      ativo = false
+    }
+  }, [])
+
   // Progresso real de desafios (para o anel do card de identificação)
   const [progresso, setProgresso] = useState(null)
   useEffect(() => {
@@ -394,6 +406,29 @@ export function Home() {
           </div>
         </div>
       </div>
+
+      {/* Aviso: documentos aguardando assinatura */}
+      {pendAssin > 0 && (
+        <div className="px-5 pt-4 hsm:pt-3">
+          <Link
+            to="/documentos"
+            className="card hstack gap-3 border border-accent/40 bg-accent-soft/60 px-4 py-3.5 tap"
+          >
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-accent text-black">
+              <FileSignature size={18} />
+            </span>
+            <div className="min-w-0 flex-1">
+              <div className="text-sm font-bold text-accent-ink">
+                {pendAssin === 1
+                  ? '1 documento para assinar'
+                  : `${pendAssin} documentos para assinar`}
+              </div>
+              <div className="text-xs text-muted">Toque para ler e assinar</div>
+            </div>
+            <ChevronRight size={18} className="shrink-0 text-accent" />
+          </Link>
+        </div>
+      )}
 
       {/* Menu do dia — linha com scroll lateral e botão de avaliação (estrela) fixo à direita */}
       <Section className="reveal reveal-1 mt-4 hsm:mt-3" title="Menu do dia">

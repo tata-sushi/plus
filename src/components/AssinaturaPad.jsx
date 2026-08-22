@@ -1,16 +1,16 @@
-import { useEffect, useRef } from 'react'
+import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react'
 import { Eraser } from 'lucide-react'
 
-// Área de assinatura: a pessoa assina com o dedo (ou mouse). É só pra dar a
-// sensação de assinar um documento — o traço não é salvo; onChange avisa se já
-// tem alguma assinatura desenhada (pra liberar o botão).
-export function AssinaturaPad({ onChange }) {
+// Área de assinatura: a pessoa assina com o dedo (ou mouse). O "papel" é sempre
+// branco com tinta escura (fica legível nos dois temas e no PNG salvo).
+// Expõe por ref: exportPNG() → Blob com fundo branco · vazio() · limpar().
+// onChange(bool) avisa se já tem traço (pra liberar o botão de assinar).
+export const AssinaturaPad = forwardRef(function AssinaturaPad({ onChange }, ref) {
   const canvasRef = useRef(null)
   const ctxRef = useRef(null)
   const desenhando = useRef(false)
   const temTraco = useRef(false)
 
-  // dimensiona o canvas (nítido em telas retina) e configura o traço
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) return
@@ -18,6 +18,7 @@ export function AssinaturaPad({ onChange }) {
     const configurar = () => {
       const larg = canvas.clientWidth
       const alt = canvas.clientHeight
+      // preserva o traço ao redimensionar não é crítico aqui (assinatura é rápida)
       canvas.width = larg * dpr
       canvas.height = alt * dpr
       const ctx = canvas.getContext('2d')
@@ -25,7 +26,7 @@ export function AssinaturaPad({ onChange }) {
       ctx.lineWidth = 2.5
       ctx.lineCap = 'round'
       ctx.lineJoin = 'round'
-      ctx.strokeStyle = getComputedStyle(canvas).color || '#111'
+      ctx.strokeStyle = '#0f172a' // tinta escura fixa (independe do tema)
       ctxRef.current = ctx
     }
     configurar()
@@ -65,21 +66,39 @@ export function AssinaturaPad({ onChange }) {
     onChange?.(false)
   }
 
+  useImperativeHandle(ref, () => ({
+    vazio: () => !temTraco.current,
+    limpar,
+    // PNG com fundo branco (o canvas é transparente; compõe sobre branco)
+    exportPNG: () =>
+      new Promise((res) => {
+        const src = canvasRef.current
+        const tmp = document.createElement('canvas')
+        tmp.width = src.width
+        tmp.height = src.height
+        const t = tmp.getContext('2d')
+        t.fillStyle = '#ffffff'
+        t.fillRect(0, 0, tmp.width, tmp.height)
+        t.drawImage(src, 0, 0)
+        tmp.toBlob((b) => res(b), 'image/png')
+      }),
+  }))
+
   return (
     <div>
-      <div className="relative overflow-hidden rounded-card border border-line bg-surface">
+      <div className="relative overflow-hidden rounded-card border border-line" style={{ background: '#fff' }}>
         <canvas
           ref={canvasRef}
           onPointerDown={iniciar}
           onPointerMove={mover}
           onPointerUp={parar}
           onPointerLeave={parar}
-          className="block h-36 w-full text-text"
+          className="block h-36 w-full"
           style={{ touchAction: 'none' }}
         />
-        {/* linha e legenda "assine aqui" */}
-        <div className="pointer-events-none absolute inset-x-5 bottom-7 border-b border-dashed border-line" />
-        <span className="pointer-events-none absolute inset-x-0 bottom-2 text-center text-[11px] text-muted-2">
+        {/* linha e legenda "assine aqui" (cinza fixo, sobre o papel branco) */}
+        <div className="pointer-events-none absolute inset-x-5 bottom-7 border-b border-dashed" style={{ borderColor: '#cbd5e1' }} />
+        <span className="pointer-events-none absolute inset-x-0 bottom-2 text-center text-[11px]" style={{ color: '#94a3b8' }}>
           assine aqui
         </span>
       </div>
@@ -92,4 +111,4 @@ export function AssinaturaPad({ onChange }) {
       </button>
     </div>
   )
-}
+})
