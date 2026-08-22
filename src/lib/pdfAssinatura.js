@@ -41,23 +41,47 @@ function quebrar(texto, font, size, maxWidth) {
 }
 
 export async function carimbarPdf({ pdfBytes, rubricaBlob, selfieBlob, dados }) {
-  const { PDFDocument, StandardFonts, rgb } = await import('pdf-lib')
+  const pdfLib = await import('pdf-lib')
+  const { PDFDocument, StandardFonts, rgb } = pdfLib
+  // `degrees(a)` só devolve { type:'degrees', angle:a }; fallback cobre o interop CJS.
+  const degrees = pdfLib.degrees ?? ((angle) => ({ type: 'degrees', angle }))
   const doc = await PDFDocument.load(pdfBytes)
   const font = await doc.embedFont(StandardFonts.Helvetica)
   const bold = await doc.embedFont(StandardFonts.HelveticaBold)
   const mono = await doc.embedFont(StandardFonts.Courier)
 
-  // Carimba no rodapé da ÚLTIMA página do próprio conteúdo (mesma folha),
-  // em vez de adicionar uma página nova. Banda compacta de ~150pt na base,
-  // sem separador nem cabeçalho: só o campo de assinatura (rubrica + selfie
-  // alinhada na mesma altura) com o resto dos textos embaixo, todos no
-  // mesmo padrão cinza. Selfie e rubrica ficam no tamanho cheio.
-  const paginas = doc.getPages()
-  const page = paginas[paginas.length - 1]
-  const { width } = page.getSize()
-  const m = 40
   const cinza = rgb(0.42, 0.45, 0.42)
   const escuro = rgb(0.1, 0.1, 0.1)
+
+  // Imagens embutidas uma única vez (reutilizadas no rodapé e na rubrica lateral).
+  let rubricaImg = null
+  let selfieImg = null
+  if (rubricaBlob) {
+    try {
+      rubricaImg = await embedImagem(doc, rubricaBlob)
+    } catch {
+      /* rubrica inválida — segue sem ela */
+    }
+  }
+  if (selfieBlob) {
+    try {
+      selfieImg = await embedImagem(doc, selfieBlob)
+    } catch {
+      /* selfie inválida — segue sem ela */
+    }
+  }
+
+  const paginas = doc.getPages()
+  const ultima = paginas.length - 1
+  const totalPag = paginas.length
+
+  // === ÚLTIMA página: campo de assinatura completo no rodapé (~150pt na base) ===
+  // Sem separador nem cabeçalho: só o campo de assinatura (rubrica + selfie
+  // alinhada na mesma altura) com o resto dos textos embaixo, todos no mesmo
+  // padrão cinza. Selfie e rubrica ficam no tamanho cheio.
+  const page = paginas[ultima]
+  const { width } = page.getSize()
+  const m = 40
 
   // declaração curta no topo do bloco (consentimento; até 2 linhas)
   let dy = 138
@@ -68,15 +92,10 @@ export async function carimbarPdf({ pdfBytes, rubricaBlob, selfieBlob, dados }) 
 
   // campo de assinatura: rubrica sobre a linha + nome/matrícula (esquerda).
   // rubrica no tamanho cheio (até 150×40)
-  if (rubricaBlob) {
-    try {
-      const img = await embedImagem(doc, rubricaBlob)
-      const w = 150
-      const h = Math.min(40, img.height * (w / img.width))
-      page.drawImage(img, { x: m, y: 74, width: w, height: h })
-    } catch {
-      /* rubrica inválida — segue sem ela */
-    }
+  if (rubricaImg) {
+    const w = 150
+    const h = Math.min(40, rubricaImg.height * (w / rubricaImg.width))
+    page.drawImage(rubricaImg, { x: m, y: 74, width: w, height: h })
   }
   page.drawLine({ start: { x: m, y: 70 }, end: { x: m + 190, y: 70 }, thickness: 0.7, color: rgb(0.6, 0.6, 0.6) })
   page.drawText(limpar(dados.assinante), { x: m, y: 59, size: 9, font: bold, color: escuro })
@@ -87,15 +106,10 @@ export async function carimbarPdf({ pdfBytes, rubricaBlob, selfieBlob, dados }) 
 
   // selfie no canto direito, centralizada na vertical à altura do campo de
   // assinatura (campo ocupa y≈49..114 → centro ≈81; selfie 54 → base 54)
-  if (selfieBlob) {
-    try {
-      const img = await embedImagem(doc, selfieBlob)
-      const s = 54
-      page.drawImage(img, { x: width - m - s, y: 54, width: s, height: s })
-      page.drawText('Selfie', { x: width - m - s + 15, y: 46, size: 6.5, font, color: cinza })
-    } catch {
-      /* selfie inválida — segue sem ela */
-    }
+  if (selfieImg) {
+    const s = 54
+    page.drawImage(selfieImg, { x: width - m - s, y: 54, width: s, height: s })
+    page.drawText('Selfie', { x: width - m - s + 15, y: 46, size: 6.5, font, color: cinza })
   }
 
   // rodapé: comprovante + auditoria + base legal, todos no mesmo padrão cinza
@@ -106,6 +120,35 @@ export async function carimbarPdf({ pdfBytes, rubricaBlob, selfieBlob, dados }) 
   )
   page.drawText(`Documento v${dados.versao || 1} - impressao digital ${dados.hash || ''}`, { x: m, y: 19, size: 6.5, font: mono, color: cinza })
   page.drawText('Assinado eletronicamente nos termos da MP 2.200-2/2001.', { x: m, y: 10, size: 6.5, font, color: rgb(0.6, 0.62, 0.6) })
+
+  // === DEMAIS páginas: rubrica lateral (amarração com a assinatura final) ===
+  // Em cada folha que não é a última, repete a rubrica em miniatura + a
+  // impressão digital do documento na lateral direita, ligando todas as
+  // páginas à assinatura completa da última. Texto vertical (lê de baixo p/ cima).
+  const hash = limpar(dados.hash || '')
+  const rot = degrees(90)
+  for (let i = 0; i < ultima; i++) {
+    const p = paginas[i]
+    const ph = p.getHeight()
+    const pw = p.getWidth()
+    const size = 6.5
+    const texto = limpar(
+      `Rubrica eletronica - ${dados.assinante || ''} - mat ${dados.matricula || ''} - pag ${i + 1}/${totalPag} - impressao digital ${hash}`,
+    )
+    const tw = font.widthOfTextAtSize(texto, size)
+    const rw = rubricaImg ? 44 : 0
+    const gap = rubricaImg ? 10 : 0
+    const bloco = tw + gap + rw
+    const y0 = Math.max(20, (ph - bloco) / 2)
+    // texto vertical junto à borda direita
+    p.drawText(texto, { x: pw - 11, y: y0, size, font, color: cinza, rotate: rot })
+    // rubrica em miniatura acima do texto (rotacionada 90°)
+    if (rubricaImg) {
+      const w = rw
+      const h = Math.min(13, rubricaImg.height * (w / rubricaImg.width))
+      p.drawImage(rubricaImg, { x: pw - 9, y: y0 + tw + gap, width: w, height: h, rotate: rot })
+    }
+  }
 
   return doc.save() // Uint8Array
 }
