@@ -111,13 +111,6 @@ export async function carimbarPdf({ pdfBytes, rubricaBlob, selfieBlob, dados }) 
   const { width } = page.getSize()
   const m = 40
 
-  // declaração curta no topo do bloco (consentimento; até 2 linhas)
-  let dy = 138
-  for (const ln of quebrar(dados.declaracao, font, 7, width - 2 * m - 70).slice(0, 2)) {
-    page.drawText(ln, { x: m, y: dy, size: 7, font, color: cinza })
-    dy -= 9
-  }
-
   // campo de assinatura: rubrica sobre a linha + nome/matrícula (esquerda).
   // rubrica no tamanho cheio (até 150×40)
   if (rubricaImg) {
@@ -132,12 +125,11 @@ export async function carimbarPdf({ pdfBytes, rubricaBlob, selfieBlob, dados }) 
     { x: m, y: 49, size: 7, font, color: cinza },
   )
 
-  // selfie no canto direito, centralizada na vertical à altura do campo de
-  // assinatura (campo ocupa y≈49..114 → centro ≈81; selfie 54 → base 54)
+  // selfie no canto direito, grande e alinhada na vertical ao conjunto de
+  // textos (a esquerda ocupa y≈10..114 → centro ≈62; selfie 96 → base 14)
   if (selfieImg) {
-    const s = 54
-    page.drawImage(selfieImg, { x: width - m - s, y: 54, width: s, height: s })
-    page.drawText('Selfie', { x: width - m - s + 15, y: 46, size: 6.5, font, color: cinza })
+    const s = 96
+    page.drawImage(selfieImg, { x: width - m - s, y: 14, width: s, height: s })
   }
 
   // rodapé: comprovante + auditoria + base legal, todos no mesmo padrão cinza
