@@ -93,7 +93,7 @@ export function SelfieCapture({ onChange }) {
 
   return (
     <div>
-      <div className="relative mx-auto aspect-square w-44 overflow-hidden rounded-2xl border border-line bg-surface-2">
+      <div className="relative mx-auto aspect-square w-36 overflow-hidden rounded-2xl border border-line bg-surface-2">
         {fase === 'previa' && previa ? (
           <img src={previa} alt="Sua selfie" className="h-full w-full object-cover" />
         ) : fase === 'camera' ? (

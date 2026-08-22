@@ -1,94 +1,66 @@
-import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react'
-import { Eraser, Maximize2, Check, X } from 'lucide-react'
+import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react'
+import { Eraser } from 'lucide-react'
 
 // Área de assinatura: a pessoa assina com o dedo (ou mouse). O "papel" é sempre
 // branco com tinta escura (fica legível nos dois temas e no PNG salvo).
-// Tem modo TELA CHEIA (item horizontal): abre um pad grande que preenche a tela;
-// virando o celular vira paisagem (iOS/Android). Ao concluir, o traço é copiado
-// pro pad embutido — que segue sendo a fonte única do exportPNG.
 // Expõe por ref: exportPNG() → Blob com fundo branco · vazio() · limpar().
 // onChange(bool) avisa se já tem traço (pra liberar o botão de assinar).
 export const AssinaturaPad = forwardRef(function AssinaturaPad({ onChange }, ref) {
-  const canvasRef = useRef(null) // pad embutido (fonte do exportPNG)
-  const fullRef = useRef(null) // pad em tela cheia
+  const canvasRef = useRef(null)
   const ctxRef = useRef(null)
-  const fullCtxRef = useRef(null)
   const desenhando = useRef(false)
   const temTraco = useRef(false)
-  const [cheio, setCheio] = useState(false)
 
-  // configura um canvas (resolução real por DPR + estilo do traço) e devolve o ctx
-  function configurarCanvas(canvas) {
+  // configura resolução real (DPR) + estilo do traço; devolve o ctx
+  function configurar() {
+    const canvas = canvasRef.current
+    if (!canvas) return null
     const dpr = window.devicePixelRatio || 1
-    canvas.width = canvas.clientWidth * dpr
-    canvas.height = canvas.clientHeight * dpr
+    canvas.width = (canvas.clientWidth || 300) * dpr
+    canvas.height = (canvas.clientHeight || 144) * dpr
     const ctx = canvas.getContext('2d')
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
     ctx.lineWidth = 2.5
     ctx.lineCap = 'round'
     ctx.lineJoin = 'round'
     ctx.strokeStyle = '#0f172a' // tinta escura fixa (independe do tema)
+    ctxRef.current = ctx
     return ctx
   }
 
   useEffect(() => {
-    const canvas = canvasRef.current
-    if (!canvas) return
-    const configurar = () => {
-      ctxRef.current = configurarCanvas(canvas)
-    }
     configurar()
     window.addEventListener('resize', configurar)
     return () => window.removeEventListener('resize', configurar)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // configura o pad em tela cheia quando ele abre (e ao virar o celular)
-  useEffect(() => {
-    if (!cheio) return
-    const configurar = () => {
-      if (fullRef.current) fullCtxRef.current = configurarCanvas(fullRef.current)
-    }
-    const id = requestAnimationFrame(configurar)
-    window.addEventListener('resize', configurar)
-    window.addEventListener('orientationchange', configurar)
-    return () => {
-      cancelAnimationFrame(id)
-      window.removeEventListener('resize', configurar)
-      window.removeEventListener('orientationchange', configurar)
-    }
-  }, [cheio])
-
-  function ponto(canvas, e) {
-    const r = canvas.getBoundingClientRect()
+  // resolve o ctx, configurando na hora se ainda não houver (robusto no 1º toque)
+  function ctx() {
+    if (!ctxRef.current || (canvasRef.current && canvasRef.current.width === 0)) configurar()
+    return ctxRef.current
+  }
+  function ponto(e) {
+    const r = canvasRef.current.getBoundingClientRect()
     return { x: e.clientX - r.left, y: e.clientY - r.top }
   }
-  // resolve o ctx do canvas, configurando na hora se o effect ainda não rodou
-  // (evita o pad "não desenhar" quando o canvas foi montado agora — ex.: tela cheia)
-  function ctxDe(canvasR, ctxR) {
-    const canvas = canvasR.current
-    if (!canvas) return null
-    if (!ctxR.current || canvas.width === 0) ctxR.current = configurarCanvas(canvas)
-    return ctxR.current
-  }
-  function iniciar(canvasR, ctxR, e) {
-    const canvas = canvasR.current
-    const ctx = ctxDe(canvasR, ctxR)
-    if (!canvas || !ctx) return
+  function iniciar(e) {
+    const c = ctx()
+    if (!c) return
     e.preventDefault()
     desenhando.current = true
-    const p = ponto(canvas, e)
-    ctx.beginPath()
-    ctx.moveTo(p.x, p.y)
-    canvas.setPointerCapture?.(e.pointerId)
+    const p = ponto(e)
+    c.beginPath()
+    c.moveTo(p.x, p.y)
+    canvasRef.current.setPointerCapture?.(e.pointerId)
   }
-  function mover(canvasR, ctxR, e) {
+  function mover(e) {
     if (!desenhando.current) return
-    const canvas = canvasR.current
-    const ctx = ctxR.current
-    if (!canvas || !ctx) return
-    const p = ponto(canvas, e)
-    ctx.lineTo(p.x, p.y)
-    ctx.stroke()
+    const c = ctxRef.current
+    if (!c) return
+    const p = ponto(e)
+    c.lineTo(p.x, p.y)
+    c.stroke()
     if (!temTraco.current) {
       temTraco.current = true
       onChange?.(true)
@@ -97,36 +69,11 @@ export const AssinaturaPad = forwardRef(function AssinaturaPad({ onChange }, ref
   function parar() {
     desenhando.current = false
   }
-
   function limpar() {
-    const c = canvasRef.current
-    if (c && ctxRef.current) ctxRef.current.clearRect(0, 0, c.width, c.height)
-    const f = fullRef.current
-    if (f && fullCtxRef.current) fullCtxRef.current.clearRect(0, 0, f.width, f.height)
+    const canvas = canvasRef.current
+    ctxRef.current?.clearRect(0, 0, canvas.width, canvas.height)
     temTraco.current = false
     onChange?.(false)
-  }
-
-  // ao concluir/fechar na tela cheia: copia o traço pro pad embutido (encaixa mantendo proporção)
-  function concluirCheio() {
-    try {
-      const src = fullRef.current
-      const dst = canvasRef.current
-      if (src && dst && src.width > 0 && src.height > 0) {
-        const d = dst.getContext('2d')
-        d.save()
-        d.setTransform(1, 0, 0, 1, 0, 0)
-        d.clearRect(0, 0, dst.width, dst.height)
-        const s = Math.min(dst.width / src.width, dst.height / src.height)
-        const w = src.width * s
-        const h = src.height * s
-        d.drawImage(src, 0, 0, src.width, src.height, (dst.width - w) / 2, (dst.height - h) / 2, w, h)
-        d.restore()
-      }
-    } catch {
-      /* se algo der errado, fecha mesmo assim */
-    }
-    setCheio(false)
   }
 
   useImperativeHandle(ref, () => ({
@@ -152,11 +99,11 @@ export const AssinaturaPad = forwardRef(function AssinaturaPad({ onChange }, ref
       <div className="relative overflow-hidden rounded-card border border-line" style={{ background: '#fff' }}>
         <canvas
           ref={canvasRef}
-          onPointerDown={(e) => iniciar(canvasRef, ctxRef, e)}
-          onPointerMove={(e) => mover(canvasRef, ctxRef, e)}
+          onPointerDown={iniciar}
+          onPointerMove={mover}
           onPointerUp={parar}
           onPointerLeave={parar}
-          className="block h-36 w-full"
+          className="block h-40 w-full"
           style={{ touchAction: 'none' }}
         />
         {/* linha e legenda "assine aqui" (cinza fixo, sobre o papel branco) */}
@@ -165,70 +112,13 @@ export const AssinaturaPad = forwardRef(function AssinaturaPad({ onChange }, ref
           assine aqui
         </span>
       </div>
-
-      <div className="mt-2 flex items-center justify-between">
-        <button type="button" onClick={limpar} className="hstack gap-1.5 text-xs font-semibold text-muted tap">
-          <Eraser size={13} /> Limpar
-        </button>
-        <button type="button" onClick={() => setCheio(true)} className="hstack gap-1.5 text-xs font-semibold text-accent tap">
-          <Maximize2 size={13} /> Assinar em tela cheia
-        </button>
-      </div>
-
-      {/* Pad em TELA CHEIA — vire o celular pra assinar na horizontal */}
-      {cheio && (
-        <div
-          className="fixed inset-0 z-[60] flex flex-col"
-          style={{ background: '#fff', paddingTop: 'env(safe-area-inset-top)' }}
-        >
-          <div className="hstack items-center justify-between gap-2 border-b px-3 py-2.5" style={{ borderColor: '#e5e7eb' }}>
-            <button
-              type="button"
-              onClick={concluirCheio}
-              className="hstack gap-1.5 rounded-pill px-3 py-1.5 text-xs font-semibold"
-              style={{ color: '#475569', background: '#f1f5f9' }}
-            >
-              <X size={14} /> Fechar
-            </button>
-            <span className="truncate text-[11px] font-medium" style={{ color: '#94a3b8' }}>
-              Vire o celular ↔
-            </span>
-            <div className="hstack shrink-0 gap-2">
-              <button
-                type="button"
-                onClick={limpar}
-                className="hstack gap-1.5 rounded-pill px-3 py-1.5 text-xs font-semibold"
-                style={{ color: '#475569', background: '#f1f5f9' }}
-              >
-                <Eraser size={13} /> Limpar
-              </button>
-              <button
-                type="button"
-                onClick={concluirCheio}
-                className="hstack gap-1.5 rounded-pill px-3.5 py-1.5 text-xs font-bold text-white"
-                style={{ background: '#65a30d' }}
-              >
-                <Check size={14} /> Pronto
-              </button>
-            </div>
-          </div>
-          <div className="relative flex-1">
-            <canvas
-              ref={fullRef}
-              onPointerDown={(e) => iniciar(fullRef, fullCtxRef, e)}
-              onPointerMove={(e) => mover(fullRef, fullCtxRef, e)}
-              onPointerUp={parar}
-              onPointerLeave={parar}
-              className="block h-full w-full"
-              style={{ touchAction: 'none' }}
-            />
-            <div className="pointer-events-none absolute inset-x-10 bottom-14 border-b border-dashed" style={{ borderColor: '#cbd5e1' }} />
-            <span className="pointer-events-none absolute inset-x-0 bottom-6 text-center text-xs" style={{ color: '#94a3b8' }}>
-              assine aqui
-            </span>
-          </div>
-        </div>
-      )}
+      <button
+        type="button"
+        onClick={limpar}
+        className="mt-2 hstack gap-1.5 text-xs font-semibold text-muted tap"
+      >
+        <Eraser size={13} /> Limpar
+      </button>
     </div>
   )
 })
