@@ -214,34 +214,41 @@ export function Documentos() {
           >
             <div className="hstack items-center justify-between gap-2 border-b border-line px-3 py-2.5">
               <span className="min-w-0 flex-1 truncate text-sm font-semibold">{sel.titulo}</span>
-              <div className="hstack shrink-0 items-center gap-0.5">
+              <button
+                onClick={() => setPdfCheio(false)}
+                className="btn-ghost shrink-0 !p-2"
+                aria-label="Fechar"
+              >
+                <X size={18} />
+              </button>
+            </div>
+            <PdfViewer src={pdfUrl} zoom={pdfZoom} />
+
+            {/* zoom flutuante no rodapé, ao centro, sobre o PDF */}
+            <div
+              className="pointer-events-none absolute inset-x-0 bottom-0 flex justify-center"
+              style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 1rem)' }}
+            >
+              <div className="pointer-events-auto hstack items-center gap-1 rounded-full border border-line bg-surface/95 px-1.5 py-1 shadow-lg backdrop-blur">
                 <button
                   onClick={() => setPdfZoom((z) => Math.max(1, +(z - 0.25).toFixed(2)))}
-                  className="btn-ghost !p-2"
+                  className="grid h-9 w-9 place-items-center rounded-full text-muted tap"
                   aria-label="Diminuir zoom"
                 >
-                  <Minus size={16} />
+                  <Minus size={18} />
                 </button>
-                <span className="w-10 text-center text-xs tabular-nums text-muted">
+                <span className="w-12 text-center text-xs font-semibold tabular-nums text-muted">
                   {Math.round(pdfZoom * 100)}%
                 </span>
                 <button
                   onClick={() => setPdfZoom((z) => Math.min(3, +(z + 0.25).toFixed(2)))}
-                  className="btn-ghost !p-2"
+                  className="grid h-9 w-9 place-items-center rounded-full text-muted tap"
                   aria-label="Aumentar zoom"
                 >
-                  <Plus size={16} />
-                </button>
-                <button
-                  onClick={() => setPdfCheio(false)}
-                  className="btn-ghost !p-2"
-                  aria-label="Fechar"
-                >
-                  <X size={18} />
+                  <Plus size={18} />
                 </button>
               </div>
             </div>
-            <PdfViewer src={pdfUrl} zoom={pdfZoom} />
           </div>
         )}
 
@@ -284,7 +291,7 @@ export function Documentos() {
                     setPdfCheio(true)
                   }}
                   aria-label="Abrir em tela cheia"
-                  className="absolute right-2 top-2 z-10 grid h-9 w-9 place-items-center rounded-full border border-line bg-surface/90 text-muted shadow-sm backdrop-blur tap"
+                  className="absolute right-3.5 top-3.5 z-10 grid h-9 w-9 place-items-center rounded-full border border-line bg-surface/90 text-muted shadow-sm backdrop-blur tap"
                 >
                   <Maximize2 size={16} />
                 </button>
