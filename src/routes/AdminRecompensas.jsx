@@ -60,7 +60,6 @@ const TITULOS = {
   comunicados: 'Anúncios',
   governanca: 'Governança',
   aplicativo: 'Aplicativo',
-  auditoria: 'Auditoria de páginas',
   desafios: 'Desafios',
   banheiros: 'Checklist de limpeza',
   podcast: 'Podcast',
@@ -488,7 +487,6 @@ export function AdminRecompensas() {
     ...(isAdminPerfil ? [{ id: 'banheiros', label: 'Checklist de limpeza', icon: SprayCan }] : []),
     { id: 'governanca', label: 'Governança', icon: ShieldCheck },
     { id: 'aplicativo', label: 'Aplicativo', icon: Smartphone },
-    ...(isAdminPerfil ? [{ id: 'auditoria', label: 'Auditoria de páginas', icon: ClipboardList }] : []),
   ]
 
   return (
@@ -508,8 +506,6 @@ export function AdminRecompensas() {
         <AdminDesafios />
       ) : aba === 'aplicativo' ? (
         <AdminGovernanca scope="app" />
-      ) : aba === 'auditoria' ? (
-        <GovFrame src="https://lideres.tatasushi.tech/auditoria.html" title="Auditoria de páginas" className="h-[82dvh]" />
       ) : aba === 'governanca' ? (
         <AdminGovernanca scope="governanca" />
       ) : aba === 'conquistas' ? (
