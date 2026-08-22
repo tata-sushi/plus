@@ -4,13 +4,13 @@ Ideias e pendências levantadas para desenvolvimento futuro.
 
 ## Pendências
 
-- [ ] **Assinatura digital — Fase 1b/2** — Fase 1a (feito 2026-08-22): documentos de TEXTO
-  (RH/política/recibo) com rubrica + selfie + trilha de auditoria; RH/líder atribui; colaborador
-  tem a caixa "Assinaturas" (`/documentos`) + aviso na Home + notificação. Backend: tabelas
-  `assinatura_documentos/atribuicoes/registros` (RLS, acesso só por RPC), bucket privado
-  `assinaturas`, RPCs `docs_*`. **Falta:** (1b) tela do RH pra **criar documento + atribuir +
-  acompanhar** (hoje só via SQL) e o **upload de PDF** (precisa policy de storage por atribuição);
-  (2) nível **ICP-Brasil** via provedor (o modelo já tem o campo `nivel`). _(anotado 2026-08-22)_
+- [ ] **Assinatura digital — Fase 2 (ICP-Brasil)** — Fase 1 COMPLETA (2026-08-22): documentos de
+  texto (RH/política/recibo) **e PDF** com rubrica + selfie + trilha de auditoria; RH/líder cria,
+  atribui e acompanha (tela `/assinaturas-admin`, vê selfie+rubrica+auditoria); colaborador tem a
+  caixa "Assinaturas" (`/documentos`) + aviso na Home + notificação; comprovante imprimível (texto)
+  e **PDF único carimbado** (pdf-lib) pra baixar/imprimir. Backend: tabelas `assinatura_*` (RLS só
+  por RPC), bucket privado `assinaturas` (docs/rubricas/selfies/assinados), RPCs `docs_*`. **Falta:**
+  nível **ICP-Brasil** via provedor externo (o modelo já tem o campo `nivel`). _(anotado 2026-08-22)_
 
 - [ ] **Esquema de pontuação** — definir uma mecânica de pontos/recompensa (surgiu
   na conversa logo após o easter egg do rodapé do "Mais": clicar em "Victor Carvalho"

@@ -24,6 +24,7 @@ const TIPOS = [
   { v: 'rh', label: 'RH — termo / advertência' },
   { v: 'politica', label: 'Política — ciência' },
   { v: 'recibo', label: 'Recibo / acordo' },
+  { v: 'pdf', label: 'PDF — subir arquivo' },
 ]
 const TIPO_ROTULO = { rh: 'RH', politica: 'Política', recibo: 'Recibo', pdf: 'Documento' }
 
@@ -303,6 +304,7 @@ function NovoDocumento({ onVoltar, onCriado }) {
   const [tipo, setTipo] = useState('rh')
   const [titulo, setTitulo] = useState('')
   const [corpo, setCorpo] = useState('')
+  const [pdfFile, setPdfFile] = useState(null)
   const [declaracao, setDeclaracao] = useState('Declaro que li e concordo com o documento acima.')
   const [rubrica, setRubrica] = useState(true)
   const [selfie, setSelfie] = useState(true)
@@ -323,26 +325,43 @@ function NovoDocumento({ onVoltar, onCriado }) {
 
   async function criar() {
     if (salvando) return
-    if (!titulo.trim() || !corpo.trim()) {
-      setErro('Preencha o título e o conteúdo.')
+    if (!titulo.trim()) {
+      setErro('Preencha o título.')
+      return
+    }
+    if (tipo === 'pdf' ? !pdfFile : !corpo.trim()) {
+      setErro(tipo === 'pdf' ? 'Selecione o arquivo PDF.' : 'Preencha o conteúdo.')
       return
     }
     setSalvando(true)
     setErro('')
-    const { data } = await supabase.rpc('docs_criar', {
-      p_tipo: tipo,
-      p_titulo: titulo.trim(),
-      p_corpo_html: textoParaHtml(corpo),
-      p_declaracao: declaracao.trim() || null,
-      p_exige_rubrica: rubrica,
-      p_exige_selfie: selfie,
-      p_nivel: 'simples',
-    })
-    setSalvando(false)
-    if (data?.ok) {
+    try {
+      let arquivoPath = null
+      if (tipo === 'pdf') {
+        arquivoPath = `docs/${crypto.randomUUID()}.pdf`
+        const { error } = await supabase.storage
+          .from('assinaturas')
+          .upload(arquivoPath, pdfFile, { contentType: 'application/pdf' })
+        if (error) throw error
+      }
+      const { data } = await supabase.rpc('docs_criar', {
+        p_tipo: tipo,
+        p_titulo: titulo.trim(),
+        p_corpo_html: tipo === 'pdf' ? null : textoParaHtml(corpo),
+        p_declaracao: declaracao.trim() || null,
+        p_exige_rubrica: rubrica,
+        p_exige_selfie: selfie,
+        p_nivel: 'simples',
+        p_arquivo_path: arquivoPath,
+      })
+      if (!data?.ok) throw new Error('falhou')
       tapHaptic()
       onCriado(data.id)
-    } else setErro('Não foi possível criar agora. Tente de novo.')
+    } catch {
+      setErro('Não foi possível criar agora. Tente de novo.')
+    } finally {
+      setSalvando(false)
+    }
   }
 
   return (
@@ -377,19 +396,42 @@ function NovoDocumento({ onVoltar, onCriado }) {
           className="mt-1 w-full rounded-card border border-line bg-surface px-3 py-2.5 text-sm outline-none focus:border-accent"
         />
 
-        <label className="mt-4 block text-xs font-semibold text-muted">Conteúdo</label>
-        <textarea
-          value={corpo}
-          onChange={(e) => setCorpo(e.target.value)}
-          rows={7}
-          placeholder="Escreva o documento. Deixe uma linha em branco para separar parágrafos."
-          className="mt-1 w-full rounded-card border border-line bg-surface px-3 py-2.5 text-sm leading-relaxed outline-none focus:border-accent"
-        />
-        <p className="mt-1 text-[11px] text-muted-2">
-          Campos automáticos: <code>{'{{nome}}'}</code> <code>{'{{matricula}}'}</code>{' '}
-          <code>{'{{cargo}}'}</code> <code>{'{{unidade}}'}</code> <code>{'{{data}}'}</code> — são
-          preenchidos com os dados de quem assina.
-        </p>
+        {tipo === 'pdf' ? (
+          <>
+            <label className="mt-4 block text-xs font-semibold text-muted">Arquivo PDF</label>
+            <label className="mt-1 flex cursor-pointer items-center gap-2 rounded-card border border-dashed border-line bg-surface px-3 py-3 text-sm tap">
+              <Plus size={16} className="text-accent" />
+              <span className="min-w-0 flex-1 truncate">
+                {pdfFile ? pdfFile.name : 'Escolher PDF…'}
+              </span>
+              <input
+                type="file"
+                accept="application/pdf,.pdf"
+                onChange={(e) => setPdfFile(e.target.files?.[0] || null)}
+                className="hidden"
+              />
+            </label>
+            <p className="mt-1 text-[11px] text-muted-2">
+              O colaborador lê este PDF no app e a assinatura vira um PDF único carimbado.
+            </p>
+          </>
+        ) : (
+          <>
+            <label className="mt-4 block text-xs font-semibold text-muted">Conteúdo</label>
+            <textarea
+              value={corpo}
+              onChange={(e) => setCorpo(e.target.value)}
+              rows={7}
+              placeholder="Escreva o documento. Deixe uma linha em branco para separar parágrafos."
+              className="mt-1 w-full rounded-card border border-line bg-surface px-3 py-2.5 text-sm leading-relaxed outline-none focus:border-accent"
+            />
+            <p className="mt-1 text-[11px] text-muted-2">
+              Campos automáticos: <code>{'{{nome}}'}</code> <code>{'{{matricula}}'}</code>{' '}
+              <code>{'{{cargo}}'}</code> <code>{'{{unidade}}'}</code> <code>{'{{data}}'}</code> — são
+              preenchidos com os dados de quem assina.
+            </p>
+          </>
+        )}
 
         <label className="mt-4 block text-xs font-semibold text-muted">Declaração de aceite</label>
         <input
