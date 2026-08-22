@@ -42,6 +42,8 @@ const Jogo = lazy(() => import('./routes/Jogo.jsx'))
 const Documentos = lazy(() => import('./routes/Documentos.jsx'))
 // Assinaturas (RH) — criar/atribuir/acompanhar, só para gestores, sob demanda.
 const AssinaturasAdmin = lazy(() => import('./routes/AssinaturasAdmin.jsx'))
+// Comprovante imprimível de uma assinatura, carregado sob demanda.
+const Comprovante = lazy(() => import('./routes/Comprovante.jsx'))
 
 function Splash() {
   return (
@@ -137,6 +139,16 @@ export function App() {
             <ErroBoundary>
               <Suspense fallback={<Splash />}>
                 <AssinaturasAdmin />
+              </Suspense>
+            </ErroBoundary>
+          }
+        />
+        <Route
+          path="/comprovante/:atribuicaoId"
+          element={
+            <ErroBoundary>
+              <Suspense fallback={<Splash />}>
+                <Comprovante />
               </Suspense>
             </ErroBoundary>
           }

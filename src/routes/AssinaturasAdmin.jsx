@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Navigate } from 'react-router-dom'
+import { Navigate, useNavigate } from 'react-router-dom'
 import {
   ArrowLeft,
   Plus,
@@ -13,6 +13,7 @@ import {
   X,
   Search,
   ShieldCheck,
+  Printer,
 } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Avatar } from '../components/Avatar.jsx'
@@ -54,6 +55,7 @@ function textoParaHtml(txt) {
 }
 
 export function AssinaturasAdmin() {
+  const navigate = useNavigate()
   const [podeGerir, setPodeGerir] = useState(null)
   const [view, setView] = useState('lista') // lista | detalhe | novo
   const [painel, setPainel] = useState(null)
@@ -90,9 +92,9 @@ export function AssinaturasAdmin() {
       path
         ? (await supabase.storage.from('assinaturas').createSignedUrl(path, 3600)).data?.signedUrl
         : null
-    setProvas({ nome: a.nome, ip: a.ip, assinado_em: a.assinado_em, carregando: true })
+    setProvas({ nome: a.nome, ip: a.ip, assinado_em: a.assinado_em, atribuicaoId: a.atribuicao_id, carregando: true })
     const [rubricaUrl, selfieUrl] = await Promise.all([url(a.rubrica_path), url(a.selfie_path)])
-    setProvas({ nome: a.nome, ip: a.ip, assinado_em: a.assinado_em, rubricaUrl, selfieUrl })
+    setProvas({ nome: a.nome, ip: a.ip, assinado_em: a.assinado_em, atribuicaoId: a.atribuicao_id, rubricaUrl, selfieUrl })
   }
 
   if (podeGerir === null)
@@ -223,7 +225,13 @@ export function AssinaturasAdmin() {
             }}
           />
         )}
-        {provas && <ProvasModal provas={provas} onFechar={() => setProvas(null)} />}
+        {provas && (
+          <ProvasModal
+            provas={provas}
+            onFechar={() => setProvas(null)}
+            onImprimir={(id) => navigate(`/comprovante/${id}`)}
+          />
+        )}
       </>
     )
   }
@@ -556,7 +564,7 @@ function PickerColaboradores({ onFechar, onAtribuir }) {
 }
 
 // ── Modal de provas (selfie + rubrica + auditoria) ───────────────────────────
-function ProvasModal({ provas, onFechar }) {
+function ProvasModal({ provas, onFechar, onImprimir }) {
   return createPortal(
     <div className="fixed inset-0 z-50 flex flex-col justify-end sm:items-center sm:justify-center">
       <button aria-label="Fechar" onClick={onFechar} className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
@@ -607,6 +615,12 @@ function ProvasModal({ provas, onFechar }) {
                 </div>
               </div>
             </div>
+            <button
+              onClick={() => onImprimir?.(provas.atribuicaoId)}
+              className="btn-primary mt-4 w-full !py-3 text-sm"
+            >
+              <Printer size={16} /> Imprimir comprovante
+            </button>
           </>
         )}
       </div>

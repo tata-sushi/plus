@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import {
   ArrowLeft,
   FileSignature,
@@ -9,6 +9,7 @@ import {
   Loader2,
   ShieldCheck,
   Inbox,
+  Printer,
 } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { AssinaturaPad } from '../components/AssinaturaPad.jsx'
@@ -30,6 +31,7 @@ function fmtData(iso) {
 }
 
 export function Documentos() {
+  const navigate = useNavigate()
   const [params, setParams] = useSearchParams()
   const [lista, setLista] = useState(null) // null = carregando
   const [sel, setSel] = useState(null) // documento aberto (docs_abrir)
@@ -159,13 +161,21 @@ export function Documentos() {
           </div>
 
           {assinado ? (
-            <div className="mt-5 hstack items-start gap-2.5 rounded-card border border-line bg-surface px-4 py-3.5 text-sm text-muted">
-              <ShieldCheck size={17} className="mt-0.5 shrink-0 text-accent" />
-              <span>
-                Assinado em <b className="text-text">{fmtData(sel.assinado_em)}</b>. O registro
-                ficou guardado com a trilha de auditoria.
-              </span>
-            </div>
+            <>
+              <div className="mt-5 hstack items-start gap-2.5 rounded-card border border-line bg-surface px-4 py-3.5 text-sm text-muted">
+                <ShieldCheck size={17} className="mt-0.5 shrink-0 text-accent" />
+                <span>
+                  Assinado em <b className="text-text">{fmtData(sel.assinado_em)}</b>. O registro
+                  ficou guardado com a trilha de auditoria.
+                </span>
+              </div>
+              <button
+                onClick={() => navigate(`/comprovante/${sel.atribuicao_id}`)}
+                className="btn-ghost mt-3 w-full !py-3 text-sm"
+              >
+                <Printer size={16} /> Imprimir / Salvar comprovante
+              </button>
+            </>
           ) : (
             <>
               {sel.exige_rubrica && (
