@@ -314,7 +314,9 @@ export function Documentos() {
               return (
                 <button
                   key={d.atribuicao_id}
-                  onClick={() => abrir(d.atribuicao_id)}
+                  onClick={() =>
+                    pend ? abrir(d.atribuicao_id) : navigate(`/comprovante/${d.atribuicao_id}`)
+                  }
                   className={`hstack w-full gap-3 px-4 py-3.5 text-left tap ${i > 0 ? 'border-t border-line' : ''}`}
                 >
                   <span
