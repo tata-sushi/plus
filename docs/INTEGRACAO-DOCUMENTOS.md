@@ -14,6 +14,32 @@ Coordenação entre **dois sistemas** no **mesmo projeto Supabase** (`aoqsbusfrf
 
 ---
 
+## Checklist até o término (foco conjunto)
+
+**App (`tata_plus`) — ✅ concluído:**
+- [x] coluna `referencia_externa` + índice
+- [x] RPC `docs_enviar_para_assinatura` (criar+atribuir+linkar+notificar)
+- [x] RPC `docs_status_por_referencia` (pull/reconciliação)
+- [x] trigger `trg_assinatura_sync_dp` (push → atualiza `dp_rh.colaborador_documentos`)
+- [x] helper `eh_servico()`; testado ponta a ponta (simulado) e limpo
+
+**Portal (`dp_rh` / lideres) — em andamento:**
+- [ ] RPC de pendência aceita `link_bucket` e grava `assinatura_atribuicao_id`
+- [ ] botão "Salvar p/ Assinatura Digital" → upload em `assinaturas/docs/` + criar linha + chamar `docs_enviar_para_assinatura` + gravar `atribuicao_id`
+- [ ] filtro de escopo: **exclui** Documentos Pessoais (RG/CPF/endereço); todo o resto assina (incl. cartão de ponto)
+- [ ] `doc.html` lê `link_bucket` pra gerar a URL assinada
+- [ ] corrigir doc espelho (cartão de ponto)
+
+**Aceite conjunto (definition of done):**
+- [ ] **Teste com documento REAL:** RH gera termo → envia → colaborador assina no app → PDF carimbado → linha do portal vira `entregue` → `doc.html` mostra o PDF assinado
+- [ ] leitura do PDF assinado confirmada no `doc.html` (bucket privado: `service_role`/gestor)
+- [ ] reconciliação (pull) disponível para atrasados
+- [ ] docs dos dois lados sincronizados
+
+**Fora do término (não bloqueia):** hardening do INSERT do bucket · Frente 4 (admissão) · ICP-Brasil (Fase 2).
+
+---
+
 ## Decisões (fechadas com o agente do portal)
 
 | # | Decisão | Escolha |
