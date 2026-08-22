@@ -128,7 +128,7 @@ export function SelfieCapture({ onChange }) {
           <button
             type="button"
             onClick={capturar}
-            className="absolute bottom-2 left-1/2 hstack -translate-x-1/2 gap-1.5 rounded-full bg-accent px-3.5 py-1.5 text-xs font-bold text-white shadow-md"
+            className="absolute bottom-2 left-1/2 hstack -translate-x-1/2 gap-1.5 rounded-full bg-accent px-3.5 py-1.5 text-xs font-bold text-black shadow-md"
           >
             <Camera size={14} /> Capturar
           </button>

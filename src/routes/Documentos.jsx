@@ -232,7 +232,7 @@ export function Documentos() {
             {/* zoom flutuante no topo, ao centro, sobre o PDF (logo abaixo do cabeçalho) */}
             <div
               className="fixed left-1/2 z-[70] -translate-x-1/2 hstack items-center gap-1 rounded-full border border-line bg-surface px-1.5 py-1 shadow-lg"
-              style={{ top: 'calc(env(safe-area-inset-top) + 3.75rem + 20vh)' }}
+              style={{ top: 'calc(env(safe-area-inset-top) + 3.75rem + 6vh)' }}
             >
               <button
                 onClick={() => setPdfZoom((z) => Math.max(1, +(z - 0.25).toFixed(2)))}
@@ -315,7 +315,7 @@ export function Documentos() {
               aria-pressed={concordou}
               className={`mt-4 flex w-full items-center justify-center gap-2 rounded-card border px-4 py-3.5 text-sm font-semibold leading-snug transition tap ${
                 concordou
-                  ? 'border-accent bg-accent text-white'
+                  ? 'border-accent bg-accent text-black'
                   : 'border-accent/40 bg-accent-soft text-text'
               }`}
             >
