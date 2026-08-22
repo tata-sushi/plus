@@ -75,6 +75,34 @@ export async function carimbarPdf({ pdfBytes, rubricaBlob, selfieBlob, dados }) 
   const ultima = paginas.length - 1
   const totalPag = paginas.length
 
+  // === Marca d'água: camada visual de autenticidade em TODAS as páginas ===
+  // Texto diagonal repetido, bem discreto (baixa opacidade), pra marcar a folha
+  // como assinada. É visual — a integridade de fato é o hash + a trilha imutável.
+  // Desenhada antes do rodapé/rubrica, pra esses ficarem por cima.
+  const marca = 'ASSINADO ELETRONICAMENTE'
+  const passoX = 232
+  const passoY = 168
+  for (const p of paginas) {
+    const pw = p.getWidth()
+    const ph = p.getHeight()
+    let linha = 0
+    for (let yy = -60; yy < ph + 120; yy += passoY) {
+      const off = (linha % 2) * (passoX / 2) // tijolo: alterna as linhas
+      for (let xx = -80 + off; xx < pw + 80; xx += passoX) {
+        p.drawText(marca, {
+          x: xx,
+          y: yy,
+          size: 19,
+          font: bold,
+          color: rgb(0.55, 0.6, 0.55),
+          rotate: degrees(45),
+          opacity: 0.07,
+        })
+      }
+      linha += 1
+    }
+  }
+
   // === ÚLTIMA página: campo de assinatura completo no rodapé (~150pt na base) ===
   // Sem separador nem cabeçalho: só o campo de assinatura (rubrica + selfie
   // alinhada na mesma altura) com o resto dos textos embaixo, todos no mesmo
