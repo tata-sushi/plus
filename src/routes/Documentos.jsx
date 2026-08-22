@@ -10,6 +10,8 @@ import {
   ShieldCheck,
   Inbox,
   Printer,
+  Maximize2,
+  X,
 } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { AssinaturaPad } from '../components/AssinaturaPad.jsx'
@@ -20,6 +22,9 @@ import { tapHaptic } from '../lib/haptics.js'
 import { carimbarPdf } from '../lib/pdfAssinatura.js'
 
 const TIPO_ROTULO = { rh: 'RH', politica: 'Política', recibo: 'Recibo', pdf: 'Documento' }
+
+// Consentimento padrão exibido no card e registrado na assinatura.
+const CONSENTIMENTO = 'Li e concordo a assinatura do documento acima.'
 
 function fmtData(iso) {
   if (!iso) return ''
@@ -43,6 +48,7 @@ export function Documentos() {
   const [rubricaTem, setRubricaTem] = useState(false)
   const [selfieBlob, setSelfieBlob] = useState(null)
   const [pdfUrl, setPdfUrl] = useState(null) // URL assinada do PDF de origem
+  const [pdfCheio, setPdfCheio] = useState(false) // leitor de PDF em tela cheia
   const rubricaRef = useRef(null)
 
   const carregar = useCallback(async () => {
@@ -197,6 +203,23 @@ export function Documentos() {
     const assinado = sel.status === 'assinado'
     return (
       <div className="min-h-[100dvh] bg-bg">
+        {/* Leitor de PDF em tela cheia — pra ler o documento com folga antes de assinar */}
+        {pdfCheio && pdfUrl && (
+          <div className="fixed inset-0 z-50 flex flex-col bg-bg">
+            <div className="hstack items-center justify-between border-b border-line px-4 py-3">
+              <span className="truncate pr-2 text-sm font-semibold">{sel.titulo}</span>
+              <button
+                onClick={() => setPdfCheio(false)}
+                className="btn-ghost shrink-0 !p-2"
+                aria-label="Fechar"
+              >
+                <X size={18} />
+              </button>
+            </div>
+            <PdfViewer src={pdfUrl} />
+          </div>
+        )}
+
         <Header />
         <div className="px-5 pt-2">
           <button onClick={voltarLista} className="hstack gap-1 text-sm font-medium text-muted tap">
@@ -219,13 +242,23 @@ export function Documentos() {
 
           {/* corpo do documento — PDF (visualizador) ou texto */}
           {sel.tipo === 'pdf' ? (
-            <div className="mt-4 overflow-hidden rounded-card border border-line">
-              {pdfUrl ? (
-                <PdfViewer src={pdfUrl} inline />
-              ) : (
-                <div className="hstack justify-center py-10 text-muted-2">
-                  <Loader2 size={20} className="animate-spin" />
-                </div>
+            <div className="mt-4">
+              <div className="overflow-hidden rounded-card border border-line">
+                {pdfUrl ? (
+                  <PdfViewer src={pdfUrl} inline />
+                ) : (
+                  <div className="hstack justify-center py-10 text-muted-2">
+                    <Loader2 size={20} className="animate-spin" />
+                  </div>
+                )}
+              </div>
+              {pdfUrl && (
+                <button
+                  onClick={() => setPdfCheio(true)}
+                  className="btn-ghost mt-2 w-full !py-2.5 text-xs"
+                >
+                  <Maximize2 size={14} /> Abrir em tela cheia
+                </button>
               )}
             </div>
           ) : (
@@ -235,12 +268,10 @@ export function Documentos() {
             />
           )}
 
-          {/* declaração de aceite */}
-          <div className="mt-4 rounded-card border border-accent/30 bg-accent-soft px-4 py-3.5">
-            <div className="hstack items-start gap-2.5">
-              <PenLine size={17} className="mt-0.5 shrink-0 text-accent" />
-              <p className="text-sm font-medium leading-snug">{sel.declaracao}</p>
-            </div>
+          {/* declaração de aceite (centralizada) */}
+          <div className="mt-4 rounded-card border border-accent/30 bg-accent-soft px-4 py-3.5 text-center">
+            <PenLine size={17} className="mx-auto mb-1.5 text-accent" />
+            <p className="text-sm font-medium leading-snug">{CONSENTIMENTO}</p>
           </div>
 
           {assinado ? (
@@ -287,7 +318,7 @@ export function Documentos() {
                     <Loader2 size={18} className="animate-spin" />
                   ) : (
                     <>
-                      <PenLine size={17} /> Assinar e concluir
+                      <PenLine size={17} /> Concordar e Assinar
                     </>
                   )}
                 </button>

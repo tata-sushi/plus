@@ -104,37 +104,44 @@ export function SelfieCapture({ onChange }) {
             className="h-full w-full object-cover"
             style={{ transform: 'scaleX(-1)' }}
           />
-        ) : (
-          <div className="grid h-full w-full place-items-center text-muted-2">
-            <Camera size={30} />
-          </div>
-        )}
-      </div>
-
-      <div className="mt-3 flex justify-center">
-        {fase === 'previa' ? (
-          <button type="button" onClick={refazer} className="btn-ghost !py-2 text-xs">
-            <RotateCcw size={14} /> Refazer
-          </button>
-        ) : fase === 'camera' ? (
-          <button type="button" onClick={capturar} className="btn-primary !py-2.5 text-sm">
-            <Camera size={16} /> Capturar
-          </button>
         ) : semCamera ? (
-          <label className="btn-primary cursor-pointer !py-2.5 text-sm">
-            <Camera size={16} /> Tirar selfie
+          // botão dentro do quadrado (fallback: seletor de foto do sistema)
+          <label className="grid h-full w-full cursor-pointer place-items-center gap-1.5 text-muted-2 tap">
+            <Camera size={30} />
+            <span className="text-xs font-semibold text-accent">Tirar selfie</span>
             <input type="file" accept="image/*" capture="user" onChange={viaArquivo} className="hidden" />
           </label>
         ) : (
-          <button type="button" onClick={abrirCamera} disabled={carregando} className="btn-primary !py-2.5 text-sm">
-            {carregando ? <Loader2 size={16} className="animate-spin" /> : <Camera size={16} />} Tirar selfie
+          // botão dentro do quadrado (abre a câmera)
+          <button
+            type="button"
+            onClick={abrirCamera}
+            disabled={carregando}
+            className="grid h-full w-full place-items-center gap-1.5 text-muted-2 tap"
+          >
+            {carregando ? <Loader2 size={28} className="animate-spin" /> : <Camera size={30} />}
+            <span className="text-xs font-semibold text-accent">Tirar selfie</span>
           </button>
         )}
       </div>
 
+      {(fase === 'camera' || fase === 'previa') && (
+        <div className="mt-3 flex justify-center">
+          {fase === 'previa' ? (
+            <button type="button" onClick={refazer} className="btn-ghost !py-2 text-xs">
+              <RotateCcw size={14} /> Refazer
+            </button>
+          ) : (
+            <button type="button" onClick={capturar} className="btn-primary !py-2.5 text-sm">
+              <Camera size={16} /> Capturar
+            </button>
+          )}
+        </div>
+      )}
+
       <p className="mt-3 hstack items-start justify-center gap-1.5 px-2 text-center text-[11px] leading-snug text-muted-2">
         <ShieldCheck size={13} className="mt-px shrink-0" />
-        <span>Sua selfie é guardada junto da assinatura só como prova de autoria.</span>
+        <span>Sua selfie é guardada junto da assinatura.</span>
       </p>
     </div>
   )
