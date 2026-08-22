@@ -229,10 +229,11 @@ export function Documentos() {
             </div>
             <PdfViewer src={pdfUrl} zoom={pdfZoom} />
 
-            {/* zoom flutuante no topo, ao centro, sobre o PDF (logo abaixo do cabeçalho) */}
+            {/* zoom flutuante no topo, ao centro — absolute no overlay (que não rola;
+                quem rola é o PDF por dentro), então fica fixo mesmo ao rolar */}
             <div
-              className="fixed left-1/2 z-[70] -translate-x-1/2 hstack items-center gap-1 rounded-full border border-line bg-surface px-1.5 py-1 shadow-lg"
-              style={{ top: 'calc(env(safe-area-inset-top) + 3.75rem + 6vh)' }}
+              className="absolute left-1/2 z-[70] -translate-x-1/2 hstack items-center gap-1 rounded-full border border-line bg-surface px-1.5 py-1 shadow-lg"
+              style={{ top: 'calc(env(safe-area-inset-top) + 3.75rem + 2vh)' }}
             >
               <button
                 onClick={() => setPdfZoom((z) => Math.max(1, +(z - 0.25).toFixed(2)))}
