@@ -132,14 +132,15 @@ export async function carimbarPdf({ pdfBytes, rubricaBlob, selfieBlob, dados }) 
     page.drawImage(selfieImg, { x: width - m - s, y: 14, width: s, height: s })
   }
 
-  // rodapé: comprovante + auditoria + base legal, todos no mesmo padrão cinza
-  page.drawText('Comprovante de Assinatura Eletronica', { x: m, y: 37, size: 7, font, color: cinza })
+  // rodapé: comprovante + auditoria + carimbo de tempo + base legal, no padrão cinza
+  page.drawText('Comprovante de Assinatura Eletronica', { x: m, y: 40, size: 7, font, color: cinza })
   page.drawText(
     `${dados.nivelRotulo || 'Assinatura eletronica simples'} - Assinado em ${dados.assinadoEm || ''}${dados.ip ? ' - IP ' + dados.ip : ''}`,
-    { x: m, y: 28, size: 7, font, color: cinza },
+    { x: m, y: 31, size: 7, font, color: cinza },
   )
-  page.drawText(`Documento v${dados.versao || 1} - impressao digital ${dados.hash || ''}`, { x: m, y: 19, size: 6.5, font: mono, color: cinza })
-  page.drawText('Assinado eletronicamente nos termos da MP 2.200-2/2001.', { x: m, y: 10, size: 6.5, font, color: rgb(0.6, 0.62, 0.6) })
+  page.drawText(`Documento v${dados.versao || 1} - impressao digital ${dados.hash || ''}`, { x: m, y: 22, size: 6.5, font: mono, color: cinza })
+  page.drawText('Documento com carimbo de tempo RFC 3161', { x: m, y: 14, size: 6.5, font, color: cinza })
+  page.drawText('Assinado eletronicamente nos termos da MP 2.200-2/2001.', { x: m, y: 6, size: 6.5, font, color: rgb(0.6, 0.62, 0.6) })
 
   // === DEMAIS páginas: rubrica lateral (amarração com a assinatura final) ===
   // Em cada folha que não é a última, repete a rubrica em miniatura + a
