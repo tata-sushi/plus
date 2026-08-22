@@ -226,28 +226,26 @@ export function Documentos() {
 
             {/* zoom flutuante no rodapé, ao centro, sobre o PDF */}
             <div
-              className="pointer-events-none absolute inset-x-0 bottom-0 flex justify-center"
-              style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 1rem)' }}
+              className="fixed left-1/2 z-[70] -translate-x-1/2 hstack items-center gap-1 rounded-full border border-line bg-surface px-1.5 py-1 shadow-lg"
+              style={{ bottom: 'calc(env(safe-area-inset-bottom) + 1.25rem)' }}
             >
-              <div className="pointer-events-auto hstack items-center gap-1 rounded-full border border-line bg-surface/95 px-1.5 py-1 shadow-lg backdrop-blur">
-                <button
-                  onClick={() => setPdfZoom((z) => Math.max(1, +(z - 0.25).toFixed(2)))}
-                  className="grid h-9 w-9 place-items-center rounded-full text-muted tap"
-                  aria-label="Diminuir zoom"
-                >
-                  <Minus size={18} />
-                </button>
-                <span className="w-12 text-center text-xs font-semibold tabular-nums text-muted">
-                  {Math.round(pdfZoom * 100)}%
-                </span>
-                <button
-                  onClick={() => setPdfZoom((z) => Math.min(3, +(z + 0.25).toFixed(2)))}
-                  className="grid h-9 w-9 place-items-center rounded-full text-muted tap"
-                  aria-label="Aumentar zoom"
-                >
-                  <Plus size={18} />
-                </button>
-              </div>
+              <button
+                onClick={() => setPdfZoom((z) => Math.max(1, +(z - 0.25).toFixed(2)))}
+                className="grid h-10 w-10 place-items-center rounded-full text-muted tap"
+                aria-label="Diminuir zoom"
+              >
+                <Minus size={18} />
+              </button>
+              <span className="w-12 text-center text-sm font-semibold tabular-nums text-text">
+                {Math.round(pdfZoom * 100)}%
+              </span>
+              <button
+                onClick={() => setPdfZoom((z) => Math.min(3, +(z + 0.25).toFixed(2)))}
+                className="grid h-10 w-10 place-items-center rounded-full text-muted tap"
+                aria-label="Aumentar zoom"
+              >
+                <Plus size={18} />
+              </button>
             </div>
           </div>
         )}
