@@ -48,41 +48,26 @@ export async function carimbarPdf({ pdfBytes, rubricaBlob, selfieBlob, dados }) 
   const mono = await doc.embedFont(StandardFonts.Courier)
 
   // Carimba no rodapé da ÚLTIMA página do próprio conteúdo (mesma folha),
-  // em vez de adicionar uma página nova. Banda compacta de ~150pt na base.
-  // Selfie e rubrica ficam no tamanho cheio; só os textos e o espaçamento
-  // foram comprimidos pra caber nos 150pt.
+  // em vez de adicionar uma página nova. Banda compacta de ~150pt na base,
+  // sem separador nem cabeçalho: só o campo de assinatura (rubrica + selfie
+  // alinhada na mesma altura) com o resto dos textos embaixo, todos no
+  // mesmo padrão cinza. Selfie e rubrica ficam no tamanho cheio.
   const paginas = doc.getPages()
   const page = paginas[paginas.length - 1]
   const { width } = page.getSize()
   const m = 40
   const cinza = rgb(0.42, 0.45, 0.42)
   const escuro = rgb(0.1, 0.1, 0.1)
-  const verde = rgb(0.15, 0.61, 0.2)
 
-  // separador no topo do bloco de assinatura (banda de ~150pt na base)
-  page.drawLine({ start: { x: m, y: 150 }, end: { x: width - m, y: 150 }, thickness: 0.8, color: rgb(0.8, 0.82, 0.8) })
-  page.drawText('Comprovante de Assinatura Eletronica', { x: m, y: 141, size: 8, font: bold, color: verde })
-
-  // selfie no canto direito do bloco (tamanho cheio: 54)
-  if (selfieBlob) {
-    try {
-      const img = await embedImagem(doc, selfieBlob)
-      const s = 54
-      page.drawImage(img, { x: width - m - s, y: 82, width: s, height: s })
-      page.drawText('Selfie', { x: width - m - s + 15, y: 74, size: 6.5, font, color: cinza })
-    } catch {
-      /* selfie inválida — segue sem ela */
-    }
-  }
-
-  // declaração curta (até 2 linhas, sem invadir a selfie à direita)
-  let dy = 131
+  // declaração curta no topo do bloco (consentimento; até 2 linhas)
+  let dy = 138
   for (const ln of quebrar(dados.declaracao, font, 7, width - 2 * m - 70).slice(0, 2)) {
     page.drawText(ln, { x: m, y: dy, size: 7, font, color: cinza })
     dy -= 9
   }
 
-  // rubrica sobre a linha de assinatura (tamanho cheio: até 150×40)
+  // campo de assinatura: rubrica sobre a linha + nome/matrícula (esquerda).
+  // rubrica no tamanho cheio (até 150×40)
   if (rubricaBlob) {
     try {
       const img = await embedImagem(doc, rubricaBlob)
@@ -100,13 +85,27 @@ export async function carimbarPdf({ pdfBytes, rubricaBlob, selfieBlob, dados }) 
     { x: m, y: 49, size: 7, font, color: cinza },
   )
 
-  // auditoria compacta
+  // selfie no canto direito, centralizada na vertical à altura do campo de
+  // assinatura (campo ocupa y≈49..114 → centro ≈81; selfie 54 → base 54)
+  if (selfieBlob) {
+    try {
+      const img = await embedImagem(doc, selfieBlob)
+      const s = 54
+      page.drawImage(img, { x: width - m - s, y: 54, width: s, height: s })
+      page.drawText('Selfie', { x: width - m - s + 15, y: 46, size: 6.5, font, color: cinza })
+    } catch {
+      /* selfie inválida — segue sem ela */
+    }
+  }
+
+  // rodapé: comprovante + auditoria + base legal, todos no mesmo padrão cinza
+  page.drawText('Comprovante de Assinatura Eletronica', { x: m, y: 37, size: 7, font, color: cinza })
   page.drawText(
     `${dados.nivelRotulo || 'Assinatura eletronica simples'} - Assinado em ${dados.assinadoEm || ''}${dados.ip ? ' - IP ' + dados.ip : ''}`,
-    { x: m, y: 35, size: 7, font, color: cinza },
+    { x: m, y: 28, size: 7, font, color: cinza },
   )
-  page.drawText(`Documento v${dados.versao || 1} - impressao digital ${dados.hash || ''}`, { x: m, y: 26, size: 6.5, font: mono, color: cinza })
-  page.drawText('Assinado eletronicamente nos termos da MP 2.200-2/2001.', { x: m, y: 16, size: 6.5, font, color: rgb(0.6, 0.62, 0.6) })
+  page.drawText(`Documento v${dados.versao || 1} - impressao digital ${dados.hash || ''}`, { x: m, y: 19, size: 6.5, font: mono, color: cinza })
+  page.drawText('Assinado eletronicamente nos termos da MP 2.200-2/2001.', { x: m, y: 10, size: 6.5, font, color: rgb(0.6, 0.62, 0.6) })
 
   return doc.save() // Uint8Array
 }
