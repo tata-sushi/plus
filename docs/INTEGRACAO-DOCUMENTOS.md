@@ -41,13 +41,13 @@ Coordenação entre **dois sistemas** no **mesmo projeto Supabase** (`aoqsbusfrf
   url `/compliance/kpis/rh/doc.html`, ordem 452) + `governanca_abas` (4 abas, slugs iguais ao arquivo:
   `sobre`/`pendencias`/`analitico`/`dashboard` → Sobre/Pendências/Analítico/KPI's). Aparece na Governança
   do app; admin libera acesso por aba. _(Adotada a convenção que já estava no `doc.html`.)_
-- [ ] **lideres — converter `doc.html` de sandbox → gated:** a página já tem `#auth-gate` + CSS
-  `data-auth` + listeners de `lideres:supa` (foi feita pronta pro gate). Falta: preencher o placeholder
-  `<script></script>` (linha ~360, antes de `<!-- /AUTH GATE -->`) com `window.GOV_PAGE_ID='governanca-kpis-rh-doc'`
-  + `<script src="/compliance/gate.js"></script>`, **e remover o bloco sandbox** (linhas ~332–359:
-  `data-auth='ok'`, cliente anônimo, badge de dev). Obs.: camada de dados ainda em RPCs `*_sandbox_*`
-  (em desenvolvimento). As 4 abas já têm `data-aba-id="governanca-kpis-rh-doc::<slug>"`; o gate.js já
-  esconde aba sozinho. Os 2 botões (`doccargos`/`cadastrosdoc`) ainda **não existem** no arquivo.
+- [x] **lideres — `doc.html` convertido de sandbox → gated** (lideres@`acf71f09`): removido o bloco
+  sandbox (`data-auth='ok'`, cliente anônimo, badge de dev) e ligado `GOV_PAGE_ID='governanca-kpis-rh-doc'`
+  + `gate.js`. A página agora abre só via Tatá Plus, com sessão real (lê o bucket `assinaturas`) e as 4
+  abas gateadas pelo painel. _(A página já tinha `#auth-gate`, CSS `data-auth` e listeners `lideres:supa`.)_
+- [ ] **lideres — pendências do outro agente (não bloqueiam):** camada de dados ainda em RPCs
+  `*_sandbox_*` (finalizar); os 2 botões `doccargos`/`cadastrosdoc` ainda não existem no arquivo — quando
+  existirem, adicionar `data-botao-id` + `aplicarBotoes()` e eu registro os botões no banco.
 
 **Pendência RLS (`doc.html` × bucket `assinaturas`):** aberto standalone (sandbox, sem sessão) o
 `doc.html` não lê `assinaturas` (RLS). **Embutido no app** ele roda com a **sessão real** do usuário
