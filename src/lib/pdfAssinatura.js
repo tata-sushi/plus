@@ -79,20 +79,20 @@ export async function carimbarPdf({ pdfBytes, rubricaBlob, selfieBlob, dados }) 
   // Texto diagonal repetido, bem discreto (baixa opacidade), pra marcar a folha
   // como assinada. É visual — a integridade de fato é o hash + a trilha imutável.
   // Desenhada antes do rodapé/rubrica, pra esses ficarem por cima.
-  const marca = 'ASSINADO ELETRONICAMENTE'
-  const passoX = 232
-  const passoY = 168
+  const marca = 'ASSINADO ELETRONICAMENTE VIA TATA PLUS'
+  const passoX = 300
+  const passoY = 190
   for (const p of paginas) {
     const pw = p.getWidth()
     const ph = p.getHeight()
     let linha = 0
-    for (let yy = -60; yy < ph + 120; yy += passoY) {
+    for (let yy = -60; yy < ph + 140; yy += passoY) {
       const off = (linha % 2) * (passoX / 2) // tijolo: alterna as linhas
-      for (let xx = -80 + off; xx < pw + 80; xx += passoX) {
+      for (let xx = -100 + off; xx < pw + 100; xx += passoX) {
         p.drawText(marca, {
           x: xx,
           y: yy,
-          size: 19,
+          size: 15,
           font: bold,
           color: rgb(0.55, 0.6, 0.55),
           rotate: degrees(45),
