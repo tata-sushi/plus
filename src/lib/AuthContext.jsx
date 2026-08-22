@@ -45,7 +45,7 @@ export function AuthProvider({ children }) {
   const verificarPerfil = useCallback(async () => {
     const { data, error } = await supabase
       .from('profiles')
-      .select('matricula, nome, cargo, unidade, departamento, perfil, status')
+      .select('matricula, nome, cargo, unidade, departamento, perfil, status, lider')
       .maybeSingle()
     if (error) return
     if (!data || data.status !== 'Ativo') {
@@ -170,6 +170,7 @@ export function AuthProvider({ children }) {
         unidade: profile.unidade,
         departamento: profile.departamento,
         perfil: profile.perfil,
+        lider: profile.lider,
         status: profile.status,
         avatarUrl,
         podePublicar,

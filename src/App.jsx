@@ -40,6 +40,8 @@ const Limpeza = lazy(() => import('./routes/Limpeza.jsx'))
 const Jogo = lazy(() => import('./routes/Jogo.jsx'))
 // Assinaturas — documentos para o colaborador ler e assinar, carregado sob demanda.
 const Documentos = lazy(() => import('./routes/Documentos.jsx'))
+// Assinaturas (RH) — criar/atribuir/acompanhar, só para gestores, sob demanda.
+const AssinaturasAdmin = lazy(() => import('./routes/AssinaturasAdmin.jsx'))
 
 function Splash() {
   return (
@@ -125,6 +127,16 @@ export function App() {
             <ErroBoundary>
               <Suspense fallback={<Splash />}>
                 <Documentos />
+              </Suspense>
+            </ErroBoundary>
+          }
+        />
+        <Route
+          path="/assinaturas-admin"
+          element={
+            <ErroBoundary>
+              <Suspense fallback={<Splash />}>
+                <AssinaturasAdmin />
               </Suspense>
             </ErroBoundary>
           }
