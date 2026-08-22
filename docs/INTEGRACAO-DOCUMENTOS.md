@@ -36,14 +36,18 @@ Coordenação entre **dois sistemas** no **mesmo projeto Supabase** (`aoqsbusfrf
 - [x] reconciliação (pull) disponível (`docs_status_por_referencia`)
 - [x] docs dos dois lados sincronizados
 
-**Embutir `doc.html` no app — ✅ registrado (lado do app / plus):**
-- [x] `governanca_paginas` → `governanca-app-documentos` (**Gestão de Documentos**, Dashboards › RH,
-  url `/compliance/kpis/rh/doc.html`, ordem 452) + `governanca_abas` (4 abas: Sobre/Pendências/
-  Analítico/KPI's · 2 botões: `doccargos`→"Documentos por cargo", `cadastrosdoc`→"Cadastro de
-  documentos"). Aparece na Governança do app; admin libera acesso (por aba e por botão).
-- [ ] **lideres:** `doc.html` declara `window.GOV_PAGE_ID='governanca-app-documentos'` +
-  `data-aba-id`/`data-botao-id` (`governanca-app-documentos::<slug>`) + `aplicarBotoes()`. Snippet
-  pronto (usa `pode_botao(p_aba_id)`) entregue ao agente do portal; padrão idêntico ao da `escalas.html`.
+**Embutir `doc.html` no app — ✅ registrado; convenção `governanca-kpis-rh-doc`:**
+- [x] `governanca_paginas` → **`governanca-kpis-rh-doc`** (**Gestão de Documentos**, Dashboards › RH,
+  url `/compliance/kpis/rh/doc.html`, ordem 452) + `governanca_abas` (4 abas, slugs iguais ao arquivo:
+  `sobre`/`pendencias`/`analitico`/`dashboard` → Sobre/Pendências/Analítico/KPI's). Aparece na Governança
+  do app; admin libera acesso por aba. _(Adotada a convenção que já estava no `doc.html`.)_
+- [ ] **lideres — converter `doc.html` de sandbox → gated:** a página já tem `#auth-gate` + CSS
+  `data-auth` + listeners de `lideres:supa` (foi feita pronta pro gate). Falta: preencher o placeholder
+  `<script></script>` (linha ~360, antes de `<!-- /AUTH GATE -->`) com `window.GOV_PAGE_ID='governanca-kpis-rh-doc'`
+  + `<script src="/compliance/gate.js"></script>`, **e remover o bloco sandbox** (linhas ~332–359:
+  `data-auth='ok'`, cliente anônimo, badge de dev). Obs.: camada de dados ainda em RPCs `*_sandbox_*`
+  (em desenvolvimento). As 4 abas já têm `data-aba-id="governanca-kpis-rh-doc::<slug>"`; o gate.js já
+  esconde aba sozinho. Os 2 botões (`doccargos`/`cadastrosdoc`) ainda **não existem** no arquivo.
 
 **Pendência RLS (`doc.html` × bucket `assinaturas`):** aberto standalone (sandbox, sem sessão) o
 `doc.html` não lê `assinaturas` (RLS). **Embutido no app** ele roda com a **sessão real** do usuário
