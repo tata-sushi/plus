@@ -12,6 +12,8 @@ import {
   Printer,
   Maximize2,
   X,
+  Plus,
+  Minus,
 } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { AssinaturaPad } from '../components/AssinaturaPad.jsx'
@@ -49,6 +51,7 @@ export function Documentos() {
   const [selfieBlob, setSelfieBlob] = useState(null)
   const [pdfUrl, setPdfUrl] = useState(null) // URL assinada do PDF de origem
   const [pdfCheio, setPdfCheio] = useState(false) // leitor de PDF em tela cheia
+  const [pdfZoom, setPdfZoom] = useState(1) // zoom do leitor em tela cheia
   const rubricaRef = useRef(null)
 
   const carregar = useCallback(async () => {
@@ -203,20 +206,42 @@ export function Documentos() {
     const assinado = sel.status === 'assinado'
     return (
       <div className="min-h-[100dvh] bg-bg">
-        {/* Leitor de PDF em tela cheia — pra ler o documento com folga antes de assinar */}
+        {/* Leitor de PDF em tela cheia — com zoom, pra ler com folga antes de assinar */}
         {pdfCheio && pdfUrl && (
-          <div className="fixed inset-0 z-50 flex flex-col bg-bg">
-            <div className="hstack items-center justify-between border-b border-line px-4 py-3">
-              <span className="truncate pr-2 text-sm font-semibold">{sel.titulo}</span>
-              <button
-                onClick={() => setPdfCheio(false)}
-                className="btn-ghost shrink-0 !p-2"
-                aria-label="Fechar"
-              >
-                <X size={18} />
-              </button>
+          <div
+            className="fixed inset-0 z-50 flex flex-col bg-bg"
+            style={{ paddingTop: 'env(safe-area-inset-top)' }}
+          >
+            <div className="hstack items-center justify-between gap-2 border-b border-line px-3 py-2.5">
+              <span className="min-w-0 flex-1 truncate text-sm font-semibold">{sel.titulo}</span>
+              <div className="hstack shrink-0 items-center gap-0.5">
+                <button
+                  onClick={() => setPdfZoom((z) => Math.max(1, +(z - 0.25).toFixed(2)))}
+                  className="btn-ghost !p-2"
+                  aria-label="Diminuir zoom"
+                >
+                  <Minus size={16} />
+                </button>
+                <span className="w-10 text-center text-xs tabular-nums text-muted">
+                  {Math.round(pdfZoom * 100)}%
+                </span>
+                <button
+                  onClick={() => setPdfZoom((z) => Math.min(3, +(z + 0.25).toFixed(2)))}
+                  className="btn-ghost !p-2"
+                  aria-label="Aumentar zoom"
+                >
+                  <Plus size={16} />
+                </button>
+                <button
+                  onClick={() => setPdfCheio(false)}
+                  className="btn-ghost !p-2"
+                  aria-label="Fechar"
+                >
+                  <X size={18} />
+                </button>
+              </div>
             </div>
-            <PdfViewer src={pdfUrl} />
+            <PdfViewer src={pdfUrl} zoom={pdfZoom} />
           </div>
         )}
 
@@ -254,7 +279,10 @@ export function Documentos() {
               </div>
               {pdfUrl && (
                 <button
-                  onClick={() => setPdfCheio(true)}
+                  onClick={() => {
+                    setPdfZoom(1)
+                    setPdfCheio(true)
+                  }}
                   className="btn-ghost mt-2 w-full !py-2.5 text-xs"
                 >
                   <Maximize2 size={14} /> Abrir em tela cheia
@@ -268,10 +296,9 @@ export function Documentos() {
             />
           )}
 
-          {/* declaração de aceite (centralizada) */}
-          <div className="mt-4 rounded-card border border-accent/30 bg-accent-soft px-4 py-3.5 text-center">
-            <PenLine size={17} className="mx-auto mb-1.5 text-accent" />
-            <p className="text-sm font-medium leading-snug">{CONSENTIMENTO}</p>
+          {/* declaração de aceite (centralizada, sem ícone) */}
+          <div className="mt-4 rounded-card border border-accent/30 bg-accent-soft px-4 py-3.5">
+            <p className="text-center text-sm font-medium leading-snug">{CONSENTIMENTO}</p>
           </div>
 
           {assinado ? (

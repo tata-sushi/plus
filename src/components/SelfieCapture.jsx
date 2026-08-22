@@ -106,7 +106,7 @@ export function SelfieCapture({ onChange }) {
           />
         ) : semCamera ? (
           // botão dentro do quadrado (fallback: seletor de foto do sistema)
-          <label className="grid h-full w-full cursor-pointer place-items-center gap-1.5 text-muted-2 tap">
+          <label className="grid h-full w-full cursor-pointer place-items-center gap-0.5 text-muted-2 tap">
             <Camera size={30} />
             <span className="text-xs font-semibold text-accent">Tirar selfie</span>
             <input type="file" accept="image/*" capture="user" onChange={viaArquivo} className="hidden" />
@@ -117,7 +117,7 @@ export function SelfieCapture({ onChange }) {
             type="button"
             onClick={abrirCamera}
             disabled={carregando}
-            className="grid h-full w-full place-items-center gap-1.5 text-muted-2 tap"
+            className="grid h-full w-full place-items-center gap-0.5 text-muted-2 tap"
           >
             {carregando ? <Loader2 size={28} className="animate-spin" /> : <Camera size={30} />}
             <span className="text-xs font-semibold text-accent">Tirar selfie</span>

@@ -6,7 +6,7 @@ import { Loader2, ExternalLink } from 'lucide-react'
 // onLido() é chamado quando o usuário rola até o fim (ou se o PDF couber sem rolar).
 // inline=true: renderiza as páginas no próprio fluxo (sem rolagem/altura própria),
 // pra encaixar dentro de um desafio com texto e vídeo — quem rola é o container de fora.
-export function PdfViewer({ src, onLido, onErro, onAbrir, inline = false }) {
+export function PdfViewer({ src, onLido, onErro, onAbrir, inline = false, zoom = 1 }) {
   const paginasRef = useRef(null)
   const prontoRef = useRef(false) // só libera o "fim da rolagem" depois de renderizar tudo
   const [estado, setEstado] = useState('carregando') // 'carregando' | 'ok' | 'erro'
@@ -30,7 +30,7 @@ export function PdfViewer({ src, onLido, onErro, onAbrir, inline = false }) {
         const pdf = await pdfjs.getDocument({ url: src }).promise
         if (cancelado) return
         const dpr = Math.min(window.devicePixelRatio || 1, 2)
-        const largura = alvo.clientWidth || 360
+        const largura = (alvo.clientWidth || 360) * zoom
         for (let n = 1; n <= pdf.numPages; n++) {
           if (cancelado) return
           const page = await pdf.getPage(n)
@@ -39,7 +39,9 @@ export function PdfViewer({ src, onLido, onErro, onAbrir, inline = false }) {
           const canvas = document.createElement('canvas')
           canvas.width = viewport.width
           canvas.height = viewport.height
-          canvas.style.width = '100%'
+          // zoom=1 preenche a largura; zoom>1 fica maior que o container e rola (pan)
+          canvas.style.width = zoom === 1 ? '100%' : `${largura}px`
+          canvas.style.maxWidth = 'none'
           canvas.style.height = 'auto'
           canvas.className = 'mb-2 rounded-lg bg-white shadow-sm'
           alvo.appendChild(canvas)
@@ -71,7 +73,7 @@ export function PdfViewer({ src, onLido, onErro, onAbrir, inline = false }) {
       cancelado = true
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [src])
+  }, [src, zoom])
 
   function aoRolar(e) {
     if (!prontoRef.current) return
@@ -128,7 +130,7 @@ export function PdfViewer({ src, onLido, onErro, onAbrir, inline = false }) {
       <div
         ref={paginasRef}
         onScroll={aoRolar}
-        className="flex-1 overflow-y-auto bg-surface-2 px-3 py-3"
+        className="flex-1 overflow-auto bg-surface-2 px-3 py-3"
       />
       {estado === 'carregando' && (
         <div className="absolute inset-0 grid place-items-center bg-surface-2/70 backdrop-blur-sm">

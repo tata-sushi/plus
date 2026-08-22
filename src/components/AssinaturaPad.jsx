@@ -1,5 +1,5 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react'
-import { Eraser, Maximize2, Check } from 'lucide-react'
+import { Eraser, Maximize2, Check, X } from 'lucide-react'
 
 // Área de assinatura: a pessoa assina com o dedo (ou mouse). O "papel" é sempre
 // branco com tinta escura (fica legível nos dois temas e no PNG salvo).
@@ -94,20 +94,24 @@ export const AssinaturaPad = forwardRef(function AssinaturaPad({ onChange }, ref
     onChange?.(false)
   }
 
-  // ao concluir na tela cheia: copia o traço pro pad embutido (encaixa mantendo proporção)
+  // ao concluir/fechar na tela cheia: copia o traço pro pad embutido (encaixa mantendo proporção)
   function concluirCheio() {
-    const src = fullRef.current
-    const dst = canvasRef.current
-    if (src && dst) {
-      const d = dst.getContext('2d')
-      d.save()
-      d.setTransform(1, 0, 0, 1, 0, 0)
-      d.clearRect(0, 0, dst.width, dst.height)
-      const s = Math.min(dst.width / src.width, dst.height / src.height)
-      const w = src.width * s
-      const h = src.height * s
-      d.drawImage(src, 0, 0, src.width, src.height, (dst.width - w) / 2, (dst.height - h) / 2, w, h)
-      d.restore()
+    try {
+      const src = fullRef.current
+      const dst = canvasRef.current
+      if (src && dst && src.width > 0 && src.height > 0) {
+        const d = dst.getContext('2d')
+        d.save()
+        d.setTransform(1, 0, 0, 1, 0, 0)
+        d.clearRect(0, 0, dst.width, dst.height)
+        const s = Math.min(dst.width / src.width, dst.height / src.height)
+        const w = src.width * s
+        const h = src.height * s
+        d.drawImage(src, 0, 0, src.width, src.height, (dst.width - w) / 2, (dst.height - h) / 2, w, h)
+        d.restore()
+      }
+    } catch {
+      /* se algo der errado, fecha mesmo assim */
     }
     setCheio(false)
   }
@@ -160,27 +164,40 @@ export const AssinaturaPad = forwardRef(function AssinaturaPad({ onChange }, ref
 
       {/* Pad em TELA CHEIA — vire o celular pra assinar na horizontal */}
       {cheio && (
-        <div className="fixed inset-0 z-[60] flex flex-col" style={{ background: '#fff' }}>
-          <div className="hstack items-center justify-between border-b px-4 py-2.5" style={{ borderColor: '#e5e7eb' }}>
-            <button
-              type="button"
-              onClick={limpar}
-              className="hstack gap-1.5 rounded-pill px-3 py-1.5 text-xs font-semibold"
-              style={{ color: '#475569', background: '#f1f5f9' }}
-            >
-              <Eraser size={13} /> Limpar
-            </button>
-            <span className="text-[11px] font-medium" style={{ color: '#94a3b8' }}>
-              Vire o celular para mais espaço
-            </span>
+        <div
+          className="fixed inset-0 z-[60] flex flex-col"
+          style={{ background: '#fff', paddingTop: 'env(safe-area-inset-top)' }}
+        >
+          <div className="hstack items-center justify-between gap-2 border-b px-3 py-2.5" style={{ borderColor: '#e5e7eb' }}>
             <button
               type="button"
               onClick={concluirCheio}
-              className="hstack gap-1.5 rounded-pill px-3.5 py-1.5 text-xs font-bold text-white"
-              style={{ background: '#65a30d' }}
+              className="hstack gap-1.5 rounded-pill px-3 py-1.5 text-xs font-semibold"
+              style={{ color: '#475569', background: '#f1f5f9' }}
             >
-              <Check size={14} /> Pronto
+              <X size={14} /> Fechar
             </button>
+            <span className="truncate text-[11px] font-medium" style={{ color: '#94a3b8' }}>
+              Vire o celular ↔
+            </span>
+            <div className="hstack shrink-0 gap-2">
+              <button
+                type="button"
+                onClick={limpar}
+                className="hstack gap-1.5 rounded-pill px-3 py-1.5 text-xs font-semibold"
+                style={{ color: '#475569', background: '#f1f5f9' }}
+              >
+                <Eraser size={13} /> Limpar
+              </button>
+              <button
+                type="button"
+                onClick={concluirCheio}
+                className="hstack gap-1.5 rounded-pill px-3.5 py-1.5 text-xs font-bold text-white"
+                style={{ background: '#65a30d' }}
+              >
+                <Check size={14} /> Pronto
+              </button>
+            </div>
           </div>
           <div className="relative flex-1">
             <canvas
