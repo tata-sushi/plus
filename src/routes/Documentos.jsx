@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import {
   ArrowLeft,
@@ -211,12 +212,15 @@ export function Documentos() {
     const assinado = sel.status === 'assinado'
     return (
       <div className="min-h-[100dvh] bg-bg">
-        {/* Leitor de PDF em tela cheia — com zoom, pra ler com folga antes de assinar */}
-        {pdfCheio && pdfUrl && (
-          <div
-            className="fixed inset-0 z-50 flex flex-col bg-bg"
-            style={{ paddingTop: 'env(safe-area-inset-top)' }}
-          >
+        {/* Leitor de PDF em tela cheia — via portal no body, pra escapar de qualquer
+            ancestral transformado (senão o overlay/zoom "rola junto" e o menu vaza) */}
+        {pdfCheio &&
+          pdfUrl &&
+          createPortal(
+            <div
+              className="fixed inset-0 z-[100] flex flex-col bg-bg"
+              style={{ paddingTop: 'env(safe-area-inset-top)' }}
+            >
             <div className="hstack items-center justify-between gap-2 border-b border-line px-3 py-2.5">
               <span className="min-w-0 flex-1 truncate text-sm font-semibold">{sel.titulo}</span>
               <button
@@ -253,8 +257,9 @@ export function Documentos() {
                 <Plus size={18} />
               </button>
             </div>
-          </div>
-        )}
+          </div>,
+            document.body,
+          )}
 
         <Header />
         <div className="px-5 pt-2">
