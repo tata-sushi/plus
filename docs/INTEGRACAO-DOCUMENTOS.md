@@ -36,9 +36,13 @@ Coordenação entre **dois sistemas** no **mesmo projeto Supabase** (`aoqsbusfrf
 - [x] reconciliação (pull) disponível (`docs_status_por_referencia`)
 - [x] docs dos dois lados sincronizados
 
-**Novo — embutir `doc.html` no app (lado do app / plus):**
-- [ ] rota GovFrame que embute o `doc.html` (mesmo padrão do Controle de Escala). Fazer quando o
-  `doc.html` estiver limpo (sem resquício de recrutamento) e a URL/aba confirmadas.
+**Embutir `doc.html` no app — ✅ registrado (lado do app / plus):**
+- [x] `governanca_paginas` → `governanca-app-documentos` (**Gestão de Documentos**, Dashboards › RH,
+  url `/compliance/kpis/rh/doc.html`, ordem 452) + `governanca_abas` (4 abas: Sobre/Pendências/
+  Analítico/KPI's · 2 botões: `doccargos`, `cadastrosdoc`). Aparece na Governança do app; admin libera acesso.
+- [ ] **lideres:** `doc.html` declara `window.GOV_PAGE_ID='governanca-app-documentos'` +
+  `data-aba-id`/`data-botao-id` (`governanca-app-documentos::<slug>`) + `aplicarBotoes()` (padrão da
+  `escalas.html`) pra o gate valer nas abas/botões.
 
 **Pendência RLS (`doc.html` × bucket `assinaturas`):** aberto standalone (sandbox, sem sessão) o
 `doc.html` não lê `assinaturas` (RLS). **Embutido no app** ele roda com a **sessão real** do usuário
