@@ -62,8 +62,18 @@ export const AssinaturaPad = forwardRef(function AssinaturaPad({ onChange }, ref
     const r = canvas.getBoundingClientRect()
     return { x: e.clientX - r.left, y: e.clientY - r.top }
   }
-  function iniciar(canvas, ctx, e) {
-    if (!ctx) return
+  // resolve o ctx do canvas, configurando na hora se o effect ainda não rodou
+  // (evita o pad "não desenhar" quando o canvas foi montado agora — ex.: tela cheia)
+  function ctxDe(canvasR, ctxR) {
+    const canvas = canvasR.current
+    if (!canvas) return null
+    if (!ctxR.current || canvas.width === 0) ctxR.current = configurarCanvas(canvas)
+    return ctxR.current
+  }
+  function iniciar(canvasR, ctxR, e) {
+    const canvas = canvasR.current
+    const ctx = ctxDe(canvasR, ctxR)
+    if (!canvas || !ctx) return
     e.preventDefault()
     desenhando.current = true
     const p = ponto(canvas, e)
@@ -71,8 +81,11 @@ export const AssinaturaPad = forwardRef(function AssinaturaPad({ onChange }, ref
     ctx.moveTo(p.x, p.y)
     canvas.setPointerCapture?.(e.pointerId)
   }
-  function mover(canvas, ctx, e) {
-    if (!desenhando.current || !ctx) return
+  function mover(canvasR, ctxR, e) {
+    if (!desenhando.current) return
+    const canvas = canvasR.current
+    const ctx = ctxR.current
+    if (!canvas || !ctx) return
     const p = ponto(canvas, e)
     ctx.lineTo(p.x, p.y)
     ctx.stroke()
@@ -139,8 +152,8 @@ export const AssinaturaPad = forwardRef(function AssinaturaPad({ onChange }, ref
       <div className="relative overflow-hidden rounded-card border border-line" style={{ background: '#fff' }}>
         <canvas
           ref={canvasRef}
-          onPointerDown={(e) => iniciar(canvasRef.current, ctxRef.current, e)}
-          onPointerMove={(e) => mover(canvasRef.current, ctxRef.current, e)}
+          onPointerDown={(e) => iniciar(canvasRef, ctxRef, e)}
+          onPointerMove={(e) => mover(canvasRef, ctxRef, e)}
           onPointerUp={parar}
           onPointerLeave={parar}
           className="block h-36 w-full"
@@ -202,8 +215,8 @@ export const AssinaturaPad = forwardRef(function AssinaturaPad({ onChange }, ref
           <div className="relative flex-1">
             <canvas
               ref={fullRef}
-              onPointerDown={(e) => iniciar(fullRef.current, fullCtxRef.current, e)}
-              onPointerMove={(e) => mover(fullRef.current, fullCtxRef.current, e)}
+              onPointerDown={(e) => iniciar(fullRef, fullCtxRef, e)}
+              onPointerMove={(e) => mover(fullRef, fullCtxRef, e)}
               onPointerUp={parar}
               onPointerLeave={parar}
               className="block h-full w-full"
