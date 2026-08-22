@@ -22,8 +22,12 @@ Coordenação entre **dois sistemas** no **mesmo projeto Supabase** (`aoqsbusfrf
 | 2 | `referencia_externa` | **`dp_rh.colaborador_documentos.id`** (uuid da linha) |
 | 3 | Retorno do resultado | **Push (trigger) + Pull (RPC)**, os dois |
 | 4 | Tabela do portal | `dp_rh.colaborador_documentos` (status, `link`, `link_bucket`, `assinatura_atribuicao_id`) |
-| 5 | Cartão de ponto | Recomendação do portal: **NÃO** passa por assinatura (é registro). **Aguardando confirmação de processo do usuário.** |
+| 5 | Escopo — o que assina | **FECHADO:** todo documento passa por assinatura no app — **inclusive o Cartão de Ponto**. **Exceção:** Documentos Pessoais de admissão (RG, CPF, Comprovante de Endereço) = só anexo/conferência no `dp-documentos`, **não** passam pelo app. |
 | 6 | Frente 4 (admissão) | Em aberto do lado do portal; não bloqueia. |
+
+> ⚠️ **Correção (2026-08-22):** o item 5 substitui a recomendação inicial de que o Cartão de Ponto
+> não assinaria. Decisão do usuário: **cartão de ponto assina** também. A única exceção são os
+> Documentos Pessoais de admissão.
 
 ---
 
@@ -88,10 +92,11 @@ colaborador assina → PDF carimbado → linha do portal vira `entregue` com `li
 
 ## Pendências / próximos passos
 
-- **Cartão de ponto (frente 3):** confirmar com o usuário se entra como **assinatura** ou só
-  **registro/ciência**. Se for só registro, nem passa pelo app.
+1. **Portal (lideres):** corrigir o doc espelho (a recomendação antiga do Cartão de Ponto) e trocar
+   o botão "Salvar p/ Assinatura Digital" da `admissao-novo.html` pra chamar
+   `docs_enviar_para_assinatura`; ensinar `doc.html` a ler `link_bucket`. _(app-side já pronto.)_
 - **Frente 4 (admissão):** definir quais documentos são **gerados** (→ assinatura) × **anexados p/
   validação** (não passam pelo app), e onde é a validação.
 - **ICP-Brasil (Fase 2 do app):** o modelo já tem o campo `nivel`.
 
-_Última atualização: 2026-08-22 — app-side implementado e testado._
+_Última atualização: 2026-08-22 — app-side implementado e testado; escopo (cartão de ponto assina) fechado._
