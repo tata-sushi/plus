@@ -224,10 +224,10 @@ export function Documentos() {
             </div>
             <PdfViewer src={pdfUrl} zoom={pdfZoom} />
 
-            {/* zoom flutuante no rodapé, ao centro, sobre o PDF */}
+            {/* zoom flutuante no topo, ao centro, sobre o PDF (logo abaixo do cabeçalho) */}
             <div
               className="fixed left-1/2 z-[70] -translate-x-1/2 hstack items-center gap-1 rounded-full border border-line bg-surface px-1.5 py-1 shadow-lg"
-              style={{ bottom: 'calc(env(safe-area-inset-bottom) + 1.25rem)' }}
+              style={{ top: 'calc(env(safe-area-inset-top) + 3.75rem)' }}
             >
               <button
                 onClick={() => setPdfZoom((z) => Math.max(1, +(z - 0.25).toFixed(2)))}
