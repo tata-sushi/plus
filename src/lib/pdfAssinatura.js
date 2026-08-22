@@ -96,7 +96,7 @@ export async function carimbarPdf({ pdfBytes, rubricaBlob, selfieBlob, dados }) 
           font: bold,
           color: rgb(0.55, 0.6, 0.55),
           rotate: degrees(45),
-          opacity: 0.07,
+          opacity: 0.12,
         })
       }
       linha += 1
