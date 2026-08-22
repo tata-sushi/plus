@@ -47,82 +47,64 @@ export async function carimbarPdf({ pdfBytes, rubricaBlob, selfieBlob, dados }) 
   const bold = await doc.embedFont(StandardFonts.HelveticaBold)
   const mono = await doc.embedFont(StandardFonts.Courier)
 
-  const page = doc.addPage([595.28, 841.89]) // A4 em pontos
-  const { width, height } = page.getSize()
-  const m = 48
+  // Carimba no rodapé da ÚLTIMA página do próprio conteúdo (mesma folha),
+  // em vez de adicionar uma página nova. Banda compacta de ~190pt na base.
+  const paginas = doc.getPages()
+  const page = paginas[paginas.length - 1]
+  const { width } = page.getSize()
+  const m = 40
   const cinza = rgb(0.42, 0.45, 0.42)
   const escuro = rgb(0.1, 0.1, 0.1)
   const verde = rgb(0.15, 0.61, 0.2)
-  let y = height - m
 
-  page.drawText('Comprovante de Assinatura Eletronica', { x: m, y, size: 15, font: bold, color: escuro })
-  y -= 8
-  page.drawLine({ start: { x: m, y }, end: { x: width - m, y }, thickness: 0.7, color: rgb(0.85, 0.87, 0.84) })
-  y -= 26
+  // separador no topo do bloco de assinatura
+  page.drawLine({ start: { x: m, y: 190 }, end: { x: width - m, y: 190 }, thickness: 0.8, color: rgb(0.8, 0.82, 0.8) })
+  page.drawText('Comprovante de Assinatura Eletronica', { x: m, y: 176, size: 9, font: bold, color: verde })
 
-  page.drawText(limpar(dados.titulo), { x: m, y, size: 12, font: bold, color: escuro })
-  y -= 22
-
-  // declaração (com quebra)
-  for (const ln of quebrar(dados.declaracao || '', font, 10, width - 2 * m)) {
-    page.drawText(ln, { x: m, y, size: 10, font, color: cinza })
-    y -= 14
-  }
-  y -= 18
-
-  // selfie no canto superior direito do bloco
+  // selfie no canto direito do bloco
   if (selfieBlob) {
     try {
       const img = await embedImagem(doc, selfieBlob)
-      const s = 96
-      const sx = width - m - s
-      const sy = y - s
-      page.drawImage(img, { x: sx, y: sy, width: s, height: s })
-      page.drawText('Selfie de confirmacao', { x: sx, y: sy - 11, size: 7, font, color: cinza })
+      const s = 54
+      page.drawImage(img, { x: width - m - s, y: 92, width: s, height: s })
+      page.drawText('Selfie', { x: width - m - s + 15, y: 82, size: 7, font, color: cinza })
     } catch {
-      /* ignora selfie inválida */
+      /* selfie inválida — segue sem ela */
     }
+  }
+
+  // declaração curta (até 2 linhas, sem invadir a selfie à direita)
+  let dy = 162
+  for (const ln of quebrar(dados.declaracao, font, 8, width - 2 * m - 76).slice(0, 2)) {
+    page.drawText(ln, { x: m, y: dy, size: 8, font, color: cinza })
+    dy -= 11
   }
 
   // rubrica sobre a linha de assinatura
   if (rubricaBlob) {
     try {
       const img = await embedImagem(doc, rubricaBlob)
-      const w = 190
-      const h = Math.min(70, img.height * (w / img.width))
-      page.drawImage(img, { x: m, y: y - h, width: w, height: h })
-      y -= h + 3
+      const w = 150
+      const h = Math.min(40, img.height * (w / img.width))
+      page.drawImage(img, { x: m, y: 94, width: w, height: h })
     } catch {
-      y -= 40
+      /* rubrica inválida — segue sem ela */
     }
-  } else {
-    y -= 40
   }
-  page.drawLine({ start: { x: m, y }, end: { x: m + 230, y }, thickness: 0.7, color: rgb(0.6, 0.6, 0.6) })
-  y -= 14
-  page.drawText(limpar(dados.assinante), { x: m, y, size: 11, font: bold, color: escuro })
-  y -= 13
-  const sub = limpar(`Matricula ${dados.matricula || ''}${dados.cargo ? ' - ' + dados.cargo : ''}${dados.unidade ? ' - ' + dados.unidade : ''}`)
-  page.drawText(sub, { x: m, y, size: 9, font, color: cinza })
-  y -= 28
+  page.drawLine({ start: { x: m, y: 90 }, end: { x: m + 210, y: 90 }, thickness: 0.7, color: rgb(0.6, 0.6, 0.6) })
+  page.drawText(limpar(dados.assinante), { x: m, y: 78, size: 10, font: bold, color: escuro })
+  page.drawText(
+    limpar(`Matricula ${dados.matricula || ''}${dados.cargo ? ' - ' + dados.cargo : ''}${dados.unidade ? ' - ' + dados.unidade : ''}`),
+    { x: m, y: 67, size: 8, font, color: cinza },
+  )
 
-  // carimbo de auditoria
-  const auditLinhas = [
-    dados.nivelRotulo || 'Assinatura eletronica simples',
-    `Assinado em ${dados.assinadoEm || ''}${dados.ip ? ' - IP ' + dados.ip : ''}`,
-    `Documento v${dados.versao || 1} - impressao digital ${dados.hash || ''}`,
-  ]
-  const boxAlt = 16 * auditLinhas.length + 30
-  page.drawRectangle({ x: m, y: y - boxAlt, width: width - 2 * m, height: boxAlt, color: rgb(0.97, 0.98, 0.97), borderColor: rgb(0.88, 0.9, 0.88), borderWidth: 0.7 })
-  let ay = y - 18
-  page.drawText('Trilha de auditoria', { x: m + 12, y: ay, size: 9, font: bold, color: verde })
-  ay -= 16
-  for (const ln of auditLinhas) {
-    page.drawText(ln, { x: m + 12, y: ay, size: 9, font: ln.includes('impressao') ? mono : font, color: cinza })
-    ay -= 15
-  }
-  y -= boxAlt + 16
-  page.drawText('Assinado eletronicamente nos termos da MP 2.200-2/2001.', { x: m, y, size: 8, font, color: rgb(0.6, 0.62, 0.6) })
+  // auditoria compacta
+  page.drawText(
+    `${dados.nivelRotulo || 'Assinatura eletronica simples'} - Assinado em ${dados.assinadoEm || ''}${dados.ip ? ' - IP ' + dados.ip : ''}`,
+    { x: m, y: 50, size: 8, font, color: cinza },
+  )
+  page.drawText(`Documento v${dados.versao || 1} - impressao digital ${dados.hash || ''}`, { x: m, y: 39, size: 7.5, font: mono, color: cinza })
+  page.drawText('Assinado eletronicamente nos termos da MP 2.200-2/2001.', { x: m, y: 26, size: 7, font, color: rgb(0.6, 0.62, 0.6) })
 
   return doc.save() // Uint8Array
 }
