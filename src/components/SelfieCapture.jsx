@@ -123,21 +123,26 @@ export function SelfieCapture({ onChange }) {
             <span className="text-xs font-semibold text-accent">Tirar selfie</span>
           </button>
         )}
+        {/* botões sobre o quadrado — não empurram o layout (mantém alinhado) */}
+        {fase === 'camera' && (
+          <button
+            type="button"
+            onClick={capturar}
+            className="absolute bottom-2 left-1/2 hstack -translate-x-1/2 gap-1.5 rounded-full bg-accent px-3.5 py-1.5 text-xs font-bold text-white shadow-md"
+          >
+            <Camera size={14} /> Capturar
+          </button>
+        )}
+        {fase === 'previa' && (
+          <button
+            type="button"
+            onClick={refazer}
+            className="absolute bottom-2 left-1/2 hstack -translate-x-1/2 gap-1.5 rounded-full bg-black/55 px-3 py-1.5 text-xs font-semibold text-white shadow-md backdrop-blur"
+          >
+            <RotateCcw size={13} /> Refazer
+          </button>
+        )}
       </div>
-
-      {(fase === 'camera' || fase === 'previa') && (
-        <div className="mt-3 flex justify-center">
-          {fase === 'previa' ? (
-            <button type="button" onClick={refazer} className="btn-ghost !py-2 text-xs">
-              <RotateCcw size={14} /> Refazer
-            </button>
-          ) : (
-            <button type="button" onClick={capturar} className="btn-primary !py-2.5 text-sm">
-              <Camera size={16} /> Capturar
-            </button>
-          )}
-        </div>
-      )}
 
       <p className="mt-3 hstack items-start justify-center gap-1.5 px-2 text-center text-[11px] leading-snug text-muted-2">
         <ShieldCheck size={13} className="mt-px shrink-0" />

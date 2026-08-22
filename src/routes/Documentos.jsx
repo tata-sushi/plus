@@ -14,6 +14,8 @@ import {
   X,
   Plus,
   Minus,
+  CheckCircle2,
+  Circle,
 } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { AssinaturaPad } from '../components/AssinaturaPad.jsx'
@@ -52,6 +54,7 @@ export function Documentos() {
   const [pdfUrl, setPdfUrl] = useState(null) // URL assinada do PDF de origem
   const [pdfCheio, setPdfCheio] = useState(false) // leitor de PDF em tela cheia
   const [pdfZoom, setPdfZoom] = useState(1) // zoom do leitor em tela cheia
+  const [concordou, setConcordou] = useState(false) // aceite (botão "Li e concordo")
   const rubricaRef = useRef(null)
 
   const carregar = useCallback(async () => {
@@ -65,6 +68,7 @@ export function Documentos() {
     setRubricaTem(false)
     setSelfieBlob(null)
     setPdfUrl(null)
+    setConcordou(false)
     const { data } = await supabase.rpc('docs_abrir', { p_atribuicao_id: atribuicaoId })
     setCarregandoDoc(false)
     if (data?.ok) {
@@ -197,6 +201,7 @@ export function Documentos() {
 
   const podeAssinar =
     sel &&
+    concordou &&
     (!sel.exige_rubrica || rubricaTem) &&
     (!sel.exige_selfie || selfieBlob) &&
     !assinando
@@ -227,7 +232,7 @@ export function Documentos() {
             {/* zoom flutuante no topo, ao centro, sobre o PDF (logo abaixo do cabeçalho) */}
             <div
               className="fixed left-1/2 z-[70] -translate-x-1/2 hstack items-center gap-1 rounded-full border border-line bg-surface px-1.5 py-1 shadow-lg"
-              style={{ top: 'calc(env(safe-area-inset-top) + 3.75rem)' }}
+              style={{ top: 'calc(env(safe-area-inset-top) + 3.75rem + 20vh)' }}
             >
               <button
                 onClick={() => setPdfZoom((z) => Math.max(1, +(z - 0.25).toFixed(2)))}
@@ -302,10 +307,26 @@ export function Documentos() {
             />
           )}
 
-          {/* declaração de aceite (centralizada, sem ícone) */}
-          <div className="mt-4 rounded-card border border-accent/30 bg-accent-soft px-4 py-3.5">
-            <p className="text-center text-sm font-medium leading-snug">{CONSENTIMENTO}</p>
-          </div>
+          {/* declaração de aceite — botão que a pessoa toca pra concordar */}
+          {!assinado && (
+            <button
+              type="button"
+              onClick={() => setConcordou((v) => !v)}
+              aria-pressed={concordou}
+              className={`mt-4 flex w-full items-center justify-center gap-2 rounded-card border px-4 py-3.5 text-sm font-semibold leading-snug transition tap ${
+                concordou
+                  ? 'border-accent bg-accent text-white'
+                  : 'border-accent/40 bg-accent-soft text-text'
+              }`}
+            >
+              {concordou ? (
+                <CheckCircle2 size={18} className="shrink-0" />
+              ) : (
+                <Circle size={18} className="shrink-0 text-accent" />
+              )}
+              {CONSENTIMENTO}
+            </button>
+          )}
 
           {assinado ? (
             <>
@@ -357,11 +378,13 @@ export function Documentos() {
                 </button>
                 {!podeAssinar && !assinando && (
                   <p className="text-center text-[11px] text-muted-2">
-                    {sel.exige_rubrica && !rubricaTem
-                      ? 'Assine no quadro para concluir.'
-                      : sel.exige_selfie && !selfieBlob
-                        ? 'Tire a selfie para concluir.'
-                        : ''}
+                    {!concordou
+                      ? 'Toque em “Li e concordo” para confirmar o aceite.'
+                      : sel.exige_rubrica && !rubricaTem
+                        ? 'Assine no quadro para concluir.'
+                        : sel.exige_selfie && !selfieBlob
+                          ? 'Tire a selfie para concluir.'
+                          : ''}
                   </p>
                 )}
               </div>
