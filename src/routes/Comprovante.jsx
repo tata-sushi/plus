@@ -85,10 +85,7 @@ export function Comprovante() {
           <div className="w-14" />
         </div>
         <div className="mx-auto w-full max-w-[720px] px-4 py-4">
-          <h1 className="font-display text-lg font-bold">{c.titulo}</h1>
-          <p className="mt-0.5 text-xs text-muted">
-            Assinado por {c.assinante} em {fmtData(c.assinado_em)}
-          </p>
+          <h1 className="text-center font-display text-lg font-bold">{c.titulo}</h1>
           {pdfUrl ? (
             <div className="mt-3 overflow-hidden rounded-card border border-line">
               <PdfViewer src={pdfUrl} inline />
