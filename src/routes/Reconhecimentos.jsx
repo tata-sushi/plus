@@ -82,6 +82,7 @@ export function Reconhecimentos() {
   const [termo, setTermo] = useState('')
   const [resultados, setResultados] = useState([])
   const [buscando, setBuscando] = useState(false)
+  const [buscarAberto, setBuscarAberto] = useState(false) // botão -> abre a busca
 
   // Sheet + toast
   const [alvo, setAlvo] = useState(null) // { matricula, nome }
@@ -150,55 +151,78 @@ export function Reconhecimentos() {
         </div>
       )}
 
-      {/* Reconhecer um colega */}
+      {/* Reconhecer um colega — botão primeiro; a busca abre ao tocar. */}
       <Section className="mt-4" title="Reconhecer um colega">
-        <div className="relative">
-          <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-2" />
-          <input
-            value={termo}
-            onChange={(e) => setTermo(e.target.value)}
-            placeholder="Buscar colega pelo nome…"
-            className="w-full rounded-full border border-line bg-surface py-3 pl-10 pr-4 text-sm outline-none focus:border-accent"
-          />
-        </div>
+        {!buscarAberto ? (
+          <button
+            onClick={() => setBuscarAberto(true)}
+            className="btn-primary w-full !py-3.5 text-sm"
+          >
+            <HeartHandshake size={16} /> Reconhecer um colega
+          </button>
+        ) : (
+          <>
+            <div className="relative">
+              <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-2" />
+              <input
+                autoFocus
+                value={termo}
+                onChange={(e) => setTermo(e.target.value)}
+                placeholder="Buscar colega pelo nome…"
+                className="w-full rounded-full border border-line bg-surface py-3 pl-10 pr-4 text-sm outline-none focus:border-accent"
+              />
+            </div>
 
-        {!curto && (
-          <div className="mt-2">
-            {buscando ? (
-              <div className="hstack justify-center py-4 text-muted-2">
-                <Loader2 size={18} className="animate-spin" />
-              </div>
-            ) : resultados.length === 0 ? (
-              <p className="py-4 text-center text-sm text-muted">Ninguém encontrado.</p>
-            ) : (
-              <div className="card overflow-hidden">
-                {resultados.map((c, i) => (
-                  <button
-                    key={c.matricula}
-                    onClick={() => {
-                      tapHaptic()
-                      setAlvo({ matricula: c.matricula, nome: c.nome })
-                    }}
-                    className={cn(
-                      'hstack w-full gap-3 px-4 py-3 text-left tap',
-                      i > 0 && 'border-t border-line',
-                    )}
-                  >
-                    <Avatar name={c.nome} src={c.avatar_url} size={36} />
-                    <div className="min-w-0 flex-1">
-                      <div className="truncate text-sm font-semibold">{c.nome}</div>
-                      <div className="truncate text-[11px] text-muted">
-                        {c.departamento}
-                        {c.departamento && c.unidade ? ' · ' : ''}
-                        {c.unidade}
-                      </div>
-                    </div>
-                    <HeartHandshake size={16} className="shrink-0 text-accent" />
-                  </button>
-                ))}
+            {!curto && (
+              <div className="mt-2">
+                {buscando ? (
+                  <div className="hstack justify-center py-4 text-muted-2">
+                    <Loader2 size={18} className="animate-spin" />
+                  </div>
+                ) : resultados.length === 0 ? (
+                  <p className="py-4 text-center text-sm text-muted">Ninguém encontrado.</p>
+                ) : (
+                  <div className="card overflow-hidden">
+                    {resultados.map((c, i) => (
+                      <button
+                        key={c.matricula}
+                        onClick={() => {
+                          tapHaptic()
+                          setAlvo({ matricula: c.matricula, nome: c.nome })
+                        }}
+                        className={cn(
+                          'hstack w-full gap-3 px-4 py-3 text-left tap',
+                          i > 0 && 'border-t border-line',
+                        )}
+                      >
+                        <Avatar name={c.nome} src={c.avatar_url} size={36} />
+                        <div className="min-w-0 flex-1">
+                          <div className="truncate text-sm font-semibold">{c.nome}</div>
+                          <div className="truncate text-[11px] text-muted">
+                            {c.departamento}
+                            {c.departamento && c.unidade ? ' · ' : ''}
+                            {c.unidade}
+                          </div>
+                        </div>
+                        <HeartHandshake size={16} className="shrink-0 text-accent" />
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
-          </div>
+
+            <button
+              onClick={() => {
+                setBuscarAberto(false)
+                setTermo('')
+                setResultados([])
+              }}
+              className="mt-3 text-xs font-semibold text-muted tap"
+            >
+              Cancelar
+            </button>
+          </>
         )}
       </Section>
 
@@ -255,6 +279,7 @@ export function Reconhecimentos() {
             setAlvo(null)
             setTermo('')
             setResultados([])
+            setBuscarAberto(false)
             if (aba === 'dei') carregar()
             else setAba('dei')
           }}
