@@ -1,4 +1,4 @@
-import { Users, Zap, HeartHandshake, BadgeCheck, Handshake, Sparkles, Award } from 'lucide-react'
+import { Users, Zap, HeartHandshake, BadgeCheck, Handshake, Sparkles, Crown, Award } from 'lucide-react'
 import { supabase } from './supabase.js'
 
 // Reconhecimento entre pares — helpers de UI. A BASE (tabela dp_rh.reconhecimentos
@@ -12,6 +12,7 @@ export const MOTIVO_ICONE = {
   qualidade: BadgeCheck,
   apoio: Handshake,
   cultura: Sparkles,
+  lideranca: Crown,
   outro: Award,
 }
 
