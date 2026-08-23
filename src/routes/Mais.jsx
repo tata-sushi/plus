@@ -26,6 +26,7 @@ import { ProgressRing } from '../components/ProgressRing.jsx'
 import { SocialLinks } from '../components/SocialLinks.jsx'
 import { redesSociais } from '../lib/mockData.js'
 import { useAuth } from '../lib/AuthContext.jsx'
+import { podeVerReconhecimento } from '../lib/reconhecimento.js'
 import { useDesktop } from '../lib/useDesktop.js'
 import { useDesktopCanvas } from '../lib/desktopCanvas.js'
 import { supabase } from '../lib/supabase.js'
@@ -40,7 +41,7 @@ const itens = [
   { to: '/jornada', label: 'Meu perfil', icon: UserRound },
   { to: '/buscar', label: 'Buscar colaborador', icon: Search },
   { to: '/comunicados', label: 'Comunicados', icon: Megaphone },
-  { to: '/reconhecimentos', label: 'Reconhecimentos', icon: HeartHandshake },
+  { to: '/reconhecimentos', label: 'Reconhecimentos', icon: HeartHandshake, beta: true },
   { to: '/ouvidoria', label: 'Ouvidoria', icon: MessageSquareWarning, gov: true },
   { to: '/cardapio', label: 'Cardápio', icon: UtensilsCrossed },
   { to: '/quadros', label: 'Kanban Tatá (beta)', icon: KanbanSquare, quadros: true },
@@ -97,6 +98,7 @@ export function Mais() {
         (!i.gov || usuario?.governanca?.tem) &&
         (!i.quadros || usuario?.podeQuadros) &&
         (!i.escala || usuario?.podeEscala) &&
+        (!i.beta || podeVerReconhecimento(usuario)) &&
         (!i.rhdocs || usuario?.perfil === 'admin' || usuario?.lider),
     )
     .sort((a, b) => a.label.localeCompare(b.label, 'pt', { sensitivity: 'base' }))

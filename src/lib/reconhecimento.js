@@ -43,3 +43,9 @@ export function rotuloMotivo(slug, motivos) {
   const m = (motivos || []).find((x) => x.slug === slug)
   return m ? m.label : slug
 }
+
+// Soft-launch (versão de teste): por enquanto só admins veem o Reconhecimento.
+// Pra liberar pra todo mundo, troque o corpo por `return true`.
+export function podeVerReconhecimento(usuario) {
+  return (usuario?.perfil || '').toLowerCase() === 'admin'
+}

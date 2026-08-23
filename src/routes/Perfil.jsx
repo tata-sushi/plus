@@ -11,6 +11,7 @@ import { GradeEmblemas } from '../components/GradeEmblemas.jsx'
 import { AnalisesPerfil } from '../components/AnalisesPerfil.jsx'
 import { ReconhecerSheet } from '../components/ReconhecerSheet.jsx'
 import { ReconhecimentoResumo } from '../components/ReconhecimentoResumo.jsx'
+import { podeVerReconhecimento } from '../lib/reconhecimento.js'
 import { avaliarCatalogo } from '../lib/emblemas.js'
 import { signoDe } from '../lib/signo.js'
 import { getSignoVisivel, getDiscVisivel } from '../lib/prefs.js'
@@ -33,6 +34,7 @@ export function Perfil() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { usuario } = useAuth()
+  const podeRec = podeVerReconhecimento(usuario) // soft-launch: só admin por ora
   const ehEu = !!usuario?.matricula && id === usuario.matricula
   const ehDev = id === '7' // perfil do dev → tema dourado (easter egg)
 
@@ -187,25 +189,27 @@ export function Perfil() {
         </div>
       </div>
 
-      {/* Reconhecimento entre pares */}
-      <Section className="reveal mt-5" title="Reconhecimento">
-        <Card>
-          <ReconhecimentoResumo matricula={id} recarregar={recKey} />
-          {recFeito ? (
-            <div className="mt-3 hstack gap-2 rounded-card bg-accent-soft px-3 py-2.5 text-sm font-semibold text-accent">
-              <Check size={16} className="shrink-0" />
-              Você reconheceu {primeiro} por {recFeito.motivoLabel}.
-            </div>
-          ) : (
-            <button
-              onClick={() => setReconhecer(true)}
-              className="btn-primary mt-3 w-full !py-3 text-sm"
-            >
-              <HeartHandshake size={16} /> Reconhecer {primeiro}
-            </button>
-          )}
-        </Card>
-      </Section>
+      {/* Reconhecimento entre pares (soft-launch: só admin por enquanto) */}
+      {podeRec && (
+        <Section className="reveal mt-5" title="Reconhecimento">
+          <Card>
+            <ReconhecimentoResumo matricula={id} recarregar={recKey} />
+            {recFeito ? (
+              <div className="mt-3 hstack gap-2 rounded-card bg-accent-soft px-3 py-2.5 text-sm font-semibold text-accent">
+                <Check size={16} className="shrink-0" />
+                Você reconheceu {primeiro} por {recFeito.motivoLabel}.
+              </div>
+            ) : (
+              <button
+                onClick={() => setReconhecer(true)}
+                className="btn-primary mt-3 w-full !py-3 text-sm"
+              >
+                <HeartHandshake size={16} /> Reconhecer {primeiro}
+              </button>
+            )}
+          </Card>
+        </Section>
+      )}
 
       {/* Transferir saldo */}
       <Section className="reveal reveal-1 mt-5" title="Carteira">
@@ -320,7 +324,7 @@ export function Perfil() {
           document.body,
         )}
 
-      {reconhecer && (
+      {podeRec && reconhecer && (
         <ReconhecerSheet
           paraMatricula={id}
           paraNome={perfil.nome}

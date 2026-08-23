@@ -10,7 +10,12 @@ import { tapHaptic } from '../lib/haptics.js'
 import { tempoRelativo } from '../lib/tempo.js'
 import { useAuth } from '../lib/AuthContext.jsx'
 import { supabase } from '../lib/supabase.js'
-import { carregarMotivos, iconeMotivo, rotuloMotivo } from '../lib/reconhecimento.js'
+import {
+  carregarMotivos,
+  iconeMotivo,
+  rotuloMotivo,
+  podeVerReconhecimento,
+} from '../lib/reconhecimento.js'
 
 const TAM_MAX = 15 * 1024 * 1024 // 15 MB
 
@@ -404,12 +409,15 @@ export function Comunidade() {
 
   // Reconhecimentos entram no mesmo feed (intercalados por data). Fonte é a RPC
   // reconhecimento_feed — read-only, sem curtir/comentar.
+  // Soft-launch: por enquanto só admins veem essa camada.
+  const podeRec = podeVerReconhecimento(usuario)
   useEffect(() => {
+    if (!podeRec) return
     carregarMotivos().then(setMotivos)
     supabase
       .rpc('reconhecimento_feed', { p_limite: 50 })
       .then(({ data }) => setReconhecimentos(data || []))
-  }, [])
+  }, [podeRec])
 
   function escolherFoto(e) {
     const f = e.target.files?.[0]

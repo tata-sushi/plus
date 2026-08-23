@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Navigate } from 'react-router-dom'
 import { ArrowLeft, Search, Loader2, HeartHandshake, Check } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Section } from '../components/Section.jsx'
@@ -9,7 +9,12 @@ import { ReconhecerSheet } from '../components/ReconhecerSheet.jsx'
 import { supabase } from '../lib/supabase.js'
 import { useAuth } from '../lib/AuthContext.jsx'
 import { tempoRelativo } from '../lib/tempo.js'
-import { carregarMotivos, iconeMotivo, rotuloMotivo } from '../lib/reconhecimento.js'
+import {
+  carregarMotivos,
+  iconeMotivo,
+  rotuloMotivo,
+  podeVerReconhecimento,
+} from '../lib/reconhecimento.js'
 import { tapHaptic } from '../lib/haptics.js'
 import { cn } from '../lib/cn'
 
@@ -66,6 +71,7 @@ export function Reconhecimentos() {
   const navigate = useNavigate()
   const { usuario } = useAuth()
   const matricula = usuario?.matricula
+  const podeRec = podeVerReconhecimento(usuario) // soft-launch: só admin por ora
 
   const [motivos, setMotivos] = useState([])
   const [aba, setAba] = useState('dei') // 'dei' | 'recebi'
@@ -86,13 +92,13 @@ export function Reconhecimentos() {
   }, [])
 
   const carregar = useCallback(async () => {
-    if (!matricula) return
+    if (!matricula || !podeRec) return
     setCarregando(true)
     const params = aba === 'dei' ? { p_de: matricula } : { p_para: matricula }
     const { data } = await supabase.rpc('reconhecimento_feed', { p_limite: 50, ...params })
     setLista(data || [])
     setCarregando(false)
-  }, [matricula, aba])
+  }, [matricula, aba, podeRec])
 
   useEffect(() => {
     carregar()
@@ -122,6 +128,9 @@ export function Reconhecimentos() {
   }, [termo, matricula])
 
   const curto = termo.trim().length < 2
+
+  // Soft-launch: quem não é admin não acessa a página por enquanto.
+  if (usuario && !podeRec) return <Navigate to="/" replace />
 
   return (
     <>
