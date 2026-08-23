@@ -190,35 +190,6 @@ export function Perfil() {
         </div>
       </div>
 
-      {/* Reconhecimento entre pares (soft-launch: só admin por enquanto).
-          Sem reconhecimentos → botão cheio (padrão "Compartilhar pontos").
-          Com reconhecimentos → badges + "+" no canto superior direito. */}
-      {podeRec && (
-        <Section className="reveal mt-5" title="Reconhecimento">
-          <ReconhecimentoResumo
-            matricula={id}
-            recarregar={recKey}
-            onTotal={setRecTotal}
-            acao={
-              <button
-                onClick={() => setReconhecer(true)}
-                className="hstack shrink-0 items-center gap-1 rounded-pill bg-accent px-2.5 py-1 text-[11px] font-semibold leading-none text-black tap"
-              >
-                <Plus size={13} strokeWidth={2.6} /> Adicionar recomendação
-              </button>
-            }
-          />
-          {!temRec && (
-            <button
-              onClick={() => setReconhecer(true)}
-              className="btn-primary w-full !py-3.5 text-sm"
-            >
-              <HeartHandshake size={16} /> Reconhecer {primeiro}
-            </button>
-          )}
-        </Section>
-      )}
-
       {/* Transferir saldo */}
       <Section className="reveal reveal-1 mt-5" title="Carteira">
         {feito ? (
@@ -293,6 +264,35 @@ export function Perfil() {
           <GradeEmblemas catalogo={catalogo} dados={perfil} />
         </Card>
       </Section>
+
+      {/* Reconhecimentos entre pares (soft-launch: só admin por enquanto).
+          Sem reconhecimentos → botão cheio (padrão "Compartilhar pontos").
+          Com reconhecimentos → tabelinha + pílula "Adicionar recomendação". */}
+      {podeRec && (
+        <Section className="reveal mt-5" title="Reconhecimentos">
+          <ReconhecimentoResumo
+            matricula={id}
+            recarregar={recKey}
+            onTotal={setRecTotal}
+            acao={
+              <button
+                onClick={() => setReconhecer(true)}
+                className="hstack shrink-0 items-center gap-1 rounded-pill bg-accent px-2.5 py-1 text-[11px] font-semibold leading-none text-black tap"
+              >
+                <Plus size={13} strokeWidth={2.6} /> Adicionar recomendação
+              </button>
+            }
+          />
+          {!temRec && (
+            <button
+              onClick={() => setReconhecer(true)}
+              className="btn-primary w-full !py-3.5 text-sm"
+            >
+              <HeartHandshake size={16} /> Reconhecer {primeiro}
+            </button>
+          )}
+        </Section>
+      )}
 
       {/* Características */}
       <Section className="reveal reveal-3 mt-5" title="Características">
