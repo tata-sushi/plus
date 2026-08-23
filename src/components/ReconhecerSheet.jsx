@@ -74,7 +74,7 @@ export function ReconhecerSheet({ paraMatricula, paraNome, onClose, onSucesso })
         <p className="mt-1 text-xs text-muted">Escolha o motivo do reconhecimento.</p>
 
         {/* Motivos (chips, seleção única) */}
-        <div className="mt-3 flex flex-wrap gap-2">
+        <div className="mt-3 flex flex-wrap justify-center gap-2">
           {motivos.map((m) => {
             const Icon = iconeMotivo(m.slug)
             const on = motivo === m.slug

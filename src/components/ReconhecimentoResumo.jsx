@@ -5,7 +5,7 @@ import { carregarMotivos, iconeMotivo, rotuloMotivo } from '../lib/reconheciment
 // Badges de reconhecimento de um colaborador (RPC reconhecimento_resumo):
 // total + contagem por motivo. `recarregar` (qualquer valor que muda) força
 // refazer a leitura — ex.: logo após reconhecer a pessoa.
-export function ReconhecimentoResumo({ matricula, recarregar, onTotal }) {
+export function ReconhecimentoResumo({ matricula, recarregar, onTotal, acao }) {
   const [resumo, setResumo] = useState(null) // { total, por_motivo }
   const [motivos, setMotivos] = useState([])
 
@@ -45,9 +45,12 @@ export function ReconhecimentoResumo({ matricula, recarregar, onTotal }) {
 
   return (
     <div>
-      <div className="text-sm font-semibold">
-        <span className="text-accent">{total}</span>{' '}
-        {total === 1 ? 'reconhecimento' : 'reconhecimentos'}
+      <div className="hstack items-center justify-between gap-2">
+        <div className="text-sm font-semibold">
+          <span className="text-accent">{total}</span>{' '}
+          {total === 1 ? 'reconhecimento' : 'reconhecimentos'}
+        </div>
+        {acao}
       </div>
       {/* Tabelinha: motivo à esquerda, contagem à direita (escala melhor que chips). */}
       <div className="mt-2 divide-y divide-line overflow-hidden rounded-card border border-line">

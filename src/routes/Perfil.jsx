@@ -194,21 +194,20 @@ export function Perfil() {
           Sem reconhecimentos → botão cheio (padrão "Compartilhar pontos").
           Com reconhecimentos → badges + "+" no canto superior direito. */}
       {podeRec && (
-        <Section
-          className="reveal mt-5"
-          title="Reconhecimento"
-          action={
-            temRec ? (
+        <Section className="reveal mt-5" title="Reconhecimento">
+          <ReconhecimentoResumo
+            matricula={id}
+            recarregar={recKey}
+            onTotal={setRecTotal}
+            acao={
               <button
                 onClick={() => setReconhecer(true)}
-                className="hstack shrink-0 gap-1 rounded-pill bg-accent px-2.5 py-1 text-[11px] font-semibold text-black tap"
+                className="hstack shrink-0 items-center gap-1 rounded-pill bg-accent px-2.5 py-1 text-[11px] font-semibold leading-none text-black tap"
               >
                 <Plus size={13} strokeWidth={2.6} /> Adicionar recomendação
               </button>
-            ) : null
-          }
-        >
-          <ReconhecimentoResumo matricula={id} recarregar={recKey} onTotal={setRecTotal} />
+            }
+          />
           {!temRec && (
             <button
               onClick={() => setReconhecer(true)}
