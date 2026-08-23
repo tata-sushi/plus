@@ -45,8 +45,8 @@ export function rotuloMotivo(slug, motivos) {
   return m ? m.label : slug
 }
 
-// Soft-launch (versão de teste): por enquanto só admins veem o Reconhecimento.
-// Pra liberar pra todo mundo, troque o corpo por `return true`.
+// Reconhecimento entre pares liberado pra todos os colaboradores.
+// (Ficou em soft-launch só-admin durante o teste; agora é geral.)
 export function podeVerReconhecimento(usuario) {
-  return (usuario?.perfil || '').toLowerCase() === 'admin'
+  return !!usuario?.matricula
 }
