@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Plus, Pin } from 'lucide-react'
 import { Section } from './Section.jsx'
@@ -7,37 +7,26 @@ import { tapHaptic } from '../lib/haptics.js'
 import { useDesktop } from '../lib/useDesktop.js'
 import { useDesktopCanvas } from '../lib/desktopCanvas.js'
 import { useAuth } from '../lib/AuthContext.jsx'
-import { governancaCatalogo, MAX_PAGINAS_FIXADAS } from '../lib/mockData.js'
+import { MAX_PAGINAS_FIXADAS } from '../lib/mockData.js'
+import { loadPins, subscribePins, PINS_KEY } from '../lib/govPins.js'
 
-export const ATALHOS_KEY = 'tata_gov_pinned'
-
-export function loadPinned() {
-  try {
-    const raw = localStorage.getItem(ATALHOS_KEY)
-    const ids = raw ? JSON.parse(raw) : []
-    if (!Array.isArray(ids)) return []
-    // Descarta ids que não existem mais no catálogo (ex.: catálogo de exemplo
-    // antigo) — senão ocupam vaga no limite sem aparecer em lugar nenhum.
-    const validos = new Set(governancaCatalogo.map((c) => c.id))
-    return ids.filter((id) => validos.has(id))
-  } catch {
-    return []
-  }
-}
+// Compat: alguns módulos ainda importam estes nomes daqui.
+export const ATALHOS_KEY = PINS_KEY
+export const loadPinned = loadPins
 
 // Seção "Atalhos" (só para quem tem acesso à Governança): mostra as páginas do
-// portal que o líder fixou, como pills de acesso rápido. O gerenciar (fixar/
-// desafixar) fica em Mais › Gerenciar atalhos (rota /atalhos-governanca). Como o
-// <main> remonta a cada troca de rota, ao voltar para a Início a seleção é relida.
+// portal que o líder fixou, como pills de acesso rápido. Fixar/desafixar acontece
+// em Mais › Gerenciar atalhos e também pelo alfinete no header de cada página.
 export function AtalhosGovernanca() {
   const { usuario } = useAuth()
   const isAdmin = (usuario?.perfil || '').toLowerCase() === 'admin'
-  const [pinned] = useState(loadPinned)
+  const [pinned, setPinned] = useState(loadPins)
+  // Reage a mudanças (ex.: fixou pelo alfinete numa página aberta).
+  useEffect(() => subscribePins(setPinned), [])
   // Páginas marcadas admin só aparecem pra quem é admin (mesmo se ficaram fixadas).
-  const fixadas = pinned
-    .map((id) => governancaCatalogo.find((c) => c.id === id))
-    .filter(Boolean)
-    .filter((p) => (isAdmin || !p.admin) && (!p.need || usuario?.[p.need]))
+  const fixadas = pinned.filter(
+    (p) => (isAdmin || !p.admin) && (!p.need || usuario?.[p.need]),
+  )
   const desktop = useDesktop()
   const { abrirAba } = useDesktopCanvas()
 

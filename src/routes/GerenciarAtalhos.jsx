@@ -6,7 +6,7 @@ import { Section } from '../components/Section.jsx'
 import { resolveIcon } from '../lib/icons.js'
 import { tapHaptic } from '../lib/haptics.js'
 import { governancaCatalogo, MAX_PAGINAS_FIXADAS } from '../lib/mockData.js'
-import { ATALHOS_KEY, loadPinned } from '../components/AtalhosGovernanca.jsx'
+import { loadPins, savePins } from '../lib/govPins.js'
 import { useAuth } from '../lib/AuthContext.jsx'
 import { cn } from '../lib/cn'
 
@@ -18,24 +18,22 @@ import { cn } from '../lib/cn'
 export function GerenciarAtalhos() {
   const { usuario } = useAuth()
   const isAdmin = (usuario?.perfil || '').toLowerCase() === 'admin'
-  const [pinned, setPinned] = useState(loadPinned)
+  // Guarda os pins como objetos {id,label,url,icon,...} — inclui os fixados pelo
+  // alfinete (que não estão na lista estática) pra não perdê-los ao salvar.
+  const [pinned, setPinned] = useState(loadPins)
 
   useEffect(() => {
-    try {
-      localStorage.setItem(ATALHOS_KEY, JSON.stringify(pinned))
-    } catch {
-      /* ignore */
-    }
+    savePins(pinned)
   }, [pinned])
 
   const atingiuLimite = pinned.length >= MAX_PAGINAS_FIXADAS
 
-  function toggle(id) {
+  function toggle(item) {
     tapHaptic()
     setPinned((prev) => {
-      if (prev.includes(id)) return prev.filter((p) => p !== id)
+      if (prev.some((p) => p.id === item.id)) return prev.filter((p) => p.id !== item.id)
       if (prev.length >= MAX_PAGINAS_FIXADAS) return prev
-      return [...prev, id]
+      return [...prev, { id: item.id, label: item.label, url: item.url, icon: item.icon, ...(item.admin ? { admin: true } : {}), ...(item.need ? { need: item.need } : {}) }]
     })
   }
 
@@ -47,12 +45,12 @@ export function GerenciarAtalhos() {
     <div className="card overflow-hidden">
       {itens.map((item, idx) => {
         const Icon = resolveIcon(item.icon)
-        const ativo = pinned.includes(item.id)
+        const ativo = pinned.some((p) => p.id === item.id)
         const bloqueado = !ativo && atingiuLimite
         return (
           <button
             key={item.id}
-            onClick={() => !bloqueado && toggle(item.id)}
+            onClick={() => !bloqueado && toggle(item)}
             disabled={bloqueado}
             className={cn(
               'hstack w-full gap-3 px-4 py-3 text-left tap',

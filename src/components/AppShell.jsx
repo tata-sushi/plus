@@ -6,6 +6,7 @@ import { useDesktop } from '../lib/useDesktop.js'
 import { estadoPush, ativarPush } from '../lib/push.js'
 import { cn } from '../lib/cn'
 import { PodcastPlayerProvider } from '../lib/podcastPlayer.jsx'
+import { useGovPinBridge } from '../lib/useGovPinBridge.js'
 
 // Rotas em tela cheia, sem a barra de navegação (ex.: organograma em paisagem).
 const SEM_NAV = ['/organograma', '/governanca', '/perfil-disc', '/controle-escala']
@@ -19,6 +20,8 @@ const SEM_NAV = ['/organograma', '/governanca', '/perfil-disc', '/controle-escal
 export function AppShell() {
   const location = useLocation()
   const desktop = useDesktop()
+  // Ponte do botão "alfinete" das páginas do portal (fixar/desafixar atalhos).
+  useGovPinBridge()
   // Rotas fixas ficam em tela cheia (sem a barra de navegação).
   const semNav = SEM_NAV.includes(location.pathname)
   // Governança e Controle de Escala embutem o portal com a mesma moldura.

@@ -1,4 +1,4 @@
-import { lazy, Suspense, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import {
   Home,
@@ -17,6 +17,7 @@ import {
 import { cn } from '../lib/cn'
 import { useAuth } from '../lib/AuthContext.jsx'
 import { DesktopCanvasContext } from '../lib/desktopCanvas.js'
+import { loadPins, removePin, subscribePins } from '../lib/govPins.js'
 import { resolveIcon } from '../lib/icons.js'
 import { Ouvidoria } from '../routes/Ouvidoria.jsx'
 import { AdminRecompensas } from '../routes/AdminRecompensas.jsx'
@@ -56,6 +57,11 @@ export function DesktopShell() {
   const [abas, setAbas] = useState([]) // [{ id, url, titulo, icon }]
   const [abaAtiva, setAbaAtiva] = useState(null) // id | null
 
+  // Páginas FIXADAS (alfinete): persistem no aparelho e ficam no rail, abaixo do
+  // "Mais". Diferente das abas, sobrevivem a recarregar; o "x" desafixa de vez.
+  const [pins, setPins] = useState(loadPins)
+  useEffect(() => subscribePins(setPins), [])
+
   function abrirAba(pagina) {
     setAbas((prev) => (prev.some((a) => a.id === pagina.id) ? prev : [...prev, pagina]))
     setAbaAtiva(pagina.id)
@@ -70,6 +76,17 @@ export function DesktopShell() {
     setAbas(restante)
     if (abaAtiva === id) setAbaAtiva(restante.length ? restante[restante.length - 1].id : null)
   }
+  // Abre/foca uma página fixada (monta o iframe vivo só ao clicar).
+  function abrirPin(p) {
+    abrirAba({ id: p.id, url: p.url, titulo: p.label, icon: p.icon })
+  }
+  // Desafixa e, se estiver aberta, fecha a aba viva.
+  function desafixar(id) {
+    removePin(id)
+    fecharAba(id)
+  }
+  // Abas realmente "soltas" (abertas mas não fixadas) — pra não duplicar ícone.
+  const abasSoltas = abas.filter((a) => !pins.some((p) => p.id === a.id))
 
   function alternarPainel() {
     setAberto((v) => {
@@ -149,11 +166,42 @@ export function DesktopShell() {
             {/* Player do Podcast (Rádio 2.0) — logo abaixo do "Mais" */}
             <PodcastRailControl />
 
-            {/* Abas de governança abertas — ícone + "x" pra fechar. O padding
+            {/* Páginas FIXADAS (alfinete) + abas abertas — ícone + "x". O padding
                 dá folga pro badge do "x" não ser cortado pelo overflow do scroll. */}
-            {abas.length > 0 && <span className="my-0.5 h-px w-6 bg-line" />}
+            {(pins.length > 0 || abasSoltas.length > 0) && (
+              <span className="my-0.5 h-px w-6 bg-line" />
+            )}
             <div className="flex flex-col items-center gap-1.5 overflow-y-auto px-2 py-1">
-              {abas.map((aba) => {
+              {/* Fixadas: persistem no rail; "x" desafixa de vez. */}
+              {pins.map((p) => {
+                const PinIcon = resolveIcon(p.icon)
+                const ativa = !canvas && abaAtiva === p.id
+                return (
+                  <div key={p.id} className="group relative">
+                    <button
+                      onClick={() => abrirPin(p)}
+                      title={p.label}
+                      aria-label={p.label}
+                      className={cn(
+                        railBtn,
+                        ativa ? 'bg-accent-soft text-accent' : 'text-carbon hover:text-text',
+                      )}
+                    >
+                      <PinIcon size={20} strokeWidth={ativa ? 2.4 : 2} />
+                    </button>
+                    <button
+                      onClick={() => desafixar(p.id)}
+                      title={`Desafixar ${p.label}`}
+                      aria-label={`Desafixar ${p.label}`}
+                      className="absolute -right-0.5 -top-0.5 hidden h-4 w-4 place-items-center rounded-full bg-carbon text-white shadow group-hover:grid hover:bg-danger"
+                    >
+                      <X size={10} strokeWidth={3} />
+                    </button>
+                  </div>
+                )
+              })}
+              {/* Abas soltas: abertas mas não fixadas; "x" só fecha a aba. */}
+              {abasSoltas.map((aba) => {
                 const AbaIcon = resolveIcon(aba.icon)
                 const ativa = !canvas && abaAtiva === aba.id
                 return (
