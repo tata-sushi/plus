@@ -201,10 +201,9 @@ export function Perfil() {
             temRec ? (
               <button
                 onClick={() => setReconhecer(true)}
-                aria-label={`Reconhecer ${primeiro}`}
-                className="grid h-7 w-7 place-items-center rounded-full bg-accent text-black tap"
+                className="hstack shrink-0 gap-1 rounded-pill bg-accent px-2.5 py-1 text-[11px] font-semibold text-black tap"
               >
-                <Plus size={16} strokeWidth={2.6} />
+                <Plus size={13} strokeWidth={2.6} /> Adicionar recomendação
               </button>
             ) : null
           }
