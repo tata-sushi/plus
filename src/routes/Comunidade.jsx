@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Heart, MessageCircle, Image as ImageIcon, Send, Loader2, Trash2, X, Gift } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
@@ -10,6 +10,7 @@ import { tapHaptic } from '../lib/haptics.js'
 import { tempoRelativo } from '../lib/tempo.js'
 import { useAuth } from '../lib/AuthContext.jsx'
 import { supabase } from '../lib/supabase.js'
+import { carregarMotivos, iconeMotivo, rotuloMotivo } from '../lib/reconhecimento.js'
 
 const TAM_MAX = 15 * 1024 * 1024 // 15 MB
 
@@ -63,6 +64,48 @@ function ResgateCard({ post }) {
           <Gift size={14} />
         </span>
       </button>
+    </Card>
+  )
+}
+
+// Reconhecimento entre pares (vem da RPC reconhecimento_feed, não de feed_posts).
+// Card compacto e sem ações — curtir/comentar são exclusivos dos posts.
+function ReconhecimentoCard({ rec, motivos }) {
+  const navigate = useNavigate()
+  const Icon = iconeMotivo(rec.motivo)
+  return (
+    <Card className="reveal !p-3">
+      <div className="hstack items-start gap-2.5">
+        <button
+          onClick={() => rec.de_matricula && navigate(`/perfil/${rec.de_matricula}`)}
+          className="shrink-0 tap"
+          aria-label={`Perfil de ${rec.de_nome}`}
+        >
+          <Avatar name={rec.de_nome || '—'} src={rec.de_avatar} size={30} />
+        </button>
+        <div className="min-w-0 flex-1 text-xs leading-snug">
+          <button
+            onClick={() => rec.de_matricula && navigate(`/perfil/${rec.de_matricula}`)}
+            className="font-semibold tap"
+          >
+            {soPrimeiro(rec.de_nome)}
+          </button>
+          <span className="text-muted"> reconheceu </span>
+          <button
+            onClick={() => rec.para_matricula && navigate(`/perfil/${rec.para_matricula}`)}
+            className="font-semibold tap"
+          >
+            {soPrimeiro(rec.para_nome)}
+          </button>
+          <span className="text-muted"> por </span>
+          <span className="font-semibold">{rotuloMotivo(rec.motivo, motivos)}</span>
+          {rec.mensagem && <span className="text-muted"> — “{rec.mensagem}”</span>}
+          <div className="mt-0.5 text-[10px] text-muted-2">{tempoRelativo(rec.created_at)}</div>
+        </div>
+        <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-accent-soft text-accent">
+          <Icon size={14} />
+        </span>
+      </div>
     </Card>
   )
 }
@@ -333,6 +376,8 @@ export function Comunidade() {
   const meuAvatar = usuario?.avatarUrl
 
   const [posts, setPosts] = useState([])
+  const [reconhecimentos, setReconhecimentos] = useState([])
+  const [motivos, setMotivos] = useState([])
   const [carregando, setCarregando] = useState(true)
   const [erro, setErro] = useState('')
   const [texto, setTexto] = useState('')
@@ -356,6 +401,15 @@ export function Comunidade() {
   useEffect(() => {
     carregarFeed()
   }, [carregarFeed])
+
+  // Reconhecimentos entram no mesmo feed (intercalados por data). Fonte é a RPC
+  // reconhecimento_feed — read-only, sem curtir/comentar.
+  useEffect(() => {
+    carregarMotivos().then(setMotivos)
+    supabase
+      .rpc('reconhecimento_feed', { p_limite: 50 })
+      .then(({ data }) => setReconhecimentos(data || []))
+  }, [])
 
   function escolherFoto(e) {
     const f = e.target.files?.[0]
@@ -476,6 +530,23 @@ export function Comunidade() {
     if (!error) setPosts((prev) => prev.filter((p) => p.id !== post.id))
   }
 
+  // Feed unificado: posts (com ações) + reconhecimentos (read-only), por data.
+  const feed = useMemo(() => {
+    const recs = (reconhecimentos || []).map((r) => ({
+      kind: 'rec',
+      key: 'rec-' + r.id,
+      created_at: r.created_at,
+      rec: r,
+    }))
+    const ps = (posts || []).map((p) => ({
+      kind: p.tipo === 'resgate' ? 'resgate' : 'post',
+      key: 'post-' + p.id,
+      created_at: p.created_at,
+      post: p,
+    }))
+    return [...ps, ...recs].sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+  }, [posts, reconhecimentos])
+
   return (
     <>
       <Header />
@@ -551,25 +622,27 @@ export function Comunidade() {
           </div>
         )}
 
-        {!carregando && erro && posts.length === 0 && (
+        {!carregando && erro && feed.length === 0 && (
           <div className="rounded-card border border-danger/30 bg-danger/10 px-4 py-3 text-center text-xs font-medium text-danger">
             {erro}
           </div>
         )}
 
-        {!carregando && !erro && posts.length === 0 && (
+        {!carregando && !erro && feed.length === 0 && (
           <div className="py-10 text-center text-sm text-muted">
             Ainda não há publicações. Seja o primeiro a compartilhar! 🎉
           </div>
         )}
 
-        {posts.map((post) =>
-          post.tipo === 'resgate' ? (
-            <ResgateCard key={post.id} post={post} />
+        {feed.map((item) =>
+          item.kind === 'rec' ? (
+            <ReconhecimentoCard key={item.key} rec={item.rec} motivos={motivos} />
+          ) : item.kind === 'resgate' ? (
+            <ResgateCard key={item.key} post={item.post} />
           ) : (
             <PostCard
-              key={post.id}
-              post={post}
+              key={item.key}
+              post={item.post}
               matricula={matricula}
               admin={admin}
               meuNome={meuNome}

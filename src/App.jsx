@@ -28,6 +28,7 @@ import { BuscarPessoas } from './routes/BuscarPessoas.jsx'
 import { Carteira } from './routes/Carteira.jsx'
 import { Radio } from './routes/Radio.jsx'
 import { Compartilhar } from './routes/Compartilhar.jsx'
+import { Reconhecimentos } from './routes/Reconhecimentos.jsx'
 
 // Painel Kanban (Quadros) — carregado sob demanda (poucos têm acesso), pra não
 // pesar o bundle de todo mundo com a lib de drag-and-drop.
@@ -79,6 +80,7 @@ export function App() {
         <Route path="/cardapio" element={<Cardapio />} />
         <Route path="/avaliar" element={<Avaliar />} />
         <Route path="/comunidade" element={<Comunidade />} />
+        <Route path="/reconhecimentos" element={<Reconhecimentos />} />
         <Route path="/governanca" element={<Governanca />} />
         <Route path="/organograma" element={<Organograma />} />
         <Route path="/controle-escala" element={<ControleEscala />} />

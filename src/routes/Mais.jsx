@@ -17,6 +17,7 @@ import {
   CalendarClock,
   Puzzle,
   FileSignature,
+  HeartHandshake,
 } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Section } from '../components/Section.jsx'
@@ -39,6 +40,7 @@ const itens = [
   { to: '/jornada', label: 'Meu perfil', icon: UserRound },
   { to: '/buscar', label: 'Buscar colaborador', icon: Search },
   { to: '/comunicados', label: 'Comunicados', icon: Megaphone },
+  { to: '/reconhecimentos', label: 'Reconhecimentos', icon: HeartHandshake },
   { to: '/ouvidoria', label: 'Ouvidoria', icon: MessageSquareWarning, gov: true },
   { to: '/cardapio', label: 'Cardápio', icon: UtensilsCrossed },
   { to: '/quadros', label: 'Kanban Tatá (beta)', icon: KanbanSquare, quadros: true },

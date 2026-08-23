@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useParams, useNavigate, Navigate } from 'react-router-dom'
-import { ArrowLeft, Loader2, Send, Check, Cake, X } from 'lucide-react'
+import { ArrowLeft, Loader2, Send, Check, Cake, X, HeartHandshake } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Section } from '../components/Section.jsx'
 import { Card } from '../components/Card.jsx'
@@ -9,6 +9,8 @@ import { Avatar } from '../components/Avatar.jsx'
 import { ProgressBar } from '../components/ProgressBar.jsx'
 import { GradeEmblemas } from '../components/GradeEmblemas.jsx'
 import { AnalisesPerfil } from '../components/AnalisesPerfil.jsx'
+import { ReconhecerSheet } from '../components/ReconhecerSheet.jsx'
+import { ReconhecimentoResumo } from '../components/ReconhecimentoResumo.jsx'
 import { avaliarCatalogo } from '../lib/emblemas.js'
 import { signoDe } from '../lib/signo.js'
 import { getSignoVisivel, getDiscVisivel } from '../lib/prefs.js'
@@ -43,6 +45,9 @@ export function Perfil() {
   const [erro, setErro] = useState('')
   const [feito, setFeito] = useState(null) // { pontos } após concluir
   const [zoom, setZoom] = useState(false) // foto ampliada (lightbox)
+  const [reconhecer, setReconhecer] = useState(false) // sheet de reconhecimento
+  const [recFeito, setRecFeito] = useState(null) // { motivoLabel } após reconhecer
+  const [recKey, setRecKey] = useState(0) // bump p/ recarregar o resumo
 
   useEffect(() => {
     if (ehEu) return
@@ -182,6 +187,26 @@ export function Perfil() {
         </div>
       </div>
 
+      {/* Reconhecimento entre pares */}
+      <Section className="reveal mt-5" title="Reconhecimento">
+        <Card>
+          <ReconhecimentoResumo matricula={id} recarregar={recKey} />
+          {recFeito ? (
+            <div className="mt-3 hstack gap-2 rounded-card bg-accent-soft px-3 py-2.5 text-sm font-semibold text-accent">
+              <Check size={16} className="shrink-0" />
+              Você reconheceu {primeiro} por {recFeito.motivoLabel}.
+            </div>
+          ) : (
+            <button
+              onClick={() => setReconhecer(true)}
+              className="btn-primary mt-3 w-full !py-3 text-sm"
+            >
+              <HeartHandshake size={16} /> Reconhecer {primeiro}
+            </button>
+          )}
+        </Card>
+      </Section>
+
       {/* Transferir saldo */}
       <Section className="reveal reveal-1 mt-5" title="Carteira">
         {feito ? (
@@ -294,6 +319,19 @@ export function Perfil() {
           </div>,
           document.body,
         )}
+
+      {reconhecer && (
+        <ReconhecerSheet
+          paraMatricula={id}
+          paraNome={perfil.nome}
+          onClose={() => setReconhecer(false)}
+          onSucesso={({ motivoLabel }) => {
+            setReconhecer(false)
+            setRecFeito({ motivoLabel })
+            setRecKey((k) => k + 1)
+          }}
+        />
+      )}
     </div>
   )
 }
