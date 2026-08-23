@@ -49,18 +49,20 @@ export function ReconhecimentoResumo({ matricula, recarregar, onTotal }) {
         <span className="text-accent">{total}</span>{' '}
         {total === 1 ? 'reconhecimento' : 'reconhecimentos'}
       </div>
-      <div className="mt-2 flex flex-wrap gap-2">
+      {/* Tabelinha: motivo à esquerda, contagem à direita (escala melhor que chips). */}
+      <div className="mt-2 divide-y divide-line overflow-hidden rounded-card border border-line">
         {itens.map(({ slug, n }) => {
           const Icon = iconeMotivo(slug)
           return (
-            <span
-              key={slug}
-              className="hstack gap-1.5 rounded-pill border border-line bg-surface px-3 py-1.5 text-xs font-semibold"
-            >
-              <Icon size={13} className="text-accent" />
-              {rotuloMotivo(slug, motivos)}
-              <span className="text-muted-2">{n}</span>
-            </span>
+            <div key={slug} className="hstack items-center justify-between px-3 py-2">
+              <span className="hstack min-w-0 gap-2 text-sm">
+                <Icon size={14} className="shrink-0 text-accent" />
+                <span className="truncate">{rotuloMotivo(slug, motivos)}</span>
+              </span>
+              <span className="shrink-0 pl-2 text-sm font-semibold tabular-nums text-muted">
+                {n}
+              </span>
+            </div>
           )
         })}
       </div>
