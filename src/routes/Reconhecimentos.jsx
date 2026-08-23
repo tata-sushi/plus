@@ -204,16 +204,16 @@ export function Reconhecimentos() {
 
       {/* Histórico */}
       <Section className="mt-5" title="Histórico">
-        <div className="mb-3 hstack gap-2">
+        <div className="mb-3 flex gap-2">
           {[
-            { id: 'dei', label: 'Que eu reconheci' },
-            { id: 'recebi', label: 'Que eu recebi' },
+            { id: 'dei', label: 'Enviadas' },
+            { id: 'recebi', label: 'Recebidas' },
           ].map((t) => (
             <button
               key={t.id}
               onClick={() => setAba(t.id)}
               className={cn(
-                'rounded-pill border px-3.5 py-2 text-xs font-semibold tap',
+                'flex-1 rounded-pill border px-3.5 py-2.5 text-center text-xs font-semibold tap',
                 aba === t.id
                   ? 'border-accent bg-accent text-black'
                   : 'border-line bg-surface text-muted',

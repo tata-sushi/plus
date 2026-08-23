@@ -104,7 +104,6 @@ function ReconhecimentoCard({ rec, motivos }) {
           </button>
           <span className="text-muted"> por </span>
           <span className="font-semibold">{rotuloMotivo(rec.motivo, motivos)}</span>
-          {rec.mensagem && <span className="text-muted"> — “{rec.mensagem}”</span>}
           <div className="mt-0.5 text-[10px] text-muted-2">{tempoRelativo(rec.created_at)}</div>
         </div>
         <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-accent-soft text-accent">

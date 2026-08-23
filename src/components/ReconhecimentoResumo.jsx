@@ -5,7 +5,7 @@ import { carregarMotivos, iconeMotivo, rotuloMotivo } from '../lib/reconheciment
 // Badges de reconhecimento de um colaborador (RPC reconhecimento_resumo):
 // total + contagem por motivo. `recarregar` (qualquer valor que muda) força
 // refazer a leitura — ex.: logo após reconhecer a pessoa.
-export function ReconhecimentoResumo({ matricula, recarregar }) {
+export function ReconhecimentoResumo({ matricula, recarregar, onTotal }) {
   const [resumo, setResumo] = useState(null) // { total, por_motivo }
   const [motivos, setMotivos] = useState([])
 
@@ -21,11 +21,16 @@ export function ReconhecimentoResumo({ matricula, recarregar }) {
     if (!matricula) return
     let ativo = true
     supabase.rpc('reconhecimento_resumo', { p_matricula: matricula }).then(({ data }) => {
-      if (ativo) setResumo(data?.[0] || data || null)
+      if (!ativo) return
+      const r = data?.[0] || data || null
+      setResumo(r)
+      onTotal?.(Number(r?.total || 0))
     })
     return () => {
       ativo = false
     }
+    // onTotal intencionalmente fora das deps (função do pai; evita reload extra)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [matricula, recarregar])
 
   const total = Number(resumo?.total || 0)
@@ -35,13 +40,8 @@ export function ReconhecimentoResumo({ matricula, recarregar }) {
     .filter((x) => x.n > 0)
     .sort((a, b) => b.n - a.n)
 
-  if (total === 0) {
-    return (
-      <p className="text-xs text-muted">
-        Ainda sem reconhecimentos. Seja o primeiro a reconhecer o trabalho dele(a). 👏
-      </p>
-    )
-  }
+  // Sem reconhecimentos → não renderiza nada (o pai mostra o botão "Reconhecer").
+  if (total === 0) return null
 
   return (
     <div>

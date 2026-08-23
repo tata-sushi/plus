@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useParams, useNavigate, Navigate } from 'react-router-dom'
-import { ArrowLeft, Loader2, Send, Check, Cake, X, HeartHandshake } from 'lucide-react'
+import { ArrowLeft, Loader2, Send, Check, Cake, X, HeartHandshake, Plus } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Section } from '../components/Section.jsx'
 import { Card } from '../components/Card.jsx'
@@ -48,7 +48,7 @@ export function Perfil() {
   const [feito, setFeito] = useState(null) // { pontos } após concluir
   const [zoom, setZoom] = useState(false) // foto ampliada (lightbox)
   const [reconhecer, setReconhecer] = useState(false) // sheet de reconhecimento
-  const [recFeito, setRecFeito] = useState(null) // { motivoLabel } após reconhecer
+  const [recTotal, setRecTotal] = useState(null) // total de reconhecimentos (define layout)
   const [recKey, setRecKey] = useState(0) // bump p/ recarregar o resumo
 
   useEffect(() => {
@@ -99,6 +99,7 @@ export function Perfil() {
   const falta = proximo ? Number(proximo) - Number(perfil.pontos) : 0
   const signo = signoDe(perfil.data_nascimento)
   const emb = avaliarCatalogo(catalogo, perfil)
+  const temRec = (recTotal || 0) > 0
   const aniversario = perfil.data_nascimento
     ? new Date(perfil.data_nascimento + 'T00:00:00').toLocaleDateString('pt-BR', {
         day: '2-digit',
@@ -189,25 +190,34 @@ export function Perfil() {
         </div>
       </div>
 
-      {/* Reconhecimento entre pares (soft-launch: só admin por enquanto) */}
+      {/* Reconhecimento entre pares (soft-launch: só admin por enquanto).
+          Sem reconhecimentos → botão cheio (padrão "Compartilhar pontos").
+          Com reconhecimentos → badges + "+" no canto superior direito. */}
       {podeRec && (
-        <Section className="reveal mt-5" title="Reconhecimento">
-          <Card>
-            <ReconhecimentoResumo matricula={id} recarregar={recKey} />
-            {recFeito ? (
-              <div className="mt-3 hstack gap-2 rounded-card bg-accent-soft px-3 py-2.5 text-sm font-semibold text-accent">
-                <Check size={16} className="shrink-0" />
-                Você reconheceu {primeiro} por {recFeito.motivoLabel}.
-              </div>
-            ) : (
+        <Section
+          className="reveal mt-5"
+          title="Reconhecimento"
+          action={
+            temRec ? (
               <button
                 onClick={() => setReconhecer(true)}
-                className="btn-primary mt-3 w-full !py-3 text-sm"
+                aria-label={`Reconhecer ${primeiro}`}
+                className="grid h-7 w-7 place-items-center rounded-full bg-accent text-black tap"
               >
-                <HeartHandshake size={16} /> Reconhecer {primeiro}
+                <Plus size={16} strokeWidth={2.6} />
               </button>
-            )}
-          </Card>
+            ) : null
+          }
+        >
+          <ReconhecimentoResumo matricula={id} recarregar={recKey} onTotal={setRecTotal} />
+          {!temRec && (
+            <button
+              onClick={() => setReconhecer(true)}
+              className="btn-primary w-full !py-3.5 text-sm"
+            >
+              <HeartHandshake size={16} /> Reconhecer {primeiro}
+            </button>
+          )}
         </Section>
       )}
 
@@ -329,9 +339,8 @@ export function Perfil() {
           paraMatricula={id}
           paraNome={perfil.nome}
           onClose={() => setReconhecer(false)}
-          onSucesso={({ motivoLabel }) => {
+          onSucesso={() => {
             setReconhecer(false)
-            setRecFeito({ motivoLabel })
             setRecKey((k) => k + 1)
           }}
         />
