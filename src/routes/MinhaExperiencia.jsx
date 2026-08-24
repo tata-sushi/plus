@@ -19,11 +19,7 @@ const PERCEPCAO = [
 ]
 
 const tituloAvaliacao = (p) =>
-  p === 1
-    ? 'Avaliação dos primeiros 14 dias'
-    : p === 2
-      ? 'Avaliação dos primeiros 60 dias'
-      : `Avaliação (período ${p})`
+  p === 1 ? 'Avaliação 1º período' : p === 2 ? 'Avaliação 2º período' : `Avaliação ${p}º período`
 
 const introAvaliacao = (p) =>
   p === 2
@@ -431,13 +427,8 @@ export function MinhaExperiencia() {
                     <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-accent-soft text-accent">
                       <ClipboardList size={18} />
                     </span>
-                    <div className="min-w-0 flex-1">
-                      <div className="text-sm font-semibold">
-                        {tituloAvaliacao(pend.periodo)}
-                      </div>
-                      <div className="text-[11px] text-muted">
-                        {pend.dias != null ? `${pend.dias} dias de casa · ` : ''}toque para responder
-                      </div>
+                    <div className="min-w-0 flex-1 text-sm font-semibold">
+                      {tituloAvaliacao(pend.periodo)}
                     </div>
                     <ChevronRight size={16} className="shrink-0 text-carbon" />
                   </button>
@@ -513,10 +504,7 @@ export function MinhaExperiencia() {
                     <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-accent-soft text-accent">
                       <ClipboardList size={18} />
                     </span>
-                    <div className="min-w-0 flex-1">
-                      <div className="text-sm font-semibold">{tituloAvaliacao(p)}</div>
-                      <div className="text-[11px] text-muted">ver as perguntas — não grava</div>
-                    </div>
+                    <div className="min-w-0 flex-1 text-sm font-semibold">{tituloAvaliacao(p)}</div>
                     <ChevronRight size={16} className="shrink-0 text-carbon" />
                   </button>
                 ))}
