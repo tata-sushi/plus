@@ -679,7 +679,9 @@ function CardFace({ card, etiquetaPorId, onOpen, handle, semAcoes }) {
   return (
     <div className={cn('overflow-hidden rounded-xl border border-line bg-surface shadow-sm', card.concluido && 'opacity-70')}>
       {card.capa && (
-        <img src={card.capa} alt="" loading="lazy" className="h-24 w-full border-b border-line object-cover" />
+        <button onClick={onOpen} aria-label="Abrir cartão" className="block w-full tap">
+          <img src={card.capa} alt="" loading="lazy" className="h-24 w-full border-b border-line object-cover" />
+        </button>
       )}
       <div className="hstack items-start gap-1.5 p-2.5">
         {handle}
