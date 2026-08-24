@@ -67,38 +67,13 @@ function LinhaEscala({ item, valor, onEscolher }) {
   )
 }
 
-// Escala de frequência (só a Avaliação de liderança): 3 opções mapeadas em 1/3/5,
-// então o backend continua computando média/faixa em 1..5 sem mudança na base.
-const FREQUENCIA = [
+// Rótulos de frequência da Avaliação de liderança (mesma escala 1..5, só a
+// legenda muda: 1 Raramente · 3 Às vezes · 5 Sempre).
+const FREQUENCIA_LEGENDA = [
   { v: 1, label: 'Raramente' },
   { v: 3, label: 'Às vezes' },
   { v: 5, label: 'Sempre' },
 ]
-
-function LinhaFrequencia({ item, valor, onEscolher }) {
-  return (
-    <div>
-      <p className="text-sm leading-snug">{item.texto}</p>
-      <div className="mt-2 grid grid-cols-3 gap-2">
-        {FREQUENCIA.map(({ v, label }) => (
-          <button
-            key={v}
-            onClick={() => {
-              tapHaptic()
-              onEscolher(item.id, v)
-            }}
-            className={cn(
-              'rounded-xl border px-2 py-2.5 text-xs font-semibold tap',
-              valor === v ? 'border-accent bg-accent text-black' : 'border-line bg-surface text-text',
-            )}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
-    </div>
-  )
-}
 
 export function MinhaExperiencia() {
   const navigate = useNavigate()
@@ -232,11 +207,18 @@ export function MinhaExperiencia() {
             totalmente anônima. Sua liderança não tem acesso às suas respostas.
           </p>
 
-          {/* Como responder */}
-          <div className="mt-3 rounded-card border border-line bg-surface px-3 py-2.5 text-center text-[11px] text-muted">
-            Para cada frase, escolha com que frequência isso acontece com a sua liderança:
-            <b className="text-text"> Raramente</b>, <b className="text-text">Às vezes</b> ou{' '}
-            <b className="text-text">Sempre</b>.
+          {/* Legenda da escala (frequência, 1 a 5) */}
+          <div className="mt-3 rounded-card border border-line bg-surface px-3 py-2 text-center">
+            <div className="text-[11px] font-semibold text-muted">
+              Responda de 1 a 5 com que frequência acontece
+            </div>
+            <div className="mt-1 flex flex-wrap justify-center gap-x-4 gap-y-1 text-[11px] text-muted-2">
+              {FREQUENCIA_LEGENDA.map(({ v, label }) => (
+                <span key={v}>
+                  <b className="text-text">{v}</b> {label}
+                </span>
+              ))}
+            </div>
           </div>
         </div>
 
@@ -244,7 +226,7 @@ export function MinhaExperiencia() {
           <Card>
             <div className="flex flex-col gap-5">
               {escalas.map((item) => (
-                <LinhaFrequencia
+                <LinhaEscala
                   key={item.id}
                   item={item}
                   valor={respostas[item.id]}
