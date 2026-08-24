@@ -18,6 +18,7 @@ import {
   Puzzle,
   FileSignature,
   HeartHandshake,
+  ClipboardList,
 } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Section } from '../components/Section.jsx'
@@ -42,6 +43,7 @@ const itens = [
   { to: '/buscar', label: 'Buscar colaborador', icon: Search },
   { to: '/comunicados', label: 'Comunicados', icon: Megaphone },
   { to: '/reconhecimentos', label: 'Reconhecimentos', icon: HeartHandshake, beta: true },
+  { to: '/minha-experiencia', label: 'Minha Experiência', icon: ClipboardList, exp: true },
   { to: '/ouvidoria', label: 'Ouvidoria', icon: MessageSquareWarning, gov: true },
   { to: '/cardapio', label: 'Cardápio', icon: UtensilsCrossed },
   { to: '/quadros', label: 'Kanban Tatá (beta)', icon: KanbanSquare, quadros: true },
@@ -99,6 +101,7 @@ export function Mais() {
         (!i.quadros || usuario?.podeQuadros) &&
         (!i.escala || usuario?.podeEscala) &&
         (!i.beta || podeVerReconhecimento(usuario)) &&
+        (!i.exp || temExpPendente) &&
         (!i.rhdocs || usuario?.perfil === 'admin' || usuario?.lider),
     )
     .sort((a, b) => a.label.localeCompare(b.label, 'pt', { sensitivity: 'base' }))
@@ -108,6 +111,8 @@ export function Mais() {
   const [erro, setErro] = useState('')
   const [saldo, setSaldo] = useState(null)
   const [progresso, setProgresso] = useState(null)
+  // "Minha Experiência" só aparece quando há autorrelato pendente (14/60 dias).
+  const [temExpPendente, setTemExpPendente] = useState(false)
 
   useEffect(() => {
     let ativo = true
@@ -116,6 +121,9 @@ export function Mais() {
     })
     supabase.rpc('meu_progresso_desafios').then(({ data }) => {
       if (ativo) setProgresso(data?.[0] ?? null)
+    })
+    supabase.rpc('av_experiencia_colab_pendentes').then(({ data }) => {
+      if (ativo) setTemExpPendente((data || []).length > 0)
     })
     return () => {
       ativo = false
