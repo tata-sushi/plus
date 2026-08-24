@@ -63,14 +63,6 @@ function LinhaEscala({ item, valor, onEscolher }) {
   )
 }
 
-// Rótulos de frequência da Avaliação de liderança (mesma escala 1..5, só a
-// legenda muda: 1 Raramente · 3 Às vezes · 5 Sempre).
-const FREQUENCIA_LEGENDA = [
-  { v: 1, label: 'Raramente' },
-  { v: 3, label: 'Às vezes' },
-  { v: 5, label: 'Sempre' },
-]
-
 export function MinhaExperiencia() {
   const navigate = useNavigate()
   const { usuario } = useAuth()
@@ -203,18 +195,13 @@ export function MinhaExperiencia() {
             totalmente anônima. Sua liderança não tem acesso às suas respostas.
           </p>
 
-          {/* Legenda da escala (frequência, 1 a 5) */}
-          <div className="mt-3 rounded-card border border-line bg-surface px-3 py-2 text-center">
-            <div className="text-[11px] font-semibold text-muted">
-              Responda de 1 a 5 com que frequência acontece
-            </div>
-            <div className="mt-1 flex flex-wrap justify-center gap-x-4 gap-y-1 text-[11px] text-muted-2">
-              {FREQUENCIA_LEGENDA.map(({ v, label }) => (
-                <span key={v}>
-                  <b className="text-text">{v}</b> {label}
-                </span>
-              ))}
-            </div>
+          {/* Como responder */}
+          <div className="mt-3 rounded-card border border-line bg-surface px-3.5 py-3 text-[11px] leading-relaxed text-muted">
+            Responda de 1 a 5 com que frequência as situações apresentadas acontecem, onde{' '}
+            <b className="text-text">1</b> representa o nível mais baixo de compatibilidade
+            (Raramente) e <b className="text-text">5</b> o nível mais alto de compatibilidade
+            (Sempre), sendo <b className="text-text">3</b> o meio-termo entre os dois extremos (Às
+            vezes).
           </div>
         </div>
 
@@ -422,10 +409,10 @@ export function MinhaExperiencia() {
                   <button
                     key={pend.periodo}
                     onClick={() => abrir(pend)}
-                    className="card hstack items-center gap-3 p-4 text-left tap"
+                    className="card hstack items-center gap-3 px-4 py-3 text-left tap"
                   >
-                    <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-accent-soft text-accent">
-                      <ClipboardList size={18} />
+                    <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-accent-soft text-accent">
+                      <ClipboardList size={16} />
                     </span>
                     <div className="min-w-0 flex-1 text-sm font-semibold">
                       {tituloAvaliacao(pend.periodo)}
@@ -436,10 +423,10 @@ export function MinhaExperiencia() {
                 {lidPendente && (
                   <button
                     onClick={abrirLid}
-                    className="card hstack items-center gap-3 p-4 text-left tap"
+                    className="card hstack items-center gap-3 px-4 py-3 text-left tap"
                   >
-                    <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-accent-soft text-accent">
-                      <Users size={18} />
+                    <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-accent-soft text-accent">
+                      <Users size={16} />
                     </span>
                     <div className="min-w-0 flex-1">
                       <div className="text-sm font-semibold">Avaliar Liderança</div>
@@ -499,10 +486,10 @@ export function MinhaExperiencia() {
                   <button
                     key={p}
                     onClick={() => abrirPreview(p)}
-                    className="card hstack items-center gap-3 p-4 text-left tap"
+                    className="card hstack items-center gap-3 px-4 py-3 text-left tap"
                   >
-                    <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-accent-soft text-accent">
-                      <ClipboardList size={18} />
+                    <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-accent-soft text-accent">
+                      <ClipboardList size={16} />
                     </span>
                     <div className="min-w-0 flex-1 text-sm font-semibold">{tituloAvaliacao(p)}</div>
                     <ChevronRight size={16} className="shrink-0 text-carbon" />
