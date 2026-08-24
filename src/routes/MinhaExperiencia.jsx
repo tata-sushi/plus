@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowLeft, Loader2, Check, ClipboardList, ChevronRight } from 'lucide-react'
+import { ArrowLeft, Loader2, Check, ClipboardList, ChevronRight, Users } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Section } from '../components/Section.jsx'
 import { Card } from '../components/Card.jsx'
@@ -78,14 +78,20 @@ export function MinhaExperiencia() {
   const [texto, setTexto] = useState('')
   const [enviando, setEnviando] = useState(false)
   const [erro, setErro] = useState('')
+  // Avaliação de liderança (feedback ascendente) — entra na mesma lista "Para responder".
+  const [lid, setLid] = useState(null)
+  const [mantem, setMantem] = useState('')
+  const [melhorar, setMelhorar] = useState('')
 
   const carregar = useCallback(async () => {
-    const [{ data: p }, { data: m }] = await Promise.all([
+    const [{ data: p }, { data: m }, { data: l }] = await Promise.all([
       supabase.rpc('av_experiencia_colab_pendentes'),
       supabase.rpc('av_experiencia_colab_minhas'),
+      supabase.rpc('av_lideranca_pendente'),
     ])
     setPendentes(p || [])
     setMinhas(m || [])
+    setLid(l || { pendente: false })
   }, [])
 
   useEffect(() => {
@@ -136,6 +142,141 @@ export function MinhaExperiencia() {
     setRespondendo(null)
     carregar()
     window.scrollTo(0, 0)
+  }
+
+  // Avaliação de liderança: abre o form do líder-alvo (resolvido no servidor).
+  async function abrirLid() {
+    const { data: form } = await supabase.rpc('av_lideranca_form')
+    if (!form) return
+    setRespostas({})
+    setMantem('')
+    setMelhorar('')
+    setErro('')
+    setRespondendo({ tipo: 'lideranca', form, lider_nome: lid?.lider_nome })
+    window.scrollTo(0, 0)
+  }
+
+  async function enviarLid() {
+    if (!completo || enviando) return
+    tapHaptic()
+    setEnviando(true)
+    setErro('')
+    const { data, error } = await supabase.rpc('av_lideranca_salvar', {
+      p_respostas: respostas, // só as 8 escala (1..5)
+      p_mantem: mantem.trim() || null,
+      p_melhorar: melhorar.trim() || null,
+    })
+    setEnviando(false)
+    if (error || !data) {
+      setErro(error?.message || 'Não foi possível enviar agora. Tente de novo.')
+      return
+    }
+    setRespondendo(null)
+    carregar()
+    window.scrollTo(0, 0)
+  }
+
+  // ---------- FORMULÁRIO: LIDERANÇA (feedback ascendente, anônimo) ----------
+  if (respondendo?.tipo === 'lideranca') {
+    const aMantem = itens.find((i) => i.id === 'mantem')
+    const aMelhorar = itens.find((i) => i.id === 'melhorar')
+    return (
+      <>
+        <Header title="Avaliações" />
+        <div className="px-5 pt-4">
+          <button
+            onClick={() => setRespondendo(null)}
+            className="hstack gap-1 text-sm text-muted tap"
+          >
+            <ArrowLeft size={16} /> Voltar
+          </button>
+        </div>
+
+        <div className="mt-3 px-5">
+          <h2 className="font-display text-base font-bold">Avaliação de liderança</h2>
+          <p className="mt-0.5 text-xs text-muted">
+            Avalie sua liderança
+            {respondendo.lider_nome ? ` — ${respondendo.lider_nome}` : ''}. É totalmente anônimo: quem
+            lidera vê só as médias consolidadas, nunca quem respondeu.
+          </p>
+
+          {/* Legenda da escala */}
+          <div className="mt-3 rounded-card border border-line bg-surface px-3 py-2 text-center">
+            <div className="text-[11px] font-semibold text-muted">Escala</div>
+            <div className="mt-1 flex flex-wrap justify-center gap-x-3 gap-y-1 text-[11px] text-muted-2">
+              {PERCEPCAO.map(({ v, label }) => (
+                <span key={v}>
+                  <b className="text-text">{v}</b> {label}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <Section className="mt-5">
+          <Card>
+            <div className="flex flex-col gap-5">
+              {escalas.map((item) => (
+                <LinhaEscala
+                  key={item.id}
+                  item={item}
+                  valor={respostas[item.id]}
+                  onEscolher={(id, v) => setRespostas((r) => ({ ...r, [id]: v }))}
+                />
+              ))}
+            </div>
+          </Card>
+        </Section>
+
+        <Section className="mt-5" title="Para finalizar">
+          <Card>
+            {aMantem && (
+              <div>
+                <p className="text-sm leading-snug">{aMantem.texto}</p>
+                <textarea
+                  value={mantem}
+                  onChange={(e) => setMantem(e.target.value.slice(0, 1000))}
+                  rows={3}
+                  placeholder="Escreva aqui (opcional)…"
+                  className="mt-2 w-full resize-none rounded-card border border-line bg-surface px-3.5 py-3 text-sm outline-none focus:border-accent"
+                />
+              </div>
+            )}
+            {aMelhorar && (
+              <div className="mt-4">
+                <p className="text-sm leading-snug">{aMelhorar.texto}</p>
+                <textarea
+                  value={melhorar}
+                  onChange={(e) => setMelhorar(e.target.value.slice(0, 1000))}
+                  rows={3}
+                  placeholder="Escreva aqui (opcional)…"
+                  className="mt-2 w-full resize-none rounded-card border border-line bg-surface px-3.5 py-3 text-sm outline-none focus:border-accent"
+                />
+              </div>
+            )}
+          </Card>
+        </Section>
+
+        <div className="mt-5 px-5 pb-28">
+          {erro && <p className="mb-2 text-xs font-medium text-danger">{erro}</p>}
+          <button
+            onClick={enviarLid}
+            disabled={!completo || enviando}
+            className="btn-primary w-full !py-3.5 text-sm disabled:opacity-50"
+          >
+            {enviando ? (
+              <Loader2 size={16} className="animate-spin" />
+            ) : completo ? (
+              <>
+                <Check size={16} /> Enviar avaliação
+              </>
+            ) : (
+              `Responda todas (${respondidas}/${escalas.length})`
+            )}
+          </button>
+        </div>
+      </>
+    )
   }
 
   // ---------- FORMULÁRIO ----------
@@ -244,7 +385,15 @@ export function MinhaExperiencia() {
 
   // ---------- LISTA (pendentes + histórico) ----------
   const carregando = pendentes === null
-  const vazio = !carregando && pendentes.length === 0 && minhas.length === 0 && !ehAdmin
+  const lidPendente = !!lid?.pendente && !lid?.ja_respondeu
+  const lidRespondeu = !!lid?.ja_respondeu
+  const vazio =
+    !carregando &&
+    pendentes.length === 0 &&
+    minhas.length === 0 &&
+    !ehAdmin &&
+    !lidPendente &&
+    !lidRespondeu
 
   return (
     <>
@@ -261,7 +410,7 @@ export function MinhaExperiencia() {
         </div>
       ) : (
         <>
-          {pendentes.length > 0 && (
+          {(pendentes.length > 0 || lidPendente) && (
             <Section className="mt-3" title="Para responder">
               <div className="flex flex-col gap-2">
                 {pendentes.map((pend) => (
@@ -284,11 +433,29 @@ export function MinhaExperiencia() {
                     <ChevronRight size={16} className="shrink-0 text-carbon" />
                   </button>
                 ))}
+                {lidPendente && (
+                  <button
+                    onClick={abrirLid}
+                    className="card hstack items-center gap-3 p-4 text-left tap"
+                  >
+                    <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-accent-soft text-accent">
+                      <Users size={18} />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <div className="text-sm font-semibold">Avaliação de liderança</div>
+                      <div className="text-[11px] text-muted">
+                        {lid?.lider_nome ? `Avalie ${lid.lider_nome} · ` : ''}anônimo · toque para
+                        responder
+                      </div>
+                    </div>
+                    <ChevronRight size={16} className="shrink-0 text-carbon" />
+                  </button>
+                )}
               </div>
             </Section>
           )}
 
-          {minhas.length > 0 && (
+          {(minhas.length > 0 || lidRespondeu) && (
             <Section className="mt-5" title="Respondidas">
               <Card className="!p-0">
                 <div className="divide-y divide-line">
@@ -305,6 +472,15 @@ export function MinhaExperiencia() {
                       </span>
                     </div>
                   ))}
+                  {lidRespondeu && (
+                    <div className="hstack items-center gap-3 px-4 py-3">
+                      <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-accent-soft text-accent">
+                        <Check size={15} />
+                      </span>
+                      <div className="min-w-0 flex-1 text-sm">Avaliação de liderança</div>
+                      <span className="shrink-0 text-[11px] text-muted-2">respondida</span>
+                    </div>
+                  )}
                 </div>
               </Card>
             </Section>

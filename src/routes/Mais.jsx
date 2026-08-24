@@ -100,6 +100,8 @@ export function Mais() {
   const [progresso, setProgresso] = useState(null)
   // "Minha Experiência" só aparece quando há autorrelato pendente (14/60 dias).
   const [temExpPendente, setTemExpPendente] = useState(false)
+  // ...ou quando há avaliação de liderança pendente (feedback ascendente).
+  const [temLidPendente, setTemLidPendente] = useState(false)
 
   // Ouvidoria e Gerenciar atalhos só para quem tem acesso à Governança.
   // Quadros só aparece para quem foi liberado no painel de admin.
@@ -112,7 +114,7 @@ export function Mais() {
         (!i.quadros || usuario?.podeQuadros) &&
         (!i.escala || usuario?.podeEscala) &&
         (!i.beta || podeVerReconhecimento(usuario)) &&
-        (!i.exp || temExpPendente || ehAdmin) &&
+        (!i.exp || temExpPendente || temLidPendente || ehAdmin) &&
         (!i.rhdocs || usuario?.perfil === 'admin' || usuario?.lider),
     )
     .sort((a, b) => a.label.localeCompare(b.label, 'pt', { sensitivity: 'base' }))
@@ -127,6 +129,9 @@ export function Mais() {
     })
     supabase.rpc('av_experiencia_colab_pendentes').then(({ data }) => {
       if (ativo) setTemExpPendente((data || []).length > 0)
+    })
+    supabase.rpc('av_lideranca_pendente').then(({ data }) => {
+      if (ativo) setTemLidPendente(!!data?.pendente && !data?.ja_respondeu)
     })
     return () => {
       ativo = false
