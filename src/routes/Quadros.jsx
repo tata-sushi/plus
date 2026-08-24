@@ -46,6 +46,7 @@ import {
   Paperclip,
   ExternalLink,
   FileText,
+  Image as ImageIcon,
   Pencil,
   Palette,
   KanbanSquare,
@@ -676,8 +677,11 @@ function CardFace({ card, etiquetaPorId, onOpen, handle, semAcoes }) {
   const vencido = card.data_conclusao && card.data_conclusao < hojeISO()
   const temMeta = card.data_conclusao || chk.length > 0 || nCom > 0 || nAnexos > 0 || resp.length > 0
   return (
-    <div className={cn('rounded-xl border border-line bg-surface p-2.5 shadow-sm', card.concluido && 'opacity-70')}>
-      <div className="hstack items-start gap-1.5">
+    <div className={cn('overflow-hidden rounded-xl border border-line bg-surface shadow-sm', card.concluido && 'opacity-70')}>
+      {card.capa && (
+        <img src={card.capa} alt="" loading="lazy" className="h-24 w-full border-b border-line object-cover" />
+      )}
+      <div className="hstack items-start gap-1.5 p-2.5">
         {handle}
         {!semAcoes && ctx?.onConcluir && (!ctx.pontua || ctx.admin) && (
           <button
@@ -1336,6 +1340,26 @@ function CardModal({ estado, card, board, admin, masterAdmin, minhaMat, onClose,
       setAnexando(false)
     }
   }
+  // Colar imagem (Ctrl/Cmd+V) em qualquer lugar do card → vira anexo.
+  async function onPasteCard(e) {
+    if (!existe || anexando || busy) return
+    const itens = e.clipboardData?.items || []
+    for (const it of itens) {
+      if (it.kind === 'file' && (it.type || '').startsWith('image/')) {
+        const blob = it.getAsFile()
+        if (!blob) continue
+        e.preventDefault()
+        const ext = (blob.type.split('/')[1] || 'png').toLowerCase()
+        const nome = blob.name && blob.name.includes('.') ? blob.name : `colado-${card.id.slice(0, 8)}.${ext}`
+        await enviarAnexo(new File([blob], nome, { type: blob.type }))
+        return
+      }
+    }
+  }
+  // Capa do card: usa a URL de um anexo de imagem (ou limpa, se for a mesma).
+  async function definirCapa(url) {
+    await sub('kanban_card_capa_set', { p_card: card.id, p_url: card.capa === url ? '' : url })
+  }
   async function removerAnexo(a) {
     setBusy(true)
     try {
@@ -1455,7 +1479,7 @@ function CardModal({ estado, card, board, admin, masterAdmin, minhaMat, onClose,
           </div>
 
           {/* Corpo rolável */}
-          <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain px-5 py-4">
+          <div onPaste={onPasteCard} className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain px-5 py-4">
             {existe && (
               <div className="grid grid-cols-2 items-start gap-4">
                 <div>
@@ -1691,6 +1715,20 @@ function CardModal({ estado, card, board, admin, masterAdmin, minhaMat, onClose,
                           <div className="truncate text-sm font-semibold">{a.nome}</div>
                           <div className="mt-0.5 text-[11px] text-muted">Adicionado em {fmtQuando(a.created_at)}</div>
                         </a>
+                        {ehImagem(a) && (
+                          <button
+                            onClick={() => definirCapa(a.url)}
+                            disabled={busy}
+                            aria-label={card.capa === a.url ? 'Remover capa' : 'Usar como capa'}
+                            title={card.capa === a.url ? 'Remover capa' : 'Usar como capa'}
+                            className={cn(
+                              'grid h-8 w-8 shrink-0 place-items-center rounded-lg border tap disabled:opacity-40',
+                              card.capa === a.url ? 'border-accent bg-accent text-black' : 'border-line text-muted',
+                            )}
+                          >
+                            <ImageIcon size={14} />
+                          </button>
+                        )}
                         <a
                           href={a.url}
                           target="_blank"
