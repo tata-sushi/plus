@@ -18,7 +18,12 @@ const PERCEPCAO = [
   { v: 5, label: 'Totalmente' },
 ]
 
-const periodoLabel = (p) => (p === 1 ? '14 dias' : p === 2 ? '60 dias' : `período ${p}`)
+const tituloAvaliacao = (p) =>
+  p === 1
+    ? 'Avaliação dos primeiros 14 dias'
+    : p === 2
+      ? 'Avaliação dos primeiros 60 dias'
+      : `Avaliação (período ${p})`
 
 function dataCurta(iso) {
   try {
@@ -33,7 +38,7 @@ function LinhaEscala({ item, valor, onEscolher }) {
   return (
     <div>
       <p className="text-sm leading-snug">{item.texto}</p>
-      <div className="mt-2 grid grid-cols-5 gap-1.5">
+      <div className="mt-2 flex justify-center gap-2">
         {PERCEPCAO.map(({ v }) => (
           <button
             key={v}
@@ -43,7 +48,7 @@ function LinhaEscala({ item, valor, onEscolher }) {
             }}
             aria-label={`${v} · ${PERCEPCAO[v - 1].label}`}
             className={cn(
-              'rounded-xl border py-2.5 text-sm font-bold tap',
+              'h-11 w-11 rounded-xl border text-sm font-bold tap',
               valor === v
                 ? 'border-accent bg-accent text-black'
                 : 'border-line bg-surface text-text',
@@ -104,15 +109,6 @@ export function MinhaExperiencia() {
   const itens = respondendo?.form?.itens || []
   const escalas = useMemo(() => itens.filter((i) => i.tipo === 'escala'), [itens])
   const aberta = useMemo(() => itens.find((i) => i.tipo === 'aberta'), [itens])
-  const grupos = useMemo(() => {
-    const map = new Map()
-    for (const it of escalas) {
-      const d = it.dimensao || '—'
-      if (!map.has(d)) map.set(d, [])
-      map.get(d).push(it)
-    }
-    return [...map.entries()] // [[dimensao, itens], ...]
-  }, [escalas])
 
   const respondidas = escalas.filter((i) => respostas[i.id]).length
   const completo = respondidas === escalas.length && escalas.length > 0
@@ -141,7 +137,7 @@ export function MinhaExperiencia() {
   if (respondendo) {
     return (
       <>
-        <Header title="Minha Experiência" />
+        <Header title="Avaliações" />
         <div className="px-5 pt-4">
           <button
             onClick={() => setRespondendo(null)}
@@ -153,11 +149,12 @@ export function MinhaExperiencia() {
 
         <div className="mt-3 px-5">
           <h2 className="font-display text-base font-bold">
-            Avaliação de {periodoLabel(respondendo.periodo)}
+            {tituloAvaliacao(respondendo.periodo)}
           </h2>
           <p className="mt-0.5 text-xs text-muted">
-            Conta pra gente como está sendo sua experiência. Suas respostas ajudam a melhorar a
-            integração.
+            Esse é seu primeiro contato com nosso sistema de Avaliações &amp; Feedback. Conta pra
+            gente como está sendo sua experiência até aqui. Suas respostas ajudam a melhorar nosso
+            processo de integração.
           </p>
           {respondendo.preview && (
             <div className="mt-2 rounded-card border border-accent/40 bg-accent-soft px-3 py-2 text-xs font-semibold text-accent">
@@ -178,23 +175,21 @@ export function MinhaExperiencia() {
           </div>
         </div>
 
-        {/* Perguntas agrupadas por dimensão */}
-        {grupos.map(([dimensao, lista]) => (
-          <Section key={dimensao} className="mt-5" title={dimensao}>
-            <Card>
-              <div className="flex flex-col gap-5">
-                {lista.map((item) => (
-                  <LinhaEscala
-                    key={item.id}
-                    item={item}
-                    valor={respostas[item.id]}
-                    onEscolher={(id, v) => setRespostas((r) => ({ ...r, [id]: v }))}
-                  />
-                ))}
-              </div>
-            </Card>
-          </Section>
-        ))}
+        {/* Lista de perguntas (sem separar por dimensão) */}
+        <Section className="mt-5">
+          <Card>
+            <div className="flex flex-col gap-5">
+              {escalas.map((item) => (
+                <LinhaEscala
+                  key={item.id}
+                  item={item}
+                  valor={respostas[item.id]}
+                  onEscolher={(id, v) => setRespostas((r) => ({ ...r, [id]: v }))}
+                />
+              ))}
+            </div>
+          </Card>
+        </Section>
 
         {/* Pergunta aberta (60 dias) */}
         {aberta && (
@@ -252,7 +247,7 @@ export function MinhaExperiencia() {
 
   return (
     <>
-      <Header title="Minha Experiência" />
+      <Header title="Avaliações" />
       <div className="px-5 pt-4">
         <button onClick={() => navigate(-1)} className="hstack gap-1 text-sm text-muted tap">
           <ArrowLeft size={16} /> Voltar
@@ -279,7 +274,7 @@ export function MinhaExperiencia() {
                     </span>
                     <div className="min-w-0 flex-1">
                       <div className="text-sm font-semibold">
-                        Avaliação de {periodoLabel(pend.periodo)}
+                        {tituloAvaliacao(pend.periodo)}
                       </div>
                       <div className="text-[11px] text-muted">
                         {pend.dias != null ? `${pend.dias} dias de casa · ` : ''}toque para responder
@@ -302,7 +297,7 @@ export function MinhaExperiencia() {
                         <Check size={15} />
                       </span>
                       <div className="min-w-0 flex-1 text-sm">
-                        Avaliação de {periodoLabel(m.periodo)}
+                        {tituloAvaliacao(m.periodo)}
                       </div>
                       <span className="shrink-0 text-[11px] text-muted-2">
                         {m.enviada_em ? `respondido em ${dataCurta(m.enviada_em)}` : 'respondido'}
@@ -330,7 +325,7 @@ export function MinhaExperiencia() {
                       <ClipboardList size={18} />
                     </span>
                     <div className="min-w-0 flex-1">
-                      <div className="text-sm font-semibold">Formulário de {periodoLabel(p)}</div>
+                      <div className="text-sm font-semibold">{tituloAvaliacao(p)}</div>
                       <div className="text-[11px] text-muted">ver as perguntas — não grava</div>
                     </div>
                     <ChevronRight size={16} className="shrink-0 text-carbon" />

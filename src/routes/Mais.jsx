@@ -43,7 +43,7 @@ const itens = [
   { to: '/buscar', label: 'Buscar colaborador', icon: Search },
   { to: '/comunicados', label: 'Comunicados', icon: Megaphone },
   { to: '/reconhecimentos', label: 'Reconhecimentos', icon: HeartHandshake, beta: true },
-  { to: '/minha-experiencia', label: 'Minha Experiência', icon: ClipboardList, exp: true },
+  { to: '/minha-experiencia', label: 'Avaliações', icon: ClipboardList, exp: true },
   { to: '/ouvidoria', label: 'Ouvidoria', icon: MessageSquareWarning, gov: true },
   { to: '/cardapio', label: 'Cardápio', icon: UtensilsCrossed },
   { to: '/quadros', label: 'Kanban Tatá (beta)', icon: KanbanSquare, quadros: true },
