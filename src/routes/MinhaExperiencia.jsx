@@ -25,6 +25,11 @@ const tituloAvaliacao = (p) =>
       ? 'Avaliação dos primeiros 60 dias'
       : `Avaliação (período ${p})`
 
+const introAvaliacao = (p) =>
+  p === 2
+    ? 'Bem-vindo(a) ao nosso sistema Avaliações & Feedback. Conta pra gente como está sendo sua experiência até aqui.'
+    : 'Esse é seu primeiro contato com nosso sistema de Avaliações & Feedback. Conta pra gente como está sendo sua experiência até aqui. Suas respostas ajudam a melhorar nosso processo de integração.'
+
 function dataCurta(iso) {
   try {
     return new Date(iso).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })
@@ -151,11 +156,7 @@ export function MinhaExperiencia() {
           <h2 className="font-display text-base font-bold">
             {tituloAvaliacao(respondendo.periodo)}
           </h2>
-          <p className="mt-0.5 text-xs text-muted">
-            Esse é seu primeiro contato com nosso sistema de Avaliações &amp; Feedback. Conta pra
-            gente como está sendo sua experiência até aqui. Suas respostas ajudam a melhorar nosso
-            processo de integração.
-          </p>
+          <p className="mt-0.5 text-xs text-muted">{introAvaliacao(respondendo.periodo)}</p>
           {respondendo.preview && (
             <div className="mt-2 rounded-card border border-accent/40 bg-accent-soft px-3 py-2 text-xs font-semibold text-accent">
               Pré-visualização (admin) — nada será gravado.
@@ -163,9 +164,9 @@ export function MinhaExperiencia() {
           )}
 
           {/* Legenda da escala */}
-          <div className="mt-3 rounded-card border border-line bg-surface px-3 py-2">
+          <div className="mt-3 rounded-card border border-line bg-surface px-3 py-2 text-center">
             <div className="text-[11px] font-semibold text-muted">Escala</div>
-            <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-muted-2">
+            <div className="mt-1 flex flex-wrap justify-center gap-x-3 gap-y-1 text-[11px] text-muted-2">
               {PERCEPCAO.map(({ v, label }) => (
                 <span key={v}>
                   <b className="text-text">{v}</b> {label}
