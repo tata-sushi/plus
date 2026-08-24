@@ -5,6 +5,7 @@ import { Header } from '../components/Header.jsx'
 import { Section } from '../components/Section.jsx'
 import { Card } from '../components/Card.jsx'
 import { supabase } from '../lib/supabase.js'
+import { useAuth } from '../lib/AuthContext.jsx'
 import { tapHaptic } from '../lib/haptics.js'
 import { cn } from '../lib/cn'
 
@@ -58,6 +59,8 @@ function LinhaEscala({ item, valor, onEscolher }) {
 
 export function MinhaExperiencia() {
   const navigate = useNavigate()
+  const { usuario } = useAuth()
+  const ehAdmin = (usuario?.perfil || '').toLowerCase() === 'admin'
   const [pendentes, setPendentes] = useState(null) // null = carregando
   const [minhas, setMinhas] = useState([])
   const [respondendo, setRespondendo] = useState(null) // { periodo, form }
@@ -84,6 +87,17 @@ export function MinhaExperiencia() {
     setTexto('')
     setErro('')
     setRespondendo({ periodo: pend.periodo, form: pend.form })
+    window.scrollTo(0, 0)
+  }
+
+  // Pré-visualização (admin): abre o formulário de um período sem gravar nada.
+  async function abrirPreview(periodo) {
+    const { data: form } = await supabase.rpc('av_experiencia_colab_form', { p_periodo: periodo })
+    if (!form) return
+    setRespostas({})
+    setTexto('')
+    setErro('')
+    setRespondendo({ periodo, form, preview: true })
     window.scrollTo(0, 0)
   }
 
@@ -145,6 +159,11 @@ export function MinhaExperiencia() {
             Conta pra gente como está sendo sua experiência. Suas respostas ajudam a melhorar a
             integração.
           </p>
+          {respondendo.preview && (
+            <div className="mt-2 rounded-card border border-accent/40 bg-accent-soft px-3 py-2 text-xs font-semibold text-accent">
+              Pré-visualização (admin) — nada será gravado.
+            </div>
+          )}
 
           {/* Legenda da escala */}
           <div className="mt-3 rounded-card border border-line bg-surface px-3 py-2">
@@ -195,22 +214,33 @@ export function MinhaExperiencia() {
         )}
 
         <div className="mt-5 px-5 pb-28">
-          {erro && <p className="mb-2 text-xs font-medium text-danger">{erro}</p>}
-          <button
-            onClick={enviar}
-            disabled={!completo || enviando}
-            className="btn-primary w-full !py-3.5 text-sm disabled:opacity-50"
-          >
-            {enviando ? (
-              <Loader2 size={16} className="animate-spin" />
-            ) : completo ? (
-              <>
-                <Check size={16} /> Enviar avaliação
-              </>
-            ) : (
-              `Responda todas (${respondidas}/${escalas.length})`
-            )}
-          </button>
+          {respondendo.preview ? (
+            <button
+              onClick={() => setRespondendo(null)}
+              className="btn-ghost w-full !py-3.5 text-sm"
+            >
+              Sair da pré-visualização
+            </button>
+          ) : (
+            <>
+              {erro && <p className="mb-2 text-xs font-medium text-danger">{erro}</p>}
+              <button
+                onClick={enviar}
+                disabled={!completo || enviando}
+                className="btn-primary w-full !py-3.5 text-sm disabled:opacity-50"
+              >
+                {enviando ? (
+                  <Loader2 size={16} className="animate-spin" />
+                ) : completo ? (
+                  <>
+                    <Check size={16} /> Enviar avaliação
+                  </>
+                ) : (
+                  `Responda todas (${respondidas}/${escalas.length})`
+                )}
+              </button>
+            </>
+          )}
         </div>
       </>
     )
@@ -218,7 +248,7 @@ export function MinhaExperiencia() {
 
   // ---------- LISTA (pendentes + histórico) ----------
   const carregando = pendentes === null
-  const vazio = !carregando && pendentes.length === 0 && minhas.length === 0
+  const vazio = !carregando && pendentes.length === 0 && minhas.length === 0 && !ehAdmin
 
   return (
     <>
@@ -281,6 +311,32 @@ export function MinhaExperiencia() {
                   ))}
                 </div>
               </Card>
+            </Section>
+          )}
+
+          {ehAdmin && (
+            <Section className="mt-5" title="Pré-visualização (admin)">
+              <p className="mb-2 text-xs text-muted">
+                Veja os formulários como o colaborador vê. Nada é gravado.
+              </p>
+              <div className="flex flex-col gap-2">
+                {[1, 2].map((p) => (
+                  <button
+                    key={p}
+                    onClick={() => abrirPreview(p)}
+                    className="card hstack items-center gap-3 p-4 text-left tap"
+                  >
+                    <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-accent-soft text-accent">
+                      <ClipboardList size={18} />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <div className="text-sm font-semibold">Formulário de {periodoLabel(p)}</div>
+                      <div className="text-[11px] text-muted">ver as perguntas — não grava</div>
+                    </div>
+                    <ChevronRight size={16} className="shrink-0 text-carbon" />
+                  </button>
+                ))}
+              </div>
             </Section>
           )}
 

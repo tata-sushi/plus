@@ -103,6 +103,8 @@ export function Mais() {
 
   // Ouvidoria e Gerenciar atalhos só para quem tem acesso à Governança.
   // Quadros só aparece para quem foi liberado no painel de admin.
+  // Admin também vê "Minha Experiência" (pré-visualização dos formulários).
+  const ehAdmin = (usuario?.perfil || '').toLowerCase() === 'admin'
   const navItens = itens
     .filter(
       (i) =>
@@ -110,7 +112,7 @@ export function Mais() {
         (!i.quadros || usuario?.podeQuadros) &&
         (!i.escala || usuario?.podeEscala) &&
         (!i.beta || podeVerReconhecimento(usuario)) &&
-        (!i.exp || temExpPendente) &&
+        (!i.exp || temExpPendente || ehAdmin) &&
         (!i.rhdocs || usuario?.perfil === 'admin' || usuario?.lider),
     )
     .sort((a, b) => a.label.localeCompare(b.label, 'pt', { sensitivity: 'base' }))
