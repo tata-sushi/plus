@@ -277,15 +277,15 @@ export function seedDaFase(jogo, fase) {
 // Dificuldade pela fase: cresce o tabuleiro e os pontos.
 //   1–5    Aprendiz  6×6 (bem guiado, ~24/36 reveladas)  · 10 pts
 //   6–20   Aprendiz  6×6 (guiado, ~20/36 reveladas)      · 10 pts
-//   21–50  Afiado    6×6 mínimo                          · 15 pts
+//   21–50  Afiado    6×6 (~12/36 reveladas)              · 15 pts
 //   51–100 Mestre    8×8                                 · 20 pts
 //   101+   Lenda     10×10                               · 25 pts
 export function tierDaFase(fase) {
   // Rampa suave de entrada: as primeiras fases vêm com bem mais âncoras
-  // reveladas pra quem está aprendendo, afrouxando até o mínimo na fase 21.
+  // reveladas pra quem está aprendendo, afrouxando gradualmente.
   if (fase <= 5) return { tamanho: 6, extras: 20, rotulo: 'Aprendiz', pontos: 10 }
   if (fase <= 20) return { tamanho: 6, extras: 16, rotulo: 'Aprendiz', pontos: 10 }
-  if (fase <= 50) return { tamanho: 6, extras: 0, rotulo: 'Afiado', pontos: 15 }
+  if (fase <= 50) return { tamanho: 6, extras: 8, rotulo: 'Afiado', pontos: 15 }
   if (fase <= 100) return { tamanho: 8, extras: 0, rotulo: 'Mestre', pontos: 20 }
   return { tamanho: 10, extras: 0, rotulo: 'Lenda', pontos: 25 }
 }
