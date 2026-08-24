@@ -5,8 +5,6 @@ import { supabase } from '../lib/supabase.js'
 import { tapHaptic } from '../lib/haptics.js'
 import { DISC, ORDEM, dominanteDe } from '../lib/disc.js'
 
-// Desafio DISC no módulo Soft Skill (marca conclusão + 10 pts ao terminar).
-const DISC_TREINO_ID = 'e3df3ef3-790a-45d7-8b49-de2f1d350936'
 // A cada quantos meses o teste reabre (espelha treinamentos.recorrencia_meses no banco).
 const RECORRENCIA_MESES = 12
 
@@ -177,8 +175,8 @@ export function QuestionarioDisc() {
       )
       if (error) throw error
       if (data) {
-        // mostra o resultado na hora; marcar o desafio (pontos) roda em segundo plano
-        supabase.rpc('concluir_treinamento', { p_treino: DISC_TREINO_ID }).catch(() => {})
+        // conclusão do desafio + os 10 pts já são gravados no servidor,
+        // na mesma transação do resultado (responder_perfil_disc).
         setDisponivelEm(proximaEm(new Date()))
         setResultado(data)
         return
