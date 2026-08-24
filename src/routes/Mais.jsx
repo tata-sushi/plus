@@ -92,6 +92,15 @@ export function Mais() {
   const nome = usuario?.nome || 'Colaborador'
   const cargo = usuario?.cargo || ''
   const loja = usuario?.loja || ''
+
+  const inputFoto = useRef(null)
+  const [enviando, setEnviando] = useState(false)
+  const [erro, setErro] = useState('')
+  const [saldo, setSaldo] = useState(null)
+  const [progresso, setProgresso] = useState(null)
+  // "Minha Experiência" só aparece quando há autorrelato pendente (14/60 dias).
+  const [temExpPendente, setTemExpPendente] = useState(false)
+
   // Ouvidoria e Gerenciar atalhos só para quem tem acesso à Governança.
   // Quadros só aparece para quem foi liberado no painel de admin.
   const navItens = itens
@@ -105,14 +114,6 @@ export function Mais() {
         (!i.rhdocs || usuario?.perfil === 'admin' || usuario?.lider),
     )
     .sort((a, b) => a.label.localeCompare(b.label, 'pt', { sensitivity: 'base' }))
-
-  const inputFoto = useRef(null)
-  const [enviando, setEnviando] = useState(false)
-  const [erro, setErro] = useState('')
-  const [saldo, setSaldo] = useState(null)
-  const [progresso, setProgresso] = useState(null)
-  // "Minha Experiência" só aparece quando há autorrelato pendente (14/60 dias).
-  const [temExpPendente, setTemExpPendente] = useState(false)
 
   useEffect(() => {
     let ativo = true
