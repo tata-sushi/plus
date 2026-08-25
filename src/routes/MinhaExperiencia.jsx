@@ -18,7 +18,7 @@ const PERCEPCAO = [
 ]
 
 const tituloAvaliacao = (p) =>
-  p === 1 ? 'Avaliação 1º período' : p === 2 ? 'Avaliação 2º período' : `Avaliação ${p}º período`
+  p === 1 ? 'Avaliar 1º período' : p === 2 ? 'Avaliar 2º período' : `Avaliar ${p}º período`
 
 const introAvaliacao = (p) =>
   p === 2
@@ -277,16 +277,12 @@ export function MinhaExperiencia() {
           </h2>
           <p className="mt-0.5 text-xs text-muted">{introAvaliacao(respondendo.periodo)}</p>
 
-          {/* Legenda da escala */}
-          <div className="mt-3 rounded-card border border-line bg-surface px-3 py-2 text-center">
-            <div className="text-[11px] font-semibold text-muted">Escala</div>
-            <div className="mt-1 flex flex-wrap justify-center gap-x-3 gap-y-1 text-[11px] text-muted-2">
-              {PERCEPCAO.map(({ v, label }) => (
-                <span key={v}>
-                  <b className="text-text">{v}</b> {label}
-                </span>
-              ))}
-            </div>
+          {/* Como responder */}
+          <div className="mt-3 rounded-card border border-line bg-surface px-3.5 py-3 text-[11px] leading-relaxed text-muted">
+            Responda de 1 a 5, onde <b className="text-text">1</b> representa o nível mais baixo de
+            compatibilidade (Muito pouco) e <b className="text-text">5</b> o nível mais alto de
+            compatibilidade (Bastante), sendo <b className="text-text">3</b> o meio-termo entre os
+            dois extremos (Moderado).
           </div>
         </div>
 
