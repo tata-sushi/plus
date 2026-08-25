@@ -43,7 +43,7 @@ const itens = [
   { to: '/buscar', label: 'Buscar colaborador', icon: Search },
   { to: '/comunicados', label: 'Comunicados', icon: Megaphone },
   { to: '/reconhecimentos', label: 'Reconhecimentos', icon: HeartHandshake, beta: true },
-  { to: '/minha-experiencia', label: 'Avaliações', icon: ClipboardList, exp: true },
+  { to: '/minha-experiencia', label: 'Avaliações', icon: ClipboardList },
   { to: '/ouvidoria', label: 'Ouvidoria', icon: MessageSquareWarning, gov: true },
   { to: '/cardapio', label: 'Cardápio', icon: UtensilsCrossed },
   { to: '/quadros', label: 'Kanban Tatá (beta)', icon: KanbanSquare, quadros: true },
@@ -98,10 +98,6 @@ export function Mais() {
   const [erro, setErro] = useState('')
   const [saldo, setSaldo] = useState(null)
   const [progresso, setProgresso] = useState(null)
-  // "Minha Experiência" só aparece quando há autorrelato pendente (14/60 dias).
-  const [temExpPendente, setTemExpPendente] = useState(false)
-  // ...ou quando há avaliação de liderança pendente (feedback ascendente).
-  const [temLidPendente, setTemLidPendente] = useState(false)
 
   // Ouvidoria e Gerenciar atalhos só para quem tem acesso à Governança.
   // Quadros só aparece para quem foi liberado no painel de admin.
@@ -112,7 +108,6 @@ export function Mais() {
         (!i.quadros || usuario?.podeQuadros) &&
         (!i.escala || usuario?.podeEscala) &&
         (!i.beta || podeVerReconhecimento(usuario)) &&
-        (!i.exp || temExpPendente || temLidPendente) &&
         (!i.rhdocs || usuario?.perfil === 'admin' || usuario?.lider),
     )
     .sort((a, b) => a.label.localeCompare(b.label, 'pt', { sensitivity: 'base' }))
@@ -124,12 +119,6 @@ export function Mais() {
     })
     supabase.rpc('meu_progresso_desafios').then(({ data }) => {
       if (ativo) setProgresso(data?.[0] ?? null)
-    })
-    supabase.rpc('av_experiencia_colab_pendentes').then(({ data }) => {
-      if (ativo) setTemExpPendente((data || []).length > 0)
-    })
-    supabase.rpc('av_lideranca_pendente').then(({ data }) => {
-      if (ativo) setTemLidPendente(!!data?.pendente && !data?.ja_respondeu)
     })
     return () => {
       ativo = false

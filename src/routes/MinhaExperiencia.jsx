@@ -443,8 +443,7 @@ export function MinhaExperiencia() {
 
           {vazio && (
             <div className="px-8 py-16 text-center text-sm text-muted">
-              Nenhuma avaliação de experiência no momento. Elas aparecem aqui aos 14 e 60 dias de
-              casa. 🌱
+              Nenhuma avaliação pendente no momento. 🌱
             </div>
           )}
         </>
