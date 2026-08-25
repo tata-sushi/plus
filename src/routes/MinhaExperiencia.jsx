@@ -22,7 +22,7 @@ const tituloAvaliacao = (p) =>
 
 const introAvaliacao = (p) =>
   p === 2
-    ? 'Bem-vindo(a) ao nosso sistema Avaliações & Feedback. Conta pra gente como está sendo sua experiência até aqui.'
+    ? 'Bem-vindo(a) novamente ao nosso sistema Avaliações & Feedback. Conta pra gente como está sendo seu 2º período de experiência.'
     : 'Esse é seu primeiro contato com nosso sistema de Avaliações & Feedback. Conta pra gente como está sendo sua experiência até aqui. Suas respostas ajudam a melhorar nosso processo de integração.'
 
 function dataCurta(iso) {
