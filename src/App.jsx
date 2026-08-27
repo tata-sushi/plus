@@ -40,6 +40,8 @@ const Escala = lazy(() => import('./routes/Escala.jsx'))
 const Limpeza = lazy(() => import('./routes/Limpeza.jsx'))
 // Desafio do dia (Tatá Tango) — jogo diário, carregado sob demanda.
 const Jogo = lazy(() => import('./routes/Jogo.jsx'))
+// Rota do Sushi — segundo jogo diário (estilo Zip), carregado sob demanda.
+const RotaSushi = lazy(() => import('./routes/RotaSushi.jsx'))
 // Assinaturas — documentos para o colaborador ler e assinar, carregado sob demanda.
 const Documentos = lazy(() => import('./routes/Documentos.jsx'))
 // Comprovante imprimível de uma assinatura, carregado sob demanda.
@@ -121,6 +123,16 @@ export function App() {
             <ErroBoundary>
               <Suspense fallback={<Splash />}>
                 <Jogo />
+              </Suspense>
+            </ErroBoundary>
+          }
+        />
+        <Route
+          path="/rota-sushi"
+          element={
+            <ErroBoundary>
+              <Suspense fallback={<Splash />}>
+                <RotaSushi />
               </Suspense>
             </ErroBoundary>
           }
