@@ -255,7 +255,7 @@ export function RotaSushi() {
               onPointerCancel={onUp}
               className="relative aspect-square w-full touch-none select-none"
             >
-              <div className="absolute inset-0 grid" style={{ gridTemplateColumns: `repeat(${cols}, 1fr)` }}>
+              <div className="absolute inset-0 grid" style={{ gridTemplateColumns: `repeat(${cols}, 1fr)`, gridTemplateRows: `repeat(${rows}, 1fr)` }}>
                 {Array.from({ length: n }, (_, cell) => (
                   <div key={cell} className="rounded-[3px] border-[0.5px] border-line/50" />
                 ))}
@@ -275,7 +275,7 @@ export function RotaSushi() {
               </svg>
               <div
                 className="pointer-events-none absolute inset-0 grid"
-                style={{ gridTemplateColumns: `repeat(${cols}, 1fr)` }}
+                style={{ gridTemplateColumns: `repeat(${cols}, 1fr)`, gridTemplateRows: `repeat(${rows}, 1fr)` }}
               >
                 {Array.from({ length: n }, (_, cell) => {
                   const num = puzzle.numeros[cell]
