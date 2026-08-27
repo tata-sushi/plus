@@ -297,7 +297,7 @@ export function RotaSushi() {
               </div>
               <div className="min-w-0">
                 <div className="font-display text-base font-bold text-accent-ink">
-                  {ganhouAgora ? 'Rota entregue! 🍣' : 'Rota de hoje concluída'}
+                  {ganhouAgora ? 'Rota entregue!' : 'Rota de hoje concluída'}
                 </div>
                 <div className="text-sm text-muted">
                   {preview ? 'Prévia · não pontua' : 'Volte amanhã'}
