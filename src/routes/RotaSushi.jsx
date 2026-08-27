@@ -30,7 +30,6 @@ export function RotaSushi() {
   const [caminho, setCaminho] = useState([]) // células na ordem desenhada
   const [resolvido, setResolvido] = useState(false)
   const [ganhouAgora, setGanhouAgora] = useState(false)
-  const [pontosGanhos, setPontosGanhos] = useState(0)
   const [segundos, setSegundos] = useState(0)
   const [ajudaAberta, setAjudaAberta] = useState(false)
   const [intro, setIntro] = useState(false)
@@ -124,10 +123,7 @@ export function RotaSushi() {
     enviando.current = true
     const { data } = await supabase.rpc('jogo_concluir', { p_jogo: JOGO, p_fase: fase, p_tempo_seg: tempo })
     enviando.current = false
-    if (data?.ok) {
-      setPontosGanhos(data.pontos_ganhos || 0)
-      setEstado((e) => ({ ...e, ...data }))
-    }
+    if (data?.ok) setEstado((e) => ({ ...e, ...data }))
     void cam
   }
 
@@ -304,15 +300,7 @@ export function RotaSushi() {
                   {ganhouAgora ? 'Rota entregue! 🍣' : 'Rota de hoje concluída'}
                 </div>
                 <div className="text-sm text-muted">
-                  {preview ? (
-                    'Prévia · não pontua'
-                  ) : ganhouAgora && pontosGanhos > 0 ? (
-                    <>
-                      <b className="text-text">+{pontosGanhos}</b> pontos · Volte amanhã
-                    </>
-                  ) : (
-                    'Volte amanhã'
-                  )}
+                  {preview ? 'Prévia · não pontua' : 'Volte amanhã'}
                 </div>
               </div>
             </div>

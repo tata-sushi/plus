@@ -16,7 +16,6 @@ import {
   KanbanSquare,
   CalendarClock,
   Puzzle,
-  Route,
   FileSignature,
   HeartHandshake,
   ClipboardList,
@@ -50,8 +49,7 @@ const itens = [
   { to: '/quadros', label: 'Kanban Tatá (beta)', icon: KanbanSquare, quadros: true },
   { to: '/escala', label: 'Agenda', icon: CalendarClock, escala: true },
   { to: '/documentos', label: 'Assinaturas', icon: FileSignature },
-  { to: '/jogo', label: 'Passatempos', icon: Puzzle, jogo: true },
-  { to: '/rota-sushi', label: 'Rota do Sushi', icon: Route },
+  { to: '/passatempos', label: 'Passatempos', icon: Puzzle, jogo: true },
   { to: '/manutencao', label: 'Painel de Ajustes', icon: Wrench },
   { to: '/atalhos-governanca', label: 'Atalhos', icon: Pin, gov: true },
 ]

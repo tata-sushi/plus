@@ -1,0 +1,82 @@
+import { useEffect, useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import { ArrowLeft, ChevronRight, Flame, Grid3x3, Route } from 'lucide-react'
+import { Header } from '../components/Header.jsx'
+import { supabase } from '../lib/supabase.js'
+import { tapHaptic } from '../lib/haptics.js'
+
+// Hub dos jogos diários. Cada card leva ao jogo e mostra a ofensiva atual.
+const JOGOS = [
+  { to: '/jogo', jogo: 'tatatango', nome: 'Tatá Tango', desc: 'Lógica diária com 🍙 e 🍣', icon: Grid3x3 },
+  { to: '/rota-sushi', jogo: 'rotasushi', nome: 'Rota do Sushi', desc: 'Trace a rota da entrega', icon: Route },
+]
+
+export function Passatempos() {
+  const navigate = useNavigate()
+  const [estados, setEstados] = useState({})
+
+  useEffect(() => {
+    let ativo = true
+    JOGOS.forEach((j) =>
+      supabase.rpc('jogo_estado', { p_jogo: j.jogo }).then(({ data }) => {
+        if (ativo) setEstados((e) => ({ ...e, [j.jogo]: data }))
+      }),
+    )
+    return () => {
+      ativo = false
+    }
+  }, [])
+
+  return (
+    <div className="min-h-[100dvh] bg-bg">
+      <Header />
+      <div className="px-5 pt-2">
+        <button
+          onClick={() => {
+            tapHaptic()
+            navigate(-1)
+          }}
+          className="hstack gap-1 text-sm font-medium text-muted tap"
+        >
+          <ArrowLeft size={16} /> Voltar
+        </button>
+      </div>
+
+      <div className="mx-auto w-full max-w-[420px] px-5 pt-4">
+        <div className="mb-5 text-center">
+          <div className="font-display text-[19px] font-bold leading-tight">Passatempos</div>
+          <div className="mt-1 text-xs text-muted">Um desafio novo por dia · mantenha a ofensiva 🔥</div>
+        </div>
+
+        <div className="flex flex-col gap-3">
+          {JOGOS.map((j) => {
+            const est = estados[j.jogo]
+            const Icon = j.icon
+            return (
+              <Link key={j.to} to={j.to} className="card hstack items-center gap-3 p-4 tap">
+                <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-accent-soft text-accent">
+                  <Icon size={22} />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <div className="font-display text-base font-bold">{j.nome}</div>
+                  <div className="truncate text-xs text-muted">{j.desc}</div>
+                </div>
+                <div className="shrink-0 text-right">
+                  {est?.jogou_hoje ? (
+                    <span className="text-[11px] font-semibold text-accent">✓ hoje</span>
+                  ) : (
+                    <span className="text-[11px] text-muted-2">jogar</span>
+                  )}
+                  <div className="mt-0.5 hstack justify-end gap-1 text-[11px] text-muted">
+                    <Flame size={12} className="text-accent" /> {est?.streak ?? 0}
+                  </div>
+                </div>
+                <ChevronRight size={16} className="shrink-0 text-carbon" />
+              </Link>
+            )
+          })}
+        </div>
+      </div>
+    </div>
+  )
+}
