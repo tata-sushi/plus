@@ -305,7 +305,7 @@ export function RotaSushi() {
                 </div>
                 <div className="text-sm text-muted">
                   {preview ? (
-                    'Prévia — não pontua'
+                    'Prévia · não pontua'
                   ) : ganhouAgora && pontosGanhos > 0 ? (
                     <>
                       <b className="text-text">+{pontosGanhos}</b> pontos · Volte amanhã
@@ -344,7 +344,7 @@ function FolhaAjuda({ onClose }) {
         </p>
         <ul className="mt-3 flex flex-col gap-2 text-sm leading-relaxed text-muted">
           <li>• Comece no <b className="text-text">1</b> e passe pelos números <b className="text-text">em ordem</b> (1→2→3…).</li>
-          <li>• <b className="text-text">Preencha todas as casas</b> — cada uma uma vez só.</li>
+          <li>• <b className="text-text">Preencha todas as casas</b>, cada uma uma vez só.</li>
           <li>• Toque num ponto do traço pra <b className="text-text">voltar</b> até ali.</li>
           <li>• 1 fase por dia · tempo cronometrado.</li>
         </ul>

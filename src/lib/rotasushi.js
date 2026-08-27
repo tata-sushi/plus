@@ -51,14 +51,15 @@ export function seedDaFase(jogo, fase) {
   return h >>> 0
 }
 
-// Dificuldade pela fase: cresce o tabuleiro; "extras" revela checkpoints além
-// do mínimo (mais guiado = mais fácil) nas primeiras fases.
-//   1–5    5×5  (bem guiado)
-//   6–30   6×6
-//   31+    6×6  (menos checkpoints — só o mínimo pra ser único)
+// Dificuldade pela fase (tabuleiro fixo 6×6 = 36 casas; 7×7 fica lento demais
+// pra gerar no celular). "extras" revela checkpoints além do mínimo (mais
+// guiado = mais fácil) nas primeiras fases.
+//   1–10   6×6 bem guiado
+//   11–40  6×6 guiado
+//   41+    6×6 mínimo (só o necessário pra solução única)
 export function tierDaFase(fase) {
-  if (fase <= 5) return { rows: 5, cols: 5, extras: 4 }
-  if (fase <= 30) return { rows: 6, cols: 6, extras: 2 }
+  if (fase <= 10) return { rows: 6, cols: 6, extras: 3 }
+  if (fase <= 40) return { rows: 6, cols: 6, extras: 1 }
   return { rows: 6, cols: 6, extras: 0 }
 }
 
