@@ -245,49 +245,51 @@ export function RotaSushi() {
             </span>
           </div>
 
-          {/* tabuleiro */}
-          <div
-            ref={gridRef}
-            onPointerDown={onDown}
-            onPointerMove={onMove}
-            onPointerUp={onUp}
-            onPointerCancel={onUp}
-            className="relative aspect-square w-full touch-none select-none overflow-hidden rounded-xl border border-line bg-surface"
-          >
-            <div className="absolute inset-0 grid" style={{ gridTemplateColumns: `repeat(${cols}, 1fr)` }}>
-              {Array.from({ length: n }, (_, cell) => (
-                <div key={cell} className="border-[0.5px] border-line/60" />
-              ))}
-            </div>
-            <svg viewBox={`0 0 ${cols} ${rows}`} className="pointer-events-none absolute inset-0 h-full w-full">
-              {caminho.length > 1 && (
-                <polyline
-                  points={caminho.map((c) => `${(c % cols) + 0.5},${((c / cols) | 0) + 0.5}`).join(' ')}
-                  fill="none"
-                  stroke="currentColor"
-                  className="text-accent"
-                  strokeWidth="0.62"
-                  strokeLinejoin="round"
-                  strokeLinecap="round"
-                />
-              )}
-            </svg>
+          {/* tabuleiro — respiro interno (padding) pra o traço não encostar na borda */}
+          <div className="rounded-2xl border border-line bg-surface p-3.5">
             <div
-              className="pointer-events-none absolute inset-0 grid"
-              style={{ gridTemplateColumns: `repeat(${cols}, 1fr)` }}
+              ref={gridRef}
+              onPointerDown={onDown}
+              onPointerMove={onMove}
+              onPointerUp={onUp}
+              onPointerCancel={onUp}
+              className="relative aspect-square w-full touch-none select-none"
             >
-              {Array.from({ length: n }, (_, cell) => {
-                const num = puzzle.numeros[cell]
-                return (
-                  <div key={cell} className="grid place-items-center">
-                    {num != null && (
-                      <span className="grid aspect-square w-[62%] place-items-center rounded-full bg-[#1f2024] text-[clamp(10px,3.4vw,17px)] font-bold text-white shadow">
-                        {num}
-                      </span>
-                    )}
-                  </div>
-                )
-              })}
+              <div className="absolute inset-0 grid" style={{ gridTemplateColumns: `repeat(${cols}, 1fr)` }}>
+                {Array.from({ length: n }, (_, cell) => (
+                  <div key={cell} className="rounded-[3px] border-[0.5px] border-line/50" />
+                ))}
+              </div>
+              <svg viewBox={`0 0 ${cols} ${rows}`} className="pointer-events-none absolute inset-0 h-full w-full">
+                {caminho.length > 1 && (
+                  <polyline
+                    points={caminho.map((c) => `${(c % cols) + 0.5},${((c / cols) | 0) + 0.5}`).join(' ')}
+                    fill="none"
+                    stroke="currentColor"
+                    className="text-accent"
+                    strokeWidth="0.48"
+                    strokeLinejoin="round"
+                    strokeLinecap="round"
+                  />
+                )}
+              </svg>
+              <div
+                className="pointer-events-none absolute inset-0 grid"
+                style={{ gridTemplateColumns: `repeat(${cols}, 1fr)` }}
+              >
+                {Array.from({ length: n }, (_, cell) => {
+                  const num = puzzle.numeros[cell]
+                  return (
+                    <div key={cell} className="grid place-items-center">
+                      {num != null && (
+                        <span className="grid aspect-square w-[54%] place-items-center rounded-full bg-[#1f2024] text-[clamp(9px,3vw,15px)] font-bold text-white shadow">
+                          {num}
+                        </span>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
             </div>
           </div>
 
