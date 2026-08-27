@@ -218,7 +218,7 @@ export function Home() {
     recompensas,
     organograma,
     { to: '/radio', badgeIcon: RadioIcon, title: 'Rádio Tatá', subtitle: 'Playlist do time' },
-    { to: '/jogo', badgeIcon: Puzzle, title: 'Passatempos', subtitle: 'Jogue e pontue' },
+    { to: '/passatempos', badgeIcon: Puzzle, title: 'Passatempos', subtitle: 'Jogue e pontue' },
   ]
   const desktop = useDesktop()
   const { setCanvas } = useDesktopCanvas()
