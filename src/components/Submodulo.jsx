@@ -69,10 +69,10 @@ const COMO_FUNCIONA = {
     <p><strong>Critérios de elegibilidade</strong></p>
     <p>Para participar do benefício, o colaborador deve ter, no mínimo, <strong>6 meses de empresa</strong>.</p>
     <p><strong>Programação</strong></p>
-    <p>O programa terá início em 2026, com o reconhecimento dos colaboradores nos níveis correspondentes.</p>
+    <p>O programa teve início em <strong>1º de agosto de 2026</strong>, com o reconhecimento dos colaboradores nos níveis correspondentes.</p>
     <p><strong>Contagem a partir da implantação</strong></p>
-    <p>A premiação por tempo de casa passa a contar a partir da data de implantação do programa.</p>
-    <p>Os períodos anteriores não serão considerados de forma retroativa.</p>
+    <p>A premiação por tempo de casa passa a contar a partir da data de implantação do programa: <strong>1º de agosto de 2026</strong>.</p>
+    <p>Quem completou o marco antes dessa data não recebe de forma retroativa. A partir de 1º de agosto de 2026, cada tempo de casa alcançado já entra com o benefício correspondente.</p>
   `,
   'Indicação Premiada': `
     <p>Você já conhece o nosso programa de <strong>Indicação Premiada</strong>, no qual a sua contribuição pode valer muito mais do que você imagina?</p>
