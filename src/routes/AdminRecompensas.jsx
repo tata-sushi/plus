@@ -20,6 +20,7 @@ import {
   ChevronRight,
   Gift,
   ShoppingBag,
+  Store,
   FileCheck2,
   Trophy,
   Megaphone,
@@ -43,6 +44,7 @@ import { AdminGovernanca } from '../components/AdminGovernanca.jsx'
 import { AdminDesafios } from '../components/AdminDesafios.jsx'
 import { AdminBanheiros } from '../components/AdminBanheiros.jsx'
 import { AdminPodcast } from '../components/AdminPodcast.jsx'
+import { AdminLojinha } from '../components/AdminLojinha.jsx'
 import { cn } from '../lib/cn'
 import { tapHaptic } from '../lib/haptics.js'
 import { useAuth } from '../lib/AuthContext.jsx'
@@ -54,6 +56,7 @@ const TAM_MAX = 15 * 1024 * 1024 // 15 MB
 // Título mostrado na barra de volta ao abrir cada seção do painel.
 const TITULOS = {
   catalogo: 'Recompensas',
+  lojinha: 'Lojinha',
   pedidos: 'Pedidos',
   envios: 'Envios',
   conquistas: 'Conquistas',
@@ -478,6 +481,7 @@ export function AdminRecompensas() {
   // Banheiros só p/ perfil admin.
   const itensMenu = [
     { id: 'catalogo', label: 'Recompensas', icon: Gift },
+    { id: 'lojinha', label: 'Lojinha', icon: Store },
     { id: 'pedidos', label: 'Pedidos', icon: ShoppingBag, badge: pendentes },
     { id: 'envios', label: 'Envios', icon: FileCheck2, badge: enviosPendentes },
     { id: 'conquistas', label: 'Conquistas', icon: Trophy },
@@ -498,7 +502,9 @@ export function AdminRecompensas() {
       ) : (
         <>
           <BackBar titulo={TITULOS[aba]} onVoltar={() => setAba('menu')} />
-          {aba === 'banheiros' ? (
+          {aba === 'lojinha' ? (
+        <AdminLojinha />
+      ) : aba === 'banheiros' ? (
         <AdminBanheiros />
       ) : aba === 'podcast' ? (
         <AdminPodcast />

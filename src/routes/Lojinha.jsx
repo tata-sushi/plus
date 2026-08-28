@@ -358,7 +358,8 @@ export function Lojinha() {
                 {compra.tamanho ? ` · ${compra.tamanho}` : ''}
               </b>
               <br />
-              {fmtBRL(compra.preco_centavos)} serão descontados em folha. Aguarde o recebimento.
+              Você autorizou o desconto em folha do valor de{' '}
+              <b className="text-text">{fmtBRL(compra.preco_centavos)}</b>.
             </p>
             <button
               onClick={() => setCompra(null)}
