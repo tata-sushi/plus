@@ -80,7 +80,7 @@ export function Lojinha() {
       fechar()
       return
     }
-    setAviso({ tipo: 'ok', texto: `Pedido de "${titulo}" registrado! 🎉` })
+    setAviso({ tipo: 'ok', texto: `Pedido de "${titulo}" registrado.` })
     fechar()
     carregar()
   }
