@@ -449,7 +449,7 @@ function FolhaComoJogar({ onClose, primeiro }) {
         <div className="text-center">
           <div className="font-display text-lg font-bold">{primeiro ? 'Bem-vindo ao Termo Tatá!' : 'Como jogar'}</div>
           <p className="mx-auto mt-1.5 max-w-[330px] text-sm leading-relaxed text-muted">
-            Descubra a <b className="text-text">palavra do dia</b> em {TENTATIVAS} tentativas — sempre do mundo do{' '}
+            Descubra a <b className="text-text">palavra do dia</b> em {TENTATIVAS} tentativas, sempre do mundo do{' '}
             <b className="text-text">restaurante</b>. Veja como as cores funcionam:
           </p>
         </div>
@@ -468,7 +468,7 @@ function FolhaComoJogar({ onClose, primeiro }) {
           <li>
             <span className="mr-1.5 inline-block h-3.5 w-3.5 rounded-sm bg-surface-2 align-middle" /> letra <b className="text-text">não</b> está na palavra.
           </li>
-          <li>• Digite <b className="text-text">sem acento</b> — o acento aparece sozinho.</li>
+          <li>• Digite <b className="text-text">sem acento</b>. O acento aparece sozinho.</li>
           <li>• Cada chute precisa ser uma <b className="text-text">palavra de verdade</b>.</li>
           <li>• <b className="text-text">1 palavra por dia</b> · mantenha a ofensiva 🔥.</li>
         </ul>
