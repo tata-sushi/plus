@@ -152,5 +152,5 @@ export function estadosDoTeclado(tentativas, alvo) {
 export const TECLADO = [
   ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'],
   ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'],
-  ['ENTER', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', 'APAGAR'],
+  ['Z', 'X', 'C', 'V', 'B', 'N', 'M', 'APAGAR'],
 ]

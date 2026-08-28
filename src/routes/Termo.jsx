@@ -237,12 +237,10 @@ export function Termo() {
           {/* título */}
           <div className="mb-4 text-center">
             <div className="font-display text-[19px] font-bold leading-tight">Termo Tatá</div>
-            {preview ? (
+            {preview && (
               <div className="mt-1 text-[11px] font-semibold uppercase tracking-wide text-muted-2">
                 Prévia · {display} · não pontua
               </div>
-            ) : (
-              <div className="mt-1 text-xs text-muted">Descubra a palavra do dia</div>
             )}
           </div>
 
@@ -329,22 +327,30 @@ export function Termo() {
               {TECLADO.map((linha, i) => (
                 <div key={i} className="flex justify-center gap-1.5">
                   {linha.map((k) => {
-                    const especial = k === 'ENTER' || k === 'APAGAR'
+                    const especial = k === 'APAGAR'
                     const st = !especial ? estadosTecla[k] : null
                     const cls = st ? CLS_TECLA[st] : 'bg-surface text-text'
                     return (
                       <button
                         key={k}
                         onClick={() => onTecla(k)}
-                        aria-label={k === 'APAGAR' ? 'Apagar' : k === 'ENTER' ? 'Enviar' : k}
-                        className={`grid h-12 place-items-center rounded-md text-sm font-bold uppercase tap ${especial ? 'px-2.5 text-[11px]' : 'flex-1 max-w-[38px]'} ${cls}`}
+                        aria-label={k === 'APAGAR' ? 'Apagar' : k}
+                        className={`grid h-12 place-items-center rounded-md text-sm font-bold uppercase tap ${especial ? 'px-4' : 'flex-1 max-w-[38px]'} ${cls}`}
                       >
-                        {k === 'APAGAR' ? <Delete size={18} /> : k === 'ENTER' ? 'Enviar' : k}
+                        {k === 'APAGAR' ? <Delete size={18} /> : k}
                       </button>
                     )
                   })}
                 </div>
               ))}
+              {/* ENVIAR — linha própria, largura total */}
+              <button
+                onClick={() => onTecla('ENTER')}
+                aria-label="Enviar"
+                className="mt-1 grid h-12 w-full place-items-center rounded-md bg-surface text-sm font-bold uppercase tap"
+              >
+                Enviar
+              </button>
             </div>
           )}
         </div>
