@@ -305,16 +305,12 @@ export function Termo() {
                 <div className="text-sm text-muted">
                   {preview ? (
                     'Prévia · não pontua'
-                  ) : status === 'ganhou' && ganhouAgora && pontosGanhos > 0 ? (
+                  ) : ganhouAgora && pontosGanhos > 0 ? (
                     <>
                       <b className="text-text">+{pontosGanhos}</b> pontos · Volte amanhã
                     </>
-                  ) : status === 'ganhou' ? (
-                    'Volte amanhã'
                   ) : (
-                    <>
-                      A palavra era <b className="text-text">{display}</b> · Volte amanhã
-                    </>
+                    'Volte amanhã'
                   )}
                 </div>
               </div>
