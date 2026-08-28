@@ -43,6 +43,8 @@ const Limpeza = lazy(() => import('./routes/Limpeza.jsx'))
 const Jogo = lazy(() => import('./routes/Jogo.jsx'))
 // Rota do Sushi — segundo jogo diário (estilo Zip), carregado sob demanda.
 const RotaSushi = lazy(() => import('./routes/RotaSushi.jsx'))
+// Termo Tatá — terceiro jogo diário (estilo Termo/Wordle), carregado sob demanda.
+const Termo = lazy(() => import('./routes/Termo.jsx'))
 // Assinaturas — documentos para o colaborador ler e assinar, carregado sob demanda.
 const Documentos = lazy(() => import('./routes/Documentos.jsx'))
 // Comprovante imprimível de uma assinatura, carregado sob demanda.
@@ -135,6 +137,16 @@ export function App() {
             <ErroBoundary>
               <Suspense fallback={<Splash />}>
                 <RotaSushi />
+              </Suspense>
+            </ErroBoundary>
+          }
+        />
+        <Route
+          path="/termo"
+          element={
+            <ErroBoundary>
+              <Suspense fallback={<Splash />}>
+                <Termo />
               </Suspense>
             </ErroBoundary>
           }

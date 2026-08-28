@@ -312,6 +312,16 @@
 }
 .animate-nudge { animation: nudgeX 1.3s ease-in-out infinite; }
 
+/* Tremor da linha ao enviar palavra incompleta/inválida (Termo) */
+@keyframes tremor {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-5px); }
+  40% { transform: translateX(5px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(4px); }
+}
+.animate-tremor { animation: tremor 0.4s ease-in-out; }
+
 /* Celebração de desafio concluído */
 @keyframes popIn {
   0% { transform: scale(0.4); opacity: 0; }
