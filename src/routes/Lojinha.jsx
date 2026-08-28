@@ -32,7 +32,8 @@ export function Lojinha() {
   const [tamanhoSel, setTamanhoSel] = useState(null)
   const [confirmar, setConfirmar] = useState(false) // etapa de autorização
   const [processando, setProcessando] = useState(false)
-  const [aviso, setAviso] = useState(null) // {tipo:'ok'|'erro', texto}
+  const [aviso, setAviso] = useState(null) // erro em banner no topo
+  const [compra, setCompra] = useState(null) // popup de confirmação: {titulo, tamanho, preco_centavos}
 
   const carregar = useCallback(async () => {
     const [p, pe] = await Promise.all([
@@ -69,19 +70,19 @@ export function Lojinha() {
     if (!aberto) return
     tapHaptic()
     setProcessando(true)
+    const info = { titulo: aberto.titulo, tamanho: tamanhoSel, preco_centavos: aberto.preco_centavos }
     const { data, error } = await supabase.rpc('loja_comprar', {
       p_produto: aberto.id,
       p_tamanho: tamanhoSel,
     })
     setProcessando(false)
-    const titulo = aberto.titulo
     if (error || !data?.ok) {
       setAviso({ tipo: 'erro', texto: ERROS[data?.erro] || 'Não foi possível comprar agora.' })
       fechar()
       return
     }
-    setAviso({ tipo: 'ok', texto: `Compra de "${titulo}" realizada. Aguarde recebimento.` })
     fechar()
+    setCompra(info) // popup de confirmação
     carregar()
   }
 
@@ -329,6 +330,38 @@ export function Lojinha() {
                 </button>
               )}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Popup de confirmação da compra */}
+      {compra && (
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-4"
+          onClick={() => setCompra(null)}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="animate-pop w-full max-w-[360px] rounded-card border border-line bg-surface px-6 pb-6 pt-7 text-center"
+          >
+            <div className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-accent text-black">
+              <Check size={34} strokeWidth={3} />
+            </div>
+            <div className="mt-4 font-display text-xl font-bold">Compra realizada!</div>
+            <p className="mx-auto mt-2 max-w-[280px] text-sm leading-relaxed text-muted">
+              <b className="text-text">
+                {compra.titulo}
+                {compra.tamanho ? ` · ${compra.tamanho}` : ''}
+              </b>
+              <br />
+              {fmtBRL(compra.preco_centavos)} serão descontados em folha. Aguarde o recebimento.
+            </p>
+            <button
+              onClick={() => setCompra(null)}
+              className="btn-primary mt-5 w-full !py-3 text-sm font-bold"
+            >
+              Ok
+            </button>
           </div>
         </div>
       )}
