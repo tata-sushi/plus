@@ -237,25 +237,14 @@ export function AdminLojinha() {
           {editando.id ? 'Editar produto' : 'Novo produto'}
         </div>
 
-        <div className="mt-4 grid grid-cols-3 gap-3">
-          <div>
-            <label className={labelCls}>Emoji</label>
-            <input
-              value={editando.emoji}
-              onChange={(e) => setEditando((s) => ({ ...s, emoji: e.target.value }))}
-              placeholder="👕"
-              className={cn(inputCls, 'text-center text-xl')}
-            />
-          </div>
-          <div className="col-span-2">
-            <label className={labelCls}>Título</label>
-            <input
-              value={editando.titulo}
-              onChange={(e) => setEditando((s) => ({ ...s, titulo: e.target.value }))}
-              placeholder="Ex.: Camiseta Tatá"
-              className={inputCls}
-            />
-          </div>
+        <div className="mt-4">
+          <label className={labelCls}>Título</label>
+          <input
+            value={editando.titulo}
+            onChange={(e) => setEditando((s) => ({ ...s, titulo: e.target.value }))}
+            placeholder="Ex.: Camiseta Tatá"
+            className={inputCls}
+          />
         </div>
 
         {/* Fotos do produto (até 2) */}
@@ -447,8 +436,12 @@ export function AdminLojinha() {
                   p.arquivado && 'opacity-50',
                 )}
               >
-                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-accent-soft text-2xl">
-                  {p.emoji || '🛍️'}
+                <span className="grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-xl bg-accent-soft text-accent">
+                  {p.imagem_url ? (
+                    <img src={p.imagem_url} alt="" className="h-full w-full object-cover" />
+                  ) : (
+                    <Package size={18} />
+                  )}
                 </span>
                 <button onClick={() => editar(p)} className="min-w-0 flex-1 text-left tap">
                   <div className="truncate text-sm font-semibold">{p.titulo}</div>

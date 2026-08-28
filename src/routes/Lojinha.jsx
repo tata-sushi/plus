@@ -91,12 +91,6 @@ export function Lojinha() {
     <>
       <Header title="Lojinha" />
 
-      <div className="px-5 pt-1">
-        <p className="text-xs text-muted">
-          Produtos do Tatá com pagamento por <b className="text-text">desconto em folha</b>.
-        </p>
-      </div>
-
       {aviso && (
         <div
           className={cn(
@@ -248,6 +242,9 @@ export function Lojinha() {
               </div>
 
               {aberto.descricao && <p className="mt-2 text-sm text-muted">{aberto.descricao}</p>}
+              <p className="mt-2 text-xs text-muted-2">
+                Pagamento por <b className="text-text">desconto em folha</b>.
+              </p>
 
               {aberto.detalhes && (
                 <div className="mt-4">
