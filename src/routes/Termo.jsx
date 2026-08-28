@@ -95,7 +95,7 @@ export function Termo() {
   // primeiro acesso: boas-vindas uma vez (por aparelho)
   useEffect(() => {
     try {
-      if (!localStorage.getItem('termo.intro.v1')) setIntro(true)
+      if (!localStorage.getItem('termo.intro.v2')) setIntro(true)
     } catch {
       /* ignore */
     }
@@ -203,7 +203,7 @@ export function Termo() {
 
   function fecharIntro() {
     try {
-      localStorage.setItem('termo.intro.v1', '1')
+      localStorage.setItem('termo.intro.v2', '1')
     } catch {
       /* ignore */
     }
@@ -348,72 +348,134 @@ export function Termo() {
         </div>
       )}
 
-      {ajudaAberta && <FolhaAjuda len={LEN} onClose={() => setAjudaAberta(false)} />}
-      {intro && <FolhaIntro onClose={fecharIntro} />}
+      {ajudaAberta && <FolhaComoJogar onClose={() => setAjudaAberta(false)} />}
+      {intro && <FolhaComoJogar primeiro onClose={fecharIntro} />}
     </div>
   )
 }
 
-// Folha "Como jogar" — mesmo padrão dos outros jogos.
-function FolhaAjuda({ len, onClose }) {
+// Simulação animada do jogo: as palavras são "digitadas" letra a letra e os
+// quadradinhos revelam as cores, demonstrando como o Termo funciona. Alvo SUSHI:
+// primeiro um chute com as 3 cores (SAQUE), depois o acerto (SUSHI).
+const DEMO_ALVO = 'SUSHI'
+const DEMO_CHUTES = ['SAQUE', 'SUSHI']
+
+function DemoTermo() {
+  const [linhas, setLinhas] = useState([{ texto: '', estados: null }])
+  const cancel = useRef(false)
+
+  useEffect(() => {
+    cancel.current = false
+    const reduz =
+      typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+    if (reduz) {
+      setLinhas(DEMO_CHUTES.map((p) => ({ texto: p, estados: avalia(p, DEMO_ALVO) })))
+      return
+    }
+    const timers = []
+    const wait = (ms) => new Promise((r) => timers.push(setTimeout(r, ms)))
+    async function run() {
+      while (!cancel.current) {
+        setLinhas([{ texto: '', estados: null }])
+        await wait(700)
+        for (let g = 0; g < DEMO_CHUTES.length && !cancel.current; g++) {
+          const palavra = DEMO_CHUTES[g]
+          for (let i = 1; i <= palavra.length && !cancel.current; i++) {
+            setLinhas((ls) => {
+              const n = ls.slice()
+              n[g] = { texto: palavra.slice(0, i), estados: null }
+              return n
+            })
+            await wait(165)
+          }
+          await wait(340)
+          if (cancel.current) break
+          setLinhas((ls) => {
+            const n = ls.slice()
+            n[g] = { texto: palavra, estados: avalia(palavra, DEMO_ALVO) }
+            return n
+          })
+          if (g < DEMO_CHUTES.length - 1) {
+            await wait(750)
+            setLinhas((ls) => [...ls, { texto: '', estados: null }])
+            await wait(250)
+          } else {
+            await wait(1900)
+          }
+        }
+      }
+    }
+    run()
+    return () => {
+      cancel.current = true
+      timers.forEach(clearTimeout)
+    }
+  }, [])
+
+  return (
+    <div className="flex flex-col items-center gap-1.5">
+      {linhas.map((ln, r) => (
+        <div key={r} className="flex justify-center gap-1.5">
+          {Array.from({ length: DEMO_ALVO.length }, (_, c) => {
+            const letra = ln.texto[c] || ''
+            let cls = 'border-line text-text'
+            if (ln.estados) cls = CLS_TILE[ln.estados[c]]
+            else if (letra) cls = 'border-muted-2/70 text-text'
+            return (
+              <div
+                key={c}
+                style={ln.estados ? { transitionDelay: `${c * 80}ms` } : undefined}
+                className={`grid h-10 w-10 place-items-center rounded-md border-2 text-lg font-bold uppercase transition-colors duration-200 ${cls}`}
+              >
+                {letra}
+              </div>
+            )
+          })}
+        </div>
+      ))}
+    </div>
+  )
+}
+
+// Folha "Como jogar" / boas-vindas — com a simulação animada do jogo.
+function FolhaComoJogar({ onClose, primeiro }) {
   return createPortal(
     <div className="fixed inset-0 z-50 flex flex-col justify-end sm:items-center sm:justify-center" role="dialog" aria-modal="true">
       <button aria-label="Fechar" onClick={onClose} className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
-      <div className="relative max-h-[90dvh] w-full overflow-y-auto overscroll-contain rounded-t-2xl border border-line bg-bg px-5 pb-8 pt-4 shadow-xl sm:max-w-[520px] sm:rounded-2xl">
+      <div className="relative max-h-[90dvh] w-full overflow-y-auto overscroll-contain rounded-t-2xl border border-line bg-bg px-5 pb-8 pt-4 shadow-xl sm:max-w-[440px] sm:rounded-2xl">
         <div className="mx-auto mb-3 h-1 w-9 rounded-full bg-line sm:hidden" />
         <button onClick={onClose} aria-label="Fechar" className="absolute right-4 top-4 grid h-8 w-8 place-items-center rounded-full bg-surface text-muted tap">
           <X size={16} />
         </button>
-        <div className="font-display text-lg font-bold">Como jogar</div>
-        <p className="mt-3 text-sm leading-relaxed text-muted">
-          Descubra a <b className="text-text">palavra do dia</b> em {TENTATIVAS} tentativas. Toda palavra é do universo do{' '}
-          <b className="text-text">restaurante e da culinária oriental</b>.
-        </p>
-        <ul className="mt-3 flex flex-col gap-2 text-sm leading-relaxed text-muted">
-          <li>
-            <span className="mr-1 inline-block h-3 w-3 rounded-sm bg-accent align-middle" /> letra <b className="text-text">certa</b> no lugar certo.
-          </li>
-          <li>
-            <span className="mr-1 inline-block h-3 w-3 rounded-sm bg-warn align-middle" /> letra <b className="text-text">existe</b>, mas em outro lugar.
-          </li>
-          <li>
-            <span className="mr-1 inline-block h-3 w-3 rounded-sm bg-surface-2 align-middle" /> letra <b className="text-text">não</b> está na palavra.
-          </li>
-          <li>• Digite <b className="text-text">sem acento</b> — o jogo revela o acento sozinho.</li>
-          <li>• Cada chute precisa ser uma <b className="text-text">palavra de verdade</b>.</li>
-          <li>• A palavra de hoje tem <b className="text-text">{len} letras</b> · 1 palavra por dia.</li>
-        </ul>
-      </div>
-    </div>,
-    document.body,
-  )
-}
-
-// Boas-vindas — só no primeiro acesso.
-function FolhaIntro({ onClose }) {
-  return createPortal(
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true">
-      <button aria-label="Fechar" onClick={onClose} className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
-      <div className="relative max-h-[86dvh] w-full max-w-[400px] overflow-y-auto overscroll-contain rounded-2xl border border-line bg-bg px-5 pb-6 pt-6 shadow-xl">
         <div className="text-center">
-          <div className="mx-auto mb-3 grid h-14 w-14 place-items-center rounded-2xl bg-accent-soft text-3xl">🍱</div>
-          <div className="font-display text-xl font-bold">Bem-vindo ao Termo Tatá!</div>
-          <p className="mx-auto mt-2 max-w-[340px] text-sm leading-relaxed text-muted">
-            Uma palavra nova <b className="text-text">todo dia</b>, sempre do mundo do restaurante e da culinária oriental.
-            Acerte, mantenha a <b className="text-text">ofensiva 🔥</b>.
+          <div className="font-display text-lg font-bold">{primeiro ? 'Bem-vindo ao Termo Tatá!' : 'Como jogar'}</div>
+          <p className="mx-auto mt-1.5 max-w-[330px] text-sm leading-relaxed text-muted">
+            Descubra a <b className="text-text">palavra do dia</b> em {TENTATIVAS} tentativas — sempre do mundo do{' '}
+            <b className="text-text">restaurante</b>. Veja como as cores funcionam:
           </p>
         </div>
-        <div className="mt-5 rounded-2xl border border-line bg-surface p-4">
-          <div className="text-sm font-bold text-text">Como funciona</div>
-          <ul className="mt-2 flex flex-col gap-1.5 text-sm leading-relaxed text-muted">
-            <li>• Tente adivinhar a palavra em {TENTATIVAS} chances.</li>
-            <li>• As cores mostram o quão perto você está.</li>
-            <li>• Digite <b className="text-text">sem acento</b>.</li>
-            <li>• 1 palavra por dia.</li>
-          </ul>
+
+        <div className="my-4">
+          <DemoTermo />
         </div>
+
+        <ul className="flex flex-col gap-2 text-sm leading-relaxed text-muted">
+          <li>
+            <span className="mr-1.5 inline-block h-3.5 w-3.5 rounded-sm bg-accent align-middle" /> letra <b className="text-text">certa</b>, no lugar certo.
+          </li>
+          <li>
+            <span className="mr-1.5 inline-block h-3.5 w-3.5 rounded-sm bg-warn align-middle" /> letra <b className="text-text">existe</b>, mas em outro lugar.
+          </li>
+          <li>
+            <span className="mr-1.5 inline-block h-3.5 w-3.5 rounded-sm bg-surface-2 align-middle" /> letra <b className="text-text">não</b> está na palavra.
+          </li>
+          <li>• Digite <b className="text-text">sem acento</b> — o acento aparece sozinho.</li>
+          <li>• Cada chute precisa ser uma <b className="text-text">palavra de verdade</b>.</li>
+          <li>• <b className="text-text">1 palavra por dia</b> · mantenha a ofensiva 🔥.</li>
+        </ul>
+
         <button onClick={onClose} className="btn-primary mt-5 w-full !py-3 text-sm font-bold">
-          Bora jogar!
+          {primeiro ? 'Bora jogar!' : 'Entendi'}
         </button>
       </div>
     </div>,
