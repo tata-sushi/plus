@@ -7,6 +7,7 @@ import {
   normaliza,
   avalia,
   estadosDoTeclado,
+  ehPalavraValida,
   hojeSP,
   TENTATIVAS,
   TECLADO,
@@ -149,6 +150,10 @@ export function Termo() {
     if (encerrado) return
     if (atual.length !== LEN) {
       flashAviso(`Complete as ${LEN} letras`)
+      return
+    }
+    if (!preview && !ehPalavraValida(atual)) {
+      flashAviso('Palavra não encontrada')
       return
     }
     const novas = [...tentativas, atual]
@@ -376,6 +381,7 @@ function FolhaAjuda({ len, onClose }) {
             <span className="mr-1 inline-block h-3 w-3 rounded-sm bg-surface-2 align-middle" /> letra <b className="text-text">não</b> está na palavra.
           </li>
           <li>• Digite <b className="text-text">sem acento</b> — o jogo revela o acento sozinho.</li>
+          <li>• Cada chute precisa ser uma <b className="text-text">palavra de verdade</b>.</li>
           <li>• A palavra de hoje tem <b className="text-text">{len} letras</b> · 1 palavra por dia.</li>
         </ul>
       </div>

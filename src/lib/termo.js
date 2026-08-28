@@ -7,10 +7,18 @@
 // ajusta ao tamanho da palavra do dia.
 
 import { hojeSP } from './tatatango.js'
+import PALAVRAS_VALIDAS from './termo-palavras.js'
 
 export { hojeSP }
 
 export const TENTATIVAS = 6
+
+// Dicionário para validar CHUTES (não as respostas): só aceita palavra pt-BR
+// real, do tamanho certo. Construído uma vez quando o chunk do Termo carrega.
+const VALIDAS = new Set(PALAVRAS_VALIDAS.split(' '))
+export function ehPalavraValida(w) {
+  return VALIDAS.has(normaliza(w))
+}
 
 // ── Lista-semente (SUBSTITUÍVEL) ─────────────────────────────────────────────
 // Palavras do universo do restaurante e da culinária oriental. Pode ter acento;
