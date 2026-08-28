@@ -261,32 +261,34 @@ export function Termo() {
             </span>
           </div>
 
-          {/* tabuleiro */}
-          <div className={`flex flex-col items-center gap-1.5 ${tremendo ? 'animate-tremor' : ''}`}>
-            {Array.from({ length: TENTATIVAS }, (_, r) => {
-              const enviada = r < tentativas.length
-              const avaliacao = enviada ? avalia(tentativas[r], alvo) : null
-              const ehAtual = r === tentativaAtualIdx && !encerrado
-              const texto = enviada ? tentativas[r] : ehAtual ? atual : ''
-              return (
-                <div key={r} className="flex w-full justify-center gap-1.5">
-                  {Array.from({ length: LEN }, (_, c) => {
-                    const letra = texto[c] || ''
-                    let cls = 'border-line text-text'
-                    if (enviada) cls = CLS_TILE[avaliacao[c]]
-                    else if (letra) cls = 'border-muted-2/70 text-text'
-                    return (
-                      <div
-                        key={c}
-                        className={`grid aspect-square flex-1 max-w-[52px] place-items-center rounded-md border-2 text-[clamp(16px,6vw,26px)] font-bold uppercase ${cls}`}
-                      >
-                        {letra}
-                      </div>
-                    )
-                  })}
-                </div>
-              )
-            })}
+          {/* tabuleiro — emoldurado no mesmo box do Tango/Rota */}
+          <div className="rounded-2xl border border-line bg-surface p-3.5">
+            <div className={`flex flex-col items-center gap-1.5 ${tremendo ? 'animate-tremor' : ''}`}>
+              {Array.from({ length: TENTATIVAS }, (_, r) => {
+                const enviada = r < tentativas.length
+                const avaliacao = enviada ? avalia(tentativas[r], alvo) : null
+                const ehAtual = r === tentativaAtualIdx && !encerrado
+                const texto = enviada ? tentativas[r] : ehAtual ? atual : ''
+                return (
+                  <div key={r} className="flex w-full justify-center gap-1.5">
+                    {Array.from({ length: LEN }, (_, c) => {
+                      const letra = texto[c] || ''
+                      let cls = 'border-line text-text'
+                      if (enviada) cls = CLS_TILE[avaliacao[c]]
+                      else if (letra) cls = 'border-muted-2/70 text-text'
+                      return (
+                        <div
+                          key={c}
+                          className={`grid aspect-square flex-1 max-w-[52px] place-items-center rounded-md border-2 text-[clamp(16px,6vw,26px)] font-bold uppercase ${cls}`}
+                        >
+                          {letra}
+                        </div>
+                      )
+                    })}
+                  </div>
+                )
+              })}
+            </div>
           </div>
 
           {/* aviso transitório */}
@@ -449,8 +451,8 @@ function FolhaComoJogar({ onClose, primeiro }) {
         <div className="text-center">
           <div className="font-display text-lg font-bold">{primeiro ? 'Bem-vindo ao Termo Tatá!' : 'Como jogar'}</div>
           <p className="mx-auto mt-1.5 max-w-[330px] text-sm leading-relaxed text-muted">
-            Descubra a <b className="text-text">palavra do dia</b> em {TENTATIVAS} tentativas, sempre do mundo do{' '}
-            <b className="text-text">restaurante</b>. Veja como as cores funcionam:
+            Descubra a <b className="text-text">palavra do dia</b> em {TENTATIVAS} tentativas, sempre no mundo do{' '}
+            <b className="text-text">TATÁ</b>. Veja como as cores funcionam:
           </p>
         </div>
 
@@ -470,7 +472,7 @@ function FolhaComoJogar({ onClose, primeiro }) {
           </li>
           <li>• Digite <b className="text-text">sem acento</b>. O acento aparece sozinho.</li>
           <li>• Cada chute precisa ser uma <b className="text-text">palavra de verdade</b>.</li>
-          <li>• <b className="text-text">1 palavra por dia</b> · mantenha a ofensiva 🔥.</li>
+          <li>• Acerte <b className="text-text">uma palavra por dia</b> para manter a ofensiva 🔥.</li>
         </ul>
 
         <button onClick={onClose} className="btn-primary mt-5 w-full !py-3 text-sm font-bold">
