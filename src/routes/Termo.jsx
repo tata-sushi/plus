@@ -52,6 +52,7 @@ export function Termo() {
   const [tremendo, setTremendo] = useState(false)
   const [ajudaAberta, setAjudaAberta] = useState(false)
   const [intro, setIntro] = useState(false)
+  const [popupVitoria, setPopupVitoria] = useState(false)
   const enviando = useRef(false)
 
   // A data vem do SERVIDOR (jogo_estado.hoje) — assim palavra do dia, "jogou
@@ -130,7 +131,12 @@ export function Termo() {
     setStatus(novoStatus)
     salvarProgresso(novasTentativas, novoStatus)
     tapHaptic()
-    if (preview || enviando.current) return
+    // Prévia: mostra o popup de vitória na hora (sem pontos), pra conferência.
+    if (preview) {
+      if (resolvido) setPopupVitoria(true)
+      return
+    }
+    if (enviando.current) return
     enviando.current = true
     const { data } = await supabase.rpc('jogo_concluir', {
       p_jogo: JOGO,
@@ -142,6 +148,7 @@ export function Termo() {
     if (data?.ok) {
       setPontosGanhos(data.pontos_ganhos || 0)
       setEstado((e) => ({ ...e, ...data }))
+      if (resolvido) setPopupVitoria(true) // sobe o popup "Acertou!" + pontos
     }
   }
 
@@ -358,6 +365,9 @@ export function Termo() {
 
       {ajudaAberta && <FolhaComoJogar onClose={() => setAjudaAberta(false)} />}
       {intro && <FolhaComoJogar primeiro onClose={fecharIntro} />}
+      {popupVitoria && (
+        <PopupVitoria pontos={pontosGanhos} streak={estado?.streak || 0} onClose={() => setPopupVitoria(false)} />
+      )}
     </div>
   )
 }
@@ -483,6 +493,38 @@ function FolhaComoJogar({ onClose, primeiro }) {
 
         <button onClick={onClose} className="btn-primary mt-5 w-full !py-3 text-sm font-bold">
           {primeiro ? 'Bora jogar!' : 'Entendi'}
+        </button>
+      </div>
+    </div>,
+    document.body,
+  )
+}
+
+// Popup de vitória — sobe ao acertar a palavra, celebrando o acerto + pontos.
+function PopupVitoria({ pontos, streak, onClose }) {
+  return createPortal(
+    <div className="fixed inset-0 z-[60] flex items-end justify-center p-4 sm:items-center" role="dialog" aria-modal="true">
+      <button aria-label="Fechar" onClick={onClose} className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+      <div className="animate-rise relative w-full max-w-[360px] rounded-2xl border border-accent/40 bg-bg px-6 pb-6 pt-7 text-center shadow-xl">
+        <div className="animate-pop mx-auto grid h-16 w-16 place-items-center rounded-full bg-accent text-black">
+          <Check size={34} strokeWidth={3} />
+        </div>
+        <div className="mt-4 font-display text-2xl font-bold">Acertou!</div>
+        {pontos > 0 && (
+          <div className="mt-2.5 inline-flex items-center gap-1.5 rounded-full bg-accent-soft px-4 py-1.5 text-base font-bold text-accent">
+            +{pontos} pontos
+          </div>
+        )}
+        <p className="mx-auto mt-3 max-w-[280px] text-sm leading-relaxed text-muted">
+          {streak > 1 ? (
+            <>
+              Ofensiva de <b className="text-text">{streak}</b> dias 🔥 ·{' '}
+            </>
+          ) : null}
+          Volte amanhã pra manter a sequência.
+        </p>
+        <button onClick={onClose} className="btn-primary mt-5 w-full !py-3 text-sm font-bold">
+          Boa!
         </button>
       </div>
     </div>,
