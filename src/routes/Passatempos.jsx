@@ -9,7 +9,7 @@ import { tapHaptic } from '../lib/haptics.js'
 const JOGOS = [
   { to: '/jogo', jogo: 'tatatango', nome: 'Tatá Tango', desc: 'Lógica diária com 🍙 e 🍣', icon: Grid3x3 },
   { to: '/rota-sushi', jogo: 'rotasushi', nome: 'Rota do Sushi', desc: 'Trace a rota da entrega', icon: Route },
-  { to: '/termo', jogo: 'termo', nome: 'Termo Tatá', desc: 'Descubra a palavra do dia 🍣', icon: Type },
+  { to: '/termo', jogo: 'termo', nome: 'Termo Tatá', desc: 'Descubra a palavra do dia', icon: Type },
 ]
 
 export function Passatempos() {
