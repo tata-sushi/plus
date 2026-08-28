@@ -445,11 +445,17 @@ export function Submodulo({ nome, itens, onAbrir, admin = false, personalizar = 
                       <Lock size={11} />
                     </span>
                   )}
+                  {/* indisponível (fora do programa para este perfil) → cinza + Ban */}
+                  {est === 'indisponivel' && (
+                    <span className="absolute -right-1.5 -top-1.5 grid h-[18px] w-[18px] place-items-center rounded-full bg-surface-3 text-muted ring-2 ring-surface">
+                      <Ban size={10} />
+                    </span>
+                  )}
                 </span>
                 <span
                   className={cn(
                     'text-center text-[10.5px] font-semibold leading-tight',
-                    est === 'bloqueado' ? 'text-muted-2' : 'text-text',
+                    est === 'bloqueado' || est === 'indisponivel' ? 'text-muted-2' : 'text-text',
                   )}
                 >
                   {tempoLabel(item.tempo_casa_meses)}

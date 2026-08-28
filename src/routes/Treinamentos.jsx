@@ -423,6 +423,17 @@ function Detalhe({
                     </p>
                   </div>
                 )
+              if (est === 'indisponivel')
+                return (
+                  <div className="rounded-card border border-line bg-surface px-4 py-4">
+                    <div className="hstack gap-2 text-sm font-semibold text-muted">
+                      <Ban size={16} /> Não disponível
+                    </div>
+                    <p className="mt-1.5 text-sm leading-snug text-muted">
+                      Este reconhecimento não está disponível para o seu perfil.
+                    </p>
+                  </div>
+                )
               return (
                 <div className="rounded-card border border-line bg-surface px-4 py-4 text-center">
                   <Lock className="mx-auto text-muted-2" size={22} />
