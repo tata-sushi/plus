@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useRef, useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import {
   Target,
   Trophy,
@@ -32,6 +32,12 @@ const TEMPLATES = {
 }
 
 export function DestaqueBanner({ d }) {
+  const navigate = useNavigate()
+  // Toque robusto: dentro do carrossel horizontal, o iOS às vezes trata o toque
+  // no <a> como início de rolagem e o clique nunca dispara — o card "não abre".
+  // Guardamos a posição inicial e, se o dedo quase não moveu, navegamos na mão.
+  const inicioToque = useRef(null)
+  const jaAcionou = useRef(false)
   // Aniversário pode vir com o alinhamento embutido no template:
   //  'aniversario-cd' = texto centralizado à direita (arte com vão à direita);
   //  'aniversario-cc' = texto no centro (arte clara com o miolo livre, ex.: as
@@ -163,12 +169,41 @@ export function DestaqueBanner({ d }) {
     </>
   )
 
+  const destino = d.cta_to || '/'
+  const acionar = () => {
+    // dedupe: pointerup + click podem disparar juntos; navega uma vez só.
+    if (jaAcionou.current) return
+    jaAcionou.current = true
+    setTimeout(() => {
+      jaAcionou.current = false
+    }, 400)
+    if (d.onTap) d.onTap()
+    else navigate(destino)
+  }
+  const aoTocar = {
+    onPointerDown: (e) => {
+      inicioToque.current = { x: e.clientX, y: e.clientY }
+    },
+    onPointerUp: (e) => {
+      const p = inicioToque.current
+      inicioToque.current = null
+      if (!p) return
+      // moveu pouco = toque (não é rolagem do carrossel) → abre
+      if (Math.abs(e.clientX - p.x) < 12 && Math.abs(e.clientY - p.y) < 12) acionar()
+    },
+    onClick: (e) => {
+      // evita a navegação "dura" do <a> (recarga da página) — navega no cliente
+      e.preventDefault()
+      acionar()
+    },
+  }
+
   return d.onTap ? (
-    <button type="button" onClick={d.onTap} className={cls}>
+    <button type="button" className={cls} {...aoTocar}>
       {conteudo}
     </button>
   ) : (
-    <Link to={d.cta_to || '/'} className={cls}>
+    <Link to={destino} className={cls} {...aoTocar}>
       {conteudo}
     </Link>
   )
