@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
-import { ShoppingBag, Loader2, Check, Clock, X, Package } from 'lucide-react'
+import { createPortal } from 'react-dom'
+import { Loader2, Check, Clock, X, Package } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Section } from '../components/Section.jsx'
 import { Card } from '../components/Card.jsx'
@@ -194,11 +195,12 @@ export function Lojinha() {
       )}
 
       {/* Janelinha de detalhes + compra */}
-      {aberto && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
-          onClick={fechar}
-        >
+      {aberto &&
+        createPortal(
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+            onClick={fechar}
+          >
           <div
             onClick={(e) => e.stopPropagation()}
             className="flex max-h-[85dvh] w-full max-w-md flex-col rounded-card border border-line bg-surface"
@@ -331,15 +333,17 @@ export function Lojinha() {
               )}
             </div>
           </div>
-        </div>
-      )}
+        </div>,
+          document.body,
+        )}
 
       {/* Popup de confirmação da compra */}
-      {compra && (
-        <div
-          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-4"
-          onClick={() => setCompra(null)}
-        >
+      {compra &&
+        createPortal(
+          <div
+            className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-4"
+            onClick={() => setCompra(null)}
+          >
           <div
             onClick={(e) => e.stopPropagation()}
             className="animate-pop w-full max-w-[360px] rounded-card border border-line bg-surface px-6 pb-6 pt-7 text-center"
@@ -363,8 +367,9 @@ export function Lojinha() {
               Ok
             </button>
           </div>
-        </div>
-      )}
+        </div>,
+          document.body,
+        )}
     </>
   )
 }
