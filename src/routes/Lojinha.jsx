@@ -243,7 +243,7 @@ export function Lojinha() {
 
               {aberto.descricao && <p className="mt-2 text-sm text-muted">{aberto.descricao}</p>}
               <p className="mt-2 text-xs text-muted-2">
-                Pagamento por <b className="text-text">desconto em folha</b>.
+                Pagamento via <b className="text-text">desconto em folha</b>.
               </p>
 
               {aberto.detalhes && (
@@ -290,18 +290,12 @@ export function Lojinha() {
                 <>
                   <p className="mb-3 text-center text-xs leading-relaxed text-muted">
                     Você autoriza o desconto de{' '}
-                    <span className="font-semibold text-text">{fmtBRL(aberto.preco_centavos)}</span> em folha
-                    {tamanhoSel ? (
-                      <>
-                        {' '}
-                        pelo <span className="font-semibold text-text">{aberto.titulo} · {tamanhoSel}</span>
-                      </>
-                    ) : (
-                      <>
-                        {' '}
-                        pelo <span className="font-semibold text-text">{aberto.titulo}</span>
-                      </>
-                    )}
+                    <span className="font-semibold text-text">{fmtBRL(aberto.preco_centavos)}</span> na folha de
+                    pagamento referente ao{' '}
+                    <span className="font-semibold text-text">
+                      {aberto.titulo}
+                      {tamanhoSel ? ` · ${tamanhoSel}` : ''}
+                    </span>
                     ?
                   </p>
                   <div className="hstack gap-2">
