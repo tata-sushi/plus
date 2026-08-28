@@ -296,11 +296,11 @@ export function Termo() {
           {encerrado && (
             <div className="mb-2 hstack gap-3 rounded-2xl border border-accent/40 bg-accent-soft/60 px-4 py-3.5">
               <div className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-accent text-black">
-                {status === 'ganhou' ? <Check size={22} strokeWidth={3} /> : <Trophy size={20} />}
+                {ganhouAgora ? <Check size={22} strokeWidth={3} /> : <Trophy size={20} />}
               </div>
               <div className="min-w-0">
                 <div className="font-display text-base font-bold text-accent-ink">
-                  {status === 'ganhou' ? 'Acertou!' : status === 'perdeu' ? 'Não foi hoje' : 'Você já jogou hoje'}
+                  {ganhouAgora ? 'Acertou!' : 'Fase concluída hoje'}
                 </div>
                 <div className="text-sm text-muted">
                   {preview ? (
