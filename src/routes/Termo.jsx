@@ -152,7 +152,7 @@ export function Termo() {
       flashAviso(`Complete as ${LEN} letras`)
       return
     }
-    if (!preview && !ehPalavraValida(atual)) {
+    if (atual !== alvo && !ehPalavraValida(atual)) {
       flashAviso('Palavra não encontrada')
       return
     }
