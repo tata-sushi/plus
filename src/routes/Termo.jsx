@@ -42,13 +42,6 @@ export function Termo() {
   const palavraPreview = mat7 ? normaliza(params.get('palavra')) : ''
   const preview = palavraPreview.length >= 4
 
-  const iso = hojeSP()
-  const doDia = useMemo(() => palavraDoDia(iso), [iso])
-  const alvo = preview ? palavraPreview : doDia.palavra
-  const display = preview ? palavraPreview : doDia.display
-  const LEN = alvo.length
-  const chaveLocal = `termo.dia.${iso}`
-
   const [estado, setEstado] = useState(null) // null = carregando
   const [tentativas, setTentativas] = useState([]) // strings normalizadas enviadas
   const [atual, setAtual] = useState('') // buffer digitado
@@ -61,28 +54,37 @@ export function Termo() {
   const [intro, setIntro] = useState(false)
   const enviando = useRef(false)
 
+  // A data vem do SERVIDOR (jogo_estado.hoje) — assim palavra do dia, "jogou
+  // hoje" e progresso ficam todos alinhados no mesmo dia, independentemente do
+  // relógio do aparelho. Fallback pro relógio local só se o backend falhar.
+  const serverHoje = estado?.hoje || null
+  const doDia = useMemo(() => (serverHoje ? palavraDoDia(serverHoje) : null), [serverHoje])
+  const alvo = preview ? palavraPreview : doDia?.palavra || ''
+  const display = preview ? palavraPreview : doDia?.display || ''
+  const LEN = alvo.length
+
   const completadas = estado?.completadas ?? 0
   const jogouHoje = !preview && !!estado?.jogou_hoje
   const fase = completadas + 1
   const encerrado = status !== 'jogando'
 
-  // carrega estado do jogo + restaura o dia salvo (localStorage)
+  // carrega estado do jogo (servidor) + o progresso do dia (servidor, cross-device)
   useEffect(() => {
     let ativo = true
     supabase.rpc('jogo_estado', { p_jogo: JOGO }).then(({ data }) => {
       if (!ativo) return
-      setEstado(data?.ok ? data : { ok: true, completadas: 0, jogou_hoje: false, streak: 0, pontos_total: 0 })
+      setEstado(
+        data?.ok
+          ? data
+          : { ok: true, completadas: 0, jogou_hoje: false, streak: 0, pontos_total: 0, hoje: hojeSP() },
+      )
     })
     if (!preview) {
-      try {
-        const salvo = JSON.parse(localStorage.getItem(chaveLocal) || 'null')
-        if (salvo && Array.isArray(salvo.tentativas)) {
-          setTentativas(salvo.tentativas)
-          setStatus(salvo.status || 'jogando')
-        }
-      } catch {
-        /* ignore */
-      }
+      supabase.rpc('termo_carregar').then(({ data }) => {
+        if (!ativo || !data?.ok) return
+        if (Array.isArray(data.tentativas) && data.tentativas.length) setTentativas(data.tentativas)
+        if (data.status) setStatus(data.status)
+      })
     }
     return () => {
       ativo = false
@@ -99,8 +101,8 @@ export function Termo() {
     }
   }, [])
 
-  // Backend diz que jogou hoje mas não temos o detalhe local (outro aparelho):
-  // mostra como concluído, revelando a palavra do dia.
+  // Servidor diz que jogou hoje mas não há progresso salvo (jogada antiga, de
+  // antes deste recurso): mostra como concluído, revelando a palavra do dia.
   useEffect(() => {
     if (jogouHoje && status === 'jogando' && tentativas.length === 0) {
       setStatus('concluido')
@@ -108,13 +110,10 @@ export function Termo() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [jogouHoje])
 
-  function salvarLocal(novas, novoStatus) {
+  // Persiste o progresso do dia no servidor (cross-device). Fire-and-forget.
+  function salvarProgresso(novas, novoStatus) {
     if (preview) return
-    try {
-      localStorage.setItem(chaveLocal, JSON.stringify({ tentativas: novas, status: novoStatus }))
-    } catch {
-      /* ignore */
-    }
+    supabase.rpc('termo_salvar', { p_tentativas: novas, p_status: novoStatus })
   }
 
   const estadosTecla = useMemo(() => estadosDoTeclado(tentativas, alvo), [tentativas, alvo])
@@ -129,7 +128,7 @@ export function Termo() {
   async function registrar(resolvido, novasTentativas, novoStatus) {
     setTentativas(novasTentativas)
     setStatus(novoStatus)
-    salvarLocal(novasTentativas, novoStatus)
+    salvarProgresso(novasTentativas, novoStatus)
     tapHaptic()
     if (preview || enviando.current) return
     enviando.current = true
@@ -147,7 +146,7 @@ export function Termo() {
   }
 
   function enviar() {
-    if (encerrado) return
+    if (encerrado || !LEN) return
     if (atual.length !== LEN) {
       flashAviso(`Complete as ${LEN} letras`)
       return
@@ -165,7 +164,7 @@ export function Termo() {
       registrar(false, novas, 'perdeu')
     } else {
       setTentativas(novas)
-      salvarLocal(novas, 'jogando')
+      salvarProgresso(novas, 'jogando')
     }
   }
 
@@ -211,7 +210,7 @@ export function Termo() {
     setIntro(false)
   }
 
-  const carregando = !estado && !preview
+  const carregando = !preview && (!estado || !doDia)
   const tentativaAtualIdx = tentativas.length
 
   return (
