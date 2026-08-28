@@ -19,6 +19,7 @@ import {
   FileSignature,
   HeartHandshake,
   ClipboardList,
+  ShoppingBag,
 } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Section } from '../components/Section.jsx'
@@ -43,6 +44,7 @@ const itens = [
   { to: '/buscar', label: 'Buscar colaborador', icon: Search },
   { to: '/comunicados', label: 'Comunicados', icon: Megaphone },
   { to: '/reconhecimentos', label: 'Reconhecimentos', icon: HeartHandshake, beta: true },
+  { to: '/lojinha', label: 'Lojinha', icon: ShoppingBag },
   { to: '/minha-experiencia', label: 'Avaliações', icon: ClipboardList },
   { to: '/ouvidoria', label: 'Ouvidoria', icon: MessageSquareWarning, gov: true },
   { to: '/cardapio', label: 'Cardápio', icon: UtensilsCrossed },

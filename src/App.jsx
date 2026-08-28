@@ -11,6 +11,7 @@ import { Mais } from './routes/Mais.jsx'
 import { Jornada } from './routes/Jornada.jsx'
 import { Perfil } from './routes/Perfil.jsx'
 import { Recompensas } from './routes/Recompensas.jsx'
+import { Lojinha } from './routes/Lojinha.jsx'
 import { AdminRecompensas } from './routes/AdminRecompensas.jsx'
 import { Manutencao } from './routes/Manutencao.jsx'
 import { Ranking } from './routes/Ranking.jsx'
@@ -78,6 +79,7 @@ export function App() {
         <Route path="/perfil/:id" element={<Perfil />} />
         <Route path="/buscar" element={<BuscarPessoas />} />
         <Route path="/recompensas" element={<Recompensas />} />
+        <Route path="/lojinha" element={<Lojinha />} />
         <Route path="/admin" element={<AdminRecompensas />} />
         <Route path="/recompensas/admin" element={<AdminRecompensas />} />
         <Route path="/manutencao" element={<Manutencao />} />
