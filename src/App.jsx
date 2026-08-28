@@ -79,7 +79,14 @@ export function App() {
         <Route path="/perfil/:id" element={<Perfil />} />
         <Route path="/buscar" element={<BuscarPessoas />} />
         <Route path="/recompensas" element={<Recompensas />} />
-        <Route path="/lojinha" element={<Lojinha />} />
+        <Route
+          path="/lojinha"
+          element={
+            <ErroBoundary>
+              <Lojinha />
+            </ErroBoundary>
+          }
+        />
         <Route path="/admin" element={<AdminRecompensas />} />
         <Route path="/recompensas/admin" element={<AdminRecompensas />} />
         <Route path="/manutencao" element={<Manutencao />} />
