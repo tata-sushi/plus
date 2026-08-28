@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useState } from 'react'
-import { Loader2, Plus, Package, Archive, ArchiveRestore, ChevronLeft } from 'lucide-react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { Loader2, Plus, Package, Archive, ArchiveRestore, ChevronLeft, Camera } from 'lucide-react'
 import { supabase } from '../lib/supabase.js'
 import { cn } from '../lib/cn'
 import { tapHaptic } from '../lib/haptics.js'
@@ -52,6 +52,38 @@ export function AdminLojinha() {
   const [editando, setEditando] = useState(null)
   const [salvando, setSalvando] = useState(false)
   const [erro, setErro] = useState('')
+  const inputFoto = useRef(null)
+  const [arquivo, setArquivo] = useState(null)
+  const [previewUrl, setPreviewUrl] = useState(null)
+
+  function limparFoto() {
+    setArquivo(null)
+    setPreviewUrl((u) => {
+      if (u) URL.revokeObjectURL(u)
+      return null
+    })
+  }
+  function escolherFoto(e) {
+    const f = e.target.files?.[0]
+    e.target.value = ''
+    if (!f) return
+    if (!f.type.startsWith('image/')) {
+      setErro('Selecione uma imagem.')
+      return
+    }
+    if (f.size > 15 * 1024 * 1024) {
+      setErro('Imagem muito grande (máx. 15 MB).')
+      return
+    }
+    setErro('')
+    limparFoto()
+    setArquivo(f)
+    setPreviewUrl(URL.createObjectURL(f))
+  }
+  function removerFoto() {
+    limparFoto()
+    setEditando((s) => ({ ...s, imagem_url: '' }))
+  }
 
   const carregar = useCallback(async () => {
     const [pr, pe] = await Promise.all([
@@ -70,11 +102,13 @@ export function AdminLojinha() {
   function novo() {
     tapHaptic()
     setErro('')
+    limparFoto()
     setEditando({ ...VAZIO })
   }
   function editar(p) {
     tapHaptic()
     setErro('')
+    limparFoto()
     setEditando({
       id: p.id,
       titulo: p.titulo || '',
@@ -96,6 +130,24 @@ export function AdminLojinha() {
       return
     }
     setSalvando(true)
+    setErro('')
+
+    // sobe a foto anexada, se houver
+    let imagem_url = editando.imagem_url || null
+    if (arquivo) {
+      const ext = (arquivo.name.split('.').pop() || 'jpg').toLowerCase()
+      const caminho = `loja/${crypto.randomUUID()}.${ext}`
+      const { error: upErr } = await supabase.storage
+        .from('recompensas')
+        .upload(caminho, arquivo, { cacheControl: '3600', contentType: arquivo.type })
+      if (upErr) {
+        setSalvando(false)
+        setErro('Não foi possível enviar a foto.')
+        return
+      }
+      imagem_url = supabase.storage.from('recompensas').getPublicUrl(caminho).data.publicUrl
+    }
+
     const tamanhos = editando.tamanhosInput
       .split(',')
       .map((t) => t.trim().toUpperCase())
@@ -108,7 +160,7 @@ export function AdminLojinha() {
       p_tamanhos: tamanhos,
       p_estoque: editando.estoque === '' ? null : Number(editando.estoque),
       p_emoji: editando.emoji,
-      p_imagem_url: editando.imagem_url,
+      p_imagem_url: imagem_url,
       p_ativo: editando.ativo,
       p_ordem: editando.ordem === '' ? 0 : Number(editando.ordem),
       p_detalhes: editando.detalhes,
@@ -118,6 +170,7 @@ export function AdminLojinha() {
       setErro('Não foi possível salvar. Tente de novo.')
       return
     }
+    limparFoto()
     setEditando(null)
     carregar()
   }
@@ -139,7 +192,10 @@ export function AdminLojinha() {
     return (
       <div className="px-5 py-4">
         <button
-          onClick={() => setEditando(null)}
+          onClick={() => {
+            limparFoto()
+            setEditando(null)
+          }}
           className="hstack gap-1 text-sm font-medium text-muted tap"
         >
           <ChevronLeft size={16} /> Voltar
@@ -168,6 +224,34 @@ export function AdminLojinha() {
             />
           </div>
         </div>
+
+        {/* Foto do produto */}
+        <label className={cn(labelCls, 'mt-4')}>
+          Foto <span className="normal-case text-muted-2">(opcional — usa o emoji se não tiver)</span>
+        </label>
+        <input ref={inputFoto} type="file" accept="image/*" onChange={escolherFoto} className="hidden" />
+        <button
+          onClick={() => inputFoto.current?.click()}
+          className="mt-1.5 grid aspect-video w-full place-items-center overflow-hidden rounded-card border border-dashed border-line bg-surface tap"
+        >
+          {previewUrl || editando.imagem_url ? (
+            <img src={previewUrl || editando.imagem_url} alt="" className="h-full w-full object-cover" />
+          ) : (
+            <span className="hstack gap-2 text-sm text-muted">
+              <Camera size={18} /> Anexar foto
+            </span>
+          )}
+        </button>
+        {(previewUrl || editando.imagem_url) && (
+          <div className="mt-1.5 hstack justify-between">
+            <button onClick={() => inputFoto.current?.click()} className="text-[11px] font-semibold text-accent tap">
+              Trocar foto
+            </button>
+            <button onClick={removerFoto} className="text-[11px] text-muted-2 tap">
+              Remover
+            </button>
+          </div>
+        )}
 
         <label className={cn(labelCls, 'mt-4')}>
           Descrição <span className="normal-case text-muted-2">(opcional)</span>
@@ -226,26 +310,15 @@ export function AdminLojinha() {
           className={cn(inputCls, 'resize-none')}
         />
 
-        <div className="mt-4 grid grid-cols-2 gap-3">
-          <div>
-            <label className={labelCls}>Ordem</label>
-            <input
-              value={editando.ordem}
-              onChange={(e) => setEditando((s) => ({ ...s, ordem: e.target.value.replace(/\D/g, '') }))}
-              inputMode="numeric"
-              placeholder="0"
-              className={inputCls}
-            />
-          </div>
-          <div>
-            <label className={labelCls}>Imagem (URL)</label>
-            <input
-              value={editando.imagem_url}
-              onChange={(e) => setEditando((s) => ({ ...s, imagem_url: e.target.value }))}
-              placeholder="opcional"
-              className={inputCls}
-            />
-          </div>
+        <div className="mt-4">
+          <label className={labelCls}>Ordem</label>
+          <input
+            value={editando.ordem}
+            onChange={(e) => setEditando((s) => ({ ...s, ordem: e.target.value.replace(/\D/g, '') }))}
+            inputMode="numeric"
+            placeholder="0"
+            className={inputCls}
+          />
         </div>
 
         <button
