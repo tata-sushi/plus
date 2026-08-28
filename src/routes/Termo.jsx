@@ -69,22 +69,36 @@ export function Termo() {
   const encerrado = status !== 'jogando'
   const perdeu = status === 'perdeu'
 
-  // carrega estado do jogo (servidor) + o progresso do dia (servidor, cross-device)
+  // carrega estado do jogo + o progresso do dia. Servidor é primário (cross-device);
+  // localStorage é fallback do mesmo aparelho, caso a RPC de progresso falhe.
   useEffect(() => {
     let ativo = true
+    let local = null
+    try {
+      local = JSON.parse(localStorage.getItem('termo.dia') || 'null')
+    } catch {
+      /* ignore */
+    }
     supabase.rpc('jogo_estado', { p_jogo: JOGO }).then(({ data }) => {
       if (!ativo) return
-      setEstado(
-        data?.ok
-          ? data
-          : { ok: true, completadas: 0, jogou_hoje: false, streak: 0, pontos_total: 0, hoje: hojeSP() },
-      )
+      const est = data?.ok
+        ? data
+        : { ok: true, completadas: 0, jogou_hoje: false, streak: 0, pontos_total: 0, hoje: hojeSP() }
+      setEstado(est)
+      // fallback local: só do mesmo dia do servidor e só se ainda não veio nada do servidor
+      if (!preview && local && local.dia === est.hoje && Array.isArray(local.tentativas) && local.tentativas.length) {
+        setTentativas((t) => (t.length ? t : local.tentativas))
+        setStatus((s) => (s !== 'jogando' ? s : local.status || 'jogando'))
+      }
     })
     if (!preview) {
       supabase.rpc('termo_carregar').then(({ data }) => {
         if (!ativo || !data?.ok) return
-        if (Array.isArray(data.tentativas) && data.tentativas.length) setTentativas(data.tentativas)
-        if (data.status) setStatus(data.status)
+        // servidor é autoritativo quando tem chutes salvos (cross-device)
+        if (Array.isArray(data.tentativas) && data.tentativas.length) {
+          setTentativas(data.tentativas)
+          if (data.status) setStatus(data.status)
+        }
       })
     }
     return () => {
@@ -111,9 +125,15 @@ export function Termo() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [jogouHoje])
 
-  // Persiste o progresso do dia no servidor (cross-device). Fire-and-forget.
+  // Persiste o progresso do dia: servidor (cross-device) + localStorage (fallback
+  // do mesmo aparelho, caso a RPC falhe). Fire-and-forget.
   function salvarProgresso(novas, novoStatus) {
     if (preview) return
+    try {
+      localStorage.setItem('termo.dia', JSON.stringify({ dia: serverHoje, tentativas: novas, status: novoStatus }))
+    } catch {
+      /* ignore */
+    }
     supabase.rpc('termo_salvar', { p_tentativas: novas, p_status: novoStatus })
   }
 
