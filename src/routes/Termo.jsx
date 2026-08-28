@@ -67,6 +67,7 @@ export function Termo() {
   const jogouHoje = !preview && !!estado?.jogou_hoje
   const fase = completadas + 1
   const encerrado = status !== 'jogando'
+  const perdeu = status === 'perdeu'
 
   // carrega estado do jogo (servidor) + o progresso do dia (servidor, cross-device)
   useEffect(() => {
@@ -294,13 +295,21 @@ export function Termo() {
 
           {/* resultado */}
           {encerrado && (
-            <div className="mb-2 hstack gap-3 rounded-2xl border border-accent/40 bg-accent-soft/60 px-4 py-3.5">
-              <div className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-accent text-black">
-                {ganhouAgora ? <Check size={22} strokeWidth={3} /> : <Trophy size={20} />}
+            <div
+              className={`mb-2 hstack gap-3 rounded-2xl border px-4 py-3.5 ${
+                perdeu ? 'border-line bg-surface' : 'border-accent/40 bg-accent-soft/60'
+              }`}
+            >
+              <div
+                className={`grid h-11 w-11 shrink-0 place-items-center rounded-full ${
+                  perdeu ? 'bg-surface-3 text-muted' : 'bg-accent text-black'
+                }`}
+              >
+                {perdeu ? <X size={22} strokeWidth={2.5} /> : ganhouAgora ? <Check size={22} strokeWidth={3} /> : <Trophy size={20} />}
               </div>
               <div className="min-w-0">
-                <div className="font-display text-base font-bold text-accent-ink">
-                  {ganhouAgora ? 'Acertou!' : 'Fase concluída hoje'}
+                <div className={`font-display text-base font-bold ${perdeu ? 'text-text' : 'text-accent-ink'}`}>
+                  {ganhouAgora ? 'Acertou!' : perdeu ? 'Tentativas esgotadas' : 'Fase concluída hoje'}
                 </div>
                 <div className="text-sm text-muted">
                   {preview ? (
