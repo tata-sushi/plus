@@ -27,7 +27,7 @@ const VAZIO = {
   tamanhosInput: '',
   estoque: '',
   emoji: '',
-  imagem_url: '',
+  imagens: [],
   ativo: true,
   ordem: '',
 }
@@ -53,15 +53,20 @@ export function AdminLojinha() {
   const [salvando, setSalvando] = useState(false)
   const [erro, setErro] = useState('')
   const inputFoto = useRef(null)
-  const [arquivo, setArquivo] = useState(null)
-  const [previewUrl, setPreviewUrl] = useState(null)
+  const [slotAlvo, setSlotAlvo] = useState(0)
+  const [arquivos, setArquivos] = useState([null, null])
+  const [previews, setPreviews] = useState([null, null])
 
   function limparFoto() {
-    setArquivo(null)
-    setPreviewUrl((u) => {
-      if (u) URL.revokeObjectURL(u)
-      return null
+    setArquivos([null, null])
+    setPreviews((ps) => {
+      ps.forEach((u) => u && URL.revokeObjectURL(u))
+      return [null, null]
     })
+  }
+  function abrirFoto(i) {
+    setSlotAlvo(i)
+    inputFoto.current?.click()
   }
   function escolherFoto(e) {
     const f = e.target.files?.[0]
@@ -76,13 +81,36 @@ export function AdminLojinha() {
       return
     }
     setErro('')
-    limparFoto()
-    setArquivo(f)
-    setPreviewUrl(URL.createObjectURL(f))
+    const url = URL.createObjectURL(f)
+    setArquivos((a) => {
+      const n = a.slice()
+      n[slotAlvo] = f
+      return n
+    })
+    setPreviews((p) => {
+      const n = p.slice()
+      if (n[slotAlvo]) URL.revokeObjectURL(n[slotAlvo])
+      n[slotAlvo] = url
+      return n
+    })
   }
-  function removerFoto() {
-    limparFoto()
-    setEditando((s) => ({ ...s, imagem_url: '' }))
+  function removerFoto(i) {
+    setArquivos((a) => {
+      const n = a.slice()
+      n[i] = null
+      return n
+    })
+    setPreviews((p) => {
+      const n = p.slice()
+      if (n[i]) URL.revokeObjectURL(n[i])
+      n[i] = null
+      return n
+    })
+    setEditando((s) => {
+      const im = (s.imagens || []).slice()
+      im[i] = null
+      return { ...s, imagens: im }
+    })
   }
 
   const carregar = useCallback(async () => {
@@ -118,7 +146,7 @@ export function AdminLojinha() {
       tamanhosInput: (p.tamanhos || []).join(', '),
       estoque: p.estoque == null ? '' : String(p.estoque),
       emoji: p.emoji || '',
-      imagem_url: p.imagem_url || '',
+      imagens: p.imagens || [],
       ativo: p.ativo,
       ordem: p.ordem == null ? '' : String(p.ordem),
     })
@@ -132,21 +160,26 @@ export function AdminLojinha() {
     setSalvando(true)
     setErro('')
 
-    // sobe a foto anexada, se houver
-    let imagem_url = editando.imagem_url || null
-    if (arquivo) {
-      const ext = (arquivo.name.split('.').pop() || 'jpg').toLowerCase()
-      const caminho = `loja/${crypto.randomUUID()}.${ext}`
-      const { error: upErr } = await supabase.storage
-        .from('recompensas')
-        .upload(caminho, arquivo, { cacheControl: '3600', contentType: arquivo.type })
-      if (upErr) {
-        setSalvando(false)
-        setErro('Não foi possível enviar a foto.')
-        return
+    // sobe as fotos anexadas (até 2); mantém as existentes que não foram trocadas
+    const imgs = []
+    for (let i = 0; i < 2; i++) {
+      if (arquivos[i]) {
+        const ext = (arquivos[i].name.split('.').pop() || 'jpg').toLowerCase()
+        const caminho = `loja/${crypto.randomUUID()}.${ext}`
+        const { error: upErr } = await supabase.storage
+          .from('recompensas')
+          .upload(caminho, arquivos[i], { cacheControl: '3600', contentType: arquivos[i].type })
+        if (upErr) {
+          setSalvando(false)
+          setErro('Não foi possível enviar a foto.')
+          return
+        }
+        imgs[i] = supabase.storage.from('recompensas').getPublicUrl(caminho).data.publicUrl
+      } else if (editando.imagens?.[i]) {
+        imgs[i] = editando.imagens[i]
       }
-      imagem_url = supabase.storage.from('recompensas').getPublicUrl(caminho).data.publicUrl
     }
+    const imagens = imgs.filter(Boolean)
 
     const tamanhos = editando.tamanhosInput
       .split(',')
@@ -160,7 +193,7 @@ export function AdminLojinha() {
       p_tamanhos: tamanhos,
       p_estoque: editando.estoque === '' ? null : Number(editando.estoque),
       p_emoji: editando.emoji,
-      p_imagem_url: imagem_url,
+      p_imagens: imagens,
       p_ativo: editando.ativo,
       p_ordem: editando.ordem === '' ? 0 : Number(editando.ordem),
       p_detalhes: editando.detalhes,
@@ -225,33 +258,40 @@ export function AdminLojinha() {
           </div>
         </div>
 
-        {/* Foto do produto */}
+        {/* Fotos do produto (até 2) */}
         <label className={cn(labelCls, 'mt-4')}>
-          Foto <span className="normal-case text-muted-2">(opcional — usa o emoji se não tiver)</span>
+          Fotos <span className="normal-case text-muted-2">(até 2 — opcional; usa o emoji se não tiver)</span>
         </label>
         <input ref={inputFoto} type="file" accept="image/*" onChange={escolherFoto} className="hidden" />
-        <button
-          onClick={() => inputFoto.current?.click()}
-          className="mt-1.5 grid aspect-video w-full place-items-center overflow-hidden rounded-card border border-dashed border-line bg-surface tap"
-        >
-          {previewUrl || editando.imagem_url ? (
-            <img src={previewUrl || editando.imagem_url} alt="" className="h-full w-full object-cover" />
-          ) : (
-            <span className="hstack gap-2 text-sm text-muted">
-              <Camera size={18} /> Anexar foto
-            </span>
-          )}
-        </button>
-        {(previewUrl || editando.imagem_url) && (
-          <div className="mt-1.5 hstack justify-between">
-            <button onClick={() => inputFoto.current?.click()} className="text-[11px] font-semibold text-accent tap">
-              Trocar foto
-            </button>
-            <button onClick={removerFoto} className="text-[11px] text-muted-2 tap">
-              Remover
-            </button>
-          </div>
-        )}
+        <div className="mt-1.5 grid grid-cols-2 gap-3">
+          {[0, 1].map((i) => {
+            const src = previews[i] || editando.imagens?.[i]
+            return (
+              <div key={i}>
+                <button
+                  onClick={() => abrirFoto(i)}
+                  className="grid aspect-square w-full place-items-center overflow-hidden rounded-card border border-dashed border-line bg-surface tap"
+                >
+                  {src ? (
+                    <img src={src} alt="" className="h-full w-full object-cover" />
+                  ) : (
+                    <span className="hstack gap-1.5 text-xs text-muted">
+                      <Camera size={16} /> Foto {i + 1}
+                    </span>
+                  )}
+                </button>
+                {src && (
+                  <button
+                    onClick={() => removerFoto(i)}
+                    className="mt-1 w-full text-center text-[11px] text-muted-2 tap"
+                  >
+                    Remover
+                  </button>
+                )}
+              </div>
+            )
+          })}
+        </div>
 
         <label className={cn(labelCls, 'mt-4')}>
           Descrição <span className="normal-case text-muted-2">(opcional)</span>

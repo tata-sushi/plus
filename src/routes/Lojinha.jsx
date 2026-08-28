@@ -213,13 +213,26 @@ export function Lojinha() {
             </div>
 
             <div className="flex-1 overflow-y-auto px-5 py-4">
-              <div className="grid aspect-square w-full place-items-center overflow-hidden rounded-2xl bg-accent-soft text-7xl">
-                <RecompensaFoto
-                  src={aberto.imagem_url}
-                  emoji={aberto.emoji}
-                  className="h-full w-full object-cover"
-                />
-              </div>
+              {aberto.imagens?.length > 1 ? (
+                <div className="flex snap-x snap-mandatory gap-2 overflow-x-auto pb-1">
+                  {aberto.imagens.map((src, i) => (
+                    <img
+                      key={i}
+                      src={src}
+                      alt=""
+                      className="aspect-square w-[90%] shrink-0 snap-center rounded-2xl object-cover"
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="grid aspect-square w-full place-items-center overflow-hidden rounded-2xl bg-accent-soft text-7xl">
+                  <RecompensaFoto
+                    src={aberto.imagem_url}
+                    emoji={aberto.emoji}
+                    className="h-full w-full object-cover"
+                  />
+                </div>
+              )}
 
               <div className="mt-3 hstack justify-between">
                 <span className="font-display text-lg font-bold text-accent">
