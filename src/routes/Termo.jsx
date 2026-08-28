@@ -242,7 +242,7 @@ export function Termo() {
                 Prévia · {display} · não pontua
               </div>
             ) : (
-              <div className="mt-1 text-xs text-muted">Descubra a palavra do dia · tema do restaurante 🍣</div>
+              <div className="mt-1 text-xs text-muted">Descubra a palavra do dia</div>
             )}
           </div>
 
