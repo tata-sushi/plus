@@ -1819,18 +1819,38 @@ function CardModal({ estado, card, board, admin, masterAdmin, minhaMat, onClose,
                   </button>
                 </div>
                 <div className="mt-3 flex flex-col gap-2">
-                  {comentarios.map((c) => (
+                  {comentarios.map((c) => {
+                    const resolvido = !!c.resolvido_por
+                    return (
                     <div key={c.id} className="hstack items-start gap-2">
                       <Avatar name={c.nome} src={c.avatar} size={24} />
-                      <div className="min-w-0 flex-1 rounded-lg border border-line bg-bg px-3 py-2">
+                      <div className={cn('min-w-0 flex-1 rounded-lg border px-3 py-2', resolvido ? 'border-line/60 bg-fill/40' : 'border-line bg-bg')}>
                         <div className="hstack justify-between gap-2">
                           <div className="truncate font-mono text-[10px] uppercase tracking-[0.4px] text-muted">{c.nome}</div>
-                          <div className="shrink-0 font-mono text-[9px] text-muted-2">{fmtQuando(c.created_at)}</div>
+                          <div className="hstack shrink-0 gap-1.5">
+                            <span className="font-mono text-[9px] text-muted-2">{fmtQuando(c.created_at)}</span>
+                            {/* ✓ marcar/reabrir como resolvido (qualquer membro) */}
+                            <button
+                              onClick={() => sub('kanban_comentario_resolver', { p_comentario: c.id, p_resolvido: !resolvido })}
+                              disabled={busy}
+                              aria-label={resolvido ? 'Reabrir comentário' : 'Marcar como resolvido'}
+                              title={resolvido ? 'Reabrir' : 'Marcar como resolvido'}
+                              className={cn('grid h-5 w-5 shrink-0 place-items-center rounded-full border tap disabled:opacity-40', resolvido ? 'border-accent bg-accent text-black' : 'border-line text-muted-2')}
+                            >
+                              <Check size={12} strokeWidth={3} />
+                            </button>
+                          </div>
                         </div>
-                        <div className="mt-0.5 text-sm">{c.texto}</div>
+                        <div className={cn('mt-0.5 text-sm', resolvido && 'text-muted-2 line-through')}>{c.texto}</div>
+                        {resolvido && (
+                          <div className="mt-1 hstack gap-1 text-[10px] font-semibold text-accent">
+                            <Check size={10} strokeWidth={3} /> Resolvido{c.resolvido_por_nome ? ` por ${primeiro(c.resolvido_por_nome)}` : ''}
+                          </div>
+                        )}
                       </div>
                     </div>
-                  ))}
+                    )
+                  })}
                   {comentarios.length === 0 && <div className="text-xs text-muted-2">Sem comentários ainda.</div>}
                 </div>
               </div>
