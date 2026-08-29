@@ -7,7 +7,7 @@ import { tapHaptic } from '../lib/haptics.js'
 
 const ABAS = [
   { id: 'recompensas', label: 'Recompensas' },
-  { id: 'loja', label: 'Loja' },
+  { id: 'loja', label: 'Compras' },
 ]
 
 // Hub "Lojinha": junta Recompensas (troca por pontos) e Loja (compra com
