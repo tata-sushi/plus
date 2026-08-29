@@ -329,9 +329,9 @@ function ListaQuadros({ quadros, meusCards = [], onAbrir, onMudou, selecionadoId
                 <button
                   onClick={() => onAbrir(q.id, null, true)}
                   aria-label={`Adicionar cartão em ${q.nome}`}
-                  className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-accent text-black tap"
+                  className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-accent text-black tap"
                 >
-                  <Plus size={20} />
+                  <Plus size={16} />
                 </button>
               </div>
 
