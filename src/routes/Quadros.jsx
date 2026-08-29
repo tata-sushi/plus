@@ -178,13 +178,14 @@ function Quadros() {
 }
 
 // Board aberto na área grande do desktop (canvas do DesktopShell).
-export function QuadroCanvas({ quadroId, onVoltar, cardInicial, cardNonce }) {
+export function QuadroCanvas({ quadroId, onVoltar, cardInicial, cardNonce, novoNonce }) {
   return (
     <VisaoQuadro
       quadroId={quadroId}
       onVoltar={onVoltar}
       cardInicial={cardInicial}
       cardNonce={cardNonce}
+      novoNonce={novoNonce}
       emCanvas
     />
   )
@@ -198,6 +199,7 @@ function Painel() {
   const [meusCards, setMeusCards] = useState([]) // resumo "minhas tarefas" na lateral
   const [quadroIdMobile, setQuadroIdMobile] = useState(null)
   const [cardMobile, setCardMobile] = useState(null) // card a abrir ao entrar no quadro (mobile)
+  const [novoMobile, setNovoMobile] = useState(0) // nonce: abrir criando um cartão (mobile)
 
   const recarregarLista = useCallback(async () => {
     try {
@@ -220,11 +222,20 @@ function Painel() {
   }, [desktop, canvasQuadro, recarregarLista])
 
   // cardId opcional: abre o quadro já com aquele cartão aberto (resumo da lateral).
-  function abrir(id, cardId) {
-    if (desktop) setCanvas({ tipo: 'quadro', quadroId: id, cardId: cardId || null, cardNonce: cardId ? Date.now() : 0 })
+  // novo=true: abre o quadro já criando um cartão na primeira lista ("+" da capa).
+  function abrir(id, cardId, novo) {
+    if (desktop)
+      setCanvas({
+        tipo: 'quadro',
+        quadroId: id,
+        cardId: cardId || null,
+        cardNonce: cardId ? Date.now() : 0,
+        novoNonce: novo ? Date.now() : 0,
+      })
     else {
       setQuadroIdMobile(id)
       setCardMobile(cardId ? { id: cardId, nonce: Date.now() } : null)
+      setNovoMobile(novo ? Date.now() : 0)
     }
   }
 
@@ -234,9 +245,11 @@ function Painel() {
         quadroId={quadroIdMobile}
         cardInicial={cardMobile?.id}
         cardNonce={cardMobile?.nonce}
+        novoNonce={novoMobile}
         onVoltar={() => {
           setQuadroIdMobile(null)
           setCardMobile(null)
+          setNovoMobile(0)
           recarregarLista()
         }}
       />
@@ -289,26 +302,38 @@ function ListaQuadros({ quadros, meusCards = [], onAbrir, onMudou, selecionadoId
               const meus = meusCards.filter((c) => c.quadro_id === q.id)
               return (
               <div key={q.id} className="flex flex-col gap-1.5">
-              <button
-                onClick={() => onAbrir(q.id)}
-                className={cn('card hstack gap-3 px-4 py-3.5 text-left tap', selecionadoId === q.id && 'ring-2 ring-accent')}
+              <div
+                className={cn('card hstack gap-2 py-2 pl-2 pr-2', selecionadoId === q.id && 'ring-2 ring-accent')}
               >
-                <div className="grid h-10 w-10 place-items-center rounded-card bg-accent-soft text-accent">
-                  <Ic size={19} />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="truncate font-display text-sm font-bold">{q.nome}</div>
-                  <div className="mt-0.5 hstack gap-3 text-[11px] text-muted">
-                    <span className="hstack gap-1">
-                      <Users size={12} /> {q.n_membros}
-                    </span>
-                    <span className="hstack gap-1">
-                      <Tag size={12} /> {q.n_cards} {q.n_cards === 1 ? 'cartão' : 'cartões'}
-                    </span>
-                    {q.sou_admin && <span className="text-accent">admin</span>}
+                <button
+                  onClick={() => onAbrir(q.id)}
+                  className="hstack min-w-0 flex-1 gap-3 rounded-card px-2 py-1.5 text-left tap"
+                >
+                  <div className="grid h-10 w-10 shrink-0 place-items-center rounded-card bg-accent-soft text-accent">
+                    <Ic size={19} />
                   </div>
-                </div>
-              </button>
+                  <div className="min-w-0 flex-1">
+                    <div className="truncate font-display text-sm font-bold">{q.nome}</div>
+                    <div className="mt-0.5 hstack gap-3 text-[11px] text-muted">
+                      <span className="hstack gap-1">
+                        <Users size={12} /> {q.n_membros}
+                      </span>
+                      <span className="hstack gap-1">
+                        <Tag size={12} /> {q.n_cards} {q.n_cards === 1 ? 'cartão' : 'cartões'}
+                      </span>
+                      {q.sou_admin && <span className="text-accent">admin</span>}
+                    </div>
+                  </div>
+                </button>
+                {/* "+" na capa: abre o quadro já criando um cartão na 1ª lista */}
+                <button
+                  onClick={() => onAbrir(q.id, null, true)}
+                  aria-label={`Adicionar cartão em ${q.nome}`}
+                  className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-accent text-black tap"
+                >
+                  <Plus size={20} />
+                </button>
+              </div>
 
               {/* Resumo "minhas tarefas" deste quadro (clicar abre o quadro) */}
               {meus.length > 0 && (
@@ -365,7 +390,7 @@ function ListaQuadros({ quadros, meusCards = [], onAbrir, onMudou, selecionadoId
 }
 
 // ── Visão de um quadro ───────────────────────────────────────────────────────
-function VisaoQuadro({ quadroId, onVoltar, emCanvas, cardInicial, cardNonce }) {
+function VisaoQuadro({ quadroId, onVoltar, emCanvas, cardInicial, cardNonce, novoNonce }) {
   const { usuario } = useAuth()
   const mat = usuario?.matricula
   const [board, setBoard] = useState(null)
@@ -475,6 +500,17 @@ function VisaoQuadro({ quadroId, onVoltar, emCanvas, cardInicial, cardNonce }) {
     const card = (board.cards || []).find((k) => k.id === cardInicial)
     if (card) setCardAberto({ modo: board.sou_admin ? 'editar' : 'ver', cardId: card.id, colunaId: card.coluna_id })
   }, [cardInicial, cardNonce, board])
+
+  // "+" na capa do quadro (lista de quadros): ao abrir, já abre o editor de novo
+  // cartão na primeira lista. Keyed no nonce, igual ao auto-abrir de cartão acima.
+  const autoNovoRef = useRef(0)
+  useEffect(() => {
+    if (!novoNonce || !board) return
+    if (autoNovoRef.current === novoNonce) return
+    autoNovoRef.current = novoNonce
+    const col = (board.colunas || [])[0]
+    if (col) setCardAberto({ modo: 'criar', colunaId: col.id })
+  }, [novoNonce, board])
 
   const temFiltro = filtros.filtroEtq.size || filtros.filtroResp.size || filtros.soVencidos || filtros.soMeus
   const filtrando = !!busca.trim() || !!temFiltro

@@ -352,7 +352,7 @@ export function DesktopShell() {
               )}
               {canvas.tipo === 'quadro' && (
                 <Suspense fallback={<div className="grid h-full place-items-center text-muted"><Loader2 size={22} className="animate-spin" /></div>}>
-                  <QuadroCanvas quadroId={canvas.quadroId} cardInicial={canvas.cardId} cardNonce={canvas.cardNonce} onVoltar={() => setCanvas(null)} />
+                  <QuadroCanvas quadroId={canvas.quadroId} cardInicial={canvas.cardId} cardNonce={canvas.cardNonce} novoNonce={canvas.novoNonce} onVoltar={() => setCanvas(null)} />
                 </Suspense>
               )}
             </div>
