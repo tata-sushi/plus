@@ -146,6 +146,7 @@ function Calendario() {
   const [ausencias, setAusencias] = useState(null) // { 'YYYY-MM-DD': { tipo } }
   const [aniversarios, setAniversarios] = useState(null) // { 'YYYY-MM-DD': [ { nome, unidade, avatar_url, eu } ] }
   const [feriados, setFeriados] = useState(null) // { 'YYYY-MM-DD': [ { nome, grupo, tipo } ] }
+  const [eventosGerais, setEventosGerais] = useState(null) // { 'YYYY-MM-DD': [ { titulo, descricao } ] } — eventos do RH marcados p/ o app
   const [det, setDet] = useState(null) // { info, dia, evts } — detalhe do dia
   const [folga, setFolga] = useState(null) // status da Folga Aniversário: null=off, undefined=carregando, obj=dados
   const [folgaAberta, setFolgaAberta] = useState(null) // ISO do aniversário quando a folha está aberta
@@ -207,6 +208,7 @@ function Calendario() {
     setAusencias(null)
     setAniversarios(null)
     setFeriados(null)
+    setEventosGerais(null)
     call('escala_meu_periodo', { p_inicio: grid.startISO, p_fim: grid.endISO })
       .then((d) => a && setMapa(d && typeof d === 'object' ? d : {}))
       .catch(() => a && setMapa({}))
@@ -225,6 +227,9 @@ function Calendario() {
     call('escala_feriados_periodo', { p_inicio: grid.startISO, p_fim: grid.endISO })
       .then((d) => a && setFeriados(d && typeof d === 'object' ? d : {}))
       .catch(() => a && setFeriados({}))
+    call('agenda_eventos_app_periodo', { p_inicio: grid.startISO, p_fim: grid.endISO })
+      .then((d) => a && setEventosGerais(d && typeof d === 'object' ? d : {}))
+      .catch(() => a && setEventosGerais({}))
     return () => {
       a = false
     }
@@ -299,11 +304,13 @@ function Calendario() {
           const feris = noMes ? feriados?.[iso] : null
           const temFeriado = Array.isArray(feris) && feris.length > 0
           const feriadoReal = temFeriado && feris.some((f) => f.grupo === 'feriado')
+          const evGer = noMes ? eventosGerais?.[iso] : null
+          const temEvtGeral = Array.isArray(evGer) && evGer.length > 0
           const isHoje = iso === hoje
           const folga = !ehFerias && !gAus && !!info?.folga
           const trab = !ehFerias && !gAus && !!info && !info.folga
           const pares = paresDe(info)
-          const clicavel = noMes && (!!info || temEvt || ehFerias || !!gAus || temFeriado)
+          const clicavel = noMes && (!!info || temEvt || ehFerias || !!gAus || temFeriado || temEvtGeral)
           const branco = !!gAus?.branco
           const tint = ehFerias ? FERIAS_CELL : gAus && !branco ? gAus.cell : null
           const tintTxt = ehFerias ? FERIAS_TXT : gAus && !branco ? gAus.cor : null
@@ -311,7 +318,7 @@ function Calendario() {
             <button
               key={iso}
               type="button"
-              onClick={clicavel ? () => setDet({ info, dia: d, evts, fer, aus: gAus ? { ...gAus, tipo: ausRaw.tipo } : null, feriado: temFeriado ? feris : null }) : undefined}
+              onClick={clicavel ? () => setDet({ info, dia: d, evts, fer, aus: gAus ? { ...gAus, tipo: ausRaw.tipo } : null, feriado: temFeriado ? feris : null, eventoGeral: temEvtGeral ? evGer : null }) : undefined}
               disabled={!clicavel}
               style={tint && !isHoje ? tint : undefined}
               className={cn(
@@ -360,7 +367,7 @@ function Calendario() {
               {/* Observações do dia como pílulas no rodapé (estilo agenda):
                   feriado (índigo), data comercial (índigo claro), aniversário
                   (rosa), conversa com o RH (accent). Nome completo no detalhe. */}
-              {noMes && ((gAus && !gAus.branco) || temFeriado || temAniv || temEvt) && (
+              {noMes && ((gAus && !gAus.branco) || temFeriado || temAniv || temEvt || temEvtGeral) && (
                 <div className="mt-auto flex w-full flex-col items-center gap-[2px] pt-0.5">
                   {gAus && !gAus.branco && (
                     <span className="h-[3px] w-full max-w-[22px] rounded-full" style={{ backgroundColor: gAus.cor }} />
@@ -373,6 +380,7 @@ function Calendario() {
                   )}
                   {temAniv && <span className="h-[3px] w-full max-w-[22px] rounded-full bg-accent" />}
                   {temEvt && <span className="h-[3px] w-full max-w-[22px] rounded-full bg-accent" />}
+                  {temEvtGeral && <span className="h-[3px] w-full max-w-[22px] rounded-full bg-amber-500" />}
                 </div>
               )}
             </button>
@@ -492,6 +500,19 @@ function Calendario() {
                 <div className="min-w-0">
                   <div className="leading-tight">{f.nome}</div>
                   {f.tipo && <div className={cn('text-[11px] font-normal', f.grupo === 'feriado' ? 'opacity-80' : 'text-muted-2')}>{f.tipo}</div>}
+                </div>
+              </div>
+            ))}
+            {det.eventoGeral?.map((ev, i) => (
+              <div
+                key={`ev${i}`}
+                className="hstack items-center gap-2 rounded-card border px-4 py-3 text-sm font-semibold"
+                style={{ borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,0.12)', color: '#f59e0b' }}
+              >
+                <Sparkles size={16} className="shrink-0" />
+                <div className="min-w-0">
+                  <div className="leading-tight">{ev.titulo}</div>
+                  {ev.descricao && <div className="text-[11px] font-normal opacity-80">{ev.descricao}</div>}
                 </div>
               </div>
             ))}
@@ -680,6 +701,7 @@ function LegendaSheet({ onClose }) {
         <Item swatch={<span className="h-1 w-4 rounded-full bg-accent" />} label="Seu aniversário" dentro="Marca o seu dia" />
         <Item swatch={<span className="h-1 w-4 rounded-full" style={{ backgroundColor: FER_COR }} />} label="Feriado" dentro="Nacional, estadual ou municipal" />
         <Item swatch={<span className="h-1 w-4 rounded-full" style={{ backgroundColor: 'rgba(99,102,241,0.4)' }} />} label="Data comercial" dentro="Ação de marketing (não é folga)" />
+        <Item swatch={<span className="h-1 w-4 rounded-full bg-amber-500" />} label="Evento" dentro="Evento do TATÁ (não é folga)" />
       </div>
     </Folha>
   )
