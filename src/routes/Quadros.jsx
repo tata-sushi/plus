@@ -1242,7 +1242,7 @@ function CardModal({ estado, card, board, admin, masterAdmin, minhaMat, onClose,
   // modelos de checklist + outros quadros (mover)
   const [modelos, setModelos] = useState([])
   const [modelosAbertos, setModelosAbertos] = useState(false)
-  const [modeloCriar, setModeloCriar] = useState(null) // checklist pronto escolhido na criação
+  const [itensNovos, setItensNovos] = useState([]) // checklist montado na criação (aplicado ao salvar)
   const [etqAberto, setEtqAberto] = useState(false)
   const [outrosQuadros, setOutrosQuadros] = useState([])
 
@@ -1298,12 +1298,15 @@ function CardModal({ estado, card, board, admin, masterAdmin, minhaMat, onClose,
       }
       if (estado.modo === 'editar' && card?.id) args.p_id = card.id
       const novoId = await call('kanban_card_salvar', args)
-      // Na criação, aplica o checklist pronto escolhido (precisa do id do card).
-      if (estado.modo === 'criar' && modeloCriar && novoId) {
-        try {
-          await call('kanban_checklist_aplicar', { p_card: novoId, p_modelo: modeloCriar.id })
-        } catch (e) {
-          /* não bloqueia a criação do card */
+      // Na criação, cria os itens de checklist montados (precisa do id do card).
+      // Em sequência para preservar a ordem digitada.
+      if (estado.modo === 'criar' && novoId && itensNovos.length > 0) {
+        for (const t of itensNovos) {
+          try {
+            await call('kanban_checklist_add', { p_card: novoId, p_texto: t })
+          } catch (e) {
+            /* não bloqueia a criação do card */
+          }
         }
       }
       await onFeito()
@@ -1701,44 +1704,57 @@ function CardModal({ estado, card, board, admin, masterAdmin, minhaMat, onClose,
                   ))}
                 </div>
               </div>
-            ) : editavel && modelos.length > 0 ? (
+            ) : editavel ? (
               <div>
                 <div className="relative">
                   <div className="hstack justify-between">
                     <div className={lbl}>Checklist</div>
-                    <button onClick={() => setModelosAbertos((v) => !v)} className="hstack gap-1 font-mono text-[9px] font-medium uppercase tracking-[0.4px] text-carbon tap">
-                      <ListChecks size={11} /> Usar pronto
-                    </button>
+                    {modelos.length > 0 && (
+                      <button onClick={() => setModelosAbertos((v) => !v)} className="hstack gap-1 font-mono text-[9px] font-medium uppercase tracking-[0.4px] text-carbon tap">
+                        <ListChecks size={11} /> Usar pronto
+                      </button>
+                    )}
                   </div>
-                  <MenuFlutuante aberto={modelosAbertos} onClose={() => setModelosAbertos(false)}>
+                  <MenuFlutuante aberto={modelosAbertos && modelos.length > 0} onClose={() => setModelosAbertos(false)}>
                     {modelos.map((m) => (
-                      <button key={m.id} onClick={() => { setModeloCriar(m); setModelosAbertos(false) }} className="hstack w-full items-center justify-between gap-2 px-3 py-2 text-left text-xs font-semibold text-muted tap hover:bg-fill">
+                      <button key={m.id} onClick={() => { setItensNovos((arr) => [...arr, ...(m.itens || [])]); setModelosAbertos(false) }} className="hstack w-full items-center justify-between gap-2 px-3 py-2 text-left text-xs font-semibold text-muted tap hover:bg-fill">
                         <span className="min-w-0 flex-1 truncate">{m.nome}</span>
                         <span className="shrink-0 text-muted-2">({(m.itens || []).length})</span>
                       </button>
                     ))}
                   </MenuFlutuante>
                 </div>
-                {modeloCriar ? (
-                  <div className="mt-2 rounded-lg border border-line bg-bg p-3">
-                    <div className="hstack items-center justify-between">
-                      <div className="text-sm font-semibold">
-                        {modeloCriar.nome} <span className="text-muted-2">· {(modeloCriar.itens || []).length} itens</span>
+                {/* adicionar item manual */}
+                <div className="mt-2 hstack gap-2">
+                  <input
+                    value={novoItem}
+                    onChange={(e) => setNovoItem(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === 'Enter' && novoItem.trim()) { setItensNovos((a) => [...a, novoItem.trim()]); setNovoItem('') } }}
+                    placeholder="Adicionar item…"
+                    className="min-w-0 flex-1 rounded-lg border border-line bg-bg px-3 py-2 text-sm outline-none placeholder:text-muted-2"
+                  />
+                  <button
+                    onClick={() => { if (novoItem.trim()) { setItensNovos((a) => [...a, novoItem.trim()]); setNovoItem('') } }}
+                    disabled={!novoItem.trim()}
+                    className={cn('grid h-9 w-9 shrink-0 place-items-center rounded-lg tap disabled:opacity-40', ctaEscuro)}
+                  >
+                    <Plus size={16} />
+                  </button>
+                </div>
+                {/* itens montados */}
+                {itensNovos.length > 0 ? (
+                  <div className="mt-2 flex flex-col gap-1">
+                    {itensNovos.map((t, i) => (
+                      <div key={i} className="hstack items-center gap-2 rounded-lg border border-line bg-bg px-3 py-2 text-sm">
+                        <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-muted-2" />
+                        <span className="min-w-0 flex-1">{t}</span>
+                        <button onClick={() => setItensNovos((a) => a.filter((_, j) => j !== i))} aria-label="Remover item" className="shrink-0 text-muted-2 tap"><X size={14} /></button>
                       </div>
-                      <button onClick={() => setModeloCriar(null)} aria-label="Remover checklist" className="shrink-0 text-muted-2 tap"><X size={14} /></button>
-                    </div>
-                    <div className="mt-2 flex flex-col gap-1">
-                      {(modeloCriar.itens || []).map((t, i) => (
-                        <div key={i} className="hstack items-start gap-2 text-sm text-muted">
-                          <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-muted-2" />
-                          <span className="min-w-0 flex-1">{t}</span>
-                        </div>
-                      ))}
-                    </div>
-                    <div className="mt-2 text-[11px] text-muted-2">Será criado junto com o card ao salvar.</div>
+                    ))}
+                    <div className="mt-1 text-[11px] text-muted-2">Criados junto com o card ao salvar.</div>
                   </div>
                 ) : (
-                  <div className="mt-1.5 text-xs text-muted-2">Escolha um checklist pronto — ele é criado junto com o card.</div>
+                  <div className="mt-1.5 text-xs text-muted-2">Adicione itens{modelos.length > 0 ? ' ou use um checklist pronto' : ''} — criados junto com o card.</div>
                 )}
               </div>
             ) : null}
