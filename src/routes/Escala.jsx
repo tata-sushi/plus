@@ -503,19 +503,36 @@ function Calendario() {
                 </div>
               </div>
             ))}
-            {det.eventoGeral?.map((ev, i) => (
-              <div
-                key={`ev${i}`}
-                className="hstack items-center gap-2 rounded-card border px-4 py-3 text-sm font-semibold"
-                style={{ borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,0.12)', color: '#f59e0b' }}
-              >
-                <Sparkles size={16} className="shrink-0" />
-                <div className="min-w-0">
-                  <div className="leading-tight">{ev.titulo}</div>
-                  {ev.descricao && <div className="text-[11px] font-normal opacity-80">{ev.descricao}</div>}
+            {det.eventoGeral?.map((ev, i) => {
+              const hora = ev.hora_inicio
+                ? ev.hora_fim
+                  ? `${ev.hora_inicio}–${ev.hora_fim}`
+                  : ev.hora_inicio
+                : null
+              return (
+                <div
+                  key={`ev${i}`}
+                  className="hstack items-center gap-2 rounded-card border px-4 py-3 text-sm font-semibold"
+                  style={{ borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,0.12)', color: '#f59e0b' }}
+                >
+                  <Sparkles size={16} className="shrink-0" />
+                  <div className="min-w-0">
+                    <div className="leading-tight">{ev.titulo}</div>
+                    {(hora || ev.local) && (
+                      <div className="mt-0.5 hstack gap-2 text-[11px] font-normal opacity-90">
+                        {hora && (
+                          <span className="hstack gap-1">
+                            <Clock size={11} /> {hora}
+                          </span>
+                        )}
+                        {ev.local && <span>· {ev.local}</span>}
+                      </div>
+                    )}
+                    {ev.descricao && <div className="mt-0.5 text-[11px] font-normal opacity-80">{ev.descricao}</div>}
+                  </div>
                 </div>
-              </div>
-            ))}
+              )
+            })}
             {det.fer && (
               <div className="hstack items-center gap-2 rounded-card border px-4 py-3 text-sm font-semibold" style={{ ...FERIAS_CELL, color: FERIAS_TXT }}>
                 <Palmtree size={16} /> Férias
