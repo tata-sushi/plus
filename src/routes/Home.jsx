@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Flag, Gift, Star, Network, Sun, Check, X, KanbanSquare, SprayCan, Radio as RadioIcon, Puzzle, FileSignature, ChevronRight } from 'lucide-react'
+import { Flag, ShoppingBag, Star, Network, Sun, Check, X, KanbanSquare, SprayCan, Radio as RadioIcon, Puzzle, FileSignature, ChevronRight } from 'lucide-react'
 import { cn } from '../lib/cn'
 import { Header } from '../components/Header.jsx'
 import { Section } from '../components/Section.jsx'
@@ -45,9 +45,9 @@ const sugestoesCards = [
   },
   {
     to: '/recompensas',
-    badgeIcon: Gift,
-    title: 'Recompensas',
-    subtitle: 'Conheça e resgate a sua',
+    badgeIcon: ShoppingBag,
+    title: 'Lojinha',
+    subtitle: 'Recompensas e compras',
   },
   {
     to: '/cardapio',
