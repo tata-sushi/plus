@@ -22,6 +22,22 @@ const TAM_MAX = 15 * 1024 * 1024 // 15 MB
 // só o primeiro nome (nas postagens e comentários)
 const soPrimeiro = (n) => (n || 'Colaborador').split(/\s+/)[0]
 
+// Destino "interno" de um link de post: uma rota do app ('/...') OU uma URL
+// absoluta que aponta pro próprio domínio (ex.: colaram a URL completa do app).
+// Nesses casos navegamos no cliente; só link de FORA abre em nova aba. Devolve
+// o caminho interno (com query/hash) ou null quando é realmente externo.
+function rotaInterna(url) {
+  if (!url) return null
+  if (url.startsWith('/')) return url
+  try {
+    const u = new URL(url)
+    if (u.origin === window.location.origin) return u.pathname + u.search + u.hash
+  } catch {
+    /* não é URL absoluta válida — trata como externo */
+  }
+  return null
+}
+
 // Menções clicáveis: converte a marcação @[Nome](matricula) num link pro perfil
 // da pessoa. Usado nas publicações direcionadas (robôs). Texto sem marcação passa
 // intacto. Ex.: "Parabéns @[João Silva](24683)!" → "Parabéns @João Silva!" (link).
@@ -277,26 +293,30 @@ function PostCard({ post, matricula, admin, meuNome, meuAvatar, onCurtir, onExcl
       {/* Mídia — carrossel (várias) ou foto única */}
       <PostMidia post={post} />
 
-      {/* Link / botão de ação (CTA): rota interna (/...) navega no app; externa abre nova aba */}
-      {post.link_url && post.link_label && (
-        post.link_url.startsWith('/') ? (
-          <button
-            onClick={() => navigate(post.link_url)}
-            className="btn-primary mt-3 flex w-full justify-center !py-2.5 text-xs"
-          >
-            {post.link_label}
-          </button>
-        ) : (
-          <a
-            href={post.link_url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="btn-primary mt-3 flex w-full justify-center !py-2.5 text-xs"
-          >
-            {post.link_label}
-          </a>
-        )
-      )}
+      {/* Link / botão de ação (CTA): rota interna (ou URL do próprio app) navega
+          no app; só link realmente externo abre em nova aba. */}
+      {post.link_url &&
+        post.link_label &&
+        (() => {
+          const interna = rotaInterna(post.link_url)
+          return interna ? (
+            <button
+              onClick={() => navigate(interna)}
+              className="btn-primary mt-3 flex w-full justify-center !py-2.5 text-xs"
+            >
+              {post.link_label}
+            </button>
+          ) : (
+            <a
+              href={post.link_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-primary mt-3 flex w-full justify-center !py-2.5 text-xs"
+            >
+              {post.link_label}
+            </a>
+          )
+        })()}
 
       {/* Ações */}
       <div className="mt-3 hstack gap-5 text-xs font-semibold text-muted">
