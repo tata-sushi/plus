@@ -1215,6 +1215,8 @@ function CardModal({ estado, card, board, admin, masterAdmin, minhaMat, onClose,
   const [salvando, setSalvando] = useState(false)
   const [novoItem, setNovoItem] = useState('')
   const [busy, setBusy] = useState(false)
+  // Na criação, a lista pode ser escolhida; começa na coluna de origem (o "+").
+  const [colunaSel, setColunaSel] = useState(estado.colunaId || board.colunas?.[0]?.id || '')
 
   // comentário + @menção
   const [novoComent, setNovoComent] = useState('')
@@ -1273,7 +1275,7 @@ function CardModal({ estado, card, board, admin, masterAdmin, minhaMat, onClose,
     try {
       const args = {
         p_quadro: board.id,
-        p_coluna: estado.modo === 'editar' && card?.coluna_id ? card.coluna_id : estado.colunaId,
+        p_coluna: estado.modo === 'editar' && card?.coluna_id ? card.coluna_id : colunaSel,
         p_titulo: titulo.trim(),
         p_descricao: descricao.trim() || null,
         p_data_conclusao: prazo || null,
@@ -1548,6 +1550,20 @@ function CardModal({ estado, card, board, admin, masterAdmin, minhaMat, onClose,
                     ))}
                   </select>
                 </div>
+              </div>
+            )}
+
+            {/* Lista de destino — só na criação (escolhe em qual coluna o cartão entra) */}
+            {!existe && board.colunas?.length > 0 && (
+              <div>
+                <div className={lbl}>Lista</div>
+                <select value={colunaSel || ''} onChange={(e) => setColunaSel(e.target.value)} className={selCls}>
+                  {board.colunas.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.nome}
+                    </option>
+                  ))}
+                </select>
               </div>
             )}
 
