@@ -1191,14 +1191,23 @@ function BoardDnD({ cols, setCols, quadroId, etiquetaPorId, onAbrirCard, onNovoC
 // conteúdo (não empurra os itens pra baixo). Fecha ao clicar fora. O container
 // pai precisa ser `relative`.
 function MenuFlutuante({ aberto, onClose, children }) {
+  const ref = useRef(null)
+  // Fecha ao clicar/tocar fora — via listener no documento, SEM overlay fixo em
+  // tela cheia (o overlay antigo bloqueava a rolagem do modal). O listener entra
+  // no clique seguinte, então o próprio clique que abre o menu não o fecha.
+  useEffect(() => {
+    if (!aberto) return
+    function foraClick(e) {
+      if (!ref.current?.contains(e.target)) onClose()
+    }
+    document.addEventListener('click', foraClick)
+    return () => document.removeEventListener('click', foraClick)
+  }, [aberto, onClose])
   if (!aberto) return null
   return (
-    <>
-      <button aria-hidden tabIndex={-1} onClick={onClose} className="fixed inset-0 z-[60] cursor-default" />
-      <div className="absolute left-0 right-0 top-full z-[61] mt-1 max-h-56 overflow-y-auto overscroll-contain rounded-lg border border-line bg-surface py-1 shadow-xl">
-        {children}
-      </div>
-    </>
+    <div ref={ref} className="absolute left-0 right-0 top-full z-[61] mt-1 max-h-56 overflow-y-auto overscroll-contain rounded-lg border border-line bg-surface py-1 shadow-xl">
+      {children}
+    </div>
   )
 }
 
