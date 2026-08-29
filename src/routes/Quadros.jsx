@@ -1200,8 +1200,13 @@ function MenuFlutuante({ aberto, onClose, children }) {
     function foraClick(e) {
       if (!ref.current?.contains(e.target)) onClose()
     }
-    document.addEventListener('click', foraClick)
-    return () => document.removeEventListener('click', foraClick)
+    // Registra no próximo tick: senão o próprio clique que ABRE o menu já
+    // dispara o handler (bolha até o document) e fecha na hora.
+    const t = setTimeout(() => document.addEventListener('click', foraClick), 0)
+    return () => {
+      clearTimeout(t)
+      document.removeEventListener('click', foraClick)
+    }
   }, [aberto, onClose])
   if (!aberto) return null
   return (
