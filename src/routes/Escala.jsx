@@ -518,6 +518,7 @@ function Calendario() {
                   <Sparkles size={16} className="shrink-0" />
                   <div className="min-w-0">
                     <div className="leading-tight">{ev.titulo}</div>
+                    {ev.descricao && <div className="mt-0.5 text-[11px] font-normal opacity-80">{ev.descricao}</div>}
                     {(hora || ev.local) && (
                       <div className="mt-0.5 hstack gap-2 text-[11px] font-normal opacity-90">
                         {hora && (
@@ -528,7 +529,6 @@ function Calendario() {
                         {ev.local && <span>· {ev.local}</span>}
                       </div>
                     )}
-                    {ev.descricao && <div className="mt-0.5 text-[11px] font-normal opacity-80">{ev.descricao}</div>}
                   </div>
                 </div>
               )
