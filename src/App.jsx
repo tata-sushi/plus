@@ -10,7 +10,6 @@ import { Treinamentos } from './routes/Treinamentos.jsx'
 import { Mais } from './routes/Mais.jsx'
 import { Jornada } from './routes/Jornada.jsx'
 import { Perfil } from './routes/Perfil.jsx'
-import { Recompensas } from './routes/Recompensas.jsx'
 import { Lojinha } from './routes/Lojinha.jsx'
 import { AdminRecompensas } from './routes/AdminRecompensas.jsx'
 import { Manutencao } from './routes/Manutencao.jsx'
@@ -78,12 +77,19 @@ export function App() {
         <Route path="/jornada" element={<Jornada />} />
         <Route path="/perfil/:id" element={<Perfil />} />
         <Route path="/buscar" element={<BuscarPessoas />} />
-        <Route path="/recompensas" element={<Recompensas />} />
+        <Route
+          path="/recompensas"
+          element={
+            <ErroBoundary>
+              <Lojinha abaInicial="recompensas" />
+            </ErroBoundary>
+          }
+        />
         <Route
           path="/lojinha"
           element={
             <ErroBoundary>
-              <Lojinha />
+              <Lojinha abaInicial="loja" />
             </ErroBoundary>
           }
         />

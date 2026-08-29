@@ -1,12 +1,11 @@
 import { useCallback, useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { Gift, Loader2, Check, Clock, X } from 'lucide-react'
-import { Header } from '../components/Header.jsx'
-import { Section } from '../components/Section.jsx'
-import { Card } from '../components/Card.jsx'
-import { RecompensaFoto } from '../components/RecompensaFoto.jsx'
+import { Section } from './Section.jsx'
+import { Card } from './Card.jsx'
+import { RecompensaFoto } from './RecompensaFoto.jsx'
 import { cn } from '../lib/cn'
 import { tapHaptic } from '../lib/haptics.js'
-import { useAuth } from '../lib/AuthContext.jsx'
 import { supabase } from '../lib/supabase.js'
 import { useCountUp } from '../lib/useCountUp.js'
 
@@ -27,8 +26,8 @@ const STATUS = {
   cancelado: { label: 'Cancelado', Icon: X, cls: 'bg-danger/15 text-danger' },
 }
 
-export function Recompensas() {
-  const { usuario } = useAuth()
+// Aba "Recompensas" do hub: catálogo trocado por pontos.
+export function PainelRecompensas() {
   const [saldo, setSaldo] = useState(null)
   const [itens, setItens] = useState([])
   const [resgates, setResgates] = useState([])
@@ -88,10 +87,8 @@ export function Recompensas() {
 
   return (
     <>
-      <Header title="Recompensas" />
-
       {/* Saldo */}
-      <div className="px-5">
+      <div className="px-5 pt-3">
         <div className="hero-card reveal p-4">
           <div className="hstack justify-between">
             <div>
@@ -215,11 +212,12 @@ export function Recompensas() {
       )}
 
       {/* Janelinha de detalhes + resgate */}
-      {aberto && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
-          onClick={fechar}
-        >
+      {aberto &&
+        createPortal(
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+            onClick={fechar}
+          >
           <div
             onClick={(e) => e.stopPropagation()}
             className="flex max-h-[85dvh] w-full max-w-md flex-col rounded-card border border-line bg-surface"
@@ -321,8 +319,9 @@ export function Recompensas() {
               )}
             </div>
           </div>
-        </div>
-      )}
+        </div>,
+          document.body,
+        )}
     </>
   )
 }
