@@ -100,6 +100,20 @@ const COMO_FUNCIONA = {
   `,
 }
 
+// Vídeo opcional no FIM do "Como funciona", por subcategoria.
+//   tipo 'youtube' → src pode ser o link completo OU o ID do vídeo
+//   tipo 'arquivo' → src é a URL .mp4/.webm/.mov (ex.: bucket `desafios`)
+const COMO_FUNCIONA_VIDEO = {
+  // preencher quando tiver o vídeo, ex.:
+  // 'Jornada TATÁ': { tipo: 'youtube', src: 'https://youtu.be/XXXXXXXXXXX' },
+}
+
+// Aceita link do YouTube (watch / youtu.be / shorts / embed) ou o ID puro (11 chars).
+function ytId(s) {
+  const m = String(s || '').match(/(?:youtu\.be\/|v=|embed\/|shorts\/)([\w-]{11})/)
+  return m ? m[1] : String(s || '')
+}
+
 // ícone de cada série sequencial (bancada de "vagas" que liberam uma a uma)
 const SERIE_ICON = {
   'Indicação Premiada': UserPlus,
@@ -176,6 +190,29 @@ export function Submodulo({ nome, itens, onAbrir, admin = false, personalizar = 
             className="conteudo text-[13px] leading-relaxed"
             dangerouslySetInnerHTML={{ __html: personalizar(COMO_FUNCIONA[nome]) }}
           />
+          {/* Vídeo no fim do "Como funciona" (quando configurado p/ a subcategoria) */}
+          {COMO_FUNCIONA_VIDEO[nome] && (
+            <div className="mt-4 overflow-hidden rounded-xl border border-line bg-black">
+              {COMO_FUNCIONA_VIDEO[nome].tipo === 'youtube' ? (
+                <div className="relative aspect-video">
+                  <iframe
+                    className="absolute inset-0 h-full w-full"
+                    src={`https://www.youtube-nocookie.com/embed/${ytId(COMO_FUNCIONA_VIDEO[nome].src)}`}
+                    title="Vídeo — Como funciona"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  />
+                </div>
+              ) : (
+                <video
+                  src={COMO_FUNCIONA_VIDEO[nome].src}
+                  controls
+                  playsInline
+                  className="w-full"
+                />
+              )}
+            </div>
+          )}
         </div>
       )}
     </div>
