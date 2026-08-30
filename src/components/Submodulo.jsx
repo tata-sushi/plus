@@ -210,7 +210,7 @@ export function Submodulo({ nome, itens, onAbrir, admin = false, personalizar = 
                   src={COMO_FUNCIONA_VIDEO[nome].src}
                   controls
                   playsInline
-                  className="w-full"
+                  className="mx-auto block max-h-[70dvh] w-auto max-w-full"
                 />
               )}
             </div>
