@@ -104,8 +104,10 @@ const COMO_FUNCIONA = {
 //   tipo 'youtube' → src pode ser o link completo OU o ID do vídeo
 //   tipo 'arquivo' → src é a URL .mp4/.webm/.mov (ex.: bucket `desafios`)
 const COMO_FUNCIONA_VIDEO = {
-  // preencher quando tiver o vídeo, ex.:
-  // 'Jornada TATÁ': { tipo: 'youtube', src: 'https://youtu.be/XXXXXXXXXXX' },
+  'Jornada TATÁ': {
+    tipo: 'arquivo',
+    src: 'https://aoqsbusfrffapjglpqjk.supabase.co/storage/v1/object/public/desafios/jornadatata.mp4',
+  },
 }
 
 // Aceita link do YouTube (watch / youtu.be / shorts / embed) ou o ID puro (11 chars).
