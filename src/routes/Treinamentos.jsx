@@ -112,7 +112,7 @@ function Detalhe({
   const blocos = Array.isArray(data?.blocos) ? data.blocos : []
   const ehCodigo = blocos.length > 0 // Código de Ética: leitura guiada em blocos
   const ehEnvio = data?.tipo === 'envio' // anexo + moderação
-  const ehReconhecimento = data?.tipo === 'reconhecimento' // aniversário de empresa
+  const ehReconhecimento = data?.tipo === 'reconhecimento' // Jornada TATÁ (tempo de casa)
   const midias = Array.isArray(data?.midias) ? data.midias : []
   const ehVideos = midias.length > 0
   const temHtml = !!data?.conteudo_html

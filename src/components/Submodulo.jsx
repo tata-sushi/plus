@@ -60,9 +60,9 @@ const COMO_FUNCIONA = {
     <p>Os pontos são liberados somente para cartões <strong>assinados e sem faltas ou atestados</strong> no período.</p>
     <p><em>Exemplo: uma falta já impede o recebimento da pontuação daquela competência.</em></p>
   `,
-  'Aniversário de Empresa': `
+  'Jornada TATÁ': `
     <p>Celebrar o tempo de casa é reconhecer a história construída por cada colaborador e reforçar o sentimento de pertencimento no TATÁ.</p>
-    <p>O Aniversário de Empresa é um gesto de reconhecimento pela dedicação, constância e contribuição de cada pessoa para o crescimento coletivo.</p>
+    <p>A Jornada TATÁ é um gesto de reconhecimento pela dedicação, constância e contribuição de cada pessoa para o crescimento coletivo.</p>
     <p><strong>Como funciona</strong></p>
     <p>A cada ciclo de tempo de empresa, o colaborador é homenageado de forma especial.</p>
     <p>Os reconhecimentos variam conforme o tempo de casa e representam o crescimento e a evolução de cada pessoa dentro do TATÁ.</p>
