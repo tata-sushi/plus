@@ -14,6 +14,7 @@ import {
   Pin,
   Search,
   Trophy,
+  KanbanSquare,
   CalendarClock,
   Puzzle,
   FileSignature,
@@ -38,7 +39,7 @@ import { tapHaptic } from '../lib/haptics.js'
 const ROTA_CANVAS = { '/ouvidoria': 'ouvidoria' }
 
 // gov: true → só aparece para quem tem Governança (Ouvidoria deslocada do slot da barra).
-// quadros: true → só aparece para quem tem Kanban (Ranking deslocado do slot da barra).
+// quadros: true → só aparece para quem tem acesso ao Kanban (Kanban + Ranking deslocado da barra).
 const itens = [
   { to: '/jornada', label: 'Meu perfil', icon: UserRound },
   { to: '/buscar', label: 'Buscar colaborador', icon: Search },
@@ -49,6 +50,7 @@ const itens = [
   { to: '/ouvidoria', label: 'Ouvidoria', icon: MessageSquareWarning, gov: true },
   { to: '/cardapio', label: 'Cardápio', icon: UtensilsCrossed },
   { to: '/ranking', label: 'Ranking', icon: Trophy, quadros: true },
+  { to: '/quadros', label: 'Kanban Tatá (beta)', icon: KanbanSquare, quadros: true },
   { to: '/escala', label: 'Agenda', icon: CalendarClock, escala: true },
   { to: '/documentos', label: 'Assinaturas', icon: FileSignature },
   { to: '/passatempos', label: 'Passatempos', icon: Puzzle, jogo: true },
