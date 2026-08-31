@@ -10,9 +10,10 @@ import { cn } from '../lib/cn'
 import PALAVRAS from '../lib/palavras-tata.js'
 
 const JOGO = 'anagrama'
+const NPAL = 3 // palavras por rodada
+const DURACAO = 60 // segundos pra fazer as 3
 
 function fmtTempo(s) {
-  if (s == null) return '0:00'
   const m = Math.floor(s / 60)
   const r = s % 60
   return `${m}:${String(r).padStart(2, '0')}`
@@ -43,17 +44,22 @@ function embaralhar(arr, rnd) {
   }
   return a
 }
-function palavraDaFase(fase) {
+// 3 palavras distintas do dia (determinístico por fase).
+function palavrasDaFase(fase) {
   const rnd = mulberry32(hashSeed(JOGO + ':' + fase))
-  return PALAVRAS[Math.floor(rnd() * PALAVRAS.length)]
+  const idxs = []
+  while (idxs.length < NPAL) {
+    const i = Math.floor(rnd() * PALAVRAS.length)
+    if (!idxs.includes(i)) idxs.push(i)
+  }
+  return idxs.map((i) => PALAVRAS[i])
 }
-// Letras embaralhadas (com id, pra lidar com letras repetidas). Determinístico por fase.
-function letrasEmbaralhadas(fase, palavra) {
-  const rnd = mulberry32(hashSeed(JOGO + ':letras:' + fase))
+function letrasEmbaralhadas(fase, idx, palavra) {
+  const rnd = mulberry32(hashSeed(JOGO + ':letras:' + fase + ':' + idx))
   const tiles = palavra.split('').map((ch, id) => ({ id, ch }))
   let mis = embaralhar(tiles, rnd)
   if (palavra.length > 1 && mis.map((t) => t.ch).join('') === palavra) {
-    mis = [...mis.slice(1), mis[0]] // evita cair já na ordem certa
+    mis = [...mis.slice(1), mis[0]]
   }
   return mis
 }
@@ -67,26 +73,30 @@ export function Anagrama() {
   const preview = previewFase >= 1
 
   const [estado, setEstado] = useState(null)
-  const [ordem, setOrdem] = useState([]) // tiles embaralhados fixos do dia
+  const [idx, setIdx] = useState(0) // palavra atual (0..NPAL-1)
+  const [ordem, setOrdem] = useState([]) // tiles embaralhados da palavra atual
   const [montada, setMontada] = useState([]) // ids na ordem que o jogador montou
+  const [acertos, setAcertos] = useState(0)
   const [resolvido, setResolvido] = useState(false)
   const [ganhouAgora, setGanhouAgora] = useState(false)
+  const [perdeu, setPerdeu] = useState(false)
   const [errou, setErrou] = useState(false)
   const [pontosGanhos, setPontosGanhos] = useState(0)
-  const [segundos, setSegundos] = useState(0)
+  const [restante, setRestante] = useState(DURACAO)
   const [ajudaAberta, setAjudaAberta] = useState(false)
   const [intro, setIntro] = useState(false)
   const inicio = useRef(Date.now())
   const enviando = useRef(false)
+  const finalizado = useRef(false)
 
   const completadas = estado?.completadas ?? 0
   const jogouHoje = !preview && !!estado?.jogou_hoje
   const fase = preview ? previewFase : jogouHoje ? Math.max(1, completadas) : completadas + 1
 
-  const item = useMemo(() => (estado?.ok || preview ? palavraDaFase(fase) : null), [estado?.ok, preview, fase])
+  const lista = useMemo(() => (estado?.ok || preview ? palavrasDaFase(fase) : null), [estado?.ok, preview, fase])
+  const item = lista?.[idx]
   const palavra = item?.p || ''
   const dica = item?.d || ''
-  const tiles = useMemo(() => (palavra ? letrasEmbaralhadas(fase, palavra) : []), [palavra, fase])
   const chDe = (id) => ordem.find((t) => t.id === id)?.ch || ''
   const pool = ordem.filter((t) => !montada.includes(t.id))
   const montadaStr = montada.map(chDe).join('')
@@ -110,30 +120,54 @@ export function Anagrama() {
     }
   }, [])
 
-  // (re)inicia quando as letras mudam
+  // reinício da rodada (muda o dia/fase): zera tudo e o cronômetro
   useEffect(() => {
-    if (!palavra) return
-    setOrdem(tiles)
+    if (!lista) return
+    setIdx(0)
+    setAcertos(0)
     setMontada([])
     setErrou(false)
     setGanhouAgora(false)
+    setPerdeu(false)
+    finalizado.current = false
     setResolvido(!!jogouHoje)
     inicio.current = Date.now()
-    setSegundos(0)
+    setRestante(DURACAO)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tiles])
+  }, [lista])
 
+  // carrega as letras da palavra atual (troca ao avançar)
   useEffect(() => {
-    if (resolvido || intro || !palavra) return
-    const id = setInterval(() => setSegundos(Math.floor((Date.now() - inicio.current) / 1000)), 1000)
-    return () => clearInterval(id)
-  }, [resolvido, intro, palavra])
+    if (!palavra) return
+    setOrdem(letrasEmbaralhadas(fase, idx, palavra))
+    setMontada([])
+    setErrou(false)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [idx, palavra])
 
-  // checa quando completa a palavra
+  // contagem regressiva (1 minuto pra rodada toda)
+  useEffect(() => {
+    if (resolvido || intro || !lista) return
+    const tick = () => {
+      const rest = DURACAO - Math.floor((Date.now() - inicio.current) / 1000)
+      if (rest <= 0) {
+        setRestante(0)
+        perderTempo()
+      } else {
+        setRestante(rest)
+      }
+    }
+    tick()
+    const id = setInterval(tick, 250)
+    return () => clearInterval(id)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [resolvido, intro, lista])
+
+  // checa quando completa a palavra atual
   useEffect(() => {
     if (!palavra || resolvido || jogouHoje) return
     if (montada.length === palavra.length) {
-      if (montadaStr === palavra) ganhar()
+      if (montadaStr === palavra) resolveuPalavra()
       else {
         setErrou(true)
         const t = setTimeout(() => setErrou(false), 600)
@@ -162,11 +196,17 @@ export function Anagrama() {
     setMontada([])
   }
 
-  async function ganhar() {
-    if (enviando.current) return
-    const tempo = Math.floor((Date.now() - inicio.current) / 1000)
-    setSegundos(tempo)
+  function resolveuPalavra() {
     tapHaptic()
+    setAcertos((a) => a + 1)
+    if (idx >= NPAL - 1) ganhar()
+    else setIdx((i) => i + 1)
+  }
+
+  async function ganhar() {
+    if (finalizado.current) return
+    finalizado.current = true
+    const tempo = Math.min(DURACAO, Math.floor((Date.now() - inicio.current) / 1000))
     setResolvido(true)
     setGanhouAgora(true)
     if (preview) return
@@ -179,6 +219,18 @@ export function Anagrama() {
     }
   }
 
+  async function perderTempo() {
+    if (finalizado.current) return
+    finalizado.current = true
+    setResolvido(true)
+    setPerdeu(true)
+    if (preview) return
+    enviando.current = true
+    const { data } = await supabase.rpc('jogo_concluir', { p_jogo: JOGO, p_fase: fase, p_tempo_seg: DURACAO, p_resolvido: false })
+    enviando.current = false
+    if (data?.ok) setEstado((e) => ({ ...e, ...data }))
+  }
+
   function fecharIntro() {
     try {
       localStorage.setItem('anagrama.intro.v1', '1')
@@ -186,11 +238,12 @@ export function Anagrama() {
       /* ignore */
     }
     inicio.current = Date.now()
-    setSegundos(0)
+    setRestante(DURACAO)
     setIntro(false)
   }
 
   const carregando = !estado && !preview
+  const urgente = !resolvido && restante <= 10
 
   // BETA: travado para todos menos o dono (mat 7) enquanto não vai pra produção.
   if (usuario && !mat7) {
@@ -237,86 +290,26 @@ export function Anagrama() {
             )}
           </div>
 
-          {/* barra: 🔥 ofensiva · ⏱ tempo · ↺ limpar + ? */}
-          <div className="mb-4 grid grid-cols-3 items-center px-2 text-muted">
-            <span className="hstack justify-self-start gap-1.5 text-sm font-semibold">
-              <Flame size={18} className="text-accent" /> {estado?.streak || 0}
-            </span>
-            <span className="hstack justify-self-center gap-1.5 font-mono text-sm">
-              <Clock size={18} /> {fmtTempo(segundos)}
-            </span>
-            <span className="hstack justify-self-end gap-4">
-              <button onClick={limpar} disabled={resolvido || !montada.length} aria-label="Limpar" title="Limpar" className="tap disabled:opacity-40">
-                <RotateCcw size={18} />
-              </button>
-              <button onClick={() => setAjudaAberta(true)} aria-label="Como jogar" title="Como jogar" className="tap">
-                <HelpCircle size={18} />
-              </button>
-            </span>
-          </div>
-
-          {/* dica */}
-          <div className="rounded-2xl border border-line bg-surface px-4 py-3 text-center text-sm text-muted">
-            <span className="text-muted-2">Dica: </span>
-            {dica}
-          </div>
-
-          {/* resposta */}
-          <div className="mt-5 flex flex-wrap justify-center gap-1.5">
-            {Array.from({ length: palavra.length }).map((_, i) => {
-              const id = montada[i]
-              const preenchida = id !== undefined
-              const ch = resolvido ? palavra[i] : preenchida ? chDe(id) : ''
-              return (
-                <button
-                  key={i}
-                  onClick={() => preenchida && tirar(id)}
-                  disabled={!preenchida || resolvido}
-                  className={cn(
-                    'grid h-11 w-9 place-items-center rounded-lg border font-display text-xl font-bold transition-colors tap',
-                    resolvido
-                      ? 'border-accent/50 bg-accent-soft text-accent'
-                      : errou
-                        ? 'border-danger bg-danger/10 text-danger'
-                        : preenchida
-                          ? 'border-line bg-surface-2 text-text active:bg-[#2a2b30]'
-                          : 'border-dashed border-line bg-transparent text-text',
-                  )}
-                >
-                  {ch}
-                </button>
-              )
-            })}
-          </div>
-
-          {/* letras disponíveis */}
-          {!resolvido && (
-            <div className="mt-7 flex flex-wrap justify-center gap-2">
-              {pool.map((t) => (
-                <button
-                  key={t.id}
-                  onClick={() => colocar(t.id)}
-                  className="grid h-12 w-10 place-items-center rounded-xl bg-surface-2 font-display text-xl font-bold text-text tap transition-transform active:scale-95"
-                >
-                  {t.ch}
-                </button>
-              ))}
-              {pool.length === 0 && <div className="py-2 text-xs text-muted-2">Toque numa letra da resposta pra devolver</div>}
-            </div>
-          )}
-
-          {/* resultado */}
-          {resolvido && (
-            <div className="mt-6 hstack gap-3 rounded-2xl border border-accent/40 bg-accent-soft/60 px-4 py-3.5">
-              <div className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-accent text-black">
-                {ganhouAgora ? <Check size={22} strokeWidth={3} /> : <Trophy size={20} />}
+          {resolvido ? (
+            <div
+              className={cn(
+                'mt-2 hstack gap-3 rounded-2xl border px-4 py-3.5',
+                perdeu ? 'border-danger/40 bg-danger/10' : 'border-accent/40 bg-accent-soft/60',
+              )}
+            >
+              <div className={cn('grid h-11 w-11 shrink-0 place-items-center rounded-full', perdeu ? 'bg-danger text-white' : 'bg-accent text-black')}>
+                {perdeu ? <Clock size={22} /> : ganhouAgora ? <Check size={22} strokeWidth={3} /> : <Trophy size={20} />}
               </div>
               <div className="min-w-0">
-                <div className="font-display text-base font-bold text-accent-ink">
-                  {ganhouAgora ? 'Boa! Você desembaralhou' : 'Fase concluída hoje'}
+                <div className={cn('font-display text-base font-bold', perdeu ? 'text-danger' : 'text-accent-ink')}>
+                  {perdeu ? 'Tempo esgotado' : ganhouAgora ? 'Boa! Fez as 3 palavras' : 'Fase concluída hoje'}
                 </div>
                 <div className="text-sm text-muted">
-                  {preview ? (
+                  {perdeu ? (
+                    <>
+                      Você fez <b className="text-text">{acertos} de {NPAL}</b> · Volte amanhã
+                    </>
+                  ) : preview ? (
                     'Prévia · não pontua'
                   ) : ganhouAgora && pontosGanhos > 0 ? (
                     <>
@@ -328,6 +321,85 @@ export function Anagrama() {
                 </div>
               </div>
             </div>
+          ) : (
+            <>
+              {/* barra: 🔥 ofensiva · ⏱ tempo restante · ↺ limpar + ? */}
+              <div className="grid grid-cols-3 items-center px-2 text-muted">
+                <span className="hstack justify-self-start gap-1.5 text-sm font-semibold">
+                  <Flame size={18} className="text-accent" /> {estado?.streak || 0}
+                </span>
+                <span className={cn('hstack justify-self-center gap-1.5 font-mono text-base font-bold', urgente ? 'text-danger' : 'text-text')}>
+                  <Clock size={18} /> {fmtTempo(restante)}
+                </span>
+                <span className="hstack justify-self-end gap-4">
+                  <button onClick={limpar} disabled={!montada.length} aria-label="Limpar" title="Limpar" className="tap disabled:opacity-40">
+                    <RotateCcw size={18} />
+                  </button>
+                  <button onClick={() => setAjudaAberta(true)} aria-label="Como jogar" title="Como jogar" className="tap">
+                    <HelpCircle size={18} />
+                  </button>
+                </span>
+              </div>
+
+              {/* progresso das 3 palavras */}
+              <div className="mt-3 hstack justify-center gap-2">
+                {Array.from({ length: NPAL }).map((_, i) => (
+                  <span
+                    key={i}
+                    className={cn(
+                      'h-1.5 rounded-full transition-all',
+                      i < acertos ? 'w-6 bg-accent' : i === idx ? 'w-6 bg-muted' : 'w-3 bg-line',
+                    )}
+                  />
+                ))}
+              </div>
+              <div className="mt-1 text-center text-xs text-muted-2">Palavra {idx + 1} de {NPAL}</div>
+
+              {/* dica */}
+              <div className="mt-3 rounded-2xl border border-line bg-surface px-4 py-3 text-center text-sm text-muted">
+                <span className="text-muted-2">Dica: </span>
+                {dica}
+              </div>
+
+              {/* resposta */}
+              <div className="mt-5 flex flex-wrap justify-center gap-1.5">
+                {Array.from({ length: palavra.length }).map((_, i) => {
+                  const id = montada[i]
+                  const preenchida = id !== undefined
+                  return (
+                    <button
+                      key={i}
+                      onClick={() => preenchida && tirar(id)}
+                      disabled={!preenchida}
+                      className={cn(
+                        'grid h-11 w-9 place-items-center rounded-lg border font-display text-xl font-bold transition-colors tap',
+                        errou
+                          ? 'border-danger bg-danger/10 text-danger'
+                          : preenchida
+                            ? 'border-line bg-surface-2 text-text active:bg-[#2a2b30]'
+                            : 'border-dashed border-line bg-transparent text-text',
+                      )}
+                    >
+                      {preenchida ? chDe(id) : ''}
+                    </button>
+                  )
+                })}
+              </div>
+
+              {/* letras disponíveis */}
+              <div className="mt-7 flex flex-wrap justify-center gap-2">
+                {pool.map((t) => (
+                  <button
+                    key={t.id}
+                    onClick={() => colocar(t.id)}
+                    className="grid h-12 w-10 place-items-center rounded-xl bg-surface-2 font-display text-xl font-bold text-text tap transition-transform active:scale-95"
+                  >
+                    {t.ch}
+                  </button>
+                ))}
+                {pool.length === 0 && <div className="py-2 text-xs text-muted-2">Toque numa letra da resposta pra devolver</div>}
+              </div>
+            </>
           )}
         </div>
       )}
@@ -349,11 +421,11 @@ function FolhaAjuda({ onClose }) {
         </button>
         <div className="font-display text-lg font-bold">Como jogar</div>
         <ul className="mt-3 flex flex-col gap-2 text-sm leading-relaxed text-muted">
-          <li>• As letras vêm <b className="text-text">embaralhadas</b>.</li>
-          <li>• Toque nelas pra montar a <b className="text-text">palavra certa</b>.</li>
-          <li>• Tocou numa letra da resposta? Ela <b className="text-text">volta</b> pra baixo.</li>
-          <li>• A dica mostra do que se trata.</li>
-          <li>• 1 palavra por dia · tempo cronometrado.</li>
+          <li>• São <b className="text-text">3 palavras</b> embaralhadas em <b className="text-text">1 minuto</b>.</li>
+          <li>• Toque nas letras pra montar cada palavra.</li>
+          <li>• Acertou uma? Já vai pra próxima automaticamente.</li>
+          <li>• Tocou numa letra da resposta? Ela volta pra baixo.</li>
+          <li>• Faça as 3 antes do tempo acabar pra vencer.</li>
         </ul>
       </div>
     </div>,
@@ -370,17 +442,17 @@ function FolhaIntro({ onClose }) {
           <div className="mx-auto mb-3 grid h-14 w-14 place-items-center rounded-2xl bg-accent-soft text-3xl">🔀</div>
           <div className="font-display text-xl font-bold">Bem-vindo ao Anagrama!</div>
           <p className="mx-auto mt-2 max-w-[340px] text-sm leading-relaxed text-muted">
-            Uma palavra embaralhada <b className="text-text">todo dia</b>. Coloque as letras no lugar e mantenha a{' '}
+            <b className="text-text">3 palavras</b> embaralhadas, <b className="text-text">1 minuto</b> no relógio. Corra e mantenha a{' '}
             <b className="text-text">ofensiva 🔥</b>.
           </p>
         </div>
         <div className="mt-5 rounded-2xl border border-line bg-surface p-4">
           <div className="text-sm font-bold text-text">Como funciona</div>
           <ul className="mt-2 flex flex-col gap-1.5 text-sm leading-relaxed text-muted">
-            <li>• Toque nas letras pra formar a palavra.</li>
-            <li>• Tocou errado? Toque na letra da resposta pra devolver.</li>
+            <li>• Toque nas letras pra formar cada palavra.</li>
+            <li>• Acertou? Pula pra próxima na hora.</li>
             <li>• Use a dica pra ajudar.</li>
-            <li>• 1 palavra por dia · tempo cronometrado.</li>
+            <li>• Faça as 3 em 1 minuto.</li>
           </ul>
         </div>
         <button onClick={onClose} className="btn-primary mt-5 w-full !py-3 text-sm font-bold">Bora jogar!</button>
