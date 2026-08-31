@@ -307,20 +307,29 @@ export function Memoria() {
                     onClick={() => virar(carta)}
                     disabled={aberta || travado}
                     aria-label={aberta ? carta.emoji : 'Carta virada'}
-                    className={cn(
-                      'grid aspect-square place-items-center rounded-xl text-[clamp(22px,7.5vw,36px)] transition-colors tap',
-                      aberta
-                        ? casada
-                          ? 'bg-accent-soft ring-1 ring-accent/50'
-                          : 'bg-surface-2'
-                        : 'bg-[#1f2024] active:bg-[#26272c]',
-                    )}
+                    className="relative aspect-square tap transition-transform duration-100 active:scale-95 [perspective:700px]"
                   >
-                    {aberta ? (
-                      <span>{carta.emoji}</span>
-                    ) : (
-                      <span className="text-base text-accent/50">🍥</span>
-                    )}
+                    {/* vira em 3D revelando a figura de baixo */}
+                    <div
+                      className={cn(
+                        'relative h-full w-full transition-transform duration-300 [transform-style:preserve-3d] [-webkit-transform-style:preserve-3d]',
+                        aberta && '[transform:rotateY(180deg)] [-webkit-transform:rotateY(180deg)]',
+                      )}
+                    >
+                      {/* verso (carta fechada) */}
+                      <span className="absolute inset-0 grid place-items-center rounded-xl bg-[#1f2024] text-base text-accent/50 [backface-visibility:hidden] [-webkit-backface-visibility:hidden]">
+                        🍥
+                      </span>
+                      {/* frente (figura) */}
+                      <span
+                        className={cn(
+                          'absolute inset-0 grid place-items-center rounded-xl text-[clamp(22px,7.5vw,36px)] [transform:rotateY(180deg)] [-webkit-transform:rotateY(180deg)] [backface-visibility:hidden] [-webkit-backface-visibility:hidden]',
+                          casada ? 'bg-accent-soft ring-1 ring-accent/50' : 'bg-surface-2',
+                        )}
+                      >
+                        {carta.emoji}
+                      </span>
+                    </div>
                   </button>
                 )
               })}
@@ -378,7 +387,7 @@ function FolhaAjuda({ onClose }) {
         <ul className="mt-3 flex flex-col gap-2 text-sm leading-relaxed text-muted">
           <li>• Vire <b className="text-text">duas cartas</b> por vez.</li>
           <li>• Achou o <b className="text-text">par igual</b>? Ele fica aberto.</li>
-          <li>• Errou? As cartas viram de novo — memorize onde estão.</li>
+          <li>• Errou? As cartas viram de novo, memorize onde estão.</li>
           <li>• Complete <b className="text-text">todos os pares</b> pra vencer.</li>
           <li>• 1 rodada por dia · tempo cronometrado.</li>
         </ul>
@@ -406,7 +415,7 @@ function FolhaIntro({ onClose }) {
           <div className="text-sm font-bold text-text">Como funciona</div>
           <ul className="mt-2 flex flex-col gap-1.5 text-sm leading-relaxed text-muted">
             <li>• Vire <b className="text-text">duas cartas</b> e ache os pares iguais.</li>
-            <li>• Errou, elas viram de novo — <b className="text-text">memorize</b>.</li>
+            <li>• Errou? Elas viram de novo, então <b className="text-text">memorize</b>.</li>
             <li>• Complete todos os pares.</li>
             <li>• 1 rodada por dia · tempo cronometrado.</li>
           </ul>
