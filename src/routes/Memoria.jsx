@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { ArrowLeft, RotateCcw, HelpCircle, Check, Trophy, Loader2, Clock, Flame, X } from 'lucide-react'
+import { ArrowLeft, RotateCcw, HelpCircle, Check, Trophy, Loader2, Clock, Flame, X, Lock } from 'lucide-react'
 import { supabase } from '../lib/supabase.js'
 import { tapHaptic } from '../lib/haptics.js'
 import { useAuth } from '../lib/AuthContext.jsx'
@@ -210,6 +210,36 @@ export function Memoria() {
   }
 
   const carregando = !estado && !preview
+
+  // BETA: jogo travado para todos menos o dono (mat 7) enquanto não vai pra
+  // produção. Bloqueia tanto jogar quanto pontuar (mesmo entrando pela URL).
+  if (usuario && !mat7) {
+    return (
+      <div className="min-h-[100dvh] bg-bg">
+        <Header />
+        <div className="px-5 pt-2">
+          <button
+            onClick={() => {
+              tapHaptic()
+              navigate(-1)
+            }}
+            className="hstack gap-1 text-sm font-medium text-muted tap"
+          >
+            <ArrowLeft size={16} /> Voltar
+          </button>
+        </div>
+        <div className="mx-auto w-full max-w-[420px] px-5 pt-24 text-center">
+          <div className="mx-auto grid h-16 w-16 place-items-center rounded-2xl bg-surface-2 text-muted-2">
+            <Lock size={26} />
+          </div>
+          <div className="mt-4 font-display text-lg font-bold">Em breve</div>
+          <p className="mx-auto mt-1 max-w-[300px] text-sm text-muted">
+            Este jogo ainda está em testes. Logo ele chega pra todo mundo!
+          </p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-[100dvh] bg-bg">

@@ -4,22 +4,27 @@ import { ArrowLeft, ChevronRight, Flame, Grid3x3, Route, Type, Layers } from 'lu
 import { Header } from '../components/Header.jsx'
 import { supabase } from '../lib/supabase.js'
 import { tapHaptic } from '../lib/haptics.js'
+import { useAuth } from '../lib/AuthContext.jsx'
 
 // Hub dos jogos diários. Cada card leva ao jogo e mostra a ofensiva atual.
+// beta: true → em testes, aparece só para o dono (mat 7) até ir pra produção.
 const JOGOS = [
   { to: '/jogo', jogo: 'tatatango', nome: 'Tatá Tango', desc: 'Lógica diária com 🍙 e 🍣', icon: Grid3x3 },
   { to: '/rota-sushi', jogo: 'rotasushi', nome: 'Rota do Sushi', desc: 'Trace a rota da entrega', icon: Route },
   { to: '/termo', jogo: 'termo', nome: 'Termo Tatá', desc: 'Descubra a palavra do dia', icon: Type },
-  { to: '/memoria', jogo: 'memoria', nome: 'Memória Tatá', desc: 'Ache os pares do dia', icon: Layers },
+  { to: '/memoria', jogo: 'memoria', nome: 'Memória Tatá', desc: 'Ache os pares do dia', icon: Layers, beta: true },
 ]
 
 export function Passatempos() {
   const navigate = useNavigate()
+  const { usuario } = useAuth()
   const [estados, setEstados] = useState({})
+  // jogos em beta só aparecem para o dono (mat 7) enquanto não vão pra produção
+  const jogos = JOGOS.filter((j) => !j.beta || String(usuario?.matricula) === '7')
 
   useEffect(() => {
     let ativo = true
-    JOGOS.forEach((j) =>
+    jogos.forEach((j) =>
       supabase.rpc('jogo_estado', { p_jogo: j.jogo }).then(({ data }) => {
         if (ativo) setEstados((e) => ({ ...e, [j.jogo]: data }))
       }),
@@ -27,7 +32,8 @@ export function Passatempos() {
     return () => {
       ativo = false
     }
-  }, [])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [usuario?.matricula])
 
   return (
     <div className="min-h-[100dvh] bg-bg">
@@ -51,7 +57,7 @@ export function Passatempos() {
         </div>
 
         <div className="flex flex-col gap-3">
-          {JOGOS.map((j) => {
+          {jogos.map((j) => {
             const est = estados[j.jogo]
             const Icon = j.icon
             return (
