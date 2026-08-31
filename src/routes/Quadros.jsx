@@ -598,6 +598,20 @@ function VisaoQuadro({ quadroId, onVoltar, emCanvas, cardInicial, cardNonce, nov
       <div className="min-w-0 flex-1">
         <div className="truncate font-display text-lg font-bold leading-tight">{board.nome}</div>
       </div>
+      <button
+        onClick={() => {
+          if (buscaAberta) {
+            setBusca('')
+            setBuscaAberta(false)
+          } else {
+            setBuscaAberta(true)
+          }
+        }}
+        aria-label="Buscar cartão"
+        className={cn(btnQuadro, buscaAberta ? 'bg-accent-soft text-accent' : btnOff)}
+      >
+        <Search size={18} />
+      </button>
       <button onClick={() => setSheet('membros')} aria-label="Participantes do quadro" className="hstack h-8 shrink-0 gap-1.5 rounded-pill border border-line px-2.5 text-xs font-semibold text-muted tap">
         <PilhaAvatares membros={board.membros} />
         <Users size={14} />
