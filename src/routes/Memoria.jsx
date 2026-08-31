@@ -9,9 +9,9 @@ import { Header } from '../components/Header.jsx'
 import { cn } from '../lib/cn'
 
 const JOGO = 'memoria'
-const PARES = 8 // 8 pares = 16 cartas (grade 4×4)
+const PARES = 18 // 18 pares = 36 cartas (grade 6×6)
 // Emojis temáticos (restaurante / oriental) — sorteia PARES por dia.
-const EMOJIS = ['🍣', '🍤', '🍜', '🍥', '🥟', '🍶', '🐟', '🍚', '🍙', '🍱', '🧋', '🦐', '🍡', '🥑', '🌶️', '🍢']
+const EMOJIS = ['🍣', '🍤', '🍜', '🍥', '🥟', '🍶', '🐟', '🍚', '🍙', '🍱', '🧋', '🦐', '🍡', '🥑', '🌶️', '🍢', '🍵', '🥢', '🥡', '🍦', '🥗', '🍋', '🥒', '🫖']
 
 function fmtTempo(s) {
   if (s == null) return '—'
@@ -296,11 +296,10 @@ export function Memoria() {
           </div>
 
           {/* tabuleiro de cartas */}
-          <div className="rounded-2xl border border-line bg-surface p-3.5">
-            <div className="grid grid-cols-4 gap-2.5">
+          <div className="rounded-2xl border border-line bg-surface p-2.5">
+            <div className="grid grid-cols-6 gap-1.5">
               {cartas.map((carta) => {
                 const aberta = viradas.includes(carta.id) || achados.has(carta.par) || resolvido
-                const casada = achados.has(carta.par)
                 return (
                   <button
                     key={carta.id}
@@ -316,17 +315,12 @@ export function Memoria() {
                         aberta && '[transform:rotateY(180deg)] [-webkit-transform:rotateY(180deg)]',
                       )}
                     >
-                      {/* verso (carta fechada) */}
-                      <span className="absolute inset-0 grid place-items-center rounded-xl bg-[#1f2024] text-base text-accent/50 [backface-visibility:hidden] [-webkit-backface-visibility:hidden]">
-                        🍥
+                      {/* verso (carta fechada) — logo do Tatá */}
+                      <span className="absolute inset-0 grid place-items-center rounded-xl bg-[#1f2024] [backface-visibility:hidden] [-webkit-backface-visibility:hidden]">
+                        <img src="/icons/logo-mark.png" alt="" draggable="false" className="w-1/2 opacity-80" />
                       </span>
-                      {/* frente (figura) */}
-                      <span
-                        className={cn(
-                          'absolute inset-0 grid place-items-center rounded-xl text-[clamp(22px,7.5vw,36px)] [transform:rotateY(180deg)] [-webkit-transform:rotateY(180deg)] [backface-visibility:hidden] [-webkit-backface-visibility:hidden]',
-                          casada ? 'bg-accent-soft ring-1 ring-accent/50' : 'bg-surface-2',
-                        )}
-                      >
+                      {/* frente (figura) — sem destaque, mesma cara pra achada ou não */}
+                      <span className="absolute inset-0 grid place-items-center rounded-xl bg-surface-2 text-[clamp(15px,5vw,26px)] [transform:rotateY(180deg)] [-webkit-transform:rotateY(180deg)] [backface-visibility:hidden] [-webkit-backface-visibility:hidden]">
                         {carta.emoji}
                       </span>
                     </div>
