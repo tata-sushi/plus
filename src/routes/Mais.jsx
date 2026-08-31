@@ -13,7 +13,7 @@ import {
   MessageSquareWarning,
   Pin,
   Search,
-  KanbanSquare,
+  Trophy,
   CalendarClock,
   Puzzle,
   FileSignature,
@@ -37,8 +37,8 @@ import { tapHaptic } from '../lib/haptics.js'
 // No desktop estas rotas abrem no quadrante central em vez de navegar no painel.
 const ROTA_CANVAS = { '/ouvidoria': 'ouvidoria' }
 
-// gov: true → só aparece para quem tem acesso à Governança.
-// quadros: true → só para quem tem acesso a Quadros (liberado no painel de admin).
+// gov: true → só aparece para quem tem Governança (Ouvidoria deslocada do slot da barra).
+// quadros: true → só aparece para quem tem Kanban (Ranking deslocado do slot da barra).
 const itens = [
   { to: '/jornada', label: 'Meu perfil', icon: UserRound },
   { to: '/buscar', label: 'Buscar colaborador', icon: Search },
@@ -48,7 +48,7 @@ const itens = [
   { to: '/minha-experiencia', label: 'Avaliações', icon: ClipboardList },
   { to: '/ouvidoria', label: 'Ouvidoria', icon: MessageSquareWarning, gov: true },
   { to: '/cardapio', label: 'Cardápio', icon: UtensilsCrossed },
-  { to: '/quadros', label: 'Kanban Tatá (beta)', icon: KanbanSquare, quadros: true },
+  { to: '/ranking', label: 'Ranking', icon: Trophy, quadros: true },
   { to: '/escala', label: 'Agenda', icon: CalendarClock, escala: true },
   { to: '/documentos', label: 'Assinaturas', icon: FileSignature },
   { to: '/passatempos', label: 'Passatempos', icon: Puzzle, jogo: true },
@@ -101,8 +101,8 @@ export function Mais() {
   const [saldo, setSaldo] = useState(null)
   const [progresso, setProgresso] = useState(null)
 
-  // Ouvidoria e Gerenciar atalhos só para quem tem acesso à Governança.
-  // Quadros só aparece para quem foi liberado no painel de admin.
+  // Ouvidoria e Atalhos: só para quem tem Governança (deslocados da barra).
+  // Ranking: só para quem tem Kanban (deslocado da barra); os demais o veem na barra.
   const navItens = itens
     .filter(
       (i) =>

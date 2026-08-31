@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom'
-import { Home, Trophy, Newspaper, Ear, Menu, ShieldCheck } from 'lucide-react'
+import { Home, Trophy, Newspaper, Ear, Menu, ShieldCheck, KanbanSquare } from 'lucide-react'
 import { cn } from '../lib/cn'
 import { tapHaptic } from '../lib/haptics.js'
 import { useAuth } from '../lib/AuthContext.jsx'
@@ -8,6 +8,11 @@ import { useAuth } from '../lib/AuthContext.jsx'
 // usado na Governança, onde o iframe ocupa o espaço acima da barra.
 export function BottomNav({ flow = false }) {
   const { usuario } = useAuth()
+  // slot 2 reveza: quem tem acesso ao Kanban vê Kanban;
+  // quem não tem vê Ranking no lugar (o Ranking fica no menu "Mais" p/ quem vê Kanban).
+  const slotRanking = usuario?.podeQuadros
+    ? { to: '/quadros', label: 'Kanban', Icon: KanbanSquare }
+    : { to: '/ranking', label: 'Ranking', Icon: Trophy }
   // slot 4 reveza: quem tem acesso ao portal de Governança vê Governança;
   // quem não tem vê Ouvidoria no lugar (a Ouvidoria fica no menu "Mais" p/ quem vê Governança).
   const slotCanal = usuario?.governanca?.tem
@@ -15,7 +20,7 @@ export function BottomNav({ flow = false }) {
     : { to: '/ouvidoria', label: 'Ouvidoria', Icon: Ear }
   const items = [
     { to: '/', label: 'Início', Icon: Home, end: true },
-    { to: '/ranking', label: 'Ranking', Icon: Trophy },
+    slotRanking,
     { to: '/comunidade', label: 'Feed', Icon: Newspaper },
     slotCanal,
     { to: '/mais', label: 'Mais', Icon: Menu },
