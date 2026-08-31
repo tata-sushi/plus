@@ -47,6 +47,10 @@ const RotaSushi = lazy(() => import('./routes/RotaSushi.jsx'))
 const Termo = lazy(() => import('./routes/Termo.jsx'))
 // Jogo da Memória — quarto jogo diário (jogo da memória), carregado sob demanda.
 const Memoria = lazy(() => import('./routes/Memoria.jsx'))
+// Forca — quinto jogo diário (adivinha a palavra), carregado sob demanda.
+const Forca = lazy(() => import('./routes/Forca.jsx'))
+// Anagrama — sexto jogo diário (desembaralha a palavra), carregado sob demanda.
+const Anagrama = lazy(() => import('./routes/Anagrama.jsx'))
 // Assinaturas — documentos para o colaborador ler e assinar, carregado sob demanda.
 const Documentos = lazy(() => import('./routes/Documentos.jsx'))
 // Comprovante imprimível de uma assinatura, carregado sob demanda.
@@ -174,6 +178,26 @@ export function App() {
             <ErroBoundary>
               <Suspense fallback={<Splash />}>
                 <Memoria />
+              </Suspense>
+            </ErroBoundary>
+          }
+        />
+        <Route
+          path="/forca"
+          element={
+            <ErroBoundary>
+              <Suspense fallback={<Splash />}>
+                <Forca />
+              </Suspense>
+            </ErroBoundary>
+          }
+        />
+        <Route
+          path="/anagrama"
+          element={
+            <ErroBoundary>
+              <Suspense fallback={<Splash />}>
+                <Anagrama />
               </Suspense>
             </ErroBoundary>
           }
