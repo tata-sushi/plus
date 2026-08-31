@@ -45,6 +45,8 @@ const Jogo = lazy(() => import('./routes/Jogo.jsx'))
 const RotaSushi = lazy(() => import('./routes/RotaSushi.jsx'))
 // Termo Tatá — terceiro jogo diário (estilo Termo/Wordle), carregado sob demanda.
 const Termo = lazy(() => import('./routes/Termo.jsx'))
+// Memória Tatá — quarto jogo diário (jogo da memória), carregado sob demanda.
+const Memoria = lazy(() => import('./routes/Memoria.jsx'))
 // Assinaturas — documentos para o colaborador ler e assinar, carregado sob demanda.
 const Documentos = lazy(() => import('./routes/Documentos.jsx'))
 // Comprovante imprimível de uma assinatura, carregado sob demanda.
@@ -162,6 +164,16 @@ export function App() {
             <ErroBoundary>
               <Suspense fallback={<Splash />}>
                 <Termo />
+              </Suspense>
+            </ErroBoundary>
+          }
+        />
+        <Route
+          path="/memoria"
+          element={
+            <ErroBoundary>
+              <Suspense fallback={<Splash />}>
+                <Memoria />
               </Suspense>
             </ErroBoundary>
           }

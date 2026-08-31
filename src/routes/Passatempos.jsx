@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { ArrowLeft, ChevronRight, Flame, Grid3x3, Route, Type } from 'lucide-react'
+import { ArrowLeft, ChevronRight, Flame, Grid3x3, Route, Type, Layers } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { supabase } from '../lib/supabase.js'
 import { tapHaptic } from '../lib/haptics.js'
@@ -10,6 +10,7 @@ const JOGOS = [
   { to: '/jogo', jogo: 'tatatango', nome: 'Tatá Tango', desc: 'Lógica diária com 🍙 e 🍣', icon: Grid3x3 },
   { to: '/rota-sushi', jogo: 'rotasushi', nome: 'Rota do Sushi', desc: 'Trace a rota da entrega', icon: Route },
   { to: '/termo', jogo: 'termo', nome: 'Termo Tatá', desc: 'Descubra a palavra do dia', icon: Type },
+  { to: '/memoria', jogo: 'memoria', nome: 'Memória Tatá', desc: 'Ache os pares do dia', icon: Layers },
 ]
 
 export function Passatempos() {
