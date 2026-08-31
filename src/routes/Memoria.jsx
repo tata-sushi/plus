@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { ArrowLeft, RotateCcw, HelpCircle, Check, Trophy, Loader2, Clock, Flame, X, Lock } from 'lucide-react'
+import { ArrowLeft, RotateCcw, HelpCircle, Check, Trophy, Loader2, Clock, Flame, X } from 'lucide-react'
 import { supabase } from '../lib/supabase.js'
 import { tapHaptic } from '../lib/haptics.js'
 import { useAuth } from '../lib/AuthContext.jsx'
@@ -212,36 +212,6 @@ export function Memoria() {
 
   const carregando = !estado && !preview
 
-  // BETA: jogo travado para todos menos o dono (mat 7) enquanto não vai pra
-  // produção. Bloqueia tanto jogar quanto pontuar (mesmo entrando pela URL).
-  if (usuario && !mat7) {
-    return (
-      <div className="min-h-[100dvh] bg-bg">
-        <Header />
-        <div className="px-5 pt-2">
-          <button
-            onClick={() => {
-              tapHaptic()
-              navigate(-1)
-            }}
-            className="hstack gap-1 text-sm font-medium text-muted tap"
-          >
-            <ArrowLeft size={16} /> Voltar
-          </button>
-        </div>
-        <div className="mx-auto w-full max-w-[420px] px-5 pt-24 text-center">
-          <div className="mx-auto grid h-16 w-16 place-items-center rounded-2xl bg-surface-2 text-muted-2">
-            <Lock size={26} />
-          </div>
-          <div className="mt-4 font-display text-lg font-bold">Em breve</div>
-          <p className="mx-auto mt-1 max-w-[300px] text-sm text-muted">
-            Este jogo ainda está em testes. Logo ele chega pra todo mundo!
-          </p>
-        </div>
-      </div>
-    )
-  }
-
   return (
     <div className="min-h-[100dvh] bg-bg">
       <Header />
@@ -264,7 +234,7 @@ export function Memoria() {
       ) : (
         <div className="mx-auto w-full max-w-[420px] px-5 pb-28 pt-4">
           <div className="mb-5 text-center">
-            <div className="font-display text-[19px] font-bold leading-tight">Memória Tatá</div>
+            <div className="font-display text-[19px] font-bold leading-tight">Jogo da Memória</div>
             {preview && (
               <div className="mt-1 text-[11px] font-semibold uppercase tracking-wide text-muted-2">
                 Prévia · Fase {fase} · não pontua
@@ -400,7 +370,7 @@ function FolhaIntro({ onClose }) {
       <div className="relative max-h-[86dvh] w-full max-w-[400px] overflow-y-auto overscroll-contain rounded-2xl border border-line bg-bg px-5 pb-6 pt-6 shadow-xl">
         <div className="text-center">
           <div className="mx-auto mb-3 grid h-14 w-14 place-items-center rounded-2xl bg-accent-soft text-3xl">🍣</div>
-          <div className="font-display text-xl font-bold">Bem-vindo à Memória Tatá!</div>
+          <div className="font-display text-xl font-bold">Bem-vindo ao Jogo da Memória!</div>
           <p className="mx-auto mt-2 max-w-[340px] text-sm leading-relaxed text-muted">
             Um tabuleiro novo <b className="text-text">todo dia</b>. Ache os pares, mantenha a{' '}
             <b className="text-text">ofensiva 🔥</b>.

@@ -257,7 +257,7 @@ export function Termo() {
         <div className="mx-auto flex w-full max-w-[420px] flex-col px-5 pb-6 pt-4">
           {/* título */}
           <div className="mb-4 text-center">
-            <div className="font-display text-[19px] font-bold leading-tight">Termo Tatá</div>
+            <div className="font-display text-[19px] font-bold leading-tight">Termo</div>
             {preview && (
               <div className="mt-1 text-[11px] font-semibold uppercase tracking-wide text-muted-2">
                 Prévia · {display} · não pontua
@@ -480,7 +480,7 @@ function FolhaComoJogar({ onClose, primeiro }) {
           <X size={16} />
         </button>
         <div className="text-center">
-          <div className="font-display text-lg font-bold">{primeiro ? 'Bem-vindo ao Termo Tatá!' : 'Como jogar'}</div>
+          <div className="font-display text-lg font-bold">{primeiro ? 'Bem-vindo ao Termo!' : 'Como jogar'}</div>
           <p className="mx-auto mt-1.5 max-w-[330px] text-sm leading-relaxed text-muted">
             Descubra a <b className="text-text">palavra do dia</b> em {TENTATIVAS} tentativas, sempre no mundo do{' '}
             <b className="text-text">TATÁ</b>. Veja como as cores funcionam:
