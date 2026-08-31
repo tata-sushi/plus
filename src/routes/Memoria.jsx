@@ -10,8 +10,9 @@ import { cn } from '../lib/cn'
 
 const JOGO = 'memoria'
 const PARES = 18 // 18 pares = 36 cartas (grade 6×6)
-// Emojis temáticos (restaurante / oriental) — sorteia PARES por dia.
-const EMOJIS = ['🍣', '🍤', '🍜', '🍥', '🥟', '🍶', '🐟', '🍚', '🍙', '🍱', '🧋', '🦐', '🍡', '🥑', '🌶️', '🍢', '🍵', '🥢', '🥡', '🍦', '🥗', '🍋', '🥒', '🫖']
+// Cartas do jogo — sorteia PARES por dia. Com exatamente PARES emojis, usa
+// todos e muda só a posição a cada dia.
+const EMOJIS = ['🍣', '🍤', '🍚', '🥟', '🐟', '🐠', '🦐', '🦑', '🐙', '🍋', '🥑', '🍶', '🍵', '☕', '🥢', '🐢', '⭐', '✨']
 
 function fmtTempo(s) {
   if (s == null) return '—'
