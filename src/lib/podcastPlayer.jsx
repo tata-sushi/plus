@@ -141,6 +141,11 @@ export function PodcastPlayerProvider({ children }) {
         onPlaying={() => setCarregando(false)}
         onCanPlay={() => setCarregando(false)}
         onWaiting={() => setCarregando(true)}
+        onError={(e) => {
+          setCarregando(false)
+          const c = e.currentTarget.error?.code
+          mostrarAviso(c ? `Não consegui tocar o áudio (erro ${c})` : 'Não consegui tocar o áudio')
+        }}
         onPause={() => setTocando(false)}
         onEnded={concluir}
         onSeeking={impedirAvanco}
