@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useLayoutEffect } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 import { BottomNav } from './BottomNav'
 import { DesktopShell } from './DesktopShell.jsx'
@@ -27,6 +27,13 @@ export function AppShell() {
   // Governança e Controle de Escala embutem o portal com a mesma moldura.
   const ehPortal =
     location.pathname === '/governanca' || location.pathname === '/controle-escala'
+
+  // Ao trocar de rota, volta pro topo. Sem isso a nova página herda a rolagem
+  // da anterior — por ex., abrir um jogo pelo fim da lista de Passatempos abria
+  // a tela já no meio, escondendo o botão "Voltar".
+  useLayoutEffect(() => {
+    window.scrollTo(0, 0)
+  }, [location.pathname])
 
   // Primeiro acesso: sobe o pop-up NATIVO de permissão de notificação uma vez.
   // Se a pessoa não ativar aqui, o toggle continua no Painel de manutenção.
