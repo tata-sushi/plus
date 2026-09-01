@@ -57,8 +57,9 @@ export function PodcastPlayerProvider({ children }) {
       setCarregando(true)
       const el = audioRef.current
       if (!el) return
+      // iOS/Safari: NÃO mexer em currentTime antes de carregar (lança
+      // InvalidStateError e trava o play). Um src novo já começa do 0.
       el.src = ep.audio_url
-      el.currentTime = 0
       el.playbackRate = velRef.current
       el.play().catch(() => {})
     },
