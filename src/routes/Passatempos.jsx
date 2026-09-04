@@ -5,6 +5,7 @@ import { Header } from '../components/Header.jsx'
 import { supabase } from '../lib/supabase.js'
 import { tapHaptic } from '../lib/haptics.js'
 import { useAuth } from '../lib/AuthContext.jsx'
+import { podeBetaJogos } from '../lib/beta.js'
 
 // Hub dos jogos diários. Cada card leva ao jogo e mostra a ofensiva atual.
 // beta: true → em testes, aparece só para o dono (mat 7) até ir pra produção.
@@ -21,8 +22,8 @@ export function Passatempos() {
   const navigate = useNavigate()
   const { usuario } = useAuth()
   const [estados, setEstados] = useState({})
-  // jogos em beta só aparecem para o dono (mat 7) enquanto não vão pra produção
-  const jogos = JOGOS.filter((j) => !j.beta || String(usuario?.matricula) === '7')
+  // jogos em beta só aparecem para os testadores (ver lib/beta.js) enquanto não vão pra produção
+  const jogos = JOGOS.filter((j) => !j.beta || podeBetaJogos(usuario))
 
   useEffect(() => {
     let ativo = true

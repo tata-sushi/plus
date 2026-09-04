@@ -8,6 +8,7 @@ import { useAuth } from '../lib/AuthContext.jsx'
 import { Header } from '../components/Header.jsx'
 import { cn } from '../lib/cn'
 import PALAVRAS from '../lib/palavras-tata.js'
+import { podeBetaJogos } from '../lib/beta.js'
 
 const JOGO = 'anagrama'
 const NPAL = 3 // palavras na rodada (todas na mesma tela)
@@ -218,8 +219,8 @@ export function Anagrama() {
   const carregando = !estado && !preview
   const urgente = !resolvido && restante <= 10
 
-  // BETA: travado para todos menos o dono (mat 7) enquanto não vai pra produção.
-  if (usuario && !mat7) {
+  // BETA: travado para todos menos os testadores (ver lib/beta.js) enquanto não vai pra produção.
+  if (usuario && !podeBetaJogos(usuario)) {
     return (
       <div className="min-h-[100dvh] bg-bg">
         <Header />
