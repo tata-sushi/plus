@@ -21,6 +21,7 @@ import {
   HeartHandshake,
   ClipboardList,
   ShoppingBag,
+  ReceiptText,
 } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Section } from '../components/Section.jsx'
@@ -53,6 +54,7 @@ const itens = [
   { to: '/quadros', label: 'Kanban Tatá (beta)', icon: KanbanSquare, quadros: true },
   { to: '/escala', label: 'Agenda', icon: CalendarClock, escala: true },
   { to: '/documentos', label: 'Assinaturas', icon: FileSignature },
+  { to: '/holerites', label: 'Holerite', icon: ReceiptText },
   { to: '/passatempos', label: 'Passatempos', icon: Puzzle, jogo: true },
   { to: '/manutencao', label: 'Painel de Ajustes', icon: Wrench },
   { to: '/atalhos-governanca', label: 'Atalhos', icon: Pin, gov: true },
