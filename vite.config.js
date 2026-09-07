@@ -17,6 +17,10 @@ export default defineConfig({
       includeAssets: ['icons/favicon-32.png', 'icons/apple-touch-icon.png'],
       workbox: {
         globPatterns: ['**/*.{js,css,html,png,webp,webmanifest,woff2}'],
+        // Checagem facial (MediaPipe) fica FORA do precache: só é usada na tela
+        // de assinatura, então carrega sob demanda (e o browser cacheia depois).
+        // Evita empurrar ~9 MB de wasm + o chunk do MediaPipe pra todo mundo.
+        globIgnores: ['**/vision_bundle-*.js', 'mediapipe/**'],
         navigateFallback: '/index.html',
         navigateFallbackDenylist: [/^\/api/],
         // handlers de push (notificação no celular) — ver public/push-sw.js
