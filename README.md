@@ -388,6 +388,10 @@ séries de envio sequenciais, governança embutida, decisões e pendências — 
 **`docs/CONTEXTO.md`**. É o documento de handoff, atualizado a cada bloco de trabalho (a §13
 traz o histórico da sessão mais recente).
 
+**`docs/PENDENCIAS.md`** — o Painel de Pendências (o card que mostra a cada pessoa/líder o
+que está em aberto). Traz a arquitetura, os 3 padrões de roteamento e um **checklist de 3
+passos pra adicionar um tipo novo**.
+
 ## Otimização e arquitetura (prioridade)
 
 **Princípio do projeto: otimização, eficiência e o sistema o mais _clean_ possível.**
