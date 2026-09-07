@@ -405,6 +405,17 @@ export function Documentos() {
   return (
     <>
       <Header />
+      <div className="px-5 pt-2">
+        <button
+          onClick={() => {
+            tapHaptic()
+            navigate(-1)
+          }}
+          className="hstack gap-1 text-sm font-medium text-muted tap"
+        >
+          <ArrowLeft size={16} /> Voltar
+        </button>
+      </div>
       <div className="px-5 pt-3">
         <h1 className="font-display text-xl font-bold">Assinaturas</h1>
         <p className="mt-0.5 text-sm text-muted">Documentos para você ler e assinar.</p>

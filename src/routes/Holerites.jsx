@@ -77,7 +77,6 @@ export function Holerites() {
       <div className="mx-auto w-full max-w-[520px] px-5 pb-28 pt-4">
         <div className="mb-5">
           <div className="font-display text-[19px] font-bold leading-tight">Holerites</div>
-          <div className="mt-1 text-xs text-muted">Seus contracheques, mês a mês.</div>
         </div>
 
         {lista === null ? (
@@ -94,23 +93,23 @@ export function Holerites() {
             </p>
           </div>
         ) : (
-          <div className="flex flex-col gap-2.5">
-            {lista.map((h) => (
+          <div className="card overflow-hidden">
+            {lista.map((h, i) => (
               <button
                 key={h.id}
                 onClick={() => abrir(h)}
                 disabled={!!abrindo}
-                className="card hstack items-center gap-3 p-4 text-left tap disabled:opacity-60"
+                className={`hstack w-full items-center gap-3 px-4 py-3.5 text-left tap disabled:opacity-60 ${i > 0 ? 'border-t border-line' : ''}`}
               >
-                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-accent-soft text-accent">
-                  <FileText size={20} />
+                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-accent-soft text-accent">
+                  <FileText size={18} />
                 </span>
-                <div className="min-w-0 flex-1">
-                  <div className="font-display text-base font-bold">{fmtCompetencia(h.competencia)}</div>
-                  <div className="truncate text-xs text-muted">
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-sm font-semibold">{fmtCompetencia(h.competencia)}</span>
+                  <span className="mt-0.5 block truncate text-[11px] text-muted">
                     Holerite{h.tamanho ? ` · ${fmtTamanho(h.tamanho)}` : ''}
-                  </div>
-                </div>
+                  </span>
+                </span>
                 {abrindo === h.id ? (
                   <Loader2 size={18} className="shrink-0 animate-spin text-muted-2" />
                 ) : (
