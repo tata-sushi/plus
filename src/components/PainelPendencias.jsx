@@ -19,6 +19,7 @@ const COR = {
   exp_colab: '#38bdf8', // azul — auto-avaliação do colaborador
   exp_lider: '#a78bfa', // roxo — avaliação que o líder faz
   lideranca: '#f472b6', // rosa — avaliação de liderança
+  absenteismo: '#ef4444', // vermelho — falta sem devolutiva
 }
 
 // Para onde cada pendência leva ao ser tocada (atalho pra resolver).
@@ -27,6 +28,7 @@ const ROTA = {
   exp_colab: '/minha-experiencia',
   lideranca: '/minha-experiencia',
   exp_lider: '/governanca', // líder avalia o novato no portal de governança
+  absenteismo: '/governanca', // líder dá a devolutiva da falta no portal
 }
 
 export function PainelPendencias({ embutido = false }) {
