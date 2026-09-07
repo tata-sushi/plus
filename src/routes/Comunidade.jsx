@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Link, useNavigate } from 'react-router-dom'
-import { Heart, MessageCircle, Image as ImageIcon, Send, Loader2, Trash2, X, Gift, Plus } from 'lucide-react'
+import { Heart, MessageCircle, Image as ImageIcon, Send, Loader2, Trash2, X, Gift } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Card } from '../components/Card.jsx'
 import { DestaquesFeed } from '../components/DestaquesFeed.jsx'
@@ -431,6 +431,13 @@ export function Comunidade() {
     carregarFeed()
   }, [carregarFeed])
 
+  // A barra de navegação (slot "Compartilhar") dispara este evento pra abrir o compositor.
+  useEffect(() => {
+    const abrir = () => setCompositorAberto(true)
+    window.addEventListener('abrir-compositor', abrir)
+    return () => window.removeEventListener('abrir-compositor', abrir)
+  }, [])
+
   // Reconhecimentos entram no mesmo feed (intercalados por data). Fonte é a RPC
   // reconhecimento_feed — read-only, sem curtir/comentar.
   // Soft-launch: por enquanto só admins veem essa camada.
@@ -640,24 +647,8 @@ export function Comunidade() {
 
       {emTeste ? (
         <>
-          {/* EM TESTE — Destaques no topo + compositor em modal (só matrícula 7) */}
+          {/* EM TESTE — Destaques no topo; o compositor abre pela barra ("Compartilhar") */}
           <DestaquesFeed admin={admin} />
-
-          <div className="px-5 pt-2">
-            <button
-              onClick={() => {
-                tapHaptic()
-                setCompositorAberto(true)
-              }}
-              className="hstack w-full gap-3 rounded-card border border-line bg-surface px-4 py-2.5 tap"
-            >
-              <Avatar name={meuNome} src={meuAvatar} size={32} />
-              <span className="flex-1 text-left text-sm text-muted-2">Compartilhe algo com a equipe…</span>
-              <span className="hstack shrink-0 gap-1 rounded-full bg-accent px-3 py-1.5 text-xs font-semibold text-black">
-                <Plus size={14} /> Publicar
-              </span>
-            </button>
-          </div>
 
           {compositorAberto &&
             createPortal(
