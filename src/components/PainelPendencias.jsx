@@ -2,12 +2,13 @@ import { useEffect, useState } from 'react'
 import { Loader2, CircleAlert } from 'lucide-react'
 import { supabase } from '../lib/supabase.js'
 
-// Painel de Pendências do líder — SÓ leitura, no formato "minhas tarefas" do
-// Kanban: barrinha colorida + uma linha (nome · demanda). Não abre nada.
-// As demandas vêm de minhas_pendencias() (roteadas pelo mapa unidade+departamento);
-// quais tipos entram é controlado por flags no banco (pendencia_tipos.ativo).
+// Painel de Pendências do líder — SÓ leitura. Segue o MESMO padrão dos quadros
+// do Kanban: um "card" (ícone redondo + título + meta) e, indentada embaixo, a
+// lista no estilo "minhas tarefas" (barrinha colorida + nome · demanda). Não
+// abre nada. As demandas vêm de minhas_pendencias() (roteadas pelo mapa
+// unidade+departamento); quais tipos entram é controlado por flags no banco.
 //
-// embutido=true → usado no topo do Quadros: some por completo quando vazio.
+// embutido=true → topo do Quadros: some por completo quando vazio.
 
 // Cor da barrinha por tipo (igual ao esquema de cores dos cartões do Kanban).
 const COR = {
@@ -32,22 +33,42 @@ export function PainelPendencias({ embutido = false }) {
   // Embutido e vazio (ou carregando): não ocupa espaço.
   if (embutido && (lista === null || lista.length === 0)) return null
 
+  if (lista === null) {
+    return (
+      <div className="hstack justify-center py-8 text-muted-2">
+        <Loader2 size={18} className="animate-spin" />
+      </div>
+    )
+  }
+
+  const n = lista.length
+
   return (
     <section className={embutido ? 'mb-3' : ''}>
-      <div className="hstack gap-1.5 px-1 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-2">
-        <CircleAlert size={11} /> Pendências{lista?.length ? ` (${lista.length})` : ''}
+      {/* Card no mesmo padrão dos quadros */}
+      <div className="card hstack gap-2 py-2 pl-2 pr-2">
+        <div className="hstack min-w-0 flex-1 gap-3 px-2 py-1.5">
+          <div className="grid h-10 w-10 shrink-0 place-items-center rounded-card bg-accent-soft text-accent">
+            <CircleAlert size={19} />
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="truncate font-display text-sm font-bold">Pendências</div>
+            <div className="mt-0.5 hstack gap-3 text-[11px] text-muted">
+              <span>
+                {n} {n === 1 ? 'pendência' : 'pendências'}
+              </span>
+            </div>
+          </div>
+        </div>
       </div>
 
-      {lista === null ? (
-        <div className="hstack justify-center py-8 text-muted-2">
-          <Loader2 size={18} className="animate-spin" />
-        </div>
-      ) : lista.length === 0 ? (
-        <div className="mt-1 rounded-xl border border-line bg-surface px-4 py-6 text-center text-sm text-muted">
+      {/* Lista indentada, estilo "minhas tarefas" */}
+      {n === 0 ? (
+        <div className="ml-5 mt-1.5 border-l border-line pl-3 py-1 text-[12px] text-muted">
           Nenhuma pendência no momento.
         </div>
       ) : (
-        <div className="mt-0.5 flex flex-col gap-0.5">
+        <div className="mb-1 ml-5 mt-1.5 flex flex-col gap-1 border-l border-line pl-3">
           {lista.map((p, i) => (
             <div
               key={`${p.tipo}-${p.colaborador_matricula}-${i}`}
