@@ -24,9 +24,6 @@ export function Pendencias() {
       </div>
 
       <div className="mx-auto w-full max-w-[520px] px-5 pb-28 pt-4">
-        <div className="mb-4">
-          <div className="font-display text-[19px] font-bold leading-tight">Pendências</div>
-        </div>
         <PainelPendencias />
       </div>
     </div>
