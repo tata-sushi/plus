@@ -1,12 +1,15 @@
 import { useEffect, useState } from 'react'
-import { Loader2, CircleAlert } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { Loader2, CircleAlert, ChevronRight } from 'lucide-react'
 import { supabase } from '../lib/supabase.js'
+import { tapHaptic } from '../lib/haptics.js'
 
-// Painel de Pendências do líder — SÓ leitura. Segue o MESMO padrão dos quadros
-// do Kanban: um "card" (ícone redondo + título + meta) e, indentada embaixo, a
-// lista no estilo "minhas tarefas" (barrinha colorida + nome · demanda). Não
-// abre nada. As demandas vêm de minhas_pendencias() (roteadas pelo mapa
-// unidade+departamento); quais tipos entram é controlado por flags no banco.
+// Painel de Pendências (individual) — cada colaborador vê as PRÓPRIAS pendências.
+// Segue o MESMO padrão dos quadros do Kanban: um "card" (ícone redondo + título
+// + meta) e, indentada embaixo, a lista no estilo "minhas tarefas" (barrinha
+// colorida + demanda). Tocar numa pendência leva à tela onde ela se resolve.
+// As demandas vêm de minhas_pendencias(); quais tipos entram é controlado por
+// flags no banco (pendencia_tipos.ativo).
 //
 // embutido=true → topo do Quadros: some por completo quando vazio.
 
@@ -15,6 +18,14 @@ const COR = {
   assinatura: '#f59e0b', // âmbar — documentos
   exp_colab: '#38bdf8', // azul — auto-avaliação do colaborador
   exp_lider: '#a78bfa', // roxo — avaliação que o líder faz
+  lideranca: '#f472b6', // rosa — avaliação de liderança
+}
+
+// Para onde cada pendência leva ao ser tocada (atalho pra resolver).
+const ROTA = {
+  assinatura: '/documentos',
+  exp_colab: '/minha-experiencia',
+  lideranca: '/minha-experiencia',
 }
 
 export function PainelPendencias({ embutido = false }) {
@@ -69,28 +80,40 @@ export function PainelPendencias({ embutido = false }) {
         </div>
       ) : (
         <div className="mb-1 ml-5 mt-1.5 flex flex-col gap-1 border-l border-line pl-3">
-          {lista.map((p, i) => (
-            <div
-              key={`${p.tipo}-${p.colaborador_matricula}-${i}`}
-              title={p.colaborador_nome ? `${p.colaborador_nome} — ${p.descricao}` : p.descricao}
-              className="hstack gap-2 rounded-lg px-2 py-1.5"
-            >
-              <span
-                className="h-4 w-1 shrink-0 rounded-full"
-                style={{ background: COR[p.tipo] || 'rgb(var(--muted-2) / 0.6)' }}
-              />
-              <span className="min-w-0 flex-1 truncate text-[12px]">
-                {p.colaborador_nome ? (
-                  <>
-                    <span className="font-medium text-text">{p.colaborador_nome}</span>
-                    <span className="text-muted"> · {p.descricao}</span>
-                  </>
-                ) : (
-                  <span className="text-text">{p.descricao}</span>
-                )}
-              </span>
-            </div>
-          ))}
+          {lista.map((p, i) => {
+            const rota = ROTA[p.tipo]
+            const titulo = p.colaborador_nome ? `${p.colaborador_nome} — ${p.descricao}` : p.descricao
+            const conteudo = (
+              <>
+                <span
+                  className="h-4 w-1 shrink-0 rounded-full"
+                  style={{ background: COR[p.tipo] || 'rgb(var(--muted-2) / 0.6)' }}
+                />
+                <span className="min-w-0 flex-1 truncate text-[12px]">
+                  {p.colaborador_nome ? (
+                    <>
+                      <span className="font-medium text-text">{p.colaborador_nome}</span>
+                      <span className="text-muted"> · {p.descricao}</span>
+                    </>
+                  ) : (
+                    <span className="text-text">{p.descricao}</span>
+                  )}
+                </span>
+                {rota && <ChevronRight size={14} className="shrink-0 text-muted-2" />}
+              </>
+            )
+            const key = `${p.tipo}-${p.colaborador_matricula}-${i}`
+            const cls = 'hstack gap-2 rounded-lg px-2 py-1.5'
+            return rota ? (
+              <Link key={key} to={rota} title={titulo} onClick={tapHaptic} className={`${cls} tap hover:bg-fill`}>
+                {conteudo}
+              </Link>
+            ) : (
+              <div key={key} title={titulo} className={cls}>
+                {conteudo}
+              </div>
+            )
+          })}
         </div>
       )}
     </section>
