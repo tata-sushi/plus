@@ -26,6 +26,7 @@ const ROTA = {
   assinatura: '/documentos',
   exp_colab: '/minha-experiencia',
   lideranca: '/minha-experiencia',
+  exp_lider: '/governanca', // líder avalia o novato no portal de governança
 }
 
 export function PainelPendencias({ embutido = false }) {
