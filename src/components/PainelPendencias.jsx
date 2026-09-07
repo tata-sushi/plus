@@ -22,6 +22,7 @@ const COR = {
   absenteismo: '#ef4444', // vermelho — falta sem devolutiva
   exame_colab: '#14b8a6', // teal — exame periódico (colaborador)
   exame_lider: '#14b8a6', // teal — exame periódico (líder)
+  feriado: '#6366f1', // indigo — decisão de horas de feriado
 }
 
 // Para onde cada pendência leva ao ser tocada (atalho pra resolver).
@@ -33,6 +34,7 @@ const ROTA = {
   exp_lider: '/governanca', // líder avalia o novato no portal de governança
   absenteismo: '/governanca', // líder dá a devolutiva da falta no portal
   exame_lider: '/governanca', // líder acompanha o exame do time no portal
+  feriado: '/governanca', // líder decide as horas de feriado no portal
 }
 
 export function PainelPendencias({ embutido = false }) {
