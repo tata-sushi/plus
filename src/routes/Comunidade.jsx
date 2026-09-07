@@ -1,10 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { createPortal } from 'react-dom'
 import { Link, useNavigate } from 'react-router-dom'
 import { Heart, MessageCircle, Image as ImageIcon, Send, Loader2, Trash2, X, Gift, Video } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Card } from '../components/Card.jsx'
-import { DestaquesFeed } from '../components/DestaquesFeed.jsx'
 import { Avatar } from '../components/Avatar.jsx'
 import { PhotoCropper } from '../components/PhotoCropper.jsx'
 import { cn } from '../lib/cn'
@@ -12,7 +10,6 @@ import { tapHaptic } from '../lib/haptics.js'
 import { tempoRelativo } from '../lib/tempo.js'
 import { useAuth } from '../lib/AuthContext.jsx'
 import { supabase } from '../lib/supabase.js'
-import { podeVerDestaques } from '../lib/beta.js'
 import {
   carregarMotivos,
   iconeMotivo,
@@ -441,7 +438,6 @@ export function Comunidade() {
   const { usuario } = useAuth()
   const matricula = usuario?.matricula
   const admin = usuario?.podePublicar
-  const emTeste = podeVerDestaques(usuario) // Destaques + compositor em modal (só teste)
   const meuNome = usuario?.nome || 'Você'
   const meuAvatar = usuario?.avatarUrl
 
@@ -454,7 +450,6 @@ export function Comunidade() {
   const [publicando, setPublicando] = useState(false)
   const [arquivo, setArquivo] = useState(null)
   const [previewUrl, setPreviewUrl] = useState('')
-  const [compositorAberto, setCompositorAberto] = useState(false)
   const [videoArq, setVideoArq] = useState(null) // arquivo de vídeo escolhido (só RH)
   const [videoPrev, setVideoPrev] = useState('') // preview local do vídeo
   const [prgVideo, setPrgVideo] = useState(null) // 0..1 durante o upload do vídeo
@@ -476,13 +471,6 @@ export function Comunidade() {
   useEffect(() => {
     carregarFeed()
   }, [carregarFeed])
-
-  // A barra de navegação (slot "Compartilhar") dispara este evento pra abrir o compositor.
-  useEffect(() => {
-    const abrir = () => setCompositorAberto(true)
-    window.addEventListener('abrir-compositor', abrir)
-    return () => window.removeEventListener('abrir-compositor', abrir)
-  }, [])
 
   // Reconhecimentos entram no mesmo feed (intercalados por data). Fonte é a RPC
   // reconhecimento_feed — read-only, sem curtir/comentar.
@@ -624,7 +612,6 @@ export function Comunidade() {
     setTexto('')
     removerFoto()
     removerVideo()
-    setCompositorAberto(false)
   }
 
   async function curtir(post) {
@@ -779,43 +766,10 @@ export function Comunidade() {
     <>
       <Header />
 
-      {emTeste ? (
-        <>
-          {/* EM TESTE — Destaques no topo; o compositor abre pela barra ("Compartilhar") */}
-          <DestaquesFeed admin={admin} />
-
-          {compositorAberto &&
-            createPortal(
-              <div
-                className="fixed inset-0 z-[70] flex flex-col bg-black/50"
-                onClick={() => setCompositorAberto(false)}
-              >
-                <div
-                  className="safe-bottom mt-auto w-full rounded-t-2xl bg-bg p-5"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <div className="hstack items-center justify-between pb-3">
-                    <div className="font-display text-base font-bold">Nova publicação</div>
-                    <button
-                      onClick={() => setCompositorAberto(false)}
-                      aria-label="Fechar"
-                      className="grid h-8 w-8 place-items-center rounded-full bg-surface text-muted tap"
-                    >
-                      <X size={16} />
-                    </button>
-                  </div>
-                  {compositorInner}
-                </div>
-              </div>,
-              document.body,
-            )}
-        </>
-      ) : (
-        /* Layout atual (todo mundo) — compositor inline no topo */
-        <div className="px-5 pt-2">
-          <Card>{compositorInner}</Card>
-        </div>
-      )}
+      {/* Compositor inline no topo do feed */}
+      <div className="px-5 pt-2">
+        <Card>{compositorInner}</Card>
+      </div>
 
       {/* Feed */}
       <div className="mt-4 flex flex-col gap-3 px-5">

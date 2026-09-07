@@ -1,9 +1,8 @@
-import { NavLink, useLocation } from 'react-router-dom'
-import { Home, Trophy, Newspaper, Ear, Menu, ShieldCheck, KanbanSquare, CircleAlert, Plus } from 'lucide-react'
+import { NavLink } from 'react-router-dom'
+import { Home, Trophy, Newspaper, Ear, Menu, ShieldCheck, KanbanSquare, CircleAlert } from 'lucide-react'
 import { cn } from '../lib/cn'
 import { tapHaptic } from '../lib/haptics.js'
 import { useAuth } from '../lib/AuthContext.jsx'
-import { podeVerDestaques } from '../lib/beta.js'
 
 // flow: renderiza a barra em fluxo (dentro de uma coluna flex) em vez de fixa —
 // usado na Governança, onde o iframe ocupa o espaço acima da barra.
@@ -33,10 +32,6 @@ export function BottomNav({ flow = false }) {
     slotCanal,
     { to: '/mais', label: 'Mais', Icon: Menu },
   ]
-  // No feed (e só em teste), o slot "Feed" vira "Compartilhar" (＋): dispara o
-  // compositor no lugar de navegar. Fora do feed, volta a ser "Feed".
-  const location = useLocation()
-  const feedComoCompor = podeVerDestaques(usuario) && location.pathname === '/comunidade'
   return (
     <nav
       className={cn(
@@ -47,27 +42,6 @@ export function BottomNav({ flow = false }) {
     >
       <ul className="grid grid-cols-5">
         {items.map(({ to, label, Icon, end }) => {
-          // Slot "Feed" vira botão "＋ Compartilhar" quando já se está no feed (teste).
-          if (to === '/comunidade' && feedComoCompor) {
-            return (
-              <li key={to} className="min-w-0">
-                <button
-                  onClick={() => {
-                    tapHaptic()
-                    window.dispatchEvent(new CustomEvent('abrir-compositor'))
-                  }}
-                  className="relative flex w-full min-w-0 flex-col items-center justify-center gap-1 overflow-hidden px-0.5 py-2.5 text-[9px] font-medium text-accent tap"
-                >
-                  <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-accent text-black">
-                    <Plus size={16} />
-                  </span>
-                  <span className="max-w-full overflow-hidden text-ellipsis whitespace-nowrap">
-                    Compartilhar
-                  </span>
-                </button>
-              </li>
-            )
-          }
           return (
             <li key={to} className="min-w-0">
               <NavLink
