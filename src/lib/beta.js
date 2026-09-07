@@ -4,3 +4,9 @@
 export const BETA_JOGOS = ['7', '24194']
 
 export const podeBetaJogos = (usuario) => BETA_JOGOS.includes(String(usuario?.matricula))
+
+// Destaques do feed ainda EM TESTE — só Victor (7) vê (Destaques + compositor
+// em modal). Pra liberar geral, é só esvaziar esta lista (ou trocar por `true`).
+export const BETA_DESTAQUES = ['7']
+
+export const podeVerDestaques = (usuario) => BETA_DESTAQUES.includes(String(usuario?.matricula))
