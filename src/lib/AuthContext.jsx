@@ -21,6 +21,7 @@ export function AuthProvider({ children }) {
   const [podeEscala, setPodeEscala] = useState(null) // acesso à Agenda/Escala (colaborador): null = verificando
   const [podeLimpeza, setPodeLimpeza] = useState(null) // acesso a Limpeza de banheiros: null = verificando
   const [govTipo, setGovTipo] = useState(null) // tipo de acesso à governança (ou null)
+  const [pendenciasN, setPendenciasN] = useState(0) // nº de pendências do líder (0 p/ quem não tem)
   const [loading, setLoading] = useState(true)
   const [motivoBloqueio, setMotivoBloqueio] = useState('') // '' | 'inativo'
   const bloqueando = useRef(false)
@@ -145,6 +146,10 @@ export function AuthProvider({ children }) {
     supabase.rpc('acesso_governanca').then(({ data }) => {
       if (ativo) setGovTipo(data || null)
     })
+    // Pendências do líder (0 p/ quem não é responsável por nenhuma célula do mapa).
+    supabase.rpc('minhas_pendencias_n').then(({ data }) => {
+      if (ativo) setPendenciasN(Number(data) || 0)
+    })
     return () => {
       ativo = false
     }
@@ -179,6 +184,7 @@ export function AuthProvider({ children }) {
         podeEscala,
         podeLimpeza,
         governanca: { tem: !!govTipo, tipo: govTipo },
+        pendencias: pendenciasN,
       }
     : session?.user
       ? {

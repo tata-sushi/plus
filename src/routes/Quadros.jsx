@@ -66,6 +66,7 @@ import {
 } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Voltar } from '../components/Voltar.jsx'
+import { PainelPendencias } from '../components/PainelPendencias.jsx'
 import { Avatar } from '../components/Avatar.jsx'
 import { cn } from '../lib/cn'
 import { useAuth } from '../lib/AuthContext.jsx'
@@ -285,6 +286,7 @@ function ListaQuadros({ quadros, meusCards = [], onAbrir, onMudou, selecionadoId
       <Header title="Kanban Tatá" />
       <Voltar />
       <div className="px-5 pt-2 pb-24">
+        <PainelPendencias embutido />
         {quadros == null ? (
           <div className="grid place-items-center py-16 text-muted">
             <Loader2 size={22} className="animate-spin" />

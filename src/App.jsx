@@ -55,6 +55,8 @@ const Anagrama = lazy(() => import('./routes/Anagrama.jsx'))
 const Documentos = lazy(() => import('./routes/Documentos.jsx'))
 // Holerites — contracheques do colaborador (só visualização), carregado sob demanda.
 const Holerites = lazy(() => import('./routes/Holerites.jsx'))
+// Pendências — painel do líder (só leitura), carregado sob demanda.
+const Pendencias = lazy(() => import('./routes/Pendencias.jsx'))
 // Comprovante imprimível de uma assinatura, carregado sob demanda.
 const Comprovante = lazy(() => import('./routes/Comprovante.jsx'))
 
@@ -220,6 +222,16 @@ export function App() {
             <ErroBoundary>
               <Suspense fallback={<Splash />}>
                 <Holerites />
+              </Suspense>
+            </ErroBoundary>
+          }
+        />
+        <Route
+          path="/pendencias"
+          element={
+            <ErroBoundary>
+              <Suspense fallback={<Splash />}>
+                <Pendencias />
               </Suspense>
             </ErroBoundary>
           }
