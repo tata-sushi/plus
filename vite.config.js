@@ -24,15 +24,21 @@ export default defineConfig({
         // Cache das imagens do storage (artes de destaque, recompensas, avatares).
         // StaleWhileRevalidate: abre na hora do cache e revalida em segundo plano,
         // então trocar uma arte no bucket reflete na próxima carga.
+        //
+        // IMPORTANTE (iOS): o áudio do podcast é DELIBERADAMENTE deixado FORA de
+        // qualquer rota do Workbox. Media element (<audio>/<video>) no iOS/WebKit
+        // depende de Range requests (206 Partial Content) pra começar a tocar, e
+        // o WebKit NÃO serve mídia corretamente quando a resposta passa pelo
+        // service worker (respondWith) — nem com NetworkOnly, que ainda intercepta.
+        // O sintoma é exatamente "só carrega": trava no loading e nunca toca no
+        // PWA instalado do iPhone (mas funciona no desktop/Android). A regra de
+        // imagens abaixo usa um negative lookahead pra NÃO capturar
+        // /podcast/audio/, então esse request não casa com nenhuma rota e o
+        // browser cuida da rede nativamente, com Range intacto.
         runtimeCaching: [
           {
-            // Áudio do podcast: NÃO passa pelo cache do SW — streaming + range
-            // requests (seek) não combinam com cache; o browser cuida da rede.
-            urlPattern: /\/storage\/v1\/object\/public\/podcast\/audio\/.*/i,
-            handler: 'NetworkOnly',
-          },
-          {
-            urlPattern: /^https:\/\/aoqsbusfrffapjglpqjk\.supabase\.co\/storage\/.*/i,
+            urlPattern:
+              /^https:\/\/aoqsbusfrffapjglpqjk\.supabase\.co\/storage\/(?!v1\/object\/public\/podcast\/audio\/).*/i,
             handler: 'StaleWhileRevalidate',
             options: {
               cacheName: 'tp-imagens-storage',
