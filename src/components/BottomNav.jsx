@@ -9,16 +9,17 @@ import { useAuth } from '../lib/AuthContext.jsx'
 export function BottomNav({ flow = false }) {
   const { usuario } = useAuth()
   // slot 2 reveza, por prioridade:
-  //  1) tem pendências → Pendências (some quando zera, voltando à regra abaixo);
-  //  2) tem acesso ao Kanban → Kanban;
+  //  1) quem tem Kanban → Kanban (as pendências aparecem no topo do próprio
+  //     quadro, igual ao desktop; o ícone não muda);
+  //  2) quem NÃO tem Kanban mas tem pendências → Pendências (única porta de
+  //     entrada dessa pessoa; some e volta o Ranking quando zera);
   //  3) senão → Ranking.
   // (Ranking/Kanban deslocados ficam sempre acessíveis pelo menu "Mais".)
-  const slotRanking =
-    (usuario?.pendencias ?? 0) > 0
+  const slotRanking = usuario?.podeQuadros
+    ? { to: '/quadros', label: 'Kanban', Icon: KanbanSquare }
+    : (usuario?.pendencias ?? 0) > 0
       ? { to: '/pendencias', label: 'Pendências', Icon: CircleAlert }
-      : usuario?.podeQuadros
-        ? { to: '/quadros', label: 'Kanban', Icon: KanbanSquare }
-        : { to: '/ranking', label: 'Ranking', Icon: Trophy }
+      : { to: '/ranking', label: 'Ranking', Icon: Trophy }
   // slot 4 reveza: quem tem acesso ao portal de Governança vê Governança;
   // quem não tem vê Ouvidoria no lugar (a Ouvidoria fica no menu "Mais" p/ quem vê Governança).
   const slotCanal = usuario?.governanca?.tem
