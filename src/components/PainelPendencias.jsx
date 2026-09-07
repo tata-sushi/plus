@@ -20,15 +20,19 @@ const COR = {
   exp_lider: '#a78bfa', // roxo — avaliação que o líder faz
   lideranca: '#f472b6', // rosa — avaliação de liderança
   absenteismo: '#ef4444', // vermelho — falta sem devolutiva
+  exame_colab: '#14b8a6', // teal — exame periódico (colaborador)
+  exame_lider: '#14b8a6', // teal — exame periódico (líder)
 }
 
 // Para onde cada pendência leva ao ser tocada (atalho pra resolver).
+// Tipos ausentes daqui são só leitura (ex.: exame_colab — o colaborador não agenda).
 const ROTA = {
   assinatura: '/documentos',
   exp_colab: '/minha-experiencia',
   lideranca: '/minha-experiencia',
   exp_lider: '/governanca', // líder avalia o novato no portal de governança
   absenteismo: '/governanca', // líder dá a devolutiva da falta no portal
+  exame_lider: '/governanca', // líder acompanha o exame do time no portal
 }
 
 export function PainelPendencias({ embutido = false }) {
