@@ -1,15 +1,14 @@
 import { useEffect, useState, useCallback } from 'react'
-import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
-import { ArrowLeft, ReceiptText, FileText, Loader2, X, ExternalLink } from 'lucide-react'
+import { ArrowLeft, ReceiptText, FileText, Loader2 } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
-import { PdfViewer } from '../components/PdfViewer.jsx'
 import { supabase } from '../lib/supabase.js'
 import { tapHaptic } from '../lib/haptics.js'
 
 // Página de Holerites (contracheques) — igual às Assinaturas, mas SÓ visualização
 // (não exige assinatura). Lê os documentos do RH (dp_rh) via holerites_meus e abre
-// o PDF com URL assinada do bucket privado dp-documentos.
+// o PDF direto no leitor do próprio aparelho, com URL assinada do bucket privado
+// dp-documentos.
 
 const MESES = [
   'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
@@ -21,18 +20,12 @@ function fmtCompetencia(c) {
   if (!m) return c || '—'
   return `${MESES[Number(m[2]) - 1] || m[2]} de ${m[1]}`
 }
-function fmtTamanho(b) {
-  if (!b) return ''
-  const kb = b / 1024
-  return kb < 1024 ? `${Math.round(kb)} KB` : `${(kb / 1024).toFixed(1)} MB`
-}
 
 export function Holerites() {
   const navigate = useNavigate()
   const [lista, setLista] = useState(null) // null = carregando
   const [abrindo, setAbrindo] = useState(null) // id do holerite sendo aberto
   const [erro, setErro] = useState('')
-  const [visor, setVisor] = useState(null) // { url, nome }
 
   const carregar = useCallback(async () => {
     const { data } = await supabase.rpc('holerites_meus')
@@ -48,15 +41,24 @@ export function Holerites() {
     tapHaptic()
     setAbrindo(h.id)
     setErro('')
+    // Abre a aba já no gesto do clique (evita bloqueio de pop-up); depois de gerar
+    // a URL assinada, aponta a aba pra ela — o próprio aparelho abre o leitor de PDF.
+    const aba = window.open('', '_blank')
     const { data, error } = await supabase.storage
       .from(h.bucket || 'dp-documentos')
       .createSignedUrl(h.path, 3600)
     setAbrindo(null)
     if (error || !data?.signedUrl) {
+      if (aba) aba.close()
       setErro('Não consegui abrir o holerite agora. Tente de novo.')
       return
     }
-    setVisor({ url: data.signedUrl, nome: h.nome_arquivo })
+    if (aba) {
+      aba.location.href = data.signedUrl
+    } else {
+      // Pop-up bloqueado: navega na própria janela.
+      window.location.href = data.signedUrl
+    }
   }
 
   return (
@@ -106,9 +108,7 @@ export function Holerites() {
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-sm font-semibold">{fmtCompetencia(h.competencia)}</span>
-                  <span className="mt-0.5 block truncate text-[11px] text-muted">
-                    Holerite{h.tamanho ? ` · ${fmtTamanho(h.tamanho)}` : ''}
-                  </span>
+                  <span className="mt-0.5 block truncate text-[11px] text-muted">Holerite</span>
                 </span>
                 {abrindo === h.id ? (
                   <Loader2 size={18} className="shrink-0 animate-spin text-muted-2" />
@@ -122,36 +122,7 @@ export function Holerites() {
 
         {erro && <p className="mt-3 text-center text-xs text-danger">{erro}</p>}
       </div>
-
-      {visor && <VisorHolerite url={visor.url} nome={visor.nome} onClose={() => setVisor(null)} />}
     </div>
-  )
-}
-
-// Leitor de PDF em tela cheia (mesmo componente das outras telas).
-function VisorHolerite({ url, nome, onClose }) {
-  return createPortal(
-    <div className="fixed inset-0 z-[60] flex flex-col bg-bg">
-      <div className="safe-top hstack items-center gap-2 border-b border-line bg-bg px-4 py-3">
-        <button onClick={onClose} aria-label="Fechar" className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-surface text-muted tap">
-          <X size={16} />
-        </button>
-        <div className="min-w-0 flex-1 truncate text-sm font-semibold">{nome || 'Holerite'}</div>
-        <a
-          href={url}
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label="Abrir em nova aba"
-          className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-surface text-muted tap"
-        >
-          <ExternalLink size={15} />
-        </a>
-      </div>
-      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain bg-surface-2 px-3 py-3">
-        <PdfViewer src={url} />
-      </div>
-    </div>,
-    document.body,
   )
 }
 
