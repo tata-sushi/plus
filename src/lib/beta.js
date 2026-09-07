@@ -5,8 +5,10 @@ export const BETA_JOGOS = ['7', '24194']
 
 export const podeBetaJogos = (usuario) => BETA_JOGOS.includes(String(usuario?.matricula))
 
-// Destaques do feed ainda EM TESTE — só Victor (7) vê (Destaques + compositor
-// em modal). Pra liberar geral, é só esvaziar esta lista (ou trocar por `true`).
-export const BETA_DESTAQUES = ['7']
+// Destaques/stories do feed — DESLIGADO (trocado por post de vídeo direto no
+// feed). Lista vazia = ninguém vê a fileira de Destaques nem o compositor em
+// modal; o feed usa o compositor inline (com o botão "Vídeo" para o RH).
+// Pra reativar os Destaques em teste, é só voltar uma matrícula aqui.
+export const BETA_DESTAQUES = []
 
 export const podeVerDestaques = (usuario) => BETA_DESTAQUES.includes(String(usuario?.matricula))

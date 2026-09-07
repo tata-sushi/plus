@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Link, useNavigate } from 'react-router-dom'
-import { Heart, MessageCircle, Image as ImageIcon, Send, Loader2, Trash2, X, Gift } from 'lucide-react'
+import { Heart, MessageCircle, Image as ImageIcon, Send, Loader2, Trash2, X, Gift, Video } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Card } from '../components/Card.jsx'
 import { DestaquesFeed } from '../components/DestaquesFeed.jsx'
@@ -20,7 +20,36 @@ import {
   podeVerReconhecimento,
 } from '../lib/reconhecimento.js'
 
-const TAM_MAX = 15 * 1024 * 1024 // 15 MB
+const TAM_MAX = 15 * 1024 * 1024 // 15 MB (imagem)
+const VID_MAX = 200 * 1024 * 1024 // 200 MB (vídeo)
+
+// Upload com barra de progresso (URL assinada + XHR); cai no upload padrão se falhar.
+async function uploadComProgresso(bucket, caminho, file, onProg) {
+  try {
+    const { data: signed, error } = await supabase.storage.from(bucket).createSignedUploadUrl(caminho)
+    if (error || !signed?.signedUrl) throw error || new Error('sem url')
+    await new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest()
+      xhr.open('PUT', signed.signedUrl, true)
+      xhr.setRequestHeader('content-type', file.type || 'application/octet-stream')
+      xhr.setRequestHeader('cache-control', '3600')
+      xhr.setRequestHeader('x-upsert', 'true')
+      xhr.upload.onprogress = (ev) => {
+        if (ev.lengthComputable) onProg(ev.loaded / ev.total)
+      }
+      xhr.onload = () =>
+        xhr.status >= 200 && xhr.status < 300 ? resolve() : reject(new Error('HTTP ' + xhr.status))
+      xhr.onerror = () => reject(new Error('falha de rede'))
+      xhr.send(file)
+    })
+  } catch (e) {
+    onProg(null)
+    const { error: upErr } = await supabase.storage
+      .from(bucket)
+      .upload(caminho, file, { cacheControl: '3600', contentType: file.type, upsert: true })
+    if (upErr) throw upErr
+  }
+}
 
 // só o primeiro nome (nas postagens e comentários)
 const soPrimeiro = (n) => (n || 'Colaborador').split(/\s+/)[0]
@@ -136,6 +165,19 @@ function ReconhecimentoCard({ rec, motivos }) {
 // Mídia do post: carrossel deslizável quando há várias imagens (publicações
 // dos robôs), ou foto única (posts normais). Sem imagem → não renderiza nada.
 function PostMidia({ post }) {
+  // Vídeo: player nativo com controles (a pessoa toca no play — gesto — então
+  // toca com som e confiável, inclusive no iPhone).
+  if (post.midia_tipo === 'video' && post.midia_url) {
+    return (
+      <video
+        src={post.midia_url}
+        controls
+        preload="metadata"
+        playsInline
+        className="mt-3 max-h-[70vh] w-full rounded-2xl bg-black object-contain"
+      />
+    )
+  }
   const imagens =
     Array.isArray(post.midias) && post.midias.length
       ? post.midias
@@ -413,7 +455,11 @@ export function Comunidade() {
   const [arquivo, setArquivo] = useState(null)
   const [previewUrl, setPreviewUrl] = useState('')
   const [compositorAberto, setCompositorAberto] = useState(false)
+  const [videoArq, setVideoArq] = useState(null) // arquivo de vídeo escolhido (só RH)
+  const [videoPrev, setVideoPrev] = useState('') // preview local do vídeo
+  const [prgVideo, setPrgVideo] = useState(null) // 0..1 durante o upload do vídeo
   const inputFoto = useRef(null)
+  const inputVideo = useRef(null)
   const cropperRef = useRef(null)
 
   const carregarFeed = useCallback(async () => {
@@ -463,6 +509,7 @@ export function Comunidade() {
       return
     }
     setErro('')
+    removerVideo() // vídeo e foto são mutuamente exclusivos
     if (previewUrl) URL.revokeObjectURL(previewUrl)
     setArquivo(f)
     setPreviewUrl(URL.createObjectURL(f))
@@ -474,7 +521,34 @@ export function Comunidade() {
     setPreviewUrl('')
   }
 
-  const podePublicar = (texto.trim() !== '' || arquivo) && !publicando && !!matricula
+  function escolherVideo(e) {
+    const f = e.target.files?.[0]
+    e.target.value = ''
+    if (!f) return
+    if (!f.type.startsWith('video/')) {
+      setErro('Selecione um vídeo.')
+      return
+    }
+    if (f.size > VID_MAX) {
+      setErro(`Vídeo muito grande (máx. ${Math.round(VID_MAX / 1024 / 1024)} MB).`)
+      return
+    }
+    setErro('')
+    removerFoto() // vídeo e foto são mutuamente exclusivos
+    if (videoPrev) URL.revokeObjectURL(videoPrev)
+    setVideoArq(f)
+    setVideoPrev(URL.createObjectURL(f))
+  }
+
+  function removerVideo() {
+    if (videoPrev) URL.revokeObjectURL(videoPrev)
+    setVideoArq(null)
+    setVideoPrev('')
+    setPrgVideo(null)
+  }
+
+  const podePublicar =
+    (texto.trim() !== '' || arquivo || videoArq) && !publicando && !!matricula
 
   async function publicar() {
     if (!podePublicar) return
@@ -500,6 +574,22 @@ export function Comunidade() {
       }
       midia_url = supabase.storage.from('comunidade').getPublicUrl(caminho).data.publicUrl
       midia_tipo = 'foto'
+    }
+
+    if (videoArq) {
+      setPrgVideo(0)
+      const ext = (videoArq.name.split('.').pop() || 'mp4').toLowerCase()
+      const caminho = `${matricula}/${crypto.randomUUID()}.${ext}`
+      try {
+        await uploadComProgresso('comunidade', caminho, videoArq, (p) => setPrgVideo(p))
+      } catch (err) {
+        setPublicando(false)
+        setPrgVideo(null)
+        setErro('Não foi possível enviar o vídeo. ' + (err?.message || 'Tente de novo.'))
+        return
+      }
+      midia_url = supabase.storage.from('comunidade').getPublicUrl(caminho).data.publicUrl
+      midia_tipo = 'video'
     }
 
     const { data, error } = await supabase
@@ -533,6 +623,7 @@ export function Comunidade() {
     ])
     setTexto('')
     removerFoto()
+    removerVideo()
     setCompositorAberto(false)
   }
 
@@ -613,15 +704,58 @@ export function Comunidade() {
         </div>
       )}
 
+      {videoPrev && (
+        <div className="relative mt-3">
+          <video
+            src={videoPrev}
+            controls
+            playsInline
+            className="max-h-[50vh] w-full rounded-2xl bg-black object-contain"
+          />
+          <button
+            onClick={removerVideo}
+            className="absolute right-2 top-2 z-10 grid h-8 w-8 place-items-center rounded-full bg-black/60 text-white backdrop-blur tap"
+            aria-label="Remover vídeo"
+          >
+            <X size={16} />
+          </button>
+        </div>
+      )}
+
+      {publicando && prgVideo != null && (
+        <div className="mt-3">
+          <div className="hstack gap-2 text-[11px] font-semibold text-muted">
+            <Loader2 size={12} className="animate-spin" /> Enviando vídeo… {Math.round(prgVideo * 100)}%
+          </div>
+          <div className="mt-1 h-1 overflow-hidden rounded-full bg-line">
+            <div
+              className="h-full bg-accent transition-[width] duration-200"
+              style={{ width: `${prgVideo * 100}%` }}
+            />
+          </div>
+        </div>
+      )}
+
       <input ref={inputFoto} type="file" accept="image/*" onChange={escolherFoto} className="hidden" />
+      <input ref={inputVideo} type="file" accept="video/*" onChange={escolherVideo} className="hidden" />
 
       <div className="mt-3 hstack justify-between border-t border-line pt-3">
-        <button
-          onClick={() => inputFoto.current?.click()}
-          className="hstack gap-1.5 text-xs font-semibold text-muted tap"
-        >
-          <ImageIcon size={16} /> Foto
-        </button>
+        <div className="hstack gap-4">
+          <button
+            onClick={() => inputFoto.current?.click()}
+            className="hstack gap-1.5 text-xs font-semibold text-muted tap"
+          >
+            <ImageIcon size={16} /> Foto
+          </button>
+          {admin && (
+            <button
+              onClick={() => inputVideo.current?.click()}
+              className="hstack gap-1.5 text-xs font-semibold text-muted tap"
+            >
+              <Video size={16} /> Vídeo
+            </button>
+          )}
+        </div>
         <button
           onClick={publicar}
           disabled={!podePublicar}
