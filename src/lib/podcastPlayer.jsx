@@ -60,8 +60,12 @@ export function PodcastPlayerProvider({ children }) {
       // iOS/Safari: NÃO mexer em currentTime antes de carregar (lança
       // InvalidStateError e trava o play). Um src novo já começa do 0.
       el.src = ep.audio_url
+      // iOS/Safari: com preload="none", só setar o src e chamar play() às vezes
+      // NÃO engata o carregamento e o áudio fica preso em "carregando". O load()
+      // força (re)carregar o novo src; se o play() falhar, tira o spinner.
+      el.load()
       el.playbackRate = velRef.current
-      el.play().catch(() => {})
+      el.play().catch(() => setCarregando(false))
     },
     [atual],
   )
@@ -140,6 +144,7 @@ export function PodcastPlayerProvider({ children }) {
         }}
         onPlaying={() => setCarregando(false)}
         onCanPlay={() => setCarregando(false)}
+        onLoadedData={() => setCarregando(false)}
         onWaiting={() => setCarregando(true)}
         onError={(e) => {
           setCarregando(false)
