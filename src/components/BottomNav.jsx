@@ -56,7 +56,7 @@ export function BottomNav({ flow = false }) {
                     tapHaptic()
                     window.dispatchEvent(new CustomEvent('abrir-compositor'))
                   }}
-                  className="relative flex w-full min-w-0 flex-col items-center justify-center gap-1 overflow-hidden px-0.5 py-2 text-[9px] font-medium text-accent tap"
+                  className="relative flex w-full min-w-0 flex-col items-center justify-center gap-1 overflow-hidden px-0.5 py-2.5 text-[9px] font-medium text-accent tap"
                 >
                   <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-accent text-black">
                     <Plus size={16} />
@@ -86,11 +86,13 @@ export function BottomNav({ flow = false }) {
                     {isActive && (
                       <span className="absolute top-0 h-0.5 w-6 rounded-pill bg-accent shadow-glow" />
                     )}
-                    <Icon
-                      size={20}
-                      strokeWidth={isActive ? 2.5 : 2}
-                      className={cn('shrink-0', !isActive && 'text-carbon')}
-                    />
+                    <span className="grid h-7 place-items-center">
+                      <Icon
+                        size={20}
+                        strokeWidth={isActive ? 2.5 : 2}
+                        className={cn('shrink-0', !isActive && 'text-carbon')}
+                      />
+                    </span>
                     <span className="max-w-full overflow-hidden text-ellipsis whitespace-nowrap">
                       {label}
                     </span>
