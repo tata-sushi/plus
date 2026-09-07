@@ -286,9 +286,16 @@ export function Memoria() {
                         aberta && '[transform:rotateY(180deg)] [-webkit-transform:rotateY(180deg)]',
                       )}
                     >
-                      {/* verso (carta fechada) — logo do Tatá */}
-                      <span className="absolute inset-0 grid place-items-center rounded-xl bg-[#1f2024] [backface-visibility:hidden] [-webkit-backface-visibility:hidden]">
-                        <img src="/icons/logo-mark.png" alt="" draggable="false" className="w-1/2 opacity-80" />
+                      {/* verso (carta fechada) — logo do Tatá. No modo claro usa um
+                          tom neutro suave (surface-3) em vez do carvão escuro, que
+                          ficava forte demais sobre o fundo claro. */}
+                      <span className="absolute inset-0 grid place-items-center rounded-xl bg-[#1f2024] [[data-theme=light]_&]:border [[data-theme=light]_&]:border-line [[data-theme=light]_&]:bg-surface-3 [backface-visibility:hidden] [-webkit-backface-visibility:hidden]">
+                        <img
+                          src="/icons/logo-mark.png"
+                          alt=""
+                          draggable="false"
+                          className="w-1/2 opacity-80 [[data-theme=light]_&]:opacity-70"
+                        />
                       </span>
                       {/* frente (figura) — sem destaque, mesma cara pra achada ou não */}
                       <span className="absolute inset-0 grid place-items-center rounded-xl bg-surface-2 text-[clamp(15px,5vw,26px)] [transform:rotateY(180deg)] [-webkit-transform:rotateY(180deg)] [backface-visibility:hidden] [-webkit-backface-visibility:hidden]">
