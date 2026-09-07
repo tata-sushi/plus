@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { Link, useNavigate } from 'react-router-dom'
-import { Heart, MessageCircle, Image as ImageIcon, Send, Loader2, Trash2, X, Gift } from 'lucide-react'
+import { Heart, MessageCircle, Image as ImageIcon, Send, Loader2, Trash2, X, Gift, Plus } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Card } from '../components/Card.jsx'
+import { DestaquesFeed } from '../components/DestaquesFeed.jsx'
 import { Avatar } from '../components/Avatar.jsx'
 import { PhotoCropper } from '../components/PhotoCropper.jsx'
 import { cn } from '../lib/cn'
@@ -408,6 +410,7 @@ export function Comunidade() {
   const [publicando, setPublicando] = useState(false)
   const [arquivo, setArquivo] = useState(null)
   const [previewUrl, setPreviewUrl] = useState('')
+  const [compositorAberto, setCompositorAberto] = useState(false)
   const inputFoto = useRef(null)
   const cropperRef = useRef(null)
 
@@ -521,6 +524,7 @@ export function Comunidade() {
     ])
     setTexto('')
     removerFoto()
+    setCompositorAberto(false)
   }
 
   async function curtir(post) {
@@ -578,68 +582,101 @@ export function Comunidade() {
     <>
       <Header />
 
-      {/* Publicar */}
+      {/* Destaques (Highlights) — no topo, no lugar do antigo compositor */}
+      <DestaquesFeed admin={admin} />
+
+      {/* Publicar — botão que abre a tela separada de publicação */}
       <div className="px-5 pt-2">
-        <Card>
-          <div className="hstack gap-3">
-            <Avatar name={meuNome} src={meuAvatar} size={40} />
-            <input
-              value={texto}
-              onChange={(e) => setTexto(e.target.value)}
-              placeholder="Compartilhe algo com a equipe…"
-              className="w-full bg-transparent text-sm outline-none placeholder:text-muted-2"
-            />
-          </div>
-
-          {/* Prévia da foto escolhida */}
-          {previewUrl && (
-            <div className="relative mt-3">
-              <PhotoCropper ref={cropperRef} src={previewUrl} />
-              <button
-                onClick={removerFoto}
-                className="absolute right-2 top-2 z-10 grid h-8 w-8 place-items-center rounded-full bg-black/60 text-white backdrop-blur tap"
-                aria-label="Remover foto"
-              >
-                <X size={16} />
-              </button>
-            </div>
-          )}
-
-          <input
-            ref={inputFoto}
-            type="file"
-            accept="image/*"
-            onChange={escolherFoto}
-            className="hidden"
-          />
-
-          <div className="mt-3 hstack justify-between border-t border-line pt-3">
-            <button
-              onClick={() => inputFoto.current?.click()}
-              className="hstack gap-1.5 text-xs font-semibold text-muted tap"
-            >
-              <ImageIcon size={16} /> Foto
-            </button>
-            <button
-              onClick={publicar}
-              disabled={!podePublicar}
-              className={cn('btn-primary !py-2 text-xs', !podePublicar && 'opacity-50')}
-            >
-              {publicando ? (
-                <Loader2 size={14} className="animate-spin" />
-              ) : (
-                <>
-                  <Send size={14} /> Publicar
-                </>
-              )}
-            </button>
-          </div>
-
-          {erro && !carregando && (
-            <div className="mt-2 text-[11px] font-medium text-danger">{erro}</div>
-          )}
-        </Card>
+        <button
+          onClick={() => {
+            tapHaptic()
+            setCompositorAberto(true)
+          }}
+          className="hstack w-full gap-3 rounded-card border border-line bg-surface px-4 py-2.5 tap"
+        >
+          <Avatar name={meuNome} src={meuAvatar} size={32} />
+          <span className="flex-1 text-left text-sm text-muted-2">Compartilhe algo com a equipe…</span>
+          <span className="hstack shrink-0 gap-1 rounded-full bg-accent px-3 py-1.5 text-xs font-semibold text-black">
+            <Plus size={14} /> Publicar
+          </span>
+        </button>
       </div>
+
+      {/* Modal de publicação */}
+      {compositorAberto &&
+        createPortal(
+          <div
+            className="fixed inset-0 z-[70] flex flex-col bg-black/50"
+            onClick={() => setCompositorAberto(false)}
+          >
+            <div
+              className="safe-bottom mt-auto w-full rounded-t-2xl bg-bg p-5"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="hstack items-center justify-between pb-3">
+                <div className="font-display text-base font-bold">Nova publicação</div>
+                <button
+                  onClick={() => setCompositorAberto(false)}
+                  aria-label="Fechar"
+                  className="grid h-8 w-8 place-items-center rounded-full bg-surface text-muted tap"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+
+              <div className="hstack gap-3">
+                <Avatar name={meuNome} src={meuAvatar} size={40} />
+                <input
+                  value={texto}
+                  onChange={(e) => setTexto(e.target.value)}
+                  placeholder="Compartilhe algo com a equipe…"
+                  autoFocus
+                  className="w-full bg-transparent text-sm outline-none placeholder:text-muted-2"
+                />
+              </div>
+
+              {previewUrl && (
+                <div className="relative mt-3">
+                  <PhotoCropper ref={cropperRef} src={previewUrl} />
+                  <button
+                    onClick={removerFoto}
+                    className="absolute right-2 top-2 z-10 grid h-8 w-8 place-items-center rounded-full bg-black/60 text-white backdrop-blur tap"
+                    aria-label="Remover foto"
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+              )}
+
+              <input ref={inputFoto} type="file" accept="image/*" onChange={escolherFoto} className="hidden" />
+
+              <div className="mt-3 hstack justify-between border-t border-line pt-3">
+                <button
+                  onClick={() => inputFoto.current?.click()}
+                  className="hstack gap-1.5 text-xs font-semibold text-muted tap"
+                >
+                  <ImageIcon size={16} /> Foto
+                </button>
+                <button
+                  onClick={publicar}
+                  disabled={!podePublicar}
+                  className={cn('btn-primary !py-2 text-xs', !podePublicar && 'opacity-50')}
+                >
+                  {publicando ? (
+                    <Loader2 size={14} className="animate-spin" />
+                  ) : (
+                    <>
+                      <Send size={14} /> Publicar
+                    </>
+                  )}
+                </button>
+              </div>
+
+              {erro && <div className="mt-2 text-[11px] font-medium text-danger">{erro}</div>}
+            </div>
+          </div>,
+          document.body,
+        )}
 
       {/* Feed */}
       <div className="mt-4 flex flex-col gap-3 px-5">
