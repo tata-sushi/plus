@@ -25,20 +25,22 @@ export default defineConfig({
         // StaleWhileRevalidate: abre na hora do cache e revalida em segundo plano,
         // então trocar uma arte no bucket reflete na próxima carga.
         //
-        // IMPORTANTE (iOS): o áudio do podcast é DELIBERADAMENTE deixado FORA de
-        // qualquer rota do Workbox. Media element (<audio>/<video>) no iOS/WebKit
-        // depende de Range requests (206 Partial Content) pra começar a tocar, e
-        // o WebKit NÃO serve mídia corretamente quando a resposta passa pelo
-        // service worker (respondWith) — nem com NetworkOnly, que ainda intercepta.
-        // O sintoma é exatamente "só carrega": trava no loading e nunca toca no
-        // PWA instalado do iPhone (mas funciona no desktop/Android). A regra de
-        // imagens abaixo usa um negative lookahead pra NÃO capturar
-        // /podcast/audio/, então esse request não casa com nenhuma rota e o
-        // browser cuida da rede nativamente, com Range intacto.
+        // IMPORTANTE (iOS): TODA mídia do storage (áudio do podcast + vídeo dos
+        // posts) é DELIBERADAMENTE deixada FORA de qualquer rota do Workbox.
+        // Media element (<audio>/<video>) no iOS/WebKit depende de Range requests
+        // (206 Partial Content) pra começar a tocar, e o WebKit NÃO serve mídia
+        // corretamente quando a resposta passa pelo service worker (respondWith)
+        // — nem com NetworkOnly, que ainda intercepta. O sintoma é exatamente
+        // "só carrega": trava no loading e nunca toca no PWA instalado do iPhone
+        // (mas funciona no desktop/Android). A regra de imagens abaixo tem dois
+        // negative lookaheads: um pra /podcast/audio/ e outro pra qualquer
+        // arquivo com extensão de mídia (mp4/mov/mp3/…). Assim vídeo e áudio não
+        // casam com nenhuma rota, o browser cuida da rede nativamente (Range
+        // intacto) e só as imagens ficam em cache.
         runtimeCaching: [
           {
             urlPattern:
-              /^https:\/\/aoqsbusfrffapjglpqjk\.supabase\.co\/storage\/(?!v1\/object\/public\/podcast\/audio\/).*/i,
+              /^https:\/\/aoqsbusfrffapjglpqjk\.supabase\.co\/storage\/(?!v1\/object\/public\/podcast\/audio\/)(?!.*\.(?:mp4|m4v|mov|webm|ogv|ogg|mkv|avi|3gp|mp3|m4a|aac|wav|flac)(?:$|\?)).*/i,
             handler: 'StaleWhileRevalidate',
             options: {
               cacheName: 'tp-imagens-storage',
