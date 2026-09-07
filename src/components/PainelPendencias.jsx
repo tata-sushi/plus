@@ -72,7 +72,7 @@ export function PainelPendencias({ embutido = false }) {
           {lista.map((p, i) => (
             <div
               key={`${p.tipo}-${p.colaborador_matricula}-${i}`}
-              title={`${p.colaborador_nome} — ${p.descricao}`}
+              title={p.colaborador_nome ? `${p.colaborador_nome} — ${p.descricao}` : p.descricao}
               className="hstack gap-2 rounded-lg px-2 py-1.5"
             >
               <span
@@ -80,8 +80,14 @@ export function PainelPendencias({ embutido = false }) {
                 style={{ background: COR[p.tipo] || 'rgb(var(--muted-2) / 0.6)' }}
               />
               <span className="min-w-0 flex-1 truncate text-[12px]">
-                <span className="font-medium text-text">{p.colaborador_nome}</span>
-                <span className="text-muted"> · {p.descricao}</span>
+                {p.colaborador_nome ? (
+                  <>
+                    <span className="font-medium text-text">{p.colaborador_nome}</span>
+                    <span className="text-muted"> · {p.descricao}</span>
+                  </>
+                ) : (
+                  <span className="text-text">{p.descricao}</span>
+                )}
               </span>
             </div>
           ))}
