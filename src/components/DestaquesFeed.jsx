@@ -19,6 +19,8 @@ export function DestaquesFeed({ admin = false }) {
   const [aberto, setAberto] = useState(null) // destaque em visualização
   const [editando, setEditando] = useState(null) // { id?, titulo } no modal de criar/renomear
 
+  const [preItem, setPreItem] = useState(null) // 1º item do 1º destaque, p/ pré-carregar
+
   const carregar = useCallback(async () => {
     const { data } = await supabase.rpc('feed_destaques_listar')
     setLista(Array.isArray(data) ? data : [])
@@ -27,6 +29,19 @@ export function DestaquesFeed({ admin = false }) {
   useEffect(() => {
     carregar()
   }, [carregar])
+
+  // Pré-carrega o 1º item do 1º destaque assim que o feed abre, pra que o
+  // vídeo já esteja aquecido quando a pessoa tocar (evita a tela preta inicial).
+  useEffect(() => {
+    if (!lista || lista.length === 0) return
+    let ativo = true
+    supabase.rpc('feed_destaque_itens_listar', { p_destaque_id: lista[0].id }).then(({ data }) => {
+      if (ativo) setPreItem(Array.isArray(data) && data[0] ? data[0] : null)
+    })
+    return () => {
+      ativo = false
+    }
+  }, [lista])
 
   // Nada pra mostrar e não é admin: some por completo.
   if (lista === null) {
@@ -110,6 +125,26 @@ export function DestaquesFeed({ admin = false }) {
           }}
         />
       )}
+
+      {/* Pré-carregador invisível do 1º item (aquece o cache antes de abrir) */}
+      {preItem &&
+        (preItem.tipo === 'video' ? (
+          <video
+            src={preItem.media_url}
+            preload="auto"
+            muted
+            playsInline
+            aria-hidden="true"
+            style={{ position: 'absolute', width: 1, height: 1, opacity: 0, pointerEvents: 'none' }}
+          />
+        ) : (
+          <img
+            src={preItem.media_url}
+            alt=""
+            aria-hidden="true"
+            style={{ position: 'absolute', width: 1, height: 1, opacity: 0 }}
+          />
+        ))}
     </div>
   )
 }
@@ -192,6 +227,7 @@ function VisorDestaque({ destaque, admin, onClose, onEditarDestaque, onMudou }) 
   const [mudo, setMudo] = useState(false)
   const [enviando, setEnviando] = useState(false)
   const [prgEnvio, setPrgEnvio] = useState(null) // 0..1 durante o upload de vídeo
+  const [pronto, setPronto] = useState(false) // mídia atual pronta pra exibir
   const inputRef = useRef(null)
   const videoRef = useRef(null)
   const timer = useRef(null)
@@ -211,6 +247,7 @@ function VisorDestaque({ destaque, admin, onClose, onEditarDestaque, onMudou }) 
   useEffect(() => {
     clearInterval(timer.current)
     setProg(0)
+    setPronto(false)
     if (!atual) return
     if (atual.tipo === 'imagem') {
       const t0 = Date.now()
@@ -221,6 +258,33 @@ function VisorDestaque({ destaque, admin, onClose, onEditarDestaque, onMudou }) 
       }, 50)
     }
     return () => clearInterval(timer.current)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [atual?.id])
+
+  // Toca o vídeo proativamente (no iOS o play() é o que dispara o carregamento).
+  // Tenta com som; se o navegador bloquear (autoplay sem gesto), cai pro mudo.
+  useEffect(() => {
+    if (atual?.tipo !== 'video') return
+    const v = videoRef.current
+    if (!v) return
+    let cancelado = false
+    ;(async () => {
+      try {
+        await v.play()
+      } catch {
+        if (cancelado) return
+        try {
+          v.muted = true
+          setMudo(true)
+          await v.play()
+        } catch {
+          /* iOS pode exigir toque no play — o spinner sai no onLoadedData */
+        }
+      }
+    })()
+    return () => {
+      cancelado = true
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [atual?.id])
 
@@ -341,21 +405,29 @@ function VisorDestaque({ destaque, admin, onClose, onEditarDestaque, onMudou }) 
                 autoPlay
                 muted={mudo}
                 playsInline
+                preload="auto"
                 onEnded={avancar}
-                onLoadedData={(e) => {
-                  // tenta tocar com som; se o navegador bloquear, cai no mudo
-                  e.currentTarget.play().catch(() => {
-                    setMudo(true)
-                    e.currentTarget.play().catch(() => {})
-                  })
-                }}
+                onCanPlay={() => setPronto(true)}
+                onLoadedData={() => setPronto(true)}
                 onTimeUpdate={(e) => {
                   const v = e.currentTarget
                   if (v.duration) setProg(v.currentTime / v.duration)
                 }}
               />
             ) : (
-              <img src={atual?.media_url} alt="" className="h-full w-full object-contain" />
+              <img
+                src={atual?.media_url}
+                alt=""
+                className="h-full w-full object-contain"
+                onLoad={() => setPronto(true)}
+              />
+            )}
+
+            {/* Enquanto a mídia não está pronta (buffer do vídeo): spinner, nunca preto vazio */}
+            {!pronto && (
+              <div className="pointer-events-none absolute inset-0 grid place-items-center">
+                <Loader2 size={26} className="animate-spin text-white/80" />
+              </div>
             )}
 
             {/* Zonas de toque: esquerda = voltar, direita = avançar */}
