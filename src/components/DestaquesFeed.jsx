@@ -11,7 +11,7 @@ import { cn } from '../lib/cn'
 // RH (quem pode publicar) cria/gerencia; todo mundo vê.
 
 const IMG_MAX = 15 * 1024 * 1024 // 15 MB
-const VID_MAX = 60 * 1024 * 1024 // 60 MB
+const VID_MAX = 200 * 1024 * 1024 // 200 MB
 const DUR_IMG = 5000 // ms por imagem
 
 export function DestaquesFeed({ admin = false }) {
@@ -189,8 +189,9 @@ function VisorDestaque({ destaque, admin, onClose, onEditarDestaque, onMudou }) 
   const [itens, setItens] = useState(null)
   const [i, setI] = useState(0)
   const [prog, setProg] = useState(0) // 0..1 do item atual
-  const [mudo, setMudo] = useState(true)
+  const [mudo, setMudo] = useState(false)
   const [enviando, setEnviando] = useState(false)
+  const [prgEnvio, setPrgEnvio] = useState(null) // 0..1 durante o upload de vídeo
   const inputRef = useRef(null)
   const videoRef = useRef(null)
   const timer = useRef(null)
@@ -242,19 +243,21 @@ function VisorDestaque({ destaque, admin, onClose, onEditarDestaque, onMudou }) 
     if (!f) return
     const ehVideo = f.type.startsWith('video/')
     const ehImagem = f.type.startsWith('image/')
-    if (!ehVideo && !ehImagem) return
+    if (!ehVideo && !ehImagem) return alert('Selecione uma imagem ou um vídeo.')
     if (ehImagem && f.size > IMG_MAX) return alert('Imagem muito grande (máx. 15 MB).')
-    if (ehVideo && f.size > VID_MAX) return alert('Vídeo muito grande (máx. 60 MB).')
+    if (ehVideo && f.size > VID_MAX)
+      return alert(`Vídeo muito grande (máx. ${Math.round(VID_MAX / 1024 / 1024)} MB).`)
     setEnviando(true)
+    setPrgEnvio(ehVideo ? 0 : null)
     tapHaptic()
     const ext = (f.name.split('.').pop() || (ehVideo ? 'mp4' : 'jpg')).toLowerCase()
     const caminho = `${destaque.id}/${crypto.randomUUID()}.${ext}`
-    const { error: upErr } = await supabase.storage
-      .from('destaques')
-      .upload(caminho, f, { cacheControl: '3600', contentType: f.type })
-    if (upErr) {
+    try {
+      await enviarComProgresso(caminho, f, (p) => setPrgEnvio(p))
+    } catch (err) {
       setEnviando(false)
-      alert('Não foi possível enviar o arquivo.')
+      setPrgEnvio(null)
+      alert('Não foi possível enviar o arquivo. ' + (err?.message || 'Tente de novo.'))
       return
     }
     const url = supabase.storage.from('destaques').getPublicUrl(caminho).data.publicUrl
@@ -267,8 +270,41 @@ function VisorDestaque({ destaque, admin, onClose, onEditarDestaque, onMudou }) 
       p_ordem: null,
     })
     setEnviando(false)
+    setPrgEnvio(null)
     await carregar()
     onMudou?.()
+  }
+
+  // Sobe com barra de progresso (URL assinada + XHR). Se algo falhar nesse
+  // caminho, cai no upload padrão (sem %), pra não travar o envio.
+  async function enviarComProgresso(caminho, file, onProg) {
+    try {
+      const { data: signed, error } = await supabase.storage
+        .from('destaques')
+        .createSignedUploadUrl(caminho)
+      if (error || !signed?.signedUrl) throw error || new Error('sem url')
+      await new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest()
+        xhr.open('PUT', signed.signedUrl, true)
+        xhr.setRequestHeader('content-type', file.type || 'application/octet-stream')
+        xhr.setRequestHeader('cache-control', '3600')
+        xhr.setRequestHeader('x-upsert', 'true')
+        xhr.upload.onprogress = (ev) => {
+          if (ev.lengthComputable) onProg(ev.loaded / ev.total)
+        }
+        xhr.onload = () =>
+          xhr.status >= 200 && xhr.status < 300 ? resolve() : reject(new Error('HTTP ' + xhr.status))
+        xhr.onerror = () => reject(new Error('falha de rede'))
+        xhr.send(file)
+      })
+    } catch (e) {
+      // Fallback: upload padrão do supabase-js (sem progresso).
+      onProg(null)
+      const { error: upErr } = await supabase.storage
+        .from('destaques')
+        .upload(caminho, file, { cacheControl: '3600', contentType: file.type, upsert: true })
+      if (upErr) throw upErr
+    }
   }
 
   async function excluirItem() {
@@ -283,44 +319,9 @@ function VisorDestaque({ destaque, admin, onClose, onEditarDestaque, onMudou }) 
   }
 
   return createPortal(
-    <div className="fixed inset-0 z-[65] flex flex-col bg-black">
-      {/* Barras de progresso */}
-      <div className="safe-top hstack gap-1 px-3 pt-2">
-        {(itens || []).map((it, idx) => (
-          <span key={it.id} className="h-[3px] flex-1 overflow-hidden rounded-full bg-white/30">
-            <span
-              className="block h-full bg-white"
-              style={{ width: idx < i ? '100%' : idx === i ? `${prog * 100}%` : '0%' }}
-            />
-          </span>
-        ))}
-      </div>
-
-      {/* Cabeçalho */}
-      <div className="hstack items-center gap-2 px-4 py-2 text-white">
-        <div className="min-w-0 flex-1 truncate text-sm font-semibold">{destaque.titulo}</div>
-        {admin && (
-          <>
-            <button onClick={() => inputRef.current?.click()} aria-label="Adicionar item" className="grid h-8 w-8 place-items-center rounded-full bg-white/15 tap">
-              {enviando ? <Loader2 size={15} className="animate-spin" /> : <ImagePlus size={15} />}
-            </button>
-            <button onClick={onEditarDestaque} aria-label="Editar destaque" className="grid h-8 w-8 place-items-center rounded-full bg-white/15 tap">
-              <Pencil size={14} />
-            </button>
-            {atual && (
-              <button onClick={excluirItem} aria-label="Excluir item" className="grid h-8 w-8 place-items-center rounded-full bg-white/15 tap">
-                <Trash2 size={14} />
-              </button>
-            )}
-          </>
-        )}
-        <button onClick={onClose} aria-label="Fechar" className="grid h-8 w-8 place-items-center rounded-full bg-white/15 text-white tap">
-          <X size={16} />
-        </button>
-      </div>
-
-      {/* Conteúdo */}
-      <div className="relative min-h-0 flex-1">
+    <div className="fixed inset-0 z-[65] bg-black">
+      {/* Mídia — TELA CHEIA (atrás dos controles) */}
+      <div className="absolute inset-0">
         {itens === null ? (
           <div className="grid h-full place-items-center text-white/70">
             <Loader2 size={24} className="animate-spin" />
@@ -336,11 +337,18 @@ function VisorDestaque({ destaque, admin, onClose, onEditarDestaque, onMudou }) 
                 ref={videoRef}
                 key={atual.id}
                 src={atual.media_url}
-                className="h-full w-full object-contain"
+                className="h-full w-full object-cover"
                 autoPlay
                 muted={mudo}
                 playsInline
                 onEnded={avancar}
+                onLoadedData={(e) => {
+                  // tenta tocar com som; se o navegador bloquear, cai no mudo
+                  e.currentTarget.play().catch(() => {
+                    setMudo(true)
+                    e.currentTarget.play().catch(() => {})
+                  })
+                }}
                 onTimeUpdate={(e) => {
                   const v = e.currentTarget
                   if (v.duration) setProg(v.currentTime / v.duration)
@@ -358,18 +366,70 @@ function VisorDestaque({ destaque, admin, onClose, onEditarDestaque, onMudou }) 
               <button
                 onClick={() => setMudo((m) => !m)}
                 aria-label={mudo ? 'Ativar som' : 'Silenciar'}
-                className="absolute bottom-4 right-4 grid h-9 w-9 place-items-center rounded-full bg-black/50 text-white tap"
+                className="safe-bottom absolute bottom-5 right-4 z-10 grid h-9 w-9 place-items-center rounded-full bg-black/50 text-white tap"
               >
                 {mudo ? <VolumeX size={16} /> : <Volume2 size={16} />}
               </button>
             )}
 
             {atual?.legenda && (
-              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-5 pb-6 pt-10 text-sm text-white">
+              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 to-transparent px-5 pb-9 pt-12 text-sm text-white">
                 {atual.legenda}
               </div>
             )}
           </>
+        )}
+      </div>
+
+      {/* Controles sobrepostos (topo) com gradiente pra legibilidade */}
+      <div className="safe-top absolute inset-x-0 top-0 z-20 bg-gradient-to-b from-black/70 via-black/30 to-transparent pb-10">
+        <div className="hstack gap-1 px-3 pt-2">
+          {(itens || []).map((it, idx) => (
+            <span key={it.id} className="h-[3px] flex-1 overflow-hidden rounded-full bg-white/30">
+              <span
+                className="block h-full bg-white"
+                style={{ width: idx < i ? '100%' : idx === i ? `${prog * 100}%` : '0%' }}
+              />
+            </span>
+          ))}
+        </div>
+
+        <div className="hstack items-center gap-2 px-4 py-2 text-white">
+          <div className="min-w-0 flex-1 truncate text-sm font-semibold">{destaque.titulo}</div>
+          {admin && (
+            <>
+              <button onClick={() => inputRef.current?.click()} aria-label="Adicionar item" className="grid h-8 w-8 place-items-center rounded-full bg-white/15 tap">
+                {enviando ? <Loader2 size={15} className="animate-spin" /> : <ImagePlus size={15} />}
+              </button>
+              <button onClick={onEditarDestaque} aria-label="Editar destaque" className="grid h-8 w-8 place-items-center rounded-full bg-white/15 tap">
+                <Pencil size={14} />
+              </button>
+              {atual && (
+                <button onClick={excluirItem} aria-label="Excluir item" className="grid h-8 w-8 place-items-center rounded-full bg-white/15 tap">
+                  <Trash2 size={14} />
+                </button>
+              )}
+            </>
+          )}
+          <button onClick={onClose} aria-label="Fechar" className="grid h-8 w-8 place-items-center rounded-full bg-white/15 text-white tap">
+            <X size={16} />
+          </button>
+        </div>
+
+        {/* Progresso do upload */}
+        {enviando && (
+          <div className="px-4 pb-1">
+            <div className="hstack gap-2 text-[11px] font-semibold text-white">
+              <Loader2 size={12} className="animate-spin" />
+              {prgEnvio != null ? `Enviando vídeo… ${Math.round(prgEnvio * 100)}%` : 'Enviando…'}
+            </div>
+            <div className="mt-1 h-1 overflow-hidden rounded-full bg-white/25">
+              <div
+                className="h-full bg-accent transition-[width] duration-200"
+                style={{ width: prgEnvio != null ? `${prgEnvio * 100}%` : '40%' }}
+              />
+            </div>
+          </div>
         )}
       </div>
 
