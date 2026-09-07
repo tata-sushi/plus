@@ -56,9 +56,11 @@ export function BottomNav({ flow = false }) {
                     tapHaptic()
                     window.dispatchEvent(new CustomEvent('abrir-compositor'))
                   }}
-                  className="relative flex min-w-0 flex-col items-center justify-center gap-1 overflow-hidden px-0.5 py-2.5 text-[9px] font-medium text-accent tap"
+                  className="relative flex w-full min-w-0 flex-col items-center justify-center gap-1 overflow-hidden px-0.5 py-2 text-[9px] font-medium text-accent tap"
                 >
-                  <Plus size={20} strokeWidth={2.5} className="shrink-0" />
+                  <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-accent text-black">
+                    <Plus size={16} />
+                  </span>
                   <span className="max-w-full overflow-hidden text-ellipsis whitespace-nowrap">
                     Compartilhar
                   </span>
