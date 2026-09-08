@@ -26,6 +26,7 @@ import {
   ShieldCheck,
   Salad,
   Moon,
+  FileText,
 } from 'lucide-react'
 import { Section } from './Section.jsx'
 import { Card } from './Card.jsx'
@@ -47,6 +48,7 @@ const AUTO = [
   { chave: 'modo_escuro', label: 'Modo escuro', Icon: Moon, vars: 'aparece p/ quem está no modo claro' },
   { chave: 'aviso_1', label: 'Ativar notificações', Icon: Bell, vars: 'aparece só p/ quem está sem push no aparelho · leva pro Painel de Ajustes' },
   { chave: 'aviso_2', label: 'Aviso recorrente', Icon: Megaphone, vars: 'Texto e imagem livres · entra no revezamento (comece desligado)' },
+  { chave: 'holerite', label: 'Holerite disponível', Icon: FileText, vars: 'aparece só p/ quem tem holerite entregue e ainda não abriu · some ao abrir · leva pro Holerite' },
 ]
 
 // Linha de uma notificação automática do sistema (o "sininho"): liga/desliga +

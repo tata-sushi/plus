@@ -11,6 +11,7 @@ import {
   ShieldCheck,
   Salad,
   Moon,
+  FileText,
 } from 'lucide-react'
 import { cn } from '../lib/cn'
 
@@ -27,6 +28,7 @@ const TEMPLATES = {
     tint: 'text-pink-200',
   },
   senha: { grad: 'from-sky-500/30 via-sky-500/5', Icon: ShieldCheck, tint: 'text-sky-200' },
+  holerite: { grad: 'from-teal-500/30 via-teal-500/5', Icon: FileText, tint: 'text-teal-200' },
   restricoes: { grad: 'from-emerald-500/30 via-emerald-500/5', Icon: Salad, tint: 'text-emerald-200' },
   tema: { grad: 'from-indigo-500/40 via-indigo-500/10', Icon: Moon, tint: 'text-indigo-200' },
 }
