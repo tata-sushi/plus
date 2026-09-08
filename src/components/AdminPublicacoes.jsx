@@ -51,6 +51,32 @@ const AUTO = [
   { chave: 'holerite', label: 'Holerite disponível', Icon: FileText, vars: 'aparece só p/ quem tem holerite entregue e ainda não abriu · some ao abrir · leva pro Holerite' },
 ]
 
+// Converte qualquer imagem que o navegador consiga ler (HEIC no Safari, PNG,
+// webp…) pra JPEG comprimido antes de subir. Resolve o "erro na foto" com HEIC
+// do iPhone e reduz arquivos grandes. Rejeita (decode) o que não dá pra ler.
+function comprimirImagem(file, maxLado = 1600, q = 0.85) {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file)
+    const img = new Image()
+    img.onload = () => {
+      URL.revokeObjectURL(url)
+      const escala = Math.min(1, maxLado / Math.max(img.naturalWidth, img.naturalHeight))
+      const w = Math.max(1, Math.round(img.naturalWidth * escala))
+      const h = Math.max(1, Math.round(img.naturalHeight * escala))
+      const c = document.createElement('canvas')
+      c.width = w
+      c.height = h
+      c.getContext('2d').drawImage(img, 0, 0, w, h)
+      c.toBlob((b) => (b ? resolve(b) : reject(new Error('encode'))), 'image/jpeg', q)
+    }
+    img.onerror = () => {
+      URL.revokeObjectURL(url)
+      reject(new Error('decode'))
+    }
+    img.src = url
+  })
+}
+
 // Linha de uma notificação automática do sistema (o "sininho"): liga/desliga +
 // texto editável. Sinaliza pro admin que aquele aviso automático está rodando.
 function NotifAutoLinha({ item, onToggle, onSalvar }) {
@@ -358,18 +384,24 @@ export function AdminPublicacoes() {
 
   async function salvarImgAuto(chave, file) {
     if (!file || !matricula) return
-    if (!file.type.startsWith('image/')) return setErro('Selecione uma imagem.')
     if (file.size > TAM_MAX) return setErro('Imagem muito grande (máx. 15 MB).')
     setErro('')
-    const ext = (file.name.split('.').pop() || 'jpg').toLowerCase()
-    const caminho = `${matricula}/destaque-${chave}-${crypto.randomUUID()}.${ext}`
+    // Converte pra JPEG (resolve HEIC do iPhone, webp, mime vazio, etc.).
+    let blob
+    try {
+      blob = await comprimirImagem(file)
+    } catch {
+      return setErro('Não consegui ler essa imagem. Tente um JPG ou PNG.')
+    }
+    const caminho = `${matricula}/destaque-${chave}-${crypto.randomUUID()}.jpg`
     const { error: upErr } = await supabase.storage
       .from('comunicados')
-      .upload(caminho, file, { cacheControl: '3600', contentType: file.type })
+      .upload(caminho, blob, { cacheControl: '3600', contentType: 'image/jpeg' })
     if (upErr) return setErro('Não foi possível enviar a imagem.')
     const url = supabase.storage.from('comunicados').getPublicUrl(caminho).data.publicUrl
     const { error } = await supabase.rpc('admin_destaque_img_salvar', { p_chave: chave, p_url: url })
-    if (!error) ligaAuto(chave, { imagem_url: url })
+    if (error) return setErro('A imagem subiu, mas não salvou. Tente de novo.')
+    ligaAuto(chave, { imagem_url: url })
   }
 
   async function removerImgAuto(chave) {
