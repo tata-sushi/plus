@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Heart, MessageCircle, Image as ImageIcon, Send, Loader2, Trash2, X, Gift, Video } from 'lucide-react'
+import { Heart, MessageCircle, Image as ImageIcon, Send, Loader2, Trash2, X, Gift, Video, Pin } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Card } from '../components/Card.jsx'
 import { Avatar } from '../components/Avatar.jsx'
@@ -229,7 +229,7 @@ function PostMidia({ post }) {
   )
 }
 
-function PostCard({ post, matricula, admin, meuNome, meuAvatar, onCurtir, onExcluir }) {
+function PostCard({ post, matricula, admin, meuNome, meuAvatar, onCurtir, onExcluir, onFixar }) {
   const navigate = useNavigate()
   const [abrir, setAbrir] = useState(false)
   const [comentarios, setComentarios] = useState([])
@@ -294,7 +294,12 @@ function PostCard({ post, matricula, admin, meuNome, meuAvatar, onCurtir, onExcl
   }
 
   return (
-    <Card className="reveal">
+    <Card className={cn('reveal', post.fixado_em && 'border-accent/40')}>
+      {post.fixado_em && (
+        <div className="mb-2 hstack items-center gap-1 text-[11px] font-semibold text-accent">
+          <Pin size={12} className="fill-current" /> Fixado
+        </div>
+      )}
       {/* Autor */}
       <div className="hstack gap-3">
         <button
@@ -307,14 +312,28 @@ function PostCard({ post, matricula, admin, meuNome, meuAvatar, onCurtir, onExcl
             <div className="text-[11px] text-muted">{tempoRelativo(post.created_at)}</div>
           </div>
         </button>
-        {podeExcluir && (
-          <button
-            onClick={() => onExcluir(post)}
-            className="shrink-0 text-muted-2 tap"
-            aria-label="Excluir publicação"
-          >
-            <Trash2 size={15} />
-          </button>
+        {(admin || podeExcluir) && (
+          <div className="hstack shrink-0 gap-2.5">
+            {admin && (
+              <button
+                onClick={() => onFixar(post)}
+                className={cn('tap', post.fixado_em ? 'text-accent' : 'text-muted-2')}
+                aria-label={post.fixado_em ? 'Desafixar' : 'Fixar no topo'}
+                title={post.fixado_em ? 'Desafixar' : 'Fixar no topo'}
+              >
+                <Pin size={15} className={post.fixado_em ? 'fill-current' : ''} />
+              </button>
+            )}
+            {podeExcluir && (
+              <button
+                onClick={() => onExcluir(post)}
+                className="text-muted-2 tap"
+                aria-label="Excluir publicação"
+              >
+                <Trash2 size={15} />
+              </button>
+            )}
+          </div>
         )}
       </div>
 
@@ -648,6 +667,19 @@ export function Comunidade() {
     if (!error) setPosts((prev) => prev.filter((p) => p.id !== post.id))
   }
 
+  // Fixar / desafixar (só admin) — RPC gate por pode_publicar() no servidor.
+  async function fixar(post) {
+    tapHaptic()
+    const novo = !post.fixado_em
+    const { error } = await supabase.rpc('post_fixar', { p_id: post.id, p_fixar: novo })
+    if (error) return
+    setPosts((prev) =>
+      prev.map((p) =>
+        p.id === post.id ? { ...p, fixado_em: novo ? new Date().toISOString() : null } : p,
+      ),
+    )
+  }
+
   // Feed unificado: posts (com ações) + reconhecimentos (read-only), por data.
   const feed = useMemo(() => {
     const recs = (reconhecimentos || []).map((r) => ({
@@ -662,7 +694,15 @@ export function Comunidade() {
       created_at: p.created_at,
       post: p,
     }))
-    return [...ps, ...recs].sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+    // Fixados no topo (só posts têm fixado_em); entre fixados, o mais recente
+    // primeiro; o resto por data normal.
+    return [...ps, ...recs].sort((a, b) => {
+      const fa = a.kind !== 'rec' && a.post?.fixado_em ? 1 : 0
+      const fb = b.kind !== 'rec' && b.post?.fixado_em ? 1 : 0
+      if (fa !== fb) return fb - fa
+      if (fa && fb) return new Date(b.post.fixado_em) - new Date(a.post.fixado_em)
+      return new Date(b.created_at) - new Date(a.created_at)
+    })
   }, [posts, reconhecimentos])
 
   // Corpo do compositor — reaproveitado no card inline (geral) e no modal (teste).
@@ -806,6 +846,7 @@ export function Comunidade() {
               meuAvatar={meuAvatar}
               onCurtir={curtir}
               onExcluir={excluir}
+              onFixar={fixar}
             />
           ),
         )}
