@@ -53,6 +53,11 @@ export function Holerites() {
       setErro('Não consegui abrir o holerite agora. Tente de novo.')
       return
     }
+    // Carimba o acesso a este holerite (fire-and-forget; não trava a abertura).
+    supabase.rpc('holerite_registrar_acesso', { p_documento_id: h.id }).then(
+      () => {},
+      () => {},
+    )
     if (aba) {
       aba.location.href = data.signedUrl
     } else {
