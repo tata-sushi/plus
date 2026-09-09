@@ -84,6 +84,9 @@ export function Holerites() {
       <div className="mx-auto w-full max-w-[520px] px-5 pb-28 pt-4">
         <div className="mb-5">
           <div className="font-display text-[19px] font-bold leading-tight">Holerites</div>
+          <p className="mt-1.5 text-[13px] leading-snug text-muted">
+            Para visualizar o seu holerite, digite os 4 primeiros dígitos do seu CPF.
+          </p>
         </div>
 
         {lista === null ? (
