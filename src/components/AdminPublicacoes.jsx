@@ -49,6 +49,7 @@ const AUTO = [
   { chave: 'aviso_1', label: 'Ativar notificações', Icon: Bell, vars: 'aparece só p/ quem está sem push no aparelho · leva pro Painel de Ajustes' },
   { chave: 'aviso_2', label: 'Aviso recorrente', Icon: Megaphone, vars: 'Texto e imagem livres · entra no revezamento (comece desligado)' },
   { chave: 'holerite', label: 'Holerite disponível', Icon: FileText, vars: 'aparece só p/ quem tem holerite entregue e ainda não abriu · some ao abrir · leva pro Holerite' },
+  { chave: 'seis_meses', label: '6 meses de casa', Icon: Cake, vars: 'aparece na semana em que a pessoa completa 6 meses · {nome} = primeiro nome · sem imagem, usa uma arte de aniversário' },
 ]
 
 // Converte qualquer imagem que o navegador consiga ler (HEIC no Safari, PNG,
