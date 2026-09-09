@@ -419,6 +419,10 @@ export function Documentos() {
       <div className="px-5 pt-3">
         <h1 className="font-display text-xl font-bold">Assinaturas</h1>
         <p className="mt-0.5 text-sm text-muted">Documentos para você ler e assinar.</p>
+        <p className="mt-1.5 text-[13px] leading-snug text-muted">
+          O documento deve conter a sua própria assinatura no campo de assinatura e uma selfie
+          tirada em lugar claro, sem bonés, máscaras ou óculos.
+        </p>
       </div>
 
       <div className="mt-4 px-5 pb-24">
