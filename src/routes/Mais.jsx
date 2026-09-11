@@ -51,7 +51,7 @@ const itens = [
   { to: '/ouvidoria', label: 'Ouvidoria', icon: MessageSquareWarning, gov: true },
   { to: '/cardapio', label: 'Cardápio', icon: UtensilsCrossed },
   { to: '/ranking', label: 'Ranking', icon: Trophy, quadros: true },
-  { to: '/quadros', label: 'Kanban Tatá (beta)', icon: KanbanSquare, quadros: true },
+  { to: '/quadros', label: 'Kanban Tatá', icon: KanbanSquare, quadros: true },
   { to: '/escala', label: 'Agenda', icon: CalendarClock, escala: true },
   { to: '/documentos', label: 'Assinaturas', icon: FileSignature },
   { to: '/holerites', label: 'Holerite', icon: ReceiptText },
