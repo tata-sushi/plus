@@ -324,10 +324,7 @@ export function Anagrama() {
                         <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-surface-2 text-[11px] font-bold text-muted-2">
                           {w + 1}
                         </span>
-                        <div className="min-w-0 flex-1 truncate text-xs text-muted">
-                          <span className="text-muted-2">Dica: </span>
-                          {tb.item.d}
-                        </div>
+                        <div className="min-w-0 flex-1 truncate text-xs text-muted">{tb.item.d}</div>
                         {es.resolvido && <Check size={16} className="shrink-0 text-accent" />}
                       </div>
 

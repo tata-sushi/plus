@@ -8,11 +8,14 @@ import { useAuth } from '../lib/AuthContext.jsx'
 import { Header } from '../components/Header.jsx'
 import { cn } from '../lib/cn'
 import FORCA from '../lib/palavras-forca.js'
+import { TECLADO } from '../lib/termo.js'
 import { podeBetaJogos } from '../lib/beta.js'
 
 const JOGO = 'forca'
 const MAX_ERROS = 6 // cabeça, tronco, 2 braços, 2 pernas
-const ALFA = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('')
+// Teclado QWERTY igual ao Termo, SEM a tecla de apagar (na Forca cada letra é
+// um chute direto — não dá pra desfazer).
+const LINHAS = TECLADO.map((linha) => linha.filter((k) => k !== 'APAGAR'))
 
 function fmtTempo(s) {
   if (s == null) return '0:00'
@@ -250,10 +253,7 @@ export function Forca() {
             <div className="grid place-items-center">
               <Boneco erros={erros} />
             </div>
-            <div className="mt-1 text-center text-sm text-muted">
-              <span className="text-muted-2">Dica: </span>
-              {dica}
-            </div>
+            <div className="mt-1 text-center text-sm text-muted">{dica}</div>
           </div>
 
           {/* palavra — nomes compostos quebram em linhas (um bloco por palavra) */}
@@ -267,7 +267,7 @@ export function Forca() {
                     <span
                       key={i}
                       className={cn(
-                        'grid h-11 w-8 place-items-center rounded-md border-b-2 pb-0.5 font-display text-2xl font-bold',
+                        'grid h-11 w-11 place-items-center rounded-md border-2 font-display text-2xl font-bold leading-none',
                         errou ? 'border-danger text-danger' : 'border-line text-text',
                       )}
                     >
@@ -279,29 +279,33 @@ export function Forca() {
             ))}
           </div>
 
-          {/* teclado */}
-          <div className="mt-6 grid grid-cols-7 gap-1.5">
-            {ALFA.map((l) => {
-              const usada = letras.has(l)
-              const certa = usada && letrasPalavra.has(l)
-              const errada = usada && !letrasPalavra.has(l)
-              return (
-                <button
-                  key={l}
-                  onClick={() => chutar(l)}
-                  disabled={usada || resolvido}
-                  className={cn(
-                    'grid aspect-[4/5] place-items-center rounded-lg text-sm font-bold tap transition-colors',
-                    certa && 'bg-accent-soft text-accent',
-                    errada && 'bg-surface text-muted-2 line-through opacity-50',
-                    !usada && 'bg-surface-2 text-text active:bg-[#2a2b30]',
-                    resolvido && !usada && 'opacity-40',
-                  )}
-                >
-                  {l}
-                </button>
-              )
-            })}
+          {/* teclado — QWERTY no estilo do Termo (sem apagar) */}
+          <div className="mt-6 flex flex-col gap-1.5">
+            {LINHAS.map((linha, i) => (
+              <div key={i} className="flex justify-center gap-1.5">
+                {linha.map((l) => {
+                  const usada = letras.has(l)
+                  const certa = usada && letrasPalavra.has(l)
+                  const errada = usada && !letrasPalavra.has(l)
+                  return (
+                    <button
+                      key={l}
+                      onClick={() => chutar(l)}
+                      disabled={usada || resolvido}
+                      className={cn(
+                        'grid h-12 max-w-[38px] flex-1 place-items-center rounded-md text-sm font-bold uppercase tap transition-colors',
+                        certa && 'bg-accent text-black',
+                        errada && 'bg-surface-2 text-muted-2 line-through opacity-60',
+                        !usada && 'bg-surface text-text',
+                        resolvido && !usada && 'opacity-40',
+                      )}
+                    >
+                      {l}
+                    </button>
+                  )
+                })}
+              </div>
+            ))}
           </div>
 
           {/* resultado */}
