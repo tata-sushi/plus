@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { ArrowLeft, HelpCircle, Check, Trophy, Loader2, Clock, Flame, X, Lock } from 'lucide-react'
+import { ArrowLeft, HelpCircle, Check, Trophy, Loader2, Clock, Flame, X } from 'lucide-react'
 import { supabase } from '../lib/supabase.js'
 import { tapHaptic } from '../lib/haptics.js'
 import { useAuth } from '../lib/AuthContext.jsx'
@@ -9,7 +9,6 @@ import { Header } from '../components/Header.jsx'
 import { cn } from '../lib/cn'
 import FORCA from '../lib/palavras-forca.js'
 import { TECLADO } from '../lib/termo.js'
-import { podeBetaJogos } from '../lib/beta.js'
 
 const JOGO = 'forca'
 const MAX_ERROS = 6 // cabeça, tronco, 2 braços, 2 pernas
@@ -187,27 +186,6 @@ export function Forca() {
   }
 
   const carregando = !estado && !preview
-
-  // BETA: travado para todos menos os testadores (ver lib/beta.js) enquanto não vai pra produção.
-  if (usuario && !podeBetaJogos(usuario)) {
-    return (
-      <div className="min-h-[100dvh] bg-bg">
-        <Header />
-        <div className="px-5 pt-2">
-          <button onClick={() => { tapHaptic(); navigate(-1) }} className="hstack gap-1 text-sm font-medium text-muted tap">
-            <ArrowLeft size={16} /> Voltar
-          </button>
-        </div>
-        <div className="mx-auto w-full max-w-[420px] px-5 pt-24 text-center">
-          <div className="mx-auto grid h-16 w-16 place-items-center rounded-2xl bg-surface-2 text-muted-2">
-            <Lock size={26} />
-          </div>
-          <div className="mt-4 font-display text-lg font-bold">Em breve</div>
-          <p className="mx-auto mt-1 max-w-[300px] text-sm text-muted">Este jogo ainda está em testes. Logo ele chega pra todo mundo!</p>
-        </div>
-      </div>
-    )
-  }
 
   return (
     <div className="min-h-[100dvh] bg-bg">

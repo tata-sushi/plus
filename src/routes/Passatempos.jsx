@@ -14,8 +14,8 @@ const JOGOS = [
   { to: '/rota-sushi', jogo: 'rotasushi', nome: 'Rota do Sushi', desc: 'Trace a rota da entrega', icon: Route },
   { to: '/termo', jogo: 'termo', nome: 'Termo', desc: 'Descubra a palavra do dia', icon: Type },
   { to: '/memoria', jogo: 'memoria', nome: 'Jogo da Memória', desc: 'Ache os pares do dia', icon: Layers },
-  { to: '/forca', jogo: 'forca', nome: 'Forca', desc: 'Descubra a palavra escondida', icon: WholeWord, beta: true },
-  { to: '/anagrama', jogo: 'anagrama', nome: 'Anagrama', desc: 'Desembaralhe a palavra do dia', icon: Shuffle, beta: true },
+  { to: '/forca', jogo: 'forca', nome: 'Forca', desc: 'Descubra a palavra escondida', icon: WholeWord },
+  { to: '/anagrama', jogo: 'anagrama', nome: 'Anagrama', desc: 'Desembaralhe a palavra do dia', icon: Shuffle },
 ]
 
 export function Passatempos() {
