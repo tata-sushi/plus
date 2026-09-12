@@ -285,8 +285,6 @@ export function Forca() {
               <div key={i} className="flex justify-center gap-1.5">
                 {linha.map((l) => {
                   const usada = letras.has(l)
-                  const certa = usada && letrasPalavra.has(l)
-                  const errada = usada && !letrasPalavra.has(l)
                   return (
                     <button
                       key={l}
@@ -294,9 +292,7 @@ export function Forca() {
                       disabled={usada || resolvido}
                       className={cn(
                         'grid h-12 max-w-[38px] flex-1 place-items-center rounded-md text-sm font-bold uppercase tap transition-colors',
-                        certa && 'bg-accent text-black',
-                        errada && 'bg-surface-2 text-muted-2 line-through opacity-60',
-                        !usada && 'bg-surface text-text',
+                        usada ? 'bg-surface-2 text-muted-2 opacity-50' : 'bg-surface text-text',
                         resolvido && !usada && 'opacity-40',
                       )}
                     >
