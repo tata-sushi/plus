@@ -319,58 +319,116 @@ export function Forca() {
         </div>
       )}
 
-      {ajudaAberta && <FolhaAjuda onClose={() => setAjudaAberta(false)} />}
-      {intro && <FolhaIntro onClose={fecharIntro} />}
+      {ajudaAberta && <FolhaComoJogar onClose={() => setAjudaAberta(false)} />}
+      {intro && <FolhaComoJogar primeiro onClose={fecharIntro} />}
     </div>
   )
 }
 
-function FolhaAjuda({ onClose }) {
-  return createPortal(
-    <div className="fixed inset-0 z-50 flex flex-col justify-end sm:items-center sm:justify-center" role="dialog" aria-modal="true">
-      <button aria-label="Fechar" onClick={onClose} className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
-      <div className="relative max-h-[90dvh] w-full overflow-y-auto overscroll-contain rounded-t-2xl border border-line bg-bg px-5 pb-8 pt-4 shadow-xl sm:max-w-[520px] sm:rounded-2xl">
-        <div className="mx-auto mb-3 h-1 w-9 rounded-full bg-line sm:hidden" />
-        <button onClick={onClose} aria-label="Fechar" className="absolute right-4 top-4 grid h-8 w-8 place-items-center rounded-full bg-surface text-muted tap">
-          <X size={16} />
-        </button>
-        <div className="font-display text-lg font-bold">Como jogar</div>
-        <ul className="mt-3 flex flex-col gap-2 text-sm leading-relaxed text-muted">
-          <li>• Descubra a <b className="text-text">palavra escondida</b> tocando nas letras.</li>
-          <li>• A <b className="text-text">dica</b> mostra do que se trata.</li>
-          <li>• Cada letra errada desenha uma parte do bonequinho.</li>
-          <li>• São <b className="text-text">6 erros</b> no máximo. Complete antes disso pra vencer.</li>
-          <li>• 1 palavra por dia · tempo cronometrado.</li>
-        </ul>
+// Simulação animada: "chuta" letras uma a uma — as certas revelam na palavra,
+// as erradas desenham o boneco. Demonstra a Forca (alvo SUSHI).
+const DEMO_PALAVRA = 'SUSHI'
+const DEMO_SEQ = [
+  { l: 'A', ok: false },
+  { l: 'S', ok: true },
+  { l: 'U', ok: true },
+  { l: 'E', ok: false },
+  { l: 'H', ok: true },
+  { l: 'I', ok: true },
+]
+
+function DemoForca() {
+  const [chutadas, setChutadas] = useState(() => new Set())
+  const [erros, setErros] = useState(0)
+  const cancel = useRef(false)
+
+  useEffect(() => {
+    cancel.current = false
+    const reduz =
+      typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+    if (reduz) {
+      setChutadas(new Set(DEMO_PALAVRA.split('')))
+      setErros(DEMO_SEQ.filter((s) => !s.ok).length)
+      return
+    }
+    const timers = []
+    const wait = (ms) => new Promise((r) => timers.push(setTimeout(r, ms)))
+    async function run() {
+      while (!cancel.current) {
+        setChutadas(new Set())
+        setErros(0)
+        await wait(700)
+        for (const s of DEMO_SEQ) {
+          if (cancel.current) break
+          if (s.ok) setChutadas((c) => new Set(c).add(s.l))
+          else setErros((e) => e + 1)
+          await wait(620)
+        }
+        await wait(1900)
+      }
+    }
+    run()
+    return () => {
+      cancel.current = true
+      timers.forEach(clearTimeout)
+    }
+  }, [])
+
+  return (
+    <div className="flex flex-col items-center gap-2">
+      <Boneco erros={erros} />
+      <div className="flex justify-center gap-1.5">
+        {DEMO_PALAVRA.split('').map((l, i) => {
+          const mostra = chutadas.has(l)
+          return (
+            <span
+              key={i}
+              className={cn(
+                'grid h-10 w-10 place-items-center rounded-md border-2 font-display text-xl font-bold transition-colors duration-200',
+                mostra ? 'border-accent text-text' : 'border-line text-text',
+              )}
+            >
+              {mostra ? l : ''}
+            </span>
+          )
+        })}
       </div>
-    </div>,
-    document.body,
+    </div>
   )
 }
 
-function FolhaIntro({ onClose }) {
+// Folha "Como jogar" / boas-vindas — com a simulação animada.
+function FolhaComoJogar({ onClose, primeiro }) {
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true">
       <button aria-label="Fechar" onClick={onClose} className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
-      <div className="relative max-h-[86dvh] w-full max-w-[400px] overflow-y-auto overscroll-contain rounded-2xl border border-line bg-bg px-5 pb-6 pt-6 shadow-xl">
+      <div className="relative max-h-[88dvh] w-full max-w-[400px] overflow-y-auto overscroll-contain rounded-2xl border border-line bg-bg px-5 pb-6 pt-6 shadow-xl">
+        <button onClick={onClose} aria-label="Fechar" className="absolute right-4 top-4 grid h-8 w-8 place-items-center rounded-full bg-surface text-muted tap">
+          <X size={16} />
+        </button>
         <div className="text-center">
-          <div className="mx-auto mb-3 grid h-14 w-14 place-items-center rounded-2xl bg-accent-soft text-3xl">🔤</div>
-          <div className="font-display text-xl font-bold">Bem-vindo à Forca!</div>
-          <p className="mx-auto mt-2 max-w-[340px] text-sm leading-relaxed text-muted">
-            Uma palavra nova <b className="text-text">todo dia</b>, sempre do nosso mundo. Adivinhe e mantenha a{' '}
-            <b className="text-text">ofensiva 🔥</b>.
+          <div className="font-display text-lg font-bold">{primeiro ? 'Bem-vindo à Forca!' : 'Como jogar'}</div>
+          <p className="mx-auto mt-1.5 max-w-[330px] text-sm leading-relaxed text-muted">
+            Descubra a <b className="text-text">palavra do dia</b> tocando nas letras, sempre no mundo do{' '}
+            <b className="text-text">TATÁ</b>. Veja como funciona:
           </p>
         </div>
-        <div className="mt-5 rounded-2xl border border-line bg-surface p-4">
-          <div className="text-sm font-bold text-text">Como funciona</div>
-          <ul className="mt-2 flex flex-col gap-1.5 text-sm leading-relaxed text-muted">
-            <li>• Toque nas letras pra montar a palavra.</li>
-            <li>• Use a dica pra ajudar.</li>
-            <li>• Errou 6 vezes? O bonequinho fica pronto e acaba.</li>
-            <li>• 1 palavra por dia · tempo cronometrado.</li>
-          </ul>
+
+        <div className="my-4">
+          <DemoForca />
         </div>
-        <button onClick={onClose} className="btn-primary mt-5 w-full !py-3 text-sm font-bold">Bora jogar!</button>
+
+        <ul className="flex flex-col gap-2 text-sm leading-relaxed text-muted">
+          <li>• Toque nas letras pra descobrir a <b className="text-text">palavra</b>.</li>
+          <li>• A <b className="text-text">dica</b> mostra do que se trata.</li>
+          <li>• Cada letra <b className="text-text">errada</b> desenha uma parte do boneco.</li>
+          <li>• São <b className="text-text">6 erros</b> no máximo — complete antes disso.</li>
+          <li>• <b className="text-text">Uma palavra por dia</b> para manter a ofensiva 🔥.</li>
+        </ul>
+
+        <button onClick={onClose} className="btn-primary mt-5 w-full !py-3 text-sm font-bold">
+          {primeiro ? 'Bora jogar!' : 'Entendi'}
+        </button>
       </div>
     </div>,
     document.body,

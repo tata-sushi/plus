@@ -360,58 +360,142 @@ export function Anagrama() {
         </div>
       )}
 
-      {ajudaAberta && <FolhaAjuda onClose={() => setAjudaAberta(false)} />}
-      {intro && <FolhaIntro onClose={fecharIntro} />}
+      {ajudaAberta && <FolhaComoJogar onClose={() => setAjudaAberta(false)} />}
+      {intro && <FolhaComoJogar primeiro onClose={fecharIntro} />}
     </div>
   )
 }
 
-function FolhaAjuda({ onClose }) {
-  return createPortal(
-    <div className="fixed inset-0 z-50 flex flex-col justify-end sm:items-center sm:justify-center" role="dialog" aria-modal="true">
-      <button aria-label="Fechar" onClick={onClose} className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
-      <div className="relative max-h-[90dvh] w-full overflow-y-auto overscroll-contain rounded-t-2xl border border-line bg-bg px-5 pb-8 pt-4 shadow-xl sm:max-w-[520px] sm:rounded-2xl">
-        <div className="mx-auto mb-3 h-1 w-9 rounded-full bg-line sm:hidden" />
-        <button onClick={onClose} aria-label="Fechar" className="absolute right-4 top-4 grid h-8 w-8 place-items-center rounded-full bg-surface text-muted tap">
-          <X size={16} />
-        </button>
-        <div className="font-display text-lg font-bold">Como jogar</div>
-        <ul className="mt-3 flex flex-col gap-2 text-sm leading-relaxed text-muted">
-          <li>• São <b className="text-text">3 palavras</b> na tela, <b className="text-text">1 minuto</b> pra todas.</li>
-          <li>• Toque nas letras pra montar cada palavra.</li>
-          <li>• Acertou uma? Ela trava em verde.</li>
-          <li>• Tocou numa letra da resposta? Ela volta pra baixo.</li>
-          <li>• Faça as 3 antes do tempo acabar pra vencer.</li>
-        </ul>
+// Simulação animada: as letras embaralhadas "sobem" pra formar a palavra e,
+// ao completar, ela trava em verde. Demonstra o Anagrama (alvo SUSHI).
+const DEMO_ALVO = 'SUSHI'
+const DEMO_TILES = [
+  { id: 0, ch: 'H' },
+  { id: 1, ch: 'U' },
+  { id: 2, ch: 'S' },
+  { id: 3, ch: 'I' },
+  { id: 4, ch: 'S' },
+]
+
+function DemoAnagrama() {
+  const [slots, setSlots] = useState([]) // letras colocadas, na ordem
+  const [usados, setUsados] = useState(() => new Set()) // ids das peças já usadas
+  const [ok, setOk] = useState(false)
+  const cancel = useRef(false)
+
+  useEffect(() => {
+    cancel.current = false
+    const reduz =
+      typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+    if (reduz) {
+      setSlots(DEMO_ALVO.split(''))
+      setUsados(new Set(DEMO_TILES.map((t) => t.id)))
+      setOk(true)
+      return
+    }
+    const timers = []
+    const wait = (ms) => new Promise((r) => timers.push(setTimeout(r, ms)))
+    async function run() {
+      while (!cancel.current) {
+        setSlots([])
+        setUsados(new Set())
+        setOk(false)
+        await wait(700)
+        const locais = new Set()
+        for (let p = 0; p < DEMO_ALVO.length && !cancel.current; p++) {
+          const alvo = DEMO_ALVO[p]
+          const peca = DEMO_TILES.find((t) => t.ch === alvo && !locais.has(t.id))
+          if (peca) locais.add(peca.id)
+          setUsados(new Set(locais))
+          setSlots((s) => [...s, alvo])
+          await wait(560)
+        }
+        if (cancel.current) break
+        await wait(320)
+        setOk(true)
+        await wait(1900)
+      }
+    }
+    run()
+    return () => {
+      cancel.current = true
+      timers.forEach(clearTimeout)
+    }
+  }, [])
+
+  return (
+    <div className="flex flex-col items-center gap-3">
+      {/* resposta */}
+      <div className="flex justify-center gap-1.5">
+        {Array.from({ length: DEMO_ALVO.length }, (_, i) => {
+          const ch = slots[i]
+          const preench = ch !== undefined
+          return (
+            <span
+              key={i}
+              className={cn(
+                'grid h-10 w-9 place-items-center rounded-md border-2 font-display text-lg font-bold transition-colors duration-200',
+                ok
+                  ? 'border-accent bg-accent-soft text-accent'
+                  : preench
+                    ? 'border-line bg-surface-2 text-text'
+                    : 'border-dashed border-line text-text',
+              )}
+            >
+              {ch || ''}
+            </span>
+          )
+        })}
       </div>
-    </div>,
-    document.body,
+      {/* letras embaralhadas */}
+      <div className="flex min-h-[40px] flex-wrap justify-center gap-1.5">
+        {DEMO_TILES.filter((t) => !usados.has(t.id)).map((t) => (
+          <span
+            key={t.id}
+            className="grid h-10 w-8 place-items-center rounded-lg bg-surface-2 font-display text-lg font-bold text-text"
+          >
+            {t.ch}
+          </span>
+        ))}
+      </div>
+    </div>
   )
 }
 
-function FolhaIntro({ onClose }) {
+// Folha "Como jogar" / boas-vindas — com a simulação animada.
+function FolhaComoJogar({ onClose, primeiro }) {
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true">
       <button aria-label="Fechar" onClick={onClose} className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
-      <div className="relative max-h-[86dvh] w-full max-w-[400px] overflow-y-auto overscroll-contain rounded-2xl border border-line bg-bg px-5 pb-6 pt-6 shadow-xl">
+      <div className="relative max-h-[88dvh] w-full max-w-[400px] overflow-y-auto overscroll-contain rounded-2xl border border-line bg-bg px-5 pb-6 pt-6 shadow-xl">
+        <button onClick={onClose} aria-label="Fechar" className="absolute right-4 top-4 grid h-8 w-8 place-items-center rounded-full bg-surface text-muted tap">
+          <X size={16} />
+        </button>
         <div className="text-center">
-          <div className="mx-auto mb-3 grid h-14 w-14 place-items-center rounded-2xl bg-accent-soft text-3xl">🔀</div>
-          <div className="font-display text-xl font-bold">Bem-vindo ao Anagrama!</div>
-          <p className="mx-auto mt-2 max-w-[340px] text-sm leading-relaxed text-muted">
-            <b className="text-text">3 palavras</b> na tela, <b className="text-text">1 minuto</b> no relógio. Corra e mantenha a{' '}
-            <b className="text-text">ofensiva 🔥</b>.
+          <div className="font-display text-lg font-bold">
+            {primeiro ? 'Bem-vindo ao Anagrama!' : 'Como jogar'}
+          </div>
+          <p className="mx-auto mt-1.5 max-w-[330px] text-sm leading-relaxed text-muted">
+            Desembaralhe as letras pra formar a <b className="text-text">palavra</b>. São{' '}
+            <b className="text-text">3 palavras</b> em <b className="text-text">1 minuto</b>. Veja como funciona:
           </p>
         </div>
-        <div className="mt-5 rounded-2xl border border-line bg-surface p-4">
-          <div className="text-sm font-bold text-text">Como funciona</div>
-          <ul className="mt-2 flex flex-col gap-1.5 text-sm leading-relaxed text-muted">
-            <li>• Monte as 3 palavras tocando nas letras.</li>
-            <li>• Acertou uma? Ela trava em verde.</li>
-            <li>• Use as dicas pra ajudar.</li>
-            <li>• Faça as 3 em 1 minuto.</li>
-          </ul>
+
+        <div className="my-4">
+          <DemoAnagrama />
         </div>
-        <button onClick={onClose} className="btn-primary mt-5 w-full !py-3 text-sm font-bold">Bora jogar!</button>
+
+        <ul className="flex flex-col gap-2 text-sm leading-relaxed text-muted">
+          <li>• Toque nas <b className="text-text">letras embaralhadas</b> pra montar a palavra.</li>
+          <li>• Completou? A palavra <b className="text-text">trava em verde</b>.</li>
+          <li>• Tocou numa letra da resposta? Ela <b className="text-text">volta</b> pra baixo.</li>
+          <li>• A <b className="text-text">dica</b> ajuda em cada palavra.</li>
+          <li>• Faça as <b className="text-text">3 em 1 minuto</b> pra manter a ofensiva 🔥.</li>
+        </ul>
+
+        <button onClick={onClose} className="btn-primary mt-5 w-full !py-3 text-sm font-bold">
+          {primeiro ? 'Bora jogar!' : 'Entendi'}
+        </button>
       </div>
     </div>,
     document.body,
