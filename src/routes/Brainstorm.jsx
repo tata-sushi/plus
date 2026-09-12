@@ -76,7 +76,7 @@ export function Brainstorm() {
             <Lightbulb size={18} />
           </span>
           <div>
-            <div className="font-display text-[19px] font-bold leading-tight">Compartilhar palavra</div>
+            <div className="font-display text-[19px] font-bold leading-tight">Reunião de Líderes</div>
             <div className="text-[13px] text-muted">Uma palavra que resume o que você quer trazer.</div>
           </div>
         </div>
