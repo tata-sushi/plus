@@ -7,7 +7,7 @@ import { tapHaptic } from '../lib/haptics.js'
 import { useAuth } from '../lib/AuthContext.jsx'
 import { Header } from '../components/Header.jsx'
 import { cn } from '../lib/cn'
-import PALAVRAS from '../lib/palavras-tata.js'
+import FORCA from '../lib/palavras-forca.js'
 import { podeBetaJogos } from '../lib/beta.js'
 
 const JOGO = 'forca'
@@ -21,27 +21,11 @@ function fmtTempo(s) {
   return `${m}:${String(r).padStart(2, '0')}`
 }
 
-// PRNG determinístico por semente → mesma palavra pra mesma fase (todo mundo joga a mesma).
-function mulberry32(a) {
-  return function () {
-    a |= 0
-    a = (a + 0x6d2b79f5) | 0
-    let t = Math.imul(a ^ (a >>> 15), 1 | a)
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
-  }
-}
-function hashSeed(str) {
-  let h = 2166136261
-  for (let i = 0; i < str.length; i++) {
-    h ^= str.charCodeAt(i)
-    h = Math.imul(h, 16777619)
-  }
-  return h >>> 0
-}
+// Programa de 200 dias: fase 1 → dia 1, fase 2 → dia 2… (cicla após o fim).
+// Determinístico: todo mundo na mesma fase joga a mesma palavra.
 function palavraDaFase(fase) {
-  const rnd = mulberry32(hashSeed(JOGO + ':' + fase))
-  return PALAVRAS[Math.floor(rnd() * PALAVRAS.length)]
+  const i = (((Math.max(1, fase) - 1) % FORCA.length) + FORCA.length) % FORCA.length
+  return FORCA[i]
 }
 
 // Bonequinho da forca — vai aparecendo conforme os erros (0 a 6).
@@ -94,11 +78,13 @@ export function Forca() {
   const fase = preview ? previewFase : jogouHoje ? Math.max(1, completadas) : completadas + 1
 
   const item = useMemo(() => (estado?.ok || preview ? palavraDaFase(fase) : null), [estado?.ok, preview, fase])
-  const palavra = item?.p || ''
+  const palavra = item?.n || '' // normalizada: A-Z + espaço (separador), sem acento — é o que se joga
+  const display = item?.p || '' // como aparece na revelação (com acento/espaço)
   const dica = item?.d || ''
-  const letrasPalavra = useMemo(() => new Set(palavra.split('')), [palavra])
+  // só letras contam (o espaço em nomes compostos já aparece revelado)
+  const letrasPalavra = useMemo(() => new Set(palavra.replace(/ /g, '').split('')), [palavra])
   const erros = useMemo(() => [...letras].filter((l) => !letrasPalavra.has(l)).length, [letras, letrasPalavra])
-  const completou = !!palavra && palavra.split('').every((l) => letras.has(l))
+  const completou = !!palavra && palavra.split('').every((l) => l === ' ' || letras.has(l))
 
   // carrega estado do jogo
   useEffect(() => {
@@ -270,23 +256,27 @@ export function Forca() {
             </div>
           </div>
 
-          {/* palavra */}
-          <div className="mt-5 flex flex-wrap justify-center gap-1.5">
-            {palavra.split('').map((l, i) => {
-              const mostra = letras.has(l) || resolvido
-              const errou = resolvido && perdeu && !letras.has(l)
-              return (
-                <span
-                  key={i}
-                  className={cn(
-                    'grid h-11 w-8 place-items-center rounded-md border-b-2 pb-0.5 font-display text-2xl font-bold',
-                    errou ? 'border-danger text-danger' : 'border-line text-text',
-                  )}
-                >
-                  {mostra ? l : ''}
-                </span>
-              )
-            })}
+          {/* palavra — nomes compostos quebram em linhas (um bloco por palavra) */}
+          <div className="mt-5 flex flex-col items-center gap-2">
+            {palavra.split(' ').map((bloco, bi) => (
+              <div key={bi} className="flex flex-wrap justify-center gap-1.5">
+                {bloco.split('').map((l, i) => {
+                  const mostra = letras.has(l) || resolvido
+                  const errou = resolvido && perdeu && !letras.has(l)
+                  return (
+                    <span
+                      key={i}
+                      className={cn(
+                        'grid h-11 w-8 place-items-center rounded-md border-b-2 pb-0.5 font-display text-2xl font-bold',
+                        errou ? 'border-danger text-danger' : 'border-line text-text',
+                      )}
+                    >
+                      {mostra ? l : ''}
+                    </span>
+                  )
+                })}
+              </div>
+            ))}
           </div>
 
           {/* teclado */}
@@ -337,7 +327,7 @@ export function Forca() {
                 <div className="text-sm text-muted">
                   {perdeu ? (
                     <>
-                      A palavra era <b className="text-text">{palavra}</b> · Volte amanhã
+                      A palavra era <b className="text-text">{display}</b> · Volte amanhã
                     </>
                   ) : preview ? (
                     'Prévia · não pontua'

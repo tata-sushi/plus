@@ -7,7 +7,7 @@ import { tapHaptic } from '../lib/haptics.js'
 import { useAuth } from '../lib/AuthContext.jsx'
 import { Header } from '../components/Header.jsx'
 import { cn } from '../lib/cn'
-import PALAVRAS from '../lib/palavras-tata.js'
+import DIAS from '../lib/palavras-anagrama.js'
 import { podeBetaJogos } from '../lib/beta.js'
 
 const JOGO = 'anagrama'
@@ -45,14 +45,10 @@ function embaralhar(arr, rnd) {
   }
   return a
 }
+// Programa de 200 dias: cada fase é um dia com NPAL palavras (cicla no fim).
 function palavrasDaFase(fase) {
-  const rnd = mulberry32(hashSeed(JOGO + ':' + fase))
-  const idxs = []
-  while (idxs.length < NPAL) {
-    const i = Math.floor(rnd() * PALAVRAS.length)
-    if (!idxs.includes(i)) idxs.push(i)
-  }
-  return idxs.map((i) => PALAVRAS[i])
+  const i = (((Math.max(1, fase) - 1) % DIAS.length) + DIAS.length) % DIAS.length
+  return DIAS[i]
 }
 function letrasEmbaralhadas(fase, idx, palavra) {
   const rnd = mulberry32(hashSeed(JOGO + ':letras:' + fase + ':' + idx))
@@ -93,7 +89,7 @@ export function Anagrama() {
   const lista = useMemo(() => (estado?.ok || preview ? palavrasDaFase(fase) : null), [estado?.ok, preview, fase])
   // tabuleiros: palavra + dica + letras embaralhadas (fixas do dia)
   const tabuleiros = useMemo(
-    () => (lista ? lista.map((it, i) => ({ item: it, tiles: letrasEmbaralhadas(fase, i, it.p) })) : []),
+    () => (lista ? lista.map((it, i) => ({ item: it, tiles: letrasEmbaralhadas(fase, i, it.n) })) : []),
     [lista, fase],
   )
   const chDe = (w, id) => tabuleiros[w]?.tiles.find((t) => t.id === id)?.ch || ''
@@ -152,7 +148,7 @@ export function Anagrama() {
   function colocar(w, id) {
     if (resolvido || palavras[w].resolvido) return
     tapHaptic()
-    const word = tabuleiros[w].item.p
+    const word = tabuleiros[w].item.n
     const mont = [...palavras[w].montada, id]
     let novo = palavras.map((e, i) => (i === w ? { ...e, montada: mont, errou: false } : e))
     if (mont.length === word.length) {
@@ -317,7 +313,7 @@ export function Anagrama() {
               <div className="mt-4 flex flex-col gap-3">
                 {tabuleiros.map((tb, w) => {
                   const es = palavras[w] || { montada: [], resolvido: false, errou: false }
-                  const word = tb.item.p
+                  const word = tb.item.n
                   const poolW = tb.tiles.filter((t) => !es.montada.includes(t.id))
                   return (
                     <div
@@ -361,6 +357,13 @@ export function Anagrama() {
                           )
                         })}
                       </div>
+
+                      {/* resposta exibida (com acento/espaço) ao resolver */}
+                      {es.resolvido && (
+                        <div className="mt-2 text-center text-[13px] font-semibold text-accent">
+                          {tb.item.p}
+                        </div>
+                      )}
 
                       {/* letras */}
                       {!es.resolvido && (
