@@ -338,8 +338,9 @@ const DEMO_SEQ = [
 ]
 
 function DemoForca() {
-  const [chutadas, setChutadas] = useState(() => new Set())
-  const [erros, setErros] = useState(0)
+  const [reveladas, setReveladas] = useState(() => new Set()) // letras certas
+  const [erradas, setErradas] = useState([]) // letras erradas (na ordem)
+  const [atual, setAtual] = useState(null) // { l, ok } — letra tentada no momento
   const cancel = useRef(false)
 
   useEffect(() => {
@@ -347,24 +348,30 @@ function DemoForca() {
     const reduz =
       typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
     if (reduz) {
-      setChutadas(new Set(DEMO_PALAVRA.split('')))
-      setErros(DEMO_SEQ.filter((s) => !s.ok).length)
+      setReveladas(new Set(DEMO_PALAVRA.split('')))
+      setErradas(DEMO_SEQ.filter((s) => !s.ok).map((s) => s.l))
       return
     }
     const timers = []
     const wait = (ms) => new Promise((r) => timers.push(setTimeout(r, ms)))
     async function run() {
       while (!cancel.current) {
-        setChutadas(new Set())
-        setErros(0)
-        await wait(700)
+        setReveladas(new Set())
+        setErradas([])
+        setAtual(null)
+        await wait(650)
         for (const s of DEMO_SEQ) {
           if (cancel.current) break
-          if (s.ok) setChutadas((c) => new Set(c).add(s.l))
-          else setErros((e) => e + 1)
-          await wait(620)
+          setAtual(s) // mostra a letra sendo tentada
+          await wait(520)
+          if (cancel.current) break
+          if (s.ok) setReveladas((c) => new Set(c).add(s.l))
+          else setErradas((e) => [...e, s.l]) // erro → desenha o boneco
+          await wait(560)
+          setAtual(null)
+          await wait(140)
         }
-        await wait(1900)
+        await wait(1700)
       }
     }
     run()
@@ -374,12 +381,15 @@ function DemoForca() {
     }
   }, [])
 
+  const erros = erradas.length
   return (
-    <div className="flex flex-col items-center gap-2">
+    <div className="flex flex-col items-center gap-2.5">
       <Boneco erros={erros} />
+
+      {/* palavra */}
       <div className="flex justify-center gap-1.5">
         {DEMO_PALAVRA.split('').map((l, i) => {
-          const mostra = chutadas.has(l)
+          const mostra = reveladas.has(l)
           return (
             <span
               key={i}
@@ -392,6 +402,36 @@ function DemoForca() {
             </span>
           )
         })}
+      </div>
+
+      {/* feedback: letra tentada (certo/errado) e placar de erros */}
+      <div className="flex min-h-[30px] items-center justify-center">
+        {atual ? (
+          <span
+            className={cn(
+              'hstack gap-1.5 rounded-full px-3 py-1 text-[13px] font-bold',
+              atual.ok ? 'bg-accent-soft text-accent' : 'bg-danger/15 text-danger',
+            )}
+          >
+            {atual.ok ? <Check size={14} /> : <X size={14} />}
+            <b>{atual.l}</b>
+            <span className="font-medium">{atual.ok ? 'está na palavra' : 'não tem, errou!'}</span>
+          </span>
+        ) : erros > 0 ? (
+          <span className="hstack gap-1.5 text-xs text-muted-2">
+            Erros:
+            {erradas.map((l, i) => (
+              <span
+                key={i}
+                className="grid h-6 w-6 place-items-center rounded bg-danger/15 font-bold text-danger line-through"
+              >
+                {l}
+              </span>
+            ))}
+          </span>
+        ) : (
+          <span className="text-xs text-muted-2">Toque nas letras…</span>
+        )}
       </div>
     </div>
   )
@@ -422,7 +462,7 @@ function FolhaComoJogar({ onClose, primeiro }) {
           <li>• Toque nas letras pra descobrir a <b className="text-text">palavra</b>.</li>
           <li>• A <b className="text-text">dica</b> mostra do que se trata.</li>
           <li>• Cada letra <b className="text-text">errada</b> desenha uma parte do boneco.</li>
-          <li>• São <b className="text-text">6 erros</b> no máximo — complete antes disso.</li>
+          <li>• São <b className="text-text">6 erros</b> no máximo. Complete antes disso.</li>
           <li>• <b className="text-text">Uma palavra por dia</b> para manter a ofensiva 🔥.</li>
         </ul>
 
