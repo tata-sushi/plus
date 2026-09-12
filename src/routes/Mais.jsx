@@ -54,7 +54,7 @@ const itens = [
   { to: '/ranking', label: 'Ranking', icon: Trophy, quadros: true },
   { to: '/quadros', label: 'Kanban Tatá', icon: KanbanSquare, quadros: true },
   { to: '/escala', label: 'Agenda', icon: CalendarClock, escala: true },
-  { to: '/brainstorm', label: 'Reunião de Líderes', icon: Lightbulb, brainstorm: true },
+  { to: '/brainstorm', label: 'Brainstorm Líderes', icon: Lightbulb, brainstorm: true },
   { to: '/documentos', label: 'Assinaturas', icon: FileSignature },
   { to: '/holerites', label: 'Holerite', icon: ReceiptText },
   { to: '/passatempos', label: 'Passatempos', icon: Puzzle, jogo: true },
