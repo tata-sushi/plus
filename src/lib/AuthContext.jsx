@@ -20,6 +20,7 @@ export function AuthProvider({ children }) {
   const [podeCriarQuadros, setPodeCriarQuadros] = useState(false) // pode criar quadro (só quem é liberado no painel)
   const [podeEscala, setPodeEscala] = useState(null) // acesso à Agenda/Escala (colaborador): null = verificando
   const [podeLimpeza, setPodeLimpeza] = useState(null) // acesso a Limpeza de banheiros: null = verificando
+  const [podeBrainstorm, setPodeBrainstorm] = useState(null) // acesso a "Compartilhar palavra": null = verificando
   const [govTipo, setGovTipo] = useState(null) // tipo de acesso à governança (ou null)
   const [pendenciasN, setPendenciasN] = useState(0) // nº de pendências do líder (0 p/ quem não tem)
   const [loading, setLoading] = useState(true)
@@ -114,6 +115,7 @@ export function AuthProvider({ children }) {
       setPodeCriarQuadros(false)
       setPodeEscala(null)
       setPodeLimpeza(null)
+      setPodeBrainstorm(null)
       setGovTipo(null)
       return
     }
@@ -142,6 +144,9 @@ export function AuthProvider({ children }) {
     })
     supabase.rpc('limpeza_pode_acessar').then(({ data }) => {
       if (ativo) setPodeLimpeza(data === true)
+    })
+    supabase.rpc('brainstorm_pode_acessar').then(({ data }) => {
+      if (ativo) setPodeBrainstorm(data === true)
     })
     supabase.rpc('acesso_governanca').then(({ data }) => {
       if (ativo) setGovTipo(data || null)
@@ -183,6 +188,7 @@ export function AuthProvider({ children }) {
         podeCriarQuadros,
         podeEscala,
         podeLimpeza,
+        podeBrainstorm,
         governanca: { tem: !!govTipo, tipo: govTipo },
         pendencias: pendenciasN,
       }

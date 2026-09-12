@@ -39,6 +39,8 @@ const Quadros = lazy(() => import('./routes/Quadros.jsx'))
 const Escala = lazy(() => import('./routes/Escala.jsx'))
 // Limpeza de banheiros — check via QR, carregada sob demanda.
 const Limpeza = lazy(() => import('./routes/Limpeza.jsx'))
+// Compartilhar palavra (brainstorm) — liberada por pessoa no painel, sob demanda.
+const Brainstorm = lazy(() => import('./routes/Brainstorm.jsx'))
 // Desafio do dia (Tatá Tango) — jogo diário, carregado sob demanda.
 const Jogo = lazy(() => import('./routes/Jogo.jsx'))
 // Rota do Sushi — segundo jogo diário (estilo Zip), carregado sob demanda.
@@ -143,6 +145,14 @@ export function App() {
           element={
             <Suspense fallback={<Splash />}>
               <Limpeza />
+            </Suspense>
+          }
+        />
+        <Route
+          path="/brainstorm"
+          element={
+            <Suspense fallback={<Splash />}>
+              <Brainstorm />
             </Suspense>
           }
         />

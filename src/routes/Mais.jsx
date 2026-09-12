@@ -22,6 +22,7 @@ import {
   ClipboardList,
   ShoppingBag,
   ReceiptText,
+  Lightbulb,
 } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Section } from '../components/Section.jsx'
@@ -53,6 +54,7 @@ const itens = [
   { to: '/ranking', label: 'Ranking', icon: Trophy, quadros: true },
   { to: '/quadros', label: 'Kanban Tatá', icon: KanbanSquare, quadros: true },
   { to: '/escala', label: 'Agenda', icon: CalendarClock, escala: true },
+  { to: '/brainstorm', label: 'Compartilhar palavra', icon: Lightbulb, brainstorm: true },
   { to: '/documentos', label: 'Assinaturas', icon: FileSignature },
   { to: '/holerites', label: 'Holerite', icon: ReceiptText },
   { to: '/passatempos', label: 'Passatempos', icon: Puzzle, jogo: true },
@@ -113,6 +115,7 @@ export function Mais() {
         (!i.gov || usuario?.governanca?.tem) &&
         (!i.quadros || usuario?.podeQuadros) &&
         (!i.escala || usuario?.podeEscala) &&
+        (!i.brainstorm || usuario?.podeBrainstorm) &&
         (!i.beta || podeVerReconhecimento(usuario)) &&
         (!i.rhdocs || usuario?.perfil === 'admin' || usuario?.lider),
     )
