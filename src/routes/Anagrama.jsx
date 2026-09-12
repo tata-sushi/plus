@@ -320,16 +320,13 @@ export function Anagrama() {
                       key={w}
                       className={cn('rounded-2xl border p-3', es.resolvido ? 'border-accent/40 bg-accent-soft/30' : 'border-line bg-surface')}
                     >
-                      <div className="hstack gap-2">
-                        <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-surface-2 text-[11px] font-bold text-muted-2">
-                          {w + 1}
-                        </span>
-                        <div className="min-w-0 flex-1 truncate text-xs text-muted">{tb.item.d}</div>
-                        {es.resolvido && <Check size={16} className="shrink-0 text-accent" />}
+                      <div className="hstack items-start gap-2">
+                        <div className="min-w-0 flex-1 text-xs leading-snug text-muted">{tb.item.d}</div>
+                        {es.resolvido && <Check size={16} className="mt-0.5 shrink-0 text-accent" />}
                       </div>
 
                       {/* resposta */}
-                      <div className="mt-2.5 flex flex-wrap gap-1">
+                      <div className="mt-2.5 flex flex-wrap justify-center gap-1">
                         {Array.from({ length: word.length }).map((_, i) => {
                           const id = es.montada[i]
                           const preenchida = id !== undefined
@@ -364,7 +361,7 @@ export function Anagrama() {
 
                       {/* letras */}
                       {!es.resolvido && (
-                        <div className="mt-3 flex flex-wrap gap-1.5">
+                        <div className="mt-3 flex flex-wrap justify-center gap-1.5">
                           {poolW.map((t) => (
                             <button
                               key={t.id}

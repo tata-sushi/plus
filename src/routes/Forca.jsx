@@ -283,23 +283,19 @@ export function Forca() {
           <div className="mt-6 flex flex-col gap-1.5">
             {LINHAS.map((linha, i) => (
               <div key={i} className="flex justify-center gap-1.5">
-                {linha.map((l) => {
-                  const usada = letras.has(l)
-                  return (
-                    <button
-                      key={l}
-                      onClick={() => chutar(l)}
-                      disabled={usada || resolvido}
-                      className={cn(
-                        'grid h-12 max-w-[38px] flex-1 place-items-center rounded-md text-sm font-bold uppercase tap transition-colors',
-                        usada ? 'bg-surface-2 text-muted-2 opacity-50' : 'bg-surface text-text',
-                        resolvido && !usada && 'opacity-40',
-                      )}
-                    >
-                      {l}
-                    </button>
-                  )
-                })}
+                {linha.map((l) => (
+                  <button
+                    key={l}
+                    onClick={() => chutar(l)}
+                    disabled={resolvido}
+                    className={cn(
+                      'grid h-12 max-w-[38px] flex-1 place-items-center rounded-md bg-surface text-sm font-bold uppercase text-text tap transition-colors',
+                      resolvido && 'opacity-40',
+                    )}
+                  >
+                    {l}
+                  </button>
+                ))}
               </div>
             ))}
           </div>
