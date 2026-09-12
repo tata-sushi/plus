@@ -12,7 +12,15 @@ import { cn } from '../lib/cn'
 // (dp_rh.brainstorm_palavras) via a RPC brainstorm_add. Acesso liberado por
 // pessoa no painel admin (aba Aplicativo) — guard: usuario.podeBrainstorm.
 const SESSAO = 'Brainstorm Geral'
-const CATEGORIAS = ['Ações', 'Dores/Problemas', 'Emoções', 'Forças']
+// Mesmas categorias (e ordem) do modal original do portal.
+const CATEGORIAS = [
+  { nome: 'Emoções', desc: 'Como as pessoas se sentem' },
+  { nome: 'Dores/Problemas', desc: 'O que está dificultando' },
+  { nome: 'Causas', desc: 'Por que isso acontece' },
+  { nome: 'Comportamentos', desc: 'Como isso aparece na prática' },
+  { nome: 'Ações', desc: 'O que precisa ser feito' },
+  { nome: 'Forças', desc: 'O que deve ser valorizado' },
+]
 
 export function Brainstorm() {
   const navigate = useNavigate()
@@ -117,26 +125,35 @@ export function Brainstorm() {
               <label className="block text-[11px] font-semibold uppercase tracking-widest text-muted">
                 Categoria
               </label>
-              <div className="mt-2 flex flex-wrap gap-2">
-                {CATEGORIAS.map((c) => (
-                  <button
-                    key={c}
-                    type="button"
-                    onClick={() => {
-                      tapHaptic()
-                      setCategoria(c)
-                      if (erro) setErro('')
-                    }}
-                    className={cn(
-                      'rounded-pill border px-3.5 py-2 text-[13px] font-semibold tap',
-                      categoria === c
-                        ? 'border-accent bg-accent text-black'
-                        : 'border-line bg-surface text-muted',
-                    )}
-                  >
-                    {c}
-                  </button>
-                ))}
+              <div className="mt-2 grid grid-cols-2 gap-2">
+                {CATEGORIAS.map((c) => {
+                  const sel = categoria === c.nome
+                  return (
+                    <button
+                      key={c.nome}
+                      type="button"
+                      onClick={() => {
+                        tapHaptic()
+                        setCategoria(c.nome)
+                        if (erro) setErro('')
+                      }}
+                      className={cn(
+                        'rounded-card border px-3 py-2.5 text-left tap',
+                        sel ? 'border-accent bg-accent-soft' : 'border-line bg-surface',
+                      )}
+                    >
+                      <div
+                        className={cn(
+                          'text-[13px] font-bold leading-tight',
+                          sel ? 'text-accent' : 'text-text',
+                        )}
+                      >
+                        {c.nome}
+                      </div>
+                      <div className="mt-0.5 text-[11px] leading-snug text-muted-2">{c.desc}</div>
+                    </button>
+                  )
+                })}
               </div>
             </div>
 
