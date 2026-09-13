@@ -15,15 +15,14 @@ const PDI = [
 function PdiCiclo() {
   const [i, setI] = useState(0)
   useEffect(() => {
-    const t = setInterval(() => setI((v) => (v + 1) % PDI.length), 1600)
+    const t = setInterval(() => setI((v) => (v + 1) % PDI.length), 1920)
     return () => clearInterval(t)
   }, [])
   const cur = PDI[i]
 
   return (
     <div className="my-5 rounded-card border border-line bg-surface p-4">
-      <p className="text-sm font-bold">O ciclo do PDI</p>
-      <p className="mt-0.5 text-xs text-muted">Um processo contínuo de desenvolvimento:</p>
+      <p className="text-sm font-bold">Exemplo</p>
 
       {/* passos (stepper) */}
       <div className="relative mt-4">
