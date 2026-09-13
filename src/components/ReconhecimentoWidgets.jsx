@@ -142,7 +142,7 @@ function ReconhecerSheet() {
       <p className="mt-0.5 text-xs text-muted">Toque num motivo para experimentar:</p>
 
       <div className="mt-3 rounded-2xl border border-line bg-bg p-3">
-        <p className="font-display text-sm font-bold">Reconhecer Ana</p>
+        <p className="font-display text-sm font-bold">Reconhecer Sam</p>
         <p className="mt-0.5 text-[11px] text-muted">Escolha o motivo do reconhecimento.</p>
 
         <div className="mt-2.5 flex flex-wrap justify-center gap-1.5">
@@ -188,11 +188,11 @@ function ReconhecerFeed() {
 
       <div className="mt-3 hstack items-start gap-3 rounded-2xl border border-line bg-bg p-3">
         <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-accent-soft text-sm font-bold text-accent">
-          A
+          S
         </span>
         <div className="min-w-0 flex-1">
           <p className="text-[13px] leading-snug">
-            <strong>Ana Vitória</strong> <span className="text-muted">reconheceu você</span>
+            <strong>Sam</strong> <span className="text-muted">reconheceu você</span>
           </p>
           <span className="mt-1 inline-flex items-center gap-1 rounded-pill bg-accent-soft px-2 py-0.5 text-[11px] font-semibold text-accent">
             <Zap size={11} /> Proatividade
