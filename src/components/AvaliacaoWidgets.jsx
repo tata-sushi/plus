@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Home, Trophy, Newspaper, Ear, Menu, UserRound, ClipboardList, UtensilsCrossed, Hand } from 'lucide-react'
+import { Home, Trophy, Newspaper, Ear, Menu, UserRound, ClipboardList, UtensilsCrossed, ChevronRight, Hand } from 'lucide-react'
 import { cn } from '../lib/cn'
 
 // Widgets do desafio "Experiência 14 dias: Colaborador" (Avaliações & Feedbacks).
@@ -22,7 +22,7 @@ const MENU = [
 const PASSOS = [
   '1. Toque em Mais',
   '2. Toque em Avaliações',
-  '3. Responda o período',
+  '3. Escolha a avaliação e responda',
 ]
 
 // mãozinha de "toque" pulsando sobre o alvo
@@ -91,24 +91,29 @@ function AvaliacaoCaminho() {
 
           {passo === 2 && (
             <div className="w-full">
-              <div className="rounded-xl border border-line bg-surface px-3 py-3">
-                <p className="text-xs font-semibold text-accent">Avaliar 1º período</p>
-                <p className="mt-1.5 text-[13px] leading-snug">
-                  O quanto está claro o que é esperado de você?
-                </p>
-                <div className="mt-2.5 flex justify-center gap-1.5">
-                  {[1, 2, 3, 4, 5].map((n) => (
-                    <span
-                      key={n}
-                      className={cn(
-                        'grid h-8 w-8 place-items-center rounded-lg border text-xs font-bold',
-                        n === 4 ? 'border-accent bg-accent text-black' : 'border-line bg-surface-2 text-muted',
-                      )}
-                    >
-                      {n}
+              <p className="mb-2 text-[10px] font-bold uppercase tracking-wide text-muted-2">
+                Para responder
+              </p>
+              <div className="space-y-2">
+                {[
+                  { label: 'Avaliar 1º período', alvo: true },
+                  { label: 'Avaliar 2º período' },
+                ].map(({ label, alvo }) => (
+                  <div
+                    key={label}
+                    className={cn(
+                      'relative hstack items-center gap-2.5 rounded-xl border bg-surface px-3 py-2.5',
+                      alvo ? 'border-accent' : 'border-line',
+                    )}
+                  >
+                    <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-accent-soft text-accent">
+                      <ClipboardList size={14} />
                     </span>
-                  ))}
-                </div>
+                    <span className="min-w-0 flex-1 text-[13px] font-semibold">{label}</span>
+                    <ChevronRight size={15} className="shrink-0 text-muted-2" />
+                    {alvo && <Toque className="right-1 top-1/2 -translate-y-1/2" />}
+                  </div>
+                ))}
               </div>
             </div>
           )}
