@@ -52,7 +52,7 @@ function AvaliacaoCaminho() {
 
       {/* telinha do celular */}
       <div className="mt-3 overflow-hidden rounded-2xl border border-line bg-bg">
-        <div key={passo} className="animate-page grid h-[196px] place-items-center px-4 py-4">
+        <div key={passo} className="animate-page grid h-[208px] place-items-center px-4 py-3">
           {passo === 0 && (
             <div className="w-full">
               <p className="mb-3 text-center text-xs text-muted-2">Barra de navegação</p>
@@ -71,17 +71,17 @@ function AvaliacaoCaminho() {
           )}
 
           {passo === 1 && (
-            <div className="w-full space-y-1.5">
+            <div className="w-full space-y-1">
               {MENU.map(({ Icon, label, alvo }) => (
                 <div
                   key={label}
                   className={cn(
-                    'relative hstack items-center gap-2.5 rounded-xl border bg-surface px-3 py-2',
+                    'relative hstack items-center gap-2.5 rounded-xl border bg-surface px-3 py-1.5',
                     alvo ? 'border-accent' : 'border-line',
                   )}
                 >
-                  <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-accent-soft text-accent">
-                    <Icon size={14} />
+                  <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-accent-soft text-accent">
+                    <Icon size={13} />
                   </span>
                   <span className="min-w-0 flex-1 text-[13px] font-semibold">{label}</span>
                   <ChevronRight size={15} className="shrink-0 text-carbon" />
