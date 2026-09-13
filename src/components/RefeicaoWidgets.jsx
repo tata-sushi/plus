@@ -43,7 +43,7 @@ function RefeicaoCaminho() {
       <p className="text-sm font-bold">Passo a passo</p>
 
       <div className="mt-3 overflow-hidden rounded-2xl border border-line bg-bg">
-        <div key={passo} className="animate-page grid h-[152px] place-items-center px-4 py-4">
+        <div key={passo} className="animate-page flex h-[152px] flex-col justify-center px-4 py-4">
           {passo === 0 && (
             <div className="w-full">
               <p className="mb-3 text-center text-xs text-muted-2">Barra de navegação</p>
@@ -68,7 +68,7 @@ function RefeicaoCaminho() {
               </p>
               <div className="relative overflow-hidden rounded-xl border border-line bg-surface">
                 <div className="flex items-stretch">
-                  <div className="flex grow items-center gap-3 overflow-x-auto no-scrollbar py-2.5 pl-3 pr-2">
+                  <div className="flex min-w-0 grow items-center gap-3 overflow-x-auto no-scrollbar py-2.5 pl-3 pr-2">
                     {MENU_ITENS.map(({ Icon, valor }, idx) => (
                       <div key={valor} className="hstack shrink-0 gap-3">
                         {idx > 0 && <span className="h-4 w-px shrink-0 bg-carbon/60" />}
