@@ -35,6 +35,7 @@ import { CodigoEtica } from '../components/CodigoEtica.jsx'
 import { LeituraProva } from '../components/LeituraProva.jsx'
 import { Avaliacao } from '../components/Avaliacao.jsx'
 import { EscalaCard } from '../components/EscalaCards.jsx'
+import { AvaliacaoWidget } from '../components/AvaliacaoWidgets.jsx'
 import { cn } from '../lib/cn'
 import { tapHaptic } from '../lib/haptics.js'
 import { resolveIcon } from '../lib/icons.js'
@@ -47,7 +48,11 @@ const TIPO_LABEL = { prova: 'Prova' }
 // Renderiza o conteúdo HTML do desafio, trocando tokens [[widget]] por cards
 // interativos (ex.: a escala e a régua no desafio de Avaliações & Feedbacks).
 // Sem tokens, é só o HTML de sempre — nenhum outro desafio é afetado.
-const WIDGETS = /\[\[(escala-likert|regua)\]\]/g
+const WIDGETS = /\[\[(escala-likert|regua|caminho-avaliacao|perguntas-14dias)\]\]/g
+function renderWidget(tipo, key) {
+  if (tipo === 'escala-likert' || tipo === 'regua') return <EscalaCard key={key} tipo={tipo} />
+  return <AvaliacaoWidget key={key} tipo={tipo} />
+}
 function ConteudoComWidgets({ html, onClick }) {
   const partes = String(html || '').split(WIDGETS)
   if (partes.length === 1) {
@@ -63,7 +68,7 @@ function ConteudoComWidgets({ html, onClick }) {
     <div onClick={onClick}>
       {partes.map((p, i) =>
         i % 2 === 1 ? (
-          <EscalaCard key={i} tipo={p} />
+          renderWidget(p, i)
         ) : p.trim() ? (
           <div
             key={i}
