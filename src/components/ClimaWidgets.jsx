@@ -138,6 +138,37 @@ function WhatsappClima() {
 }
 
 // ── 2. O link abre a página da pesquisa ──────────────────────────────────────
+// Marca TATÁ SUSHI (logo hexagonal) — mesmo desenho do favicon.svg da pesquisa.
+function TataLogo({ className }) {
+  return (
+    <svg
+      viewBox="0 0 100 100"
+      className={className}
+      fill="none"
+      stroke="#CFFF00"
+      strokeWidth="5.5"
+      strokeLinejoin="round"
+      strokeLinecap="round"
+      aria-hidden="true"
+    >
+      <polygon points="50,4 92,27 92,73 50,96 8,73 8,27" />
+      <polygon points="50,32 68,42 68,62 50,72 32,62 32,42" />
+      <polygon points="50,10 58,15 58,23 50,28 42,23 42,15" />
+      <line x1="8" y1="27" x2="32" y2="42" />
+      <line x1="8" y1="73" x2="32" y2="62" />
+      <line x1="92" y1="27" x2="68" y2="42" />
+      <line x1="92" y1="73" x2="68" y2="62" />
+      <line x1="32" y1="62" x2="50" y2="72" />
+      <line x1="68" y1="62" x2="50" y2="72" />
+      <line x1="32" y1="62" x2="50" y2="96" />
+      <line x1="68" y1="62" x2="50" y2="96" />
+      <line x1="50" y1="28" x2="50" y2="32" />
+      <line x1="42" y1="15" x2="32" y2="42" />
+      <line x1="58" y1="15" x2="68" y2="42" />
+    </svg>
+  )
+}
+
 function PaginaClima() {
   const [step, setStep] = useState(0) // 0 carregando · 1..3 página
   useEffect(() => {
@@ -167,35 +198,39 @@ function PaginaClima() {
           </div>
         </div>
 
-        {/* conteúdo da página (cores reais da pesquisa) */}
-        <div className="h-[150px] px-3 py-3" style={{ background: '#F4F4F4' }}>
+        {/* página real: cabeçalho carbon com o logo + "Pesquisa de Clima" */}
+        <div className="flex h-[190px] flex-col" style={{ background: '#35383F' }}>
           {carregando ? (
             <div className="grid h-full place-items-center">
-              <div className="h-1 w-24 overflow-hidden rounded-full" style={{ background: '#E2E2E2' }}>
-                <div className="h-full w-1/3 animate-pulse rounded-full" style={{ background: '#35383F' }} />
+              <div className="h-1 w-24 overflow-hidden rounded-full" style={{ background: '#2A2D33' }}>
+                <div className="h-full w-1/3 animate-pulse rounded-full" style={{ background: '#CFFF00' }} />
               </div>
             </div>
           ) : (
-            <div key={step} className="animate-page">
-              <span
-                className="inline-block rounded px-2 py-0.5 font-mono text-[9px] font-bold tracking-widest"
-                style={{ background: '#35383F', color: '#CFFF00' }}
-              >
-                PESQUISA DE CLIMA
-              </span>
-              <p className="mt-2 font-display text-[15px] font-extrabold leading-tight" style={{ color: '#111' }}>
-                Como estão as coisas no TATÁ?
+            <div key={step} className="animate-page flex h-full flex-col items-center px-3 pt-4">
+              <TataLogo className="h-8 w-8" />
+              <div className="mt-1 text-center leading-none">
+                <div className="font-display text-[13px] font-extrabold tracking-wide" style={{ color: '#CFFF00' }}>
+                  TATÁ
+                </div>
+                <div className="mt-0.5 font-mono text-[7px] font-bold tracking-[0.35em]" style={{ color: '#CFFF00' }}>
+                  SUSHI
+                </div>
+              </div>
+              <p className="mt-3 font-display text-xl font-extrabold leading-none" style={{ color: '#CFFF00' }}>
+                Pesquisa de Clima
               </p>
-              <p className="mt-1 text-[11px] leading-snug" style={{ color: '#555' }}>
-                Queremos ouvir sua opinião pra melhorar o dia a dia do TATÁ.
-              </p>
-              <span
-                className="mt-2 inline-flex items-center gap-1 rounded px-2 py-1 text-[10px] font-semibold"
-                style={{ background: '#EAF4ED', color: '#1A5C2A' }}
-              >
-                <Lock size={10} /> Confidencial e anônima
-              </span>
-              <div className="mt-2 h-1 w-10 rounded-full" style={{ background: '#CFFF00' }} />
+              <div className="mt-auto w-full rounded-t-2xl px-3 py-2.5" style={{ background: '#FFFFFF' }}>
+                <p className="text-[11px] font-bold" style={{ color: '#111' }}>
+                  Como estão as coisas no TATÁ?
+                </p>
+                <span
+                  className="mt-1 inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[9px] font-semibold"
+                  style={{ background: '#EAF4ED', color: '#1A5C2A' }}
+                >
+                  <Lock size={9} /> Confidencial e anônima
+                </span>
+              </div>
             </div>
           )}
         </div>
