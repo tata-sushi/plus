@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Home, Trophy, Newspaper, Ear, Menu, Star, Hand } from 'lucide-react'
+import { Home, Trophy, Newspaper, Ear, Menu, Star, Hand, UtensilsCrossed, Salad } from 'lucide-react'
 import { cn } from '../lib/cn'
 
 // Widgets do desafio "Avaliação das Refeições" (Avaliações e Feedback).
@@ -24,6 +24,11 @@ const NAV = [
   { Icon: Newspaper, label: 'Feed' },
   { Icon: Ear, label: 'Ouvidoria' },
   { Icon: Menu, label: 'Mais' },
+]
+// Cardápio de exemplo (mesmo visual do card "Menu do dia" da Home).
+const MENU_ITENS = [
+  { Icon: UtensilsCrossed, valor: 'Filé de tilápia grelhado ao limão' },
+  { Icon: Salad, valor: 'Faro' },
 ]
 
 function RefeicaoCaminho() {
@@ -61,19 +66,25 @@ function RefeicaoCaminho() {
               <p className="mb-1.5 text-[10px] font-bold uppercase tracking-wide text-muted-2">
                 Menu do dia
               </p>
-              <div className="relative flex items-center rounded-xl border border-line bg-surface py-2 pl-3 pr-2">
-                <div className="flex grow items-center gap-2 overflow-hidden text-[12px] font-semibold">
-                  <span>🍚 Arroz</span>
-                  <span className="text-muted-2">·</span>
-                  <span>🍗 Frango</span>
-                  <span className="text-muted-2">·</span>
-                  <span>🥗 Salada</span>
-                </div>
-                <div className="relative shrink-0 pl-2">
-                  <span className="grid h-8 w-8 place-items-center rounded-full border border-accent/40 bg-accent-soft text-accent">
-                    <Star size={16} />
-                  </span>
-                  <Toque className="-right-1 -top-2" />
+              <div className="relative overflow-hidden rounded-xl border border-line bg-surface">
+                <div className="flex items-stretch">
+                  <div className="flex grow items-center gap-3 overflow-x-auto no-scrollbar py-2.5 pl-3 pr-2">
+                    {MENU_ITENS.map(({ Icon, valor }, idx) => (
+                      <div key={valor} className="hstack shrink-0 gap-3">
+                        {idx > 0 && <span className="h-4 w-px shrink-0 bg-carbon/60" />}
+                        <span className="hstack shrink-0 gap-1.5">
+                          <Icon size={14} className="shrink-0 text-accent" />
+                          <span className="whitespace-nowrap text-[12px] font-semibold">{valor}</span>
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="relative grid shrink-0 place-items-center pl-2 pr-1.5">
+                    <span className="grid h-8 w-8 place-items-center rounded-full border border-accent/40 bg-accent-soft text-accent">
+                      <Star size={16} />
+                    </span>
+                    <Toque className="-right-0.5 -top-1.5" />
+                  </div>
                 </div>
               </div>
             </div>
