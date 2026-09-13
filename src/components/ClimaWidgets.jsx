@@ -52,8 +52,7 @@ function WhatsappClima() {
 
   return (
     <div className="my-5 rounded-card border border-line bg-surface p-4">
-      <p className="text-sm font-bold">O convite chega no WhatsApp</p>
-      <p className="mt-0.5 text-xs text-muted">A Sara, do Tatá, te manda o link:</p>
+      <p className="text-sm font-bold">Exemplo</p>
 
       <div className="mt-3 overflow-hidden rounded-2xl border border-line">
         {/* cabeçalho — contato não salvo: aparece o número + identificação */}
@@ -176,8 +175,7 @@ function PaginaClima() {
 
   return (
     <div className="my-5 rounded-card border border-line bg-surface p-4">
-      <p className="text-sm font-bold">Ao tocar, abre a página</p>
-      <p className="mt-0.5 text-xs text-muted">É segura, sem login e anônima:</p>
+      <p className="text-sm font-bold">Exemplo</p>
 
       <div className="mt-3 overflow-hidden rounded-xl border" style={{ borderColor: '#2A2D33' }}>
         {/* barra do navegador (escura, estilo Chrome) */}
@@ -279,7 +277,9 @@ function PaginaClima() {
 }
 
 // ── 3. Perguntas-modelo com a escala 1 a 5 (Nada → Muito) ────────────────────
-const LABELS = ['Nada', '', '', '', 'Muito']
+const ESCALA = ['Nada', 'Pouco', 'Moderado', 'Bastante', 'Muito']
+// Âncoras sob os números (2 e 4 em branco), como fizemos antes.
+const ANCHORS = ['Nada', '', 'Moderado', '', 'Muito']
 const EXEMPLOS = [
   'O quanto o ambiente de trabalho está colaborativo?',
   'O quanto você se sente respeitado(a) no ambiente de trabalho?',
@@ -297,7 +297,7 @@ function PerguntaLinha({ texto }) {
             key={n}
             type="button"
             onClick={() => setSel(n)}
-            aria-label={`${n}${LABELS[n - 1] ? ` · ${LABELS[n - 1]}` : ''}`}
+            aria-label={`${n} · ${ESCALA[n - 1]}`}
             className={cn(
               'grid h-10 w-10 place-items-center rounded-xl border text-sm font-bold tap',
               sel === n ? 'border-accent bg-accent text-black' : 'border-line bg-surface-2 text-muted',
@@ -307,9 +307,14 @@ function PerguntaLinha({ texto }) {
           </button>
         ))}
       </div>
-      <p className="mt-1.5 h-4 text-center text-[11px] font-semibold text-accent">
-        {sel ? LABELS[sel - 1] : ''}
-      </p>
+      {/* classificações sob os números (Nada · Moderado · Muito) */}
+      <div className="mt-1 flex justify-center gap-1.5">
+        {ANCHORS.map((label, idx) => (
+          <span key={idx} className="w-10 text-center text-[9px] font-medium text-muted-2">
+            {label}
+          </span>
+        ))}
+      </div>
     </div>
   )
 }
@@ -317,12 +322,7 @@ function PerguntaLinha({ texto }) {
 function PerguntasClima() {
   return (
     <div className="my-5 rounded-card border border-line bg-surface p-4">
-      <p className="text-sm font-bold">Como são as perguntas</p>
-      <p className="mt-0.5 text-xs text-muted">Você responde de 1 a 5 — toque para experimentar:</p>
-      <div className="mt-2 hstack justify-between text-[11px] font-medium text-muted-2">
-        <span>1 Nada</span>
-        <span>5 Muito</span>
-      </div>
+      <p className="text-sm font-bold">Exemplo</p>
       <div className="mt-3 space-y-2.5">
         {EXEMPLOS.map((t) => (
           <PerguntaLinha key={t} texto={t} />
