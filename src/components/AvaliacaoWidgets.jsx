@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Home, Trophy, Newspaper, Ear, Menu, CalendarClock, FileSignature, Pin, ClipboardList, ChevronRight, Hand } from 'lucide-react'
+import { Home, Trophy, Newspaper, Ear, Menu, CalendarClock, FileSignature, Pin, ClipboardList, Users, ChevronRight, Hand } from 'lucide-react'
 import { cn } from '../lib/cn'
 
 // Widgets do desafio "Experiência 14 dias: Colaborador" (Avaliações & Feedbacks).
@@ -26,6 +26,12 @@ const PASSOS = [
   '2. Toque em Avaliações',
   '3. Escolha a avaliação e responda',
 ]
+// Passo 3: o que aparece em "Para responder" (varia por desafio).
+const DESTINOS_EXP = [
+  { Icon: ClipboardList, label: 'Avaliar 1º período', alvo: true },
+  { Icon: ClipboardList, label: 'Avaliar 2º período' },
+]
+const DESTINOS_LID = [{ Icon: Users, label: 'Avaliar Liderança', alvo: true }]
 
 // mãozinha de "toque" pulsando sobre o alvo
 function Toque({ className }) {
@@ -39,7 +45,7 @@ function Toque({ className }) {
   )
 }
 
-function AvaliacaoCaminho() {
+function AvaliacaoCaminho({ destinos = DESTINOS_EXP }) {
   const [passo, setPasso] = useState(0)
   useEffect(() => {
     const t = setInterval(() => setPasso((p) => (p + 1) % 3), 2100)
@@ -97,10 +103,7 @@ function AvaliacaoCaminho() {
                 Para responder
               </p>
               <div className="space-y-2">
-                {[
-                  { label: 'Avaliar 1º período', alvo: true },
-                  { label: 'Avaliar 2º período' },
-                ].map(({ label, alvo }) => (
+                {destinos.map(({ Icon, label, alvo }) => (
                   <div
                     key={label}
                     className={cn(
@@ -109,7 +112,7 @@ function AvaliacaoCaminho() {
                     )}
                   >
                     <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-accent-soft text-accent">
-                      <ClipboardList size={14} />
+                      <Icon size={14} />
                     </span>
                     <span className="min-w-0 flex-1 text-[13px] font-semibold">{label}</span>
                     <ChevronRight size={15} className="shrink-0 text-muted-2" />
@@ -195,6 +198,7 @@ function PerguntasExemplo() {
 // Dispatcher pelos tokens do conteúdo.
 export function AvaliacaoWidget({ tipo }) {
   if (tipo === 'caminho-avaliacao') return <AvaliacaoCaminho />
+  if (tipo === 'caminho-lideranca') return <AvaliacaoCaminho destinos={DESTINOS_LID} />
   if (tipo === 'perguntas-14dias') return <PerguntasExemplo />
   return null
 }

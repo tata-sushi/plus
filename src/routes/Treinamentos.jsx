@@ -52,7 +52,7 @@ const TIPO_LABEL = { prova: 'Prova' }
 // interativos (ex.: a escala e a régua no desafio de Avaliações & Feedbacks).
 // Sem tokens, é só o HTML de sempre — nenhum outro desafio é afetado.
 const WIDGETS =
-  /\[\[(escala-likert|regua|caminho-avaliacao|perguntas-14dias|whatsapp-clima|pagina-clima|perguntas-clima|reconhecer-caminho|reconhecer-sheet|reconhecer-feed|pdi-ciclo)\]\]/g
+  /\[\[(escala-likert|regua|caminho-avaliacao|caminho-lideranca|perguntas-14dias|whatsapp-clima|pagina-clima|perguntas-clima|reconhecer-caminho|reconhecer-sheet|reconhecer-feed|pdi-ciclo)\]\]/g
 function renderWidget(tipo, key) {
   if (tipo === 'escala-likert' || tipo === 'regua') return <EscalaCard key={key} tipo={tipo} />
   if (tipo.endsWith('-clima')) return <ClimaWidget key={key} tipo={tipo} />
