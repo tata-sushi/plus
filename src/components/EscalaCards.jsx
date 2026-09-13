@@ -5,8 +5,9 @@ import { cn } from '../lib/cn'
 // (categoria Avaliações & Feedbacks). São injetados no conteúdo via tokens
 // [[escala-likert]] e [[regua]] — ver ConteudoComWidgets em Treinamentos.jsx.
 
-// ── Escala de resposta (Likert 1 a 5) ────────────────────────────────────────
-const LIKERT = ['Nunca', 'Quase nunca', 'Às vezes', 'Quase sempre', 'Sempre']
+// ── Escala de resposta (1 a 5) ───────────────────────────────────────────────
+// Nomenclatura oficial das escalas do Tatá: Nada · Pouco · Moderado · Bastante · Muito.
+const LIKERT = ['Nada', 'Pouco', 'Moderado', 'Bastante', 'Muito']
 
 function EscalaLikert() {
   const [sel, setSel] = useState(3) // começa no meio pra já mostrar algo
@@ -35,9 +36,9 @@ function EscalaLikert() {
       </div>
 
       <div className="mt-2 hstack justify-between text-[11px] font-medium text-muted-2">
-        <span>Nunca</span>
-        <span>Às vezes</span>
-        <span>Sempre</span>
+        <span>Nada</span>
+        <span>Moderado</span>
+        <span>Muito</span>
       </div>
 
       <div className="mt-3 rounded-xl bg-accent-soft px-3 py-2.5 text-center text-sm">
@@ -50,12 +51,13 @@ function EscalaLikert() {
 }
 
 // ── Régua de classificação (média de 1,0 a 5,0) ──────────────────────────────
+// Mesma nomenclatura da apresentação: Nada · Pouco · Moderado · Bastante · Muito.
 const FAIXAS = [
-  { nome: 'Crítico', desc: 'Precisa de ação imediata', cor: '239 68 68', min: 1.0 },
-  { nome: 'Atenção', desc: 'Requer atenção', cor: '245 158 11', min: 3.0 },
-  { nome: 'Observação', desc: 'De olho, com acompanhamento', cor: '234 179 8', min: 3.5 },
-  { nome: 'Saudável', desc: 'Vai bem', cor: '132 204 22', min: 4.0 },
-  { nome: 'Destaque', desc: 'Referência, ótimo resultado', cor: '34 197 94', min: 4.5 },
+  { nome: 'Nada', faixa: '< 3,0', cor: '231 76 60', min: 1.0, escuro: false },
+  { nome: 'Pouco', faixa: '≥ 3,0', cor: '243 156 18', min: 3.0, escuro: false },
+  { nome: 'Moderado', faixa: '≥ 3,5', cor: '241 196 15', min: 3.5, escuro: false },
+  { nome: 'Bastante', faixa: '≥ 4,0', cor: '92 184 92', min: 4.0, escuro: false },
+  { nome: 'Muito', faixa: '≥ 4,5', cor: '30 126 52', min: 4.5, escuro: true },
 ]
 const MIN = 1.0
 const MAX = 5.0
@@ -65,15 +67,12 @@ function faixaDe(v) {
   for (const x of FAIXAS) if (v >= x.min) f = x
   return f
 }
-function pct(v) {
-  return ((v - MIN) / (MAX - MIN)) * 100
-}
 function fmt(v) {
   return v.toFixed(1).replace('.', ',')
 }
 
 function ReguaClassificacao() {
-  const [valor, setValor] = useState(3.2) // cai em "Atenção", como no exemplo do texto
+  const [valor, setValor] = useState(3.2)
   const f = faixaDe(valor)
 
   return (
@@ -86,32 +85,29 @@ function ReguaClassificacao() {
         <span className="font-display text-3xl font-extrabold" style={{ color: `rgb(${f.cor})` }}>
           {fmt(valor)}
         </span>
-        <span className="hstack items-center gap-1.5 text-sm font-bold" style={{ color: `rgb(${f.cor})` }}>
-          <span className="inline-block h-2.5 w-2.5 rounded-full" style={{ background: `rgb(${f.cor})` }} />
+        <span className="text-sm font-bold" style={{ color: `rgb(${f.cor})` }}>
           {f.nome}
         </span>
       </div>
-      <p className="mt-1 text-center text-xs text-muted">{f.desc}</p>
 
-      {/* barra proporcional das faixas + marcador */}
-      <div className="relative mt-4 h-3">
-        <div className="flex h-3 overflow-hidden rounded-full">
-          {FAIXAS.map((x, i) => {
-            const fim = i + 1 < FAIXAS.length ? FAIXAS[i + 1].min : MAX
-            const w = ((fim - x.min) / (MAX - MIN)) * 100
-            const ativa = x.nome === f.nome
-            return (
-              <div
-                key={x.nome}
-                style={{ width: `${w}%`, background: `rgb(${x.cor})`, opacity: ativa ? 1 : 0.28 }}
-              />
-            )
-          })}
-        </div>
-        <div
-          className="absolute -top-1.5 h-6 w-1 -translate-x-1/2 rounded-full bg-text ring-2 ring-surface"
-          style={{ left: `${pct(valor)}%` }}
-        />
+      {/* régua de classificação — cards coloridos (estilo da apresentação) */}
+      <div className="mt-3 grid grid-cols-5 gap-1.5">
+        {FAIXAS.map((x) => {
+          const on = x.nome === f.nome
+          return (
+            <div
+              key={x.nome}
+              className={cn(
+                'rounded-lg px-1 py-2 text-center transition-all',
+                on ? 'ring-2 ring-text ring-offset-2 ring-offset-surface' : 'opacity-40',
+              )}
+              style={{ background: `rgb(${x.cor})`, color: x.escuro ? '#fff' : '#1a1a1a' }}
+            >
+              <div className="text-[10px] font-bold leading-tight">{x.nome}</div>
+              <div className="mt-0.5 text-[8px] font-semibold opacity-90">{x.faixa}</div>
+            </div>
+          )
+        })}
       </div>
 
       <input
@@ -122,9 +118,8 @@ function ReguaClassificacao() {
         value={valor}
         onChange={(e) => setValor(parseFloat(e.target.value))}
         aria-label="Média da avaliação"
-        className="mt-3 w-full accent-accent"
+        className="mt-4 w-full accent-accent"
       />
-
       <div className="mt-1 hstack justify-between text-[11px] font-medium text-muted-2">
         <span>1,0</span>
         <span>5,0</span>
