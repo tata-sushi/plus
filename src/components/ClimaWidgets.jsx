@@ -138,29 +138,6 @@ function WhatsappClima() {
 }
 
 // ── 2. O link abre a página da pesquisa ──────────────────────────────────────
-// Marca TATÁ SUSHI: usa o logo oficial do app (/icons/logo-mark.png) como
-// máscara, pintado em citric #CFFF00 para bater com o formato E a cor da página.
-function TataLogo({ className }) {
-  return (
-    <span
-      className={className}
-      aria-hidden="true"
-      style={{
-        display: 'inline-block',
-        backgroundColor: '#CFFF00',
-        WebkitMaskImage: 'url(/icons/logo-mark.png)',
-        maskImage: 'url(/icons/logo-mark.png)',
-        WebkitMaskSize: 'contain',
-        maskSize: 'contain',
-        WebkitMaskRepeat: 'no-repeat',
-        maskRepeat: 'no-repeat',
-        WebkitMaskPosition: 'center',
-        maskPosition: 'center',
-      }}
-    />
-  )
-}
-
 function PaginaClima() {
   const innerRef = useRef(null)
   useEffect(() => {
@@ -220,19 +197,14 @@ function PaginaClima() {
         {/* página real (rola sozinha) */}
         <div className="relative h-[240px] overflow-hidden" style={{ background: '#35383F' }}>
           <div ref={innerRef} className="will-change-transform">
-            {/* cabeçalho */}
-            <div className="flex flex-col items-center px-4 pt-4">
-              <TataLogo className="h-9 w-9" />
-              <div className="mt-1 text-center leading-none">
-                <div className="font-display text-sm font-extrabold tracking-wide" style={{ color: '#CFFF00' }}>
-                  TATÁ
-                </div>
-                <div className="mt-0.5 font-mono text-[7px] font-bold tracking-[0.35em]" style={{ color: '#CFFF00' }}>
-                  SUSHI
-                </div>
-              </div>
+            {/* cabeçalho: logo oficial da página (hexágono + TATÁ SUSHI) */}
+            <div className="flex justify-center px-4 pt-4">
+              <img src="/icons/pesquisa-tata.png" alt="TATÁ SUSHI" className="h-24 w-auto" />
             </div>
-            <p className="px-4 pt-3 font-display text-2xl font-extrabold leading-none" style={{ color: '#CFFF00' }}>
+            <p
+              className="px-4 pt-2 text-center font-display text-2xl font-extrabold leading-none"
+              style={{ color: '#CFFF00' }}
+            >
               Pesquisa de Clima
             </p>
 
@@ -285,8 +257,11 @@ function PaginaClima() {
             </div>
           </div>
 
-          {/* botão fixo de enviar */}
-          <div className="absolute inset-x-0 bottom-0 px-3 pb-3">
+          {/* botão fixo de enviar (com degradê pra não sobrepor o texto) */}
+          <div
+            className="absolute inset-x-0 bottom-0 px-3 pb-3 pt-8"
+            style={{ background: 'linear-gradient(to top, #35383F 62%, rgba(53,56,63,0))' }}
+          >
             <div
               className="grid place-items-center rounded-full py-2.5 text-[11px] font-extrabold uppercase tracking-wide"
               style={{ background: '#A6B62E', color: '#2b2f16' }}
