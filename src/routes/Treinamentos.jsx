@@ -34,6 +34,7 @@ import { Submodulo, GrupoUnidade } from '../components/Submodulo.jsx'
 import { CodigoEtica } from '../components/CodigoEtica.jsx'
 import { LeituraProva } from '../components/LeituraProva.jsx'
 import { Avaliacao } from '../components/Avaliacao.jsx'
+import { EscalaCard } from '../components/EscalaCards.jsx'
 import { cn } from '../lib/cn'
 import { tapHaptic } from '../lib/haptics.js'
 import { resolveIcon } from '../lib/icons.js'
@@ -42,6 +43,38 @@ import { useAuth } from '../lib/AuthContext.jsx'
 import { useDesktopCanvas } from '../lib/desktopCanvas.js'
 
 const TIPO_LABEL = { prova: 'Prova' }
+
+// Renderiza o conteúdo HTML do desafio, trocando tokens [[widget]] por cards
+// interativos (ex.: a escala e a régua no desafio de Avaliações & Feedbacks).
+// Sem tokens, é só o HTML de sempre — nenhum outro desafio é afetado.
+const WIDGETS = /\[\[(escala-likert|regua)\]\]/g
+function ConteudoComWidgets({ html, onClick }) {
+  const partes = String(html || '').split(WIDGETS)
+  if (partes.length === 1) {
+    return (
+      <div
+        className="conteudo text-sm leading-relaxed"
+        onClick={onClick}
+        dangerouslySetInnerHTML={{ __html: html }}
+      />
+    )
+  }
+  return (
+    <div onClick={onClick}>
+      {partes.map((p, i) =>
+        i % 2 === 1 ? (
+          <EscalaCard key={i} tipo={p} />
+        ) : p.trim() ? (
+          <div
+            key={i}
+            className="conteudo text-sm leading-relaxed"
+            dangerouslySetInnerHTML={{ __html: p }}
+          />
+        ) : null,
+      )}
+    </div>
+  )
+}
 
 function Detalhe({
   treino,
@@ -486,13 +519,15 @@ function Detalhe({
             </div>
           )}
           {temHtml && (
-            <LeitorVoz html={personalizar(data.conteudo_html)} className="mb-4" />
+            <LeitorVoz
+              html={personalizar(data.conteudo_html).replace(/\[\[[^\]]+\]\]/g, ' ')}
+              className="mb-4"
+            />
           )}
           {temHtml && (
-            <div
-              className="conteudo text-sm leading-relaxed"
+            <ConteudoComWidgets
+              html={personalizar(data.conteudo_html)}
               onClick={aoClicarConteudo}
-              dangerouslySetInnerHTML={{ __html: personalizar(data.conteudo_html) }}
             />
           )}
           {ehVideos && (
