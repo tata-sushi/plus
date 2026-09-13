@@ -57,8 +57,7 @@ function ReconhecerCaminho() {
 
   return (
     <div className="my-5 rounded-card border border-line bg-surface p-4">
-      <p className="text-sm font-bold">Onde fica, passo a passo</p>
-      <p className="mt-0.5 text-xs text-muted">É aqui no Tatá Plus:</p>
+      <p className="text-sm font-bold">Passo a passo</p>
 
       <div className="mt-3 overflow-hidden rounded-2xl border border-line bg-bg">
         <div key={passo} className="animate-page grid h-[188px] place-items-center px-4 py-4">
@@ -138,8 +137,7 @@ function ReconhecerSheet() {
   const [sel, setSel] = useState('proatividade')
   return (
     <div className="my-5 rounded-card border border-line bg-surface p-4">
-      <p className="text-sm font-bold">Escolha o motivo e mande a mensagem</p>
-      <p className="mt-0.5 text-xs text-muted">Toque num motivo para experimentar:</p>
+      <p className="text-sm font-bold">Exemplo</p>
 
       <div className="mt-3 rounded-2xl border border-line bg-bg p-3">
         <p className="font-display text-sm font-bold">Reconhecer Sam</p>
@@ -183,8 +181,7 @@ function ReconhecerSheet() {
 function ReconhecerFeed() {
   return (
     <div className="my-5 rounded-card border border-line bg-surface p-4">
-      <p className="text-sm font-bold">Como aparece pra quem recebe</p>
-      <p className="mt-0.5 text-xs text-muted">No Histórico, na aba “Recebi”:</p>
+      <p className="text-sm font-bold">Exemplo</p>
 
       <div className="mt-3 hstack items-start gap-3 rounded-2xl border border-line bg-bg p-3">
         <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-accent-soft text-sm font-bold text-accent">
