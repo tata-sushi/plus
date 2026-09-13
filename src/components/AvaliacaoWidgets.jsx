@@ -48,8 +48,7 @@ function AvaliacaoCaminho() {
 
   return (
     <div className="my-5 rounded-card border border-line bg-surface p-4">
-      <p className="text-sm font-bold">Onde responder, passo a passo</p>
-      <p className="mt-0.5 text-xs text-muted">É rapidinho, veja o caminho:</p>
+      <p className="text-sm font-bold">Passo a passo</p>
 
       {/* telinha do celular */}
       <div className="mt-3 overflow-hidden rounded-2xl border border-line bg-bg">
@@ -137,8 +136,10 @@ function AvaliacaoCaminho() {
   )
 }
 
-// ── Perguntas-modelo com a escala de percepção (1 a 5) ───────────────────────
-const PERCEPCAO = ['Nada', 'Pouco', 'Moderado', 'Muito', 'Totalmente']
+// ── Perguntas-modelo com a escala de 1 a 5 (mesma do desafio anterior) ───────
+const ESCALA = ['Nada', 'Pouco', 'Moderado', 'Bastante', 'Muito']
+// Âncoras exibidas sob os números (2 e 4 ficam em branco), como será no real.
+const ANCHORS = ['Nada', '', 'Moderado', '', 'Muito']
 const EXEMPLOS = [
   'O quanto está claro o que é esperado de você neste início de trabalho?',
   'O quanto você se sente acolhido(a) pela equipe?',
@@ -156,7 +157,7 @@ function PerguntaExemplo({ texto }) {
             key={n}
             type="button"
             onClick={() => setSel(n)}
-            aria-label={`${n} · ${PERCEPCAO[n - 1]}`}
+            aria-label={`${n} · ${ESCALA[n - 1]}`}
             className={cn(
               'grid h-10 w-10 place-items-center rounded-xl border text-sm font-bold tap',
               sel === n ? 'border-accent bg-accent text-black' : 'border-line bg-surface-2 text-muted',
@@ -166,9 +167,14 @@ function PerguntaExemplo({ texto }) {
           </button>
         ))}
       </div>
-      <p className="mt-1.5 h-4 text-center text-[11px] font-semibold text-accent">
-        {sel ? PERCEPCAO[sel - 1] : ''}
-      </p>
+      {/* classificações sob os números (Nada · Moderado · Muito) */}
+      <div className="mt-1 flex justify-center gap-1.5">
+        {ANCHORS.map((label, i) => (
+          <span key={i} className="w-10 text-center text-[9px] font-medium text-muted-2">
+            {label}
+          </span>
+        ))}
+      </div>
     </div>
   )
 }
@@ -176,15 +182,7 @@ function PerguntaExemplo({ texto }) {
 function PerguntasExemplo() {
   return (
     <div className="my-5 rounded-card border border-line bg-surface p-4">
-      <p className="text-sm font-bold">Como são as perguntas</p>
-      <p className="mt-0.5 text-xs text-muted">
-        Você responde de 1 a 5 — toque para experimentar:
-      </p>
-      <div className="mt-2 hstack justify-between text-[11px] font-medium text-muted-2">
-        <span>1 Nada</span>
-        <span>3 Moderado</span>
-        <span>5 Totalmente</span>
-      </div>
+      <p className="text-sm font-bold">Exemplo</p>
       <div className="mt-3 space-y-2.5">
         {EXEMPLOS.map((t) => (
           <PerguntaExemplo key={t} texto={t} />
