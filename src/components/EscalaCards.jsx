@@ -54,9 +54,9 @@ function EscalaLikert() {
 // Mesma nomenclatura da apresentação: Nada · Pouco · Moderado · Bastante · Muito.
 const FAIXAS = [
   { nome: 'Nada', faixa: '< 3,0', cor: '231 76 60', min: 1.0, escuro: false },
-  { nome: 'Pouco', faixa: '≥ 3,0', cor: '243 156 18', min: 3.0, escuro: false },
-  { nome: 'Moderado', faixa: '≥ 3,5', cor: '241 196 15', min: 3.5, escuro: false },
-  { nome: 'Bastante', faixa: '≥ 4,0', cor: '92 184 92', min: 4.0, escuro: false },
+  { nome: 'Pouco', faixa: '3,0–3,4', cor: '243 156 18', min: 3.0, escuro: false },
+  { nome: 'Moderado', faixa: '3,5–3,9', cor: '241 196 15', min: 3.5, escuro: false },
+  { nome: 'Bastante', faixa: '4,0–4,4', cor: '92 184 92', min: 4.0, escuro: false },
   { nome: 'Muito', faixa: '≥ 4,5', cor: '30 126 52', min: 4.5, escuro: true },
 ]
 const MIN = 1.0
