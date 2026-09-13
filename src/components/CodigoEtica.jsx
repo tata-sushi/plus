@@ -34,7 +34,13 @@ export function CodigoEtica({ treinoId, blocos, concluido, personalizar, onAssin
   }
   function avancar() {
     setFeitos((s) => new Set(s).add(passo))
-    if (!ehUltimo) ir(passo + 1)
+    if (!ehUltimo) {
+      ir(passo + 1)
+      return
+    }
+    // Último bloco cumprido por prova/aceite (sem assinatura) → conclui o desafio
+    // e credita os pontos. Blocos que terminam em assinatura seguem pelo botão próprio.
+    if (!concluido && b.acao !== 'assinatura') concluir()
   }
 
   const respBloco = respostas[passo] || {}
@@ -60,7 +66,8 @@ export function CodigoEtica({ treinoId, blocos, concluido, personalizar, onAssin
     else setResultado({ aprovado: false, erro: true })
   }
 
-  async function assinar() {
+  // Conclusão do desafio (assinatura final OU último bloco de prova/aceite).
+  async function concluir() {
     if (assinando) return
     setAssinando(true)
     setErroAssinar(false)
@@ -153,29 +160,54 @@ export function CodigoEtica({ treinoId, blocos, concluido, personalizar, onAssin
           </div>
         ) : b.acao === 'prova' ? (
           <div className="space-y-2">
-            {resultado?.erro && (
+            {(resultado?.erro || erroAssinar) && (
               <p className="text-center text-xs font-medium text-danger">
                 Não foi possível enviar agora. Tente de novo.
               </p>
             )}
             <button
               onClick={enviarProva}
-              disabled={!todasResp || enviando}
+              disabled={!todasResp || enviando || assinando}
               className={cn(
                 'btn-primary w-full !py-3.5 text-sm',
-                (!todasResp || enviando) && 'opacity-60',
+                (!todasResp || enviando || assinando) && 'opacity-60',
               )}
             >
-              {enviando ? <Loader2 size={18} className="animate-spin" /> : 'Enviar resposta'}
+              {enviando || assinando ? (
+                <Loader2 size={18} className="animate-spin" />
+              ) : (
+                'Enviar resposta'
+              )}
             </button>
             {!todasResp && (
               <p className="text-center text-[11px] text-muted-2">Escolha uma resposta para enviar.</p>
             )}
           </div>
         ) : b.acao === 'aceite' ? (
-          <button onClick={avancar} className="btn-primary w-full !py-3.5 text-sm">
-            <ShieldCheck size={17} /> Li e concordo
-          </button>
+          <div className="space-y-2">
+            {erroAssinar && (
+              <p className="text-center text-xs font-medium text-danger">
+                Não foi possível concluir agora. Tente de novo.
+              </p>
+            )}
+            <button
+              onClick={avancar}
+              disabled={assinando}
+              className={cn('btn-primary w-full !py-3.5 text-sm', assinando && 'opacity-60')}
+            >
+              {assinando ? (
+                <Loader2 size={18} className="animate-spin" />
+              ) : ehUltimo ? (
+                <>
+                  <Check size={17} strokeWidth={3} /> Concluir
+                </>
+              ) : (
+                <>
+                  <ShieldCheck size={17} /> Li e concordo
+                </>
+              )}
+            </button>
+          </div>
         ) : (
           <div className="space-y-2">
             {erroAssinar && (
@@ -184,7 +216,7 @@ export function CodigoEtica({ treinoId, blocos, concluido, personalizar, onAssin
               </p>
             )}
             <button
-              onClick={assinar}
+              onClick={concluir}
               disabled={assinando || !assinou}
               className={cn(
                 'btn-primary w-full !py-3.5 text-sm',
