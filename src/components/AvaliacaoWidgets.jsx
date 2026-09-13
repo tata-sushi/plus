@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Home, Trophy, Newspaper, Ear, Menu, UserRound, ClipboardList, UtensilsCrossed, ChevronRight, Hand } from 'lucide-react'
+import { Home, Trophy, Newspaper, Ear, Menu, CalendarClock, FileSignature, Pin, ClipboardList, ChevronRight, Hand } from 'lucide-react'
 import { cn } from '../lib/cn'
 
 // Widgets do desafio "Experiência 14 dias: Colaborador" (Avaliações & Feedbacks).
@@ -14,10 +14,12 @@ const NAV = [
   { Icon: Ear, label: 'Ouvidoria' },
   { Icon: Menu, label: 'Mais', alvo: true },
 ]
+// Topo real do menu Mais (ordem alfabética), até o item Avaliações.
 const MENU = [
-  { Icon: UserRound, label: 'Meu perfil' },
+  { Icon: CalendarClock, label: 'Agenda' },
+  { Icon: FileSignature, label: 'Assinaturas' },
+  { Icon: Pin, label: 'Atalhos' },
   { Icon: ClipboardList, label: 'Avaliações', alvo: true },
-  { Icon: UtensilsCrossed, label: 'Cardápio' },
 ]
 const PASSOS = [
   '1. Toque em Mais',
@@ -51,7 +53,7 @@ function AvaliacaoCaminho() {
 
       {/* telinha do celular */}
       <div className="mt-3 overflow-hidden rounded-2xl border border-line bg-bg">
-        <div key={passo} className="animate-page grid min-h-[168px] place-items-center px-4 py-4">
+        <div key={passo} className="animate-page grid h-[196px] place-items-center px-4 py-4">
           {passo === 0 && (
             <div className="w-full">
               <p className="mb-3 text-center text-xs text-muted-2">Barra de navegação</p>
@@ -70,20 +72,21 @@ function AvaliacaoCaminho() {
           )}
 
           {passo === 1 && (
-            <div className="w-full space-y-2">
+            <div className="w-full space-y-1.5">
               {MENU.map(({ Icon, label, alvo }) => (
                 <div
                   key={label}
                   className={cn(
-                    'relative hstack items-center gap-3 rounded-xl border px-3 py-2.5',
-                    alvo ? 'border-accent bg-accent-soft' : 'border-line bg-surface',
+                    'relative hstack items-center gap-2.5 rounded-xl border bg-surface px-3 py-2',
+                    alvo ? 'border-accent' : 'border-line',
                   )}
                 >
-                  <Icon size={17} className={alvo ? 'text-accent' : 'text-muted'} />
-                  <span className={cn('text-sm', alvo ? 'font-bold text-accent' : 'text-muted')}>
-                    {label}
+                  <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-accent-soft text-accent">
+                    <Icon size={14} />
                   </span>
-                  {alvo && <Toque className="right-3 top-1/2 -translate-y-1/2" />}
+                  <span className="min-w-0 flex-1 text-[13px] font-semibold">{label}</span>
+                  <ChevronRight size={15} className="shrink-0 text-carbon" />
+                  {alvo && <Toque className="right-1 top-1/2 -translate-y-1/2" />}
                 </div>
               ))}
             </div>
