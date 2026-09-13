@@ -59,70 +59,45 @@ const FAIXAS = [
   { nome: 'Bastante', faixa: '4,0–4,4', cor: '92 184 92', min: 4.0, escuro: false },
   { nome: 'Muito', faixa: '≥ 4,5', cor: '30 126 52', min: 4.5, escuro: true },
 ]
-const MIN = 1.0
-const MAX = 5.0
-
-function faixaDe(v) {
-  let f = FAIXAS[0]
-  for (const x of FAIXAS) if (v >= x.min) f = x
-  return f
-}
-function fmt(v) {
-  return v.toFixed(1).replace('.', ',')
-}
-
 function ReguaClassificacao() {
-  const [valor, setValor] = useState(3.2)
-  const f = faixaDe(valor)
+  const [sel, setSel] = useState(1) // "Pouco" por padrão (bate com o exemplo de média 3,2)
+  const f = FAIXAS[sel]
 
   return (
     <div className="my-5 rounded-card border border-line bg-surface p-4">
       <p className="text-sm font-bold">Como a média é lida</p>
-      <p className="mt-0.5 text-xs text-muted">Arraste para ver em qual faixa a média cai.</p>
+      <p className="mt-0.5 text-xs text-muted">Toque numa faixa para ver o que ela significa.</p>
 
-      {/* média + faixa atual */}
-      <div className="mt-3 hstack items-baseline justify-center gap-2">
-        <span className="font-display text-3xl font-extrabold" style={{ color: `rgb(${f.cor})` }}>
-          {fmt(valor)}
-        </span>
-        <span className="text-sm font-bold" style={{ color: `rgb(${f.cor})` }}>
+      {/* faixa selecionada */}
+      <div className="mt-3 text-center">
+        <span className="font-display text-2xl font-extrabold" style={{ color: `rgb(${f.cor})` }}>
           {f.nome}
         </span>
+        <p className="mt-0.5 text-xs font-semibold" style={{ color: `rgb(${f.cor})` }}>
+          média {f.faixa}
+        </p>
       </div>
 
-      {/* régua de classificação — cards coloridos (estilo da apresentação) */}
+      {/* régua de classificação — cards clicáveis (estilo da apresentação) */}
       <div className="mt-3 grid grid-cols-5 gap-1.5">
-        {FAIXAS.map((x) => {
-          const on = x.nome === f.nome
+        {FAIXAS.map((x, i) => {
+          const on = i === sel
           return (
-            <div
+            <button
               key={x.nome}
+              type="button"
+              onClick={() => setSel(i)}
               className={cn(
-                'rounded-lg px-1 py-2 text-center transition-all',
+                'rounded-lg px-1 py-2 text-center tap transition-all',
                 on ? 'ring-2 ring-text ring-offset-2 ring-offset-surface' : 'opacity-40',
               )}
               style={{ background: `rgb(${x.cor})`, color: x.escuro ? '#fff' : '#1a1a1a' }}
             >
               <div className="text-[10px] font-bold leading-tight">{x.nome}</div>
               <div className="mt-0.5 text-[8px] font-semibold opacity-90">{x.faixa}</div>
-            </div>
+            </button>
           )
         })}
-      </div>
-
-      <input
-        type="range"
-        min={MIN}
-        max={MAX}
-        step={0.1}
-        value={valor}
-        onChange={(e) => setValor(parseFloat(e.target.value))}
-        aria-label="Média da avaliação"
-        className="mt-4 w-full accent-accent"
-      />
-      <div className="mt-1 hstack justify-between text-[11px] font-medium text-muted-2">
-        <span>1,0</span>
-        <span>5,0</span>
       </div>
     </div>
   )
