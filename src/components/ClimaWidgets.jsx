@@ -57,60 +57,63 @@ function WhatsappClima() {
 
       <div className="mt-3 overflow-hidden rounded-2xl border border-line">
         {/* cabeçalho — contato não salvo: aparece o número + identificação */}
-        <div className="flex items-center gap-2 px-3 py-2" style={{ background: '#202C33' }}>
-          <ArrowLeft size={16} style={{ color: '#8696A0' }} />
+        <div className="flex items-center gap-2 px-3 py-2" style={{ background: '#075E54' }}>
+          <ArrowLeft size={16} style={{ color: 'rgba(255,255,255,.85)' }} />
           <SaraAvatar />
           <div className="min-w-0 flex-1 leading-tight">
-            <div className="truncate text-[13px] font-semibold" style={{ color: '#E9EDEF' }}>
+            <div className="truncate text-[13px] font-semibold" style={{ color: '#fff' }}>
               +55 11 94103-7811
             </div>
-            <div className="truncate text-[10px]" style={{ color: '#8696A0' }}>
+            <div className="truncate text-[10px]" style={{ color: 'rgba(255,255,255,.75)' }}>
               ~ TATÁ SUSHI | Sara
             </div>
           </div>
-          <Video size={16} style={{ color: '#8696A0' }} />
-          <Phone size={15} style={{ color: '#8696A0' }} />
-          <MoreVertical size={16} style={{ color: '#8696A0' }} />
+          <Video size={16} style={{ color: 'rgba(255,255,255,.85)' }} />
+          <Phone size={15} style={{ color: 'rgba(255,255,255,.85)' }} />
+          <MoreVertical size={16} style={{ color: 'rgba(255,255,255,.85)' }} />
         </div>
 
-        {/* corpo da conversa */}
+        {/* corpo da conversa (tema claro) */}
         <div
           className="flex min-h-[120px] flex-col justify-end gap-2 px-3 py-3"
-          style={{ background: '#0B141A' }}
+          style={{ background: '#ECE5DD' }}
         >
           {step === 0 ? (
-            <div className="w-fit rounded-lg rounded-tl-sm px-3 py-2.5" style={{ background: '#202C33' }}>
+            <div
+              className="w-fit rounded-lg rounded-tl-sm px-3 py-2.5 shadow-sm"
+              style={{ background: '#fff' }}
+            >
               <div className="flex gap-1">
                 {[0, 1, 2].map((i) => (
                   <span
                     key={i}
                     className="h-1.5 w-1.5 animate-bounce rounded-full"
-                    style={{ background: '#8696A0', animationDelay: `${i * 150}ms` }}
+                    style={{ background: '#9aa0a6', animationDelay: `${i * 150}ms` }}
                   />
                 ))}
               </div>
             </div>
           ) : (
             <div
-              className="animate-page max-w-[92%] overflow-hidden rounded-lg rounded-tl-sm"
-              style={{ background: '#202C33' }}
+              className="animate-page max-w-[92%] overflow-hidden rounded-lg rounded-tl-sm shadow-sm"
+              style={{ background: '#fff' }}
             >
               {/* prévia do link */}
               <div className="px-2 pt-2">
-                <div className="rounded-md px-2.5 py-2" style={{ background: '#1B2831' }}>
-                  <p className="text-[11px] font-bold" style={{ color: '#E9EDEF' }}>
+                <div className="rounded-md px-2.5 py-2" style={{ background: '#F0F2F5' }}>
+                  <p className="text-[11px] font-bold" style={{ color: '#111' }}>
                     Pesquisa de Clima — TATÁ Sushi
                   </p>
-                  <p className="mt-0.5 text-[10px] leading-snug" style={{ color: '#8696A0' }}>
+                  <p className="mt-0.5 text-[10px] leading-snug" style={{ color: '#667781' }}>
                     Queremos ouvir você! Rápida (menos de 1 min) e 100% anônima. 💚
                   </p>
-                  <p className="mt-1 hstack items-center gap-1 text-[10px]" style={{ color: '#8696A0' }}>
+                  <p className="mt-1 hstack items-center gap-1 text-[10px]" style={{ color: '#667781' }}>
                     <Link2 size={10} /> pesquisa.tatasushi.tech
                   </p>
                 </div>
               </div>
               {/* texto da mensagem (sem o nome da pessoa) */}
-              <div className="px-2.5 pb-1.5 pt-2 text-[12px] leading-snug" style={{ color: '#E9EDEF' }}>
+              <div className="px-2.5 pb-1.5 pt-2 text-[12px] leading-snug" style={{ color: '#111' }}>
                 <p>Olá! Aqui é a Sara do TATÁ Sushi. 🍣</p>
                 <p className="mt-2">
                   Estamos com a <strong className="font-semibold">Pesquisa de Clima</strong> e queremos
@@ -120,12 +123,12 @@ function WhatsappClima() {
                 </p>
                 <p className="mt-2">O link expira em 24h:</p>
                 <div className="relative mt-0.5 pr-6">
-                  <span className="break-all underline" style={{ color: '#53BDEB' }}>
+                  <span className="break-all underline" style={{ color: '#027EB5' }}>
                     https://pesquisa.tatasushi.tech/?t=d82d7606-30ad-4838-b939-4862a2d1d9e5
                   </span>
                   <Toque className="-bottom-1 right-0" />
                 </div>
-                <p className="mt-1 text-right text-[9px]" style={{ color: '#8696A0' }}>
+                <p className="mt-1 text-right text-[9px]" style={{ color: '#667781' }}>
                   12:15
                 </p>
               </div>
