@@ -138,34 +138,26 @@ function WhatsappClima() {
 }
 
 // ── 2. O link abre a página da pesquisa ──────────────────────────────────────
-// Marca TATÁ SUSHI (logo hexagonal) — mesmo desenho do favicon.svg da pesquisa.
+// Marca TATÁ SUSHI: usa o logo oficial do app (/icons/logo-mark.png) como
+// máscara, pintado em citric #CFFF00 para bater com o formato E a cor da página.
 function TataLogo({ className }) {
   return (
-    <svg
-      viewBox="0 0 100 100"
+    <span
       className={className}
-      fill="none"
-      stroke="#CFFF00"
-      strokeWidth="5.5"
-      strokeLinejoin="round"
-      strokeLinecap="round"
       aria-hidden="true"
-    >
-      <polygon points="50,4 92,27 92,73 50,96 8,73 8,27" />
-      <polygon points="50,32 68,42 68,62 50,72 32,62 32,42" />
-      <polygon points="50,10 58,15 58,23 50,28 42,23 42,15" />
-      <line x1="8" y1="27" x2="32" y2="42" />
-      <line x1="8" y1="73" x2="32" y2="62" />
-      <line x1="92" y1="27" x2="68" y2="42" />
-      <line x1="92" y1="73" x2="68" y2="62" />
-      <line x1="32" y1="62" x2="50" y2="72" />
-      <line x1="68" y1="62" x2="50" y2="72" />
-      <line x1="32" y1="62" x2="50" y2="96" />
-      <line x1="68" y1="62" x2="50" y2="96" />
-      <line x1="50" y1="28" x2="50" y2="32" />
-      <line x1="42" y1="15" x2="32" y2="42" />
-      <line x1="58" y1="15" x2="68" y2="42" />
-    </svg>
+      style={{
+        display: 'inline-block',
+        backgroundColor: '#CFFF00',
+        WebkitMaskImage: 'url(/icons/logo-mark.png)',
+        maskImage: 'url(/icons/logo-mark.png)',
+        WebkitMaskSize: 'contain',
+        maskSize: 'contain',
+        WebkitMaskRepeat: 'no-repeat',
+        maskRepeat: 'no-repeat',
+        WebkitMaskPosition: 'center',
+        maskPosition: 'center',
+      }}
+    />
   )
 }
 
