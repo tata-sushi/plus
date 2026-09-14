@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Flag, ShoppingBag, Star, Network, Sun, Check, X, KanbanSquare, SprayCan, Radio as RadioIcon, Puzzle, UtensilsCrossed } from 'lucide-react'
+import { Flag, ShoppingBag, Star, Network, Sun, Check, X, KanbanSquare, SprayCan, Radio as RadioIcon, Puzzle, UtensilsCrossed, Trophy, CalendarClock, FileSignature } from 'lucide-react'
 import { cn } from '../lib/cn'
 import { Header } from '../components/Header.jsx'
 import { Section } from '../components/Section.jsx'
@@ -274,6 +274,14 @@ export function Home() {
     { to: '/radio', badgeIcon: RadioIcon, title: 'Rádio Tatá', subtitle: 'Playlist do time' },
     { to: '/passatempos', badgeIcon: Puzzle, title: 'Passatempos', subtitle: 'Jogue e pontue' },
   ]
+  // [TESTE] Grid compacto (matrícula 7) ganha atalhos extras: Ranking, Agenda e
+  // Assinaturas. Fica separado de `cards` pra não mexer no carrossel de produção.
+  const cardsGrid = [
+    ...cards,
+    { to: '/ranking', badgeIcon: Trophy, title: 'Ranking', subtitle: 'Sua posição no time' },
+    { to: '/escala', badgeIcon: CalendarClock, title: 'Agenda', subtitle: 'Sua escala da semana' },
+    { to: '/documentos', badgeIcon: FileSignature, title: 'Assinaturas', subtitle: 'Documentos para assinar' },
+  ]
   const desktop = useDesktop()
   const { setCanvas } = useDesktopCanvas()
 
@@ -495,7 +503,7 @@ export function Home() {
       {/* Sugestões — páginas de 4 (2×2) com rolagem lateral (Organograma vai pra 2ª) */}
       <Section className="mt-4 hsm:mt-3" title="Sugestões">
         {usuario?.matricula === '7' ? (
-          <SugestoesGrid cards={cards} desktop={desktop} setCanvas={setCanvas} />
+          <SugestoesGrid cards={cardsGrid} desktop={desktop} setCanvas={setCanvas} />
         ) : (
           <SugestoesCarrossel cards={cards} desktop={desktop} setCanvas={setCanvas} />
         )}
