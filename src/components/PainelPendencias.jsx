@@ -40,6 +40,20 @@ const ROTA = {
   recrutamento: '/governanca', // devolutiva de entrevista/teste no portal
 }
 
+// Ordem de exibição na lista: assinaturas (própria e de liderados) por último.
+const ORDEM_TIPO = {
+  exp_colab: 1,
+  lideranca: 2,
+  exp_lider: 3,
+  absenteismo: 4,
+  exame_colab: 5,
+  exame_lider: 6,
+  feriado: 7,
+  recrutamento: 8,
+  assinatura: 9,
+  assinatura_lider: 10,
+}
+
 export function PainelPendencias({ embutido = false }) {
   const [lista, setLista] = useState(null) // null = carregando
 
@@ -65,6 +79,8 @@ export function PainelPendencias({ embutido = false }) {
   }
 
   const n = lista.length
+  // Assinaturas por último; mantém a ordem original dentro de cada tipo (sort estável).
+  const listaOrd = [...lista].sort((a, b) => (ORDEM_TIPO[a.tipo] ?? 99) - (ORDEM_TIPO[b.tipo] ?? 99))
 
   return (
     <section className={embutido ? 'mb-3' : ''}>
@@ -92,7 +108,7 @@ export function PainelPendencias({ embutido = false }) {
         </div>
       ) : (
         <div className="mb-1 ml-5 mt-1.5 flex flex-col gap-1 border-l border-line pl-3">
-          {lista.map((p, i) => {
+          {listaOrd.map((p, i) => {
             const rota = ROTA[p.tipo]
             const titulo = p.colaborador_nome ? `${p.colaborador_nome} — ${p.descricao}` : p.descricao
             const conteudo = (
