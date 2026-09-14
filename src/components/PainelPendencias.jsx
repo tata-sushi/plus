@@ -16,6 +16,7 @@ import { tapHaptic } from '../lib/haptics.js'
 // Cor da barrinha por tipo (igual ao esquema de cores dos cartões do Kanban).
 const COR = {
   assinatura: '#f59e0b', // âmbar — documentos
+  assinatura_lider: '#f59e0b', // âmbar — assinatura pendente de um liderado (visão do líder)
   exp_colab: '#38bdf8', // azul — auto-avaliação do colaborador
   exp_lider: '#a78bfa', // roxo — avaliação que o líder faz
   lideranca: '#f472b6', // rosa — avaliação de liderança
