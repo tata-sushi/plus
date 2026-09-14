@@ -143,8 +143,8 @@ function SugestoesGrid({ cards, desktop, setCanvas }) {
       <>
         <span
           className={cn(
-            'grid h-14 w-14 place-items-center rounded-2xl',
-            c.emBreve ? 'bg-surface-3 text-muted' : 'bg-accent-soft text-accent',
+            'grid h-14 w-14 place-items-center rounded-2xl border',
+            c.emBreve ? 'border-line bg-surface-3 text-muted' : 'border-accent/30 bg-accent-soft text-accent',
           )}
         >
           <Icon size={24} strokeWidth={2} />
