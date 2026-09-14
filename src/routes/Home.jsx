@@ -5,7 +5,6 @@ import { cn } from '../lib/cn'
 import { Header } from '../components/Header.jsx'
 import { Section } from '../components/Section.jsx'
 import { Card } from '../components/Card.jsx'
-import { PromoCard } from '../components/PromoCard.jsx'
 import { AtalhosGovernanca } from '../components/AtalhosGovernanca.jsx'
 import { ProgressRing } from '../components/ProgressRing.jsx'
 import { Avatar } from '../components/Avatar.jsx'
@@ -63,78 +62,14 @@ const sugestoesCards = [
   },
 ]
 
-// Sugestões em páginas de 4 (grade 2×2) com rolagem lateral + bolinhas — mesmo
-// padrão do carrossel de Notícias. Cada página mostra 4 cards; o resto desliza
-// pro lado (com Kanban na frente, o Organograma cai na 2ª página).
-function paginar4(arr) {
-  const out = []
-  for (let i = 0; i < arr.length; i += 4) out.push(arr.slice(i, i + 4))
-  return out
-}
-
-function SugestoesCarrossel({ cards, desktop, setCanvas }) {
-  const [idx, setIdx] = useState(0)
-  const paginas = paginar4(cards)
-
-  const renderCard = (c, i) => {
-    // No desktop, o organograma abre na área principal (dentro do app), não em tela cheia.
-    const orgNoDesktop = desktop && c.to === '/organograma'
-    return (
-      <PromoCard
-        key={c.title}
-        to={orgNoDesktop ? undefined : c.to}
-        onClick={orgNoDesktop ? () => setCanvas('organograma') : undefined}
-        badgeIcon={c.badgeIcon}
-        title={c.title}
-        subtitle={c.subtitle}
-        emBreve={c.emBreve}
-        bgClassName={c.bgClassName}
-        badgeClassName={c.badgeClassName}
-        textClassName={c.textClassName}
-        className={`reveal-${i + 1}`}
-      />
-    )
-  }
-
-  if (paginas.length <= 1) {
-    return <div className="grid grid-cols-2 gap-3">{cards.map(renderCard)}</div>
-  }
-
-  return (
-    <div>
-      <div
-        onScroll={(e) => setIdx(Math.round(e.currentTarget.scrollLeft / e.currentTarget.clientWidth))}
-        className="flex snap-x snap-mandatory gap-3 overflow-x-auto no-scrollbar"
-      >
-        {paginas.map((pagina, pi) => (
-          // content-start: cards no tamanho normal 2×2, sem esticar (páginas com
-          // menos de 4 deixam espaço embaixo até chegarem mais acessos rápidos).
-          <div key={pi} className="grid w-full shrink-0 snap-start grid-cols-2 content-start gap-3">
-            {pagina.map(renderCard)}
-          </div>
-        ))}
-      </div>
-      <div className="mt-2.5 flex justify-center gap-1.5">
-        {paginas.map((_, i) => (
-          <span
-            key={i}
-            className={`h-1.5 rounded-full transition-all ${i === idx ? 'w-4 bg-accent' : 'w-1.5 bg-line'}`}
-          />
-        ))}
-      </div>
-    </div>
-  )
-}
-
 // Rótulo curto pro grid compacto (evita quebra feia com nomes longos).
 function labelCurto(title) {
   if (title.startsWith('Checklist')) return 'Limpeza'
   return title.replace(' Tatá', '')
 }
 
-// [TESTE] Layout compacto de Sugestões (estilo grade de atalhos): tiles menores
-// com ícone + rótulo, tudo visível de uma vez (sem carrossel). Só a matrícula 7
-// vê isto por enquanto — o resto segue no SugestoesCarrossel.
+// Layout compacto de Sugestões (estilo grade de atalhos): tiles menores com
+// ícone + rótulo, todos visíveis de uma vez (sem carrossel).
 function SugestoesGrid({ cards, desktop, setCanvas }) {
   const tile = (c) => {
     const orgNoDesktop = desktop && c.to === '/organograma'
@@ -273,13 +208,13 @@ export function Home() {
     organograma,
     { to: '/radio', badgeIcon: RadioIcon, title: 'Rádio Tatá', subtitle: 'Playlist do time' },
     { to: '/passatempos', badgeIcon: Puzzle, title: 'Passatempos', subtitle: 'Jogue e pontue' },
-  ]
-  // [TESTE] Grid compacto (matrícula 7) ganha atalhos extras: Ranking, Agenda e
-  // Assinaturas. Fica separado de `cards` pra não mexer no carrossel de produção.
-  const cardsGrid = [
-    ...cards,
-    { to: '/ranking', badgeIcon: Trophy, title: 'Ranking', subtitle: 'Sua posição no time' },
-    { to: '/escala', badgeIcon: CalendarClock, title: 'Agenda', subtitle: 'Sua escala da semana' },
+    // Ranking e Agenda respeitam o mesmo acesso do menu "Mais"; Assinaturas é geral.
+    ...(usuario?.podeQuadros
+      ? [{ to: '/ranking', badgeIcon: Trophy, title: 'Ranking', subtitle: 'Sua posição no time' }]
+      : []),
+    ...(usuario?.podeEscala
+      ? [{ to: '/escala', badgeIcon: CalendarClock, title: 'Agenda', subtitle: 'Sua escala da semana' }]
+      : []),
     { to: '/documentos', badgeIcon: FileSignature, title: 'Assinaturas', subtitle: 'Documentos para assinar' },
   ]
   const desktop = useDesktop()
@@ -502,11 +437,7 @@ export function Home() {
 
       {/* Sugestões — páginas de 4 (2×2) com rolagem lateral (Organograma vai pra 2ª) */}
       <Section className="mt-4 hsm:mt-3" title="Sugestões">
-        {usuario?.matricula === '7' ? (
-          <SugestoesGrid cards={cardsGrid} desktop={desktop} setCanvas={setCanvas} />
-        ) : (
-          <SugestoesCarrossel cards={cards} desktop={desktop} setCanvas={setCanvas} />
-        )}
+        <SugestoesGrid cards={cards} desktop={desktop} setCanvas={setCanvas} />
       </Section>
 
       {/* Atalhos — exclusivo p/ quem tem acesso à Governança */}
