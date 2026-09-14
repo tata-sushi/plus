@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Flag, ShoppingBag, Star, Network, Sun, Check, X, KanbanSquare, SprayCan, Radio as RadioIcon, Puzzle } from 'lucide-react'
+import { Flag, ShoppingBag, Star, Network, Sun, Check, X, KanbanSquare, SprayCan, Radio as RadioIcon, Puzzle, UtensilsCrossed } from 'lucide-react'
 import { cn } from '../lib/cn'
 import { Header } from '../components/Header.jsx'
 import { Section } from '../components/Section.jsx'
@@ -51,7 +51,7 @@ const sugestoesCards = [
   },
   {
     to: '/cardapio',
-    badgeIcon: Star,
+    badgeIcon: UtensilsCrossed,
     title: 'Cardápio',
     subtitle: 'Avalie a refeição do dia',
   },
@@ -144,7 +144,9 @@ function SugestoesGrid({ cards, desktop, setCanvas }) {
         <span
           className={cn(
             'grid h-14 w-14 place-items-center rounded-2xl border',
-            c.emBreve ? 'border-line bg-surface-3 text-muted' : 'border-accent/30 bg-accent-soft text-carbon',
+            c.emBreve
+              ? 'border-line bg-surface-3 text-muted'
+              : 'border-carbon/30 bg-accent-soft text-carbon dark:border-accent/30 dark:text-accent',
           )}
         >
           <Icon size={24} strokeWidth={2} />
