@@ -126,6 +126,58 @@ function SugestoesCarrossel({ cards, desktop, setCanvas }) {
   )
 }
 
+// Rótulo curto pro grid compacto (evita quebra feia com nomes longos).
+function labelCurto(title) {
+  if (title.startsWith('Checklist')) return 'Limpeza'
+  return title.replace(' Tatá', '')
+}
+
+// [TESTE] Layout compacto de Sugestões (estilo grade de atalhos): tiles menores
+// com ícone + rótulo, tudo visível de uma vez (sem carrossel). Só a matrícula 7
+// vê isto por enquanto — o resto segue no SugestoesCarrossel.
+function SugestoesGrid({ cards, desktop, setCanvas }) {
+  const tile = (c) => {
+    const orgNoDesktop = desktop && c.to === '/organograma'
+    const Icon = c.badgeIcon
+    const inner = (
+      <>
+        <span
+          className={cn(
+            'grid h-14 w-14 place-items-center rounded-2xl',
+            c.emBreve ? 'bg-surface-3 text-muted' : 'bg-accent-soft text-accent',
+          )}
+        >
+          <Icon size={24} strokeWidth={2} />
+        </span>
+        <span className="mt-1.5 text-center text-[11px] font-medium leading-tight">
+          {labelCurto(c.title)}
+        </span>
+      </>
+    )
+    const cls = 'flex flex-col items-center'
+    if (c.emBreve) {
+      return (
+        <div key={c.title} className={cn(cls, 'opacity-60')} aria-disabled="true">
+          {inner}
+        </div>
+      )
+    }
+    if (orgNoDesktop) {
+      return (
+        <button key={c.title} type="button" onClick={() => setCanvas('organograma')} className={cn(cls, 'tap')}>
+          {inner}
+        </button>
+      )
+    }
+    return (
+      <Link key={c.title} to={c.to} className={cn(cls, 'tap')}>
+        {inner}
+      </Link>
+    )
+  }
+  return <div className="grid grid-cols-4 gap-x-2 gap-y-4">{cards.map(tile)}</div>
+}
+
 export function Home() {
   const { usuario } = useAuth()
   const carregandoPerfil = !!usuario?.perfilPendente
@@ -440,7 +492,11 @@ export function Home() {
 
       {/* Sugestões — páginas de 4 (2×2) com rolagem lateral (Organograma vai pra 2ª) */}
       <Section className="mt-4 hsm:mt-3" title="Sugestões">
-        <SugestoesCarrossel cards={cards} desktop={desktop} setCanvas={setCanvas} />
+        {usuario?.matricula === '7' ? (
+          <SugestoesGrid cards={cards} desktop={desktop} setCanvas={setCanvas} />
+        ) : (
+          <SugestoesCarrossel cards={cards} desktop={desktop} setCanvas={setCanvas} />
+        )}
       </Section>
 
       {/* Atalhos — exclusivo p/ quem tem acesso à Governança */}
