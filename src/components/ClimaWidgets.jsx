@@ -42,8 +42,9 @@ function Toque({ className }) {
 
 // ── 1. O convite chega no WhatsApp ───────────────────────────────────────────
 // Reproduz o WhatsApp real da Sara (RH): identificação, prévia do link e a
-// mensagem enviada — só sem o nome da pessoa (é genérico para qualquer colega).
-function WhatsappClima() {
+// mensagem enviada — genérico para qualquer colega. Reutilizável (clima,
+// desligamento…) via props; o corpo da mensagem entra como children.
+export function WhatsappSara({ previewTitulo, previewDesc, url, hora = '12:15', children }) {
   const [step, setStep] = useState(0) // 0 digitando · 1 mensagem
   useEffect(() => {
     const t = setTimeout(() => setStep(1), 1300)
@@ -101,10 +102,10 @@ function WhatsappClima() {
               <div className="px-2 pt-2">
                 <div className="rounded-md px-2.5 py-2" style={{ background: '#F0F2F5' }}>
                   <p className="text-[11px] font-bold" style={{ color: '#111' }}>
-                    Pesquisa de Clima — TATÁ Sushi
+                    {previewTitulo}
                   </p>
                   <p className="mt-0.5 text-[10px] leading-snug" style={{ color: '#667781' }}>
-                    Queremos ouvir você! Rápida (menos de 1 min) e 100% anônima. 💚
+                    {previewDesc}
                   </p>
                   <p className="mt-1 hstack items-center gap-1 text-[10px]" style={{ color: '#667781' }}>
                     <Link2 size={10} /> pesquisa.tatasushi.tech
@@ -113,22 +114,16 @@ function WhatsappClima() {
               </div>
               {/* texto da mensagem (sem o nome da pessoa) */}
               <div className="px-2.5 pb-1.5 pt-2 text-[12px] leading-snug" style={{ color: '#111' }}>
-                <p>Olá! Aqui é a Sara do TATÁ Sushi. 🍣</p>
-                <p className="mt-2">
-                  Estamos com a <strong className="font-semibold">Pesquisa de Clima</strong> e queremos
-                  ouvir você — é rapidinha (menos de 1 min) e{' '}
-                  <strong className="font-semibold">confidencial</strong>: o RH vê só os resultados do
-                  grupo, nunca respostas individuais.
-                </p>
+                {children}
                 <p className="mt-2">O link expira em 24h:</p>
                 <div className="relative mt-0.5 pr-6">
                   <span className="break-all underline" style={{ color: '#027EB5' }}>
-                    https://pesquisa.tatasushi.tech/?t=d82d7606-30ad-4838-b939-4862a2d1d9e5
+                    {url}
                   </span>
                   <Toque className="-bottom-1 right-0" />
                 </div>
                 <p className="mt-1 text-right text-[9px]" style={{ color: '#667781' }}>
-                  12:15
+                  {hora}
                 </p>
               </div>
             </div>
@@ -136,6 +131,24 @@ function WhatsappClima() {
         </div>
       </div>
     </div>
+  )
+}
+
+function WhatsappClima() {
+  return (
+    <WhatsappSara
+      previewTitulo="Pesquisa de Clima — TATÁ Sushi"
+      previewDesc="Queremos ouvir você! Rápida (menos de 1 min) e 100% anônima. 💚"
+      url="https://pesquisa.tatasushi.tech/?t=d82d7606-30ad-4838-b939-4862a2d1d9e5"
+    >
+      <p>Olá! Aqui é a Sara do TATÁ Sushi. 🍣</p>
+      <p className="mt-2">
+        Estamos com a <strong className="font-semibold">Pesquisa de Clima</strong> e queremos
+        ouvir você — é rapidinha (menos de 1 min) e{' '}
+        <strong className="font-semibold">confidencial</strong>: o RH vê só os resultados do
+        grupo, nunca respostas individuais.
+      </p>
+    </WhatsappSara>
   )
 }
 
