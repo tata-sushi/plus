@@ -177,7 +177,7 @@ function SugestoesGrid({ cards, desktop, setCanvas }) {
       </Link>
     )
   }
-  return <div className="grid grid-cols-4 gap-x-2 gap-y-4">{cards.map(tile)}</div>
+  return <div className="grid grid-cols-5 gap-x-1.5 gap-y-4">{cards.map(tile)}</div>
 }
 
 export function Home() {
