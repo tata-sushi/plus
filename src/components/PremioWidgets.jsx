@@ -37,7 +37,7 @@ function Fator({ rotulo, valor, on }) {
 function PremioPonto() {
   const [foco, setFoco] = useState(0) // 0 ponto · 1 pontuação · 2 resultado
   useEffect(() => {
-    const t = setInterval(() => setFoco((f) => (f + 1) % 3), 1400)
+    const t = setInterval(() => setFoco((f) => (f + 1) % 3), 1680)
     return () => clearInterval(t)
   }, [])
 
@@ -133,7 +133,7 @@ function PremioConta({ itens }) {
   const [step, setStep] = useState(0) // 0 = só base; 1..N = revela item i
   useEffect(() => {
     if (total === 0) return
-    const t = setInterval(() => setStep((s) => (s + 1) % (total + 1)), 1200)
+    const t = setInterval(() => setStep((s) => (s + 1) % (total + 1)), 1440)
     return () => clearInterval(t)
   }, [total])
 
