@@ -20,6 +20,7 @@ import { Comunidade } from './routes/Comunidade.jsx'
 import { Ouvidoria } from './routes/Ouvidoria.jsx'
 import { Governanca } from './routes/Governanca.jsx'
 import { Organograma } from './routes/Organograma.jsx'
+import { OrganogramaAneis } from './routes/OrganogramaAneis.jsx'
 import { ControleEscala } from './routes/ControleEscala.jsx'
 import { GerenciarAtalhos } from './routes/GerenciarAtalhos.jsx'
 import { QuestionarioDisc } from './routes/QuestionarioDisc.jsx'
@@ -118,6 +119,7 @@ export function App() {
         <Route path="/minha-experiencia" element={<MinhaExperiencia />} />
         <Route path="/governanca" element={<Governanca />} />
         <Route path="/organograma" element={<Organograma />} />
+        <Route path="/organograma-aneis" element={<OrganogramaAneis />} />
         <Route path="/controle-escala" element={<ControleEscala />} />
         <Route path="/radio" element={<Radio />} />
         <Route path="/compartilhar" element={<Compartilhar />} />

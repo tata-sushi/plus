@@ -23,6 +23,7 @@ import {
   ShoppingBag,
   ReceiptText,
   Lightbulb,
+  Network,
 } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Section } from '../components/Section.jsx'
@@ -57,6 +58,7 @@ const itens = [
   { to: '/brainstorm', label: 'Brainstorm Líderes', icon: Lightbulb, brainstorm: true },
   { to: '/documentos', label: 'Assinaturas', icon: FileSignature },
   { to: '/holerites', label: 'Holerite', icon: ReceiptText },
+  { to: '/organograma-aneis', label: 'Organograma', icon: Network, teste: true },
   { to: '/passatempos', label: 'Passatempos', icon: Puzzle, jogo: true },
   { to: '/manutencao', label: 'Painel de Ajustes', icon: Wrench },
   { to: '/atalhos-governanca', label: 'Atalhos', icon: Pin, gov: true },
@@ -117,6 +119,7 @@ export function Mais() {
         (!i.escala || usuario?.podeEscala) &&
         (!i.brainstorm || usuario?.podeBrainstorm) &&
         (!i.beta || podeVerReconhecimento(usuario)) &&
+        (!i.teste || usuario?.matricula === '7') &&
         (!i.rhdocs || usuario?.perfil === 'admin' || usuario?.lider),
     )
     .sort((a, b) => a.label.localeCompare(b.label, 'pt', { sensitivity: 'base' }))
