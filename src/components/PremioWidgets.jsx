@@ -114,7 +114,8 @@ function Linha({ rotulo, valor, tipo, on, foco }) {
 }
 
 // val negativo = desconto · val positivo = extra
-const CONTAS = {
+// Valores de exemplo por valor do ponto (R$ 75 = Pinheiros/Itaim; R$ 100 = Poke).
+const CONTAS_75 = {
   'premio-total': [
     { rot: 'Penalidade em Qualidade', val: -15 },
     { rot: 'Penalidade por Falta', val: -15 },
@@ -128,6 +129,21 @@ const CONTAS = {
   ],
   'premio-bonus-extra': [{ rot: 'Faixa extra atingida', val: 25 }],
 }
+const CONTAS_100 = {
+  'premio-total': [
+    { rot: 'Penalidade em Qualidade', val: -6 },
+    { rot: 'Penalidade por Falta', val: -20 },
+    { rot: 'Faixa intermediária não atingida', val: -16 },
+  ],
+  'premio-sem-pen': [],
+  'premio-bonus': [
+    { rot: 'Penalidade em Qualidade', val: -6 },
+    { rot: 'Penalidade por Falta', val: -20 },
+    { rot: 'Faixa extra atingida', val: 15 },
+  ],
+  'premio-bonus-extra': [{ rot: 'Faixa extra atingida', val: 15 }],
+}
+const CONTAS_POR_PONTO = { 75: CONTAS_75, 100: CONTAS_100 }
 
 function PremioConta({ itens, ponto }) {
   const base = ponto * PTS
@@ -201,7 +217,8 @@ export function PremioWidget({ tipo }) {
   const m = tipo.match(/^(premio-.+?)-(\d+)$/)
   const ponto = m ? Number(m[2]) : 75
   const base = m ? m[1] : tipo
+  const contas = CONTAS_POR_PONTO[ponto] || CONTAS_75
   if (base === 'premio-ponto') return <PremioPonto ponto={ponto} />
-  if (CONTAS[base]) return <PremioConta itens={CONTAS[base]} ponto={ponto} />
+  if (contas[base]) return <PremioConta itens={contas[base]} ponto={ponto} />
   return null
 }
