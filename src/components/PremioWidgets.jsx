@@ -126,6 +126,7 @@ const CONTAS = {
     { rot: 'Penalidade por Falta', val: -15 },
     { rot: 'Faixa bônus atingida', val: 25 },
   ],
+  'premio-bonus-extra': [{ rot: 'Faixa bônus atingida', val: 25 }],
 }
 
 function PremioConta({ itens }) {
@@ -140,7 +141,16 @@ function PremioConta({ itens }) {
   const valorFinal = BASE + itens.slice(0, step).reduce((a, it) => a + it.val, 0)
   const firstDesc = itens.findIndex((i) => i.val < 0)
   const firstBonus = itens.findIndex((i) => i.val > 0)
+  const temDesc = firstDesc !== -1
   const temBonus = firstBonus !== -1
+  const legenda =
+    total === 0
+      ? 'Sem penalidades, o valor final é o valor inicial'
+      : temDesc && temBonus
+        ? 'Valor inicial − penalidades + bônus = valor final'
+        : temBonus
+          ? 'Valor inicial + bônus = valor final'
+          : 'Valor inicial − penalidades = valor final'
 
   return (
     <div className="my-5 rounded-card border border-line bg-surface p-4">
@@ -180,13 +190,7 @@ function PremioConta({ itens }) {
           </div>
         </div>
       </div>
-      <p className="mt-2 text-center text-xs text-muted">
-        {temBonus
-          ? 'Valor inicial − penalidades + bônus = valor final'
-          : total === 0
-            ? 'Sem penalidades, o valor final é o valor inicial'
-            : 'Valor inicial − penalidades = valor final'}
-      </p>
+      <p className="mt-2 text-center text-xs text-muted">{legenda}</p>
     </div>
   )
 }
