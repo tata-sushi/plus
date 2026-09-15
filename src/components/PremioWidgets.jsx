@@ -2,16 +2,15 @@ import { useEffect, useState } from 'react'
 import { cn } from '../lib/cn'
 
 // Widgets do módulo "Gorjeta e Prêmio" — explicam a conta do prêmio.
-//   [[premio-ponto]]    → 1ª regra: valor do ponto × a pontuação = valor inicial
-//   [[premio-total]]    → valor inicial − penalidades = valor final
-//   [[premio-sem-pen]]  → sem penalidades: valor final = valor inicial
-//   [[premio-bonus]]    → com penalidades + faixa bônus (acréscimo)
-// Exemplo com os números da Cozinha (ponto R$ 75; pontuação 3; penalidades reais).
+//   [[premio-ponto]]        → valor do ponto × a pontuação = valor inicial
+//   [[premio-total]]        → valor inicial − penalidades = valor final
+//   [[premio-sem-pen]]      → sem penalidades: valor final = valor inicial
+//   [[premio-bonus]]        → com penalidades + faixa extra
+//   [[premio-bonus-extra]]  → sem penalidades + faixa extra (melhor caso)
+// Sufixo "-100" (ex.: premio-ponto-100) usa o ponto de R$ 100 (Poke).
 
-const PONTO = 75
 const PTS = 3
-const BASE = PONTO * PTS // 225
-
+const HOLD = 5000 // segura o resultado final antes de reiniciar
 const BRL = (n) =>
   'R$ ' + Number(n).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
@@ -34,18 +33,19 @@ function Fator({ rotulo, valor, on }) {
   )
 }
 
-function PremioPonto() {
+function PremioPonto({ ponto }) {
+  const base = ponto * PTS
   const [foco, setFoco] = useState(0) // 0 ponto · 1 pontuação · 2 resultado
   useEffect(() => {
-    const t = setInterval(() => setFoco((f) => (f + 1) % 3), 1680)
-    return () => clearInterval(t)
-  }, [])
+    const t = setTimeout(() => setFoco((f) => (f + 1) % 3), foco === 2 ? HOLD : 1680)
+    return () => clearTimeout(t)
+  }, [foco])
 
   return (
     <div className="my-5 rounded-card border border-line bg-surface p-4">
       <p className="text-sm font-bold">Exemplo</p>
       <div className="mt-3 rounded-2xl border border-line bg-bg p-3">
-        <Fator rotulo="Valor básico do ponto/prêmio" valor={BRL(PONTO)} on={foco === 0} />
+        <Fator rotulo="Valor básico do ponto/prêmio" valor={BRL(ponto)} on={foco === 0} />
         <div className="py-0.5 text-center text-base font-bold text-muted-2">×</div>
         <Fator rotulo="Sua pontuação" valor={`${PTS} pontos`} on={foco === 1} />
         <div className="my-2 h-px bg-line" />
@@ -62,7 +62,7 @@ function PremioPonto() {
               foco === 2 ? 'scale-105 text-accent' : 'scale-100 text-text',
             )}
           >
-            {BRL(BASE)}
+            {BRL(base)}
           </div>
         </div>
       </div>
@@ -73,7 +73,7 @@ function PremioPonto() {
   )
 }
 
-// ── 2/3/4. Valor inicial ± itens = valor final ───────────────────────────────
+// ── 2/3/4/5. Valor inicial ± itens = valor final ─────────────────────────────
 function Separador({ label }) {
   return (
     <div className="hstack items-center gap-2 py-1">
@@ -113,7 +113,7 @@ function Linha({ rotulo, valor, tipo, on, foco }) {
   )
 }
 
-// val negativo = desconto · val positivo = bônus
+// val negativo = desconto · val positivo = extra
 const CONTAS = {
   'premio-total': [
     { rot: 'Penalidade em Qualidade', val: -15 },
@@ -124,21 +124,22 @@ const CONTAS = {
   'premio-bonus': [
     { rot: 'Penalidade em Qualidade', val: -15 },
     { rot: 'Penalidade por Falta', val: -15 },
-    { rot: 'Faixa bônus atingida', val: 25 },
+    { rot: 'Faixa extra atingida', val: 25 },
   ],
-  'premio-bonus-extra': [{ rot: 'Faixa bônus atingida', val: 25 }],
+  'premio-bonus-extra': [{ rot: 'Faixa extra atingida', val: 25 }],
 }
 
-function PremioConta({ itens }) {
+function PremioConta({ itens, ponto }) {
+  const base = ponto * PTS
   const total = itens.length
   const [step, setStep] = useState(0) // 0 = só base; 1..N = revela item i
   useEffect(() => {
     if (total === 0) return
-    const t = setInterval(() => setStep((s) => (s + 1) % (total + 1)), 1440)
-    return () => clearInterval(t)
-  }, [total])
+    const t = setTimeout(() => setStep((s) => (s + 1) % (total + 1)), step === total ? HOLD : 1440)
+    return () => clearTimeout(t)
+  }, [step, total])
 
-  const valorFinal = BASE + itens.slice(0, step).reduce((a, it) => a + it.val, 0)
+  const valorFinal = base + itens.slice(0, step).reduce((a, it) => a + it.val, 0)
   const firstDesc = itens.findIndex((i) => i.val < 0)
   const firstBonus = itens.findIndex((i) => i.val > 0)
   const temDesc = firstDesc !== -1
@@ -147,9 +148,9 @@ function PremioConta({ itens }) {
     total === 0
       ? 'Sem penalidades, o valor final é o valor inicial'
       : temDesc && temBonus
-        ? 'Valor inicial − penalidades + bônus = valor final'
+        ? 'Valor inicial − penalidades + extra = valor final'
         : temBonus
-          ? 'Valor inicial + bônus = valor final'
+          ? 'Valor inicial + extra = valor final'
           : 'Valor inicial − penalidades = valor final'
 
   return (
@@ -159,11 +160,11 @@ function PremioConta({ itens }) {
         {/* topo fixo: valor inicial */}
         <div className="rounded-xl bg-surface-2 px-3 py-2.5 text-center">
           <span className="text-[11px] text-muted">Valor inicial do seu prêmio</span>
-          <div className="font-display text-2xl font-extrabold text-text">{BRL(BASE)}</div>
+          <div className="font-display text-2xl font-extrabold text-text">{BRL(base)}</div>
         </div>
 
         <div className="mt-3 space-y-1">
-          <Linha rotulo="valor inicial do seu prêmio" valor={BRL(BASE)} tipo="base" on />
+          <Linha rotulo="valor inicial do seu prêmio" valor={BRL(base)} tipo="base" on />
 
           {total === 0 && (
             <p className="py-2 text-center text-xs text-muted">Nenhuma penalidade neste período 🎉</p>
@@ -172,7 +173,7 @@ function PremioConta({ itens }) {
           {itens.map((it, i) => (
             <div key={it.rot}>
               {i === firstDesc && <Separador label="desconto" />}
-              {i === firstBonus && <Separador label="bônus" />}
+              {i === firstBonus && <Separador label="extra" />}
               <Linha
                 rotulo={it.rot}
                 valor={(it.val < 0 ? '− ' : '+ ') + BRL(Math.abs(it.val))}
@@ -196,7 +197,11 @@ function PremioConta({ itens }) {
 }
 
 export function PremioWidget({ tipo }) {
-  if (tipo === 'premio-ponto') return <PremioPonto />
-  if (CONTAS[tipo]) return <PremioConta itens={CONTAS[tipo]} />
+  // sufixo "-<n>" define o valor do ponto (ex.: premio-ponto-100 → R$ 100); padrão R$ 75
+  const m = tipo.match(/^(premio-.+?)-(\d+)$/)
+  const ponto = m ? Number(m[2]) : 75
+  const base = m ? m[1] : tipo
+  if (base === 'premio-ponto') return <PremioPonto ponto={ponto} />
+  if (CONTAS[base]) return <PremioConta itens={CONTAS[base]} ponto={ponto} />
   return null
 }
