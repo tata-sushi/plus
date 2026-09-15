@@ -41,6 +41,7 @@ import { ReconhecimentoWidget } from '../components/ReconhecimentoWidgets.jsx'
 import { DesempenhoWidget } from '../components/DesempenhoWidgets.jsx'
 import { RefeicaoWidget } from '../components/RefeicaoWidgets.jsx'
 import { DesligamentoWidget } from '../components/DesligamentoWidgets.jsx'
+import { PremioWidget } from '../components/PremioWidgets.jsx'
 import { cn } from '../lib/cn'
 import { tapHaptic } from '../lib/haptics.js'
 import { resolveIcon } from '../lib/icons.js'
@@ -54,11 +55,12 @@ const TIPO_LABEL = { prova: 'Prova' }
 // interativos (ex.: a escala e a régua no desafio de Avaliações & Feedbacks).
 // Sem tokens, é só o HTML de sempre — nenhum outro desafio é afetado.
 const WIDGETS =
-  /\[\[(escala-likert|regua|caminho-avaliacao|caminho-lideranca|perguntas-14dias|whatsapp-clima|pagina-clima|perguntas-clima|reconhecer-caminho|reconhecer-sheet|reconhecer-feed|pdi-ciclo|refeicao-caminho|refeicao-estrelas|whatsapp-desligamento)\]\]/g
+  /\[\[(escala-likert|regua|caminho-avaliacao|caminho-lideranca|perguntas-14dias|whatsapp-clima|pagina-clima|perguntas-clima|reconhecer-caminho|reconhecer-sheet|reconhecer-feed|pdi-ciclo|refeicao-caminho|refeicao-estrelas|whatsapp-desligamento|premio-ponto|premio-total)\]\]/g
 function renderWidget(tipo, key) {
   if (tipo === 'escala-likert' || tipo === 'regua') return <EscalaCard key={key} tipo={tipo} />
   if (tipo.endsWith('-clima')) return <ClimaWidget key={key} tipo={tipo} />
   if (tipo === 'whatsapp-desligamento') return <DesligamentoWidget key={key} tipo={tipo} />
+  if (tipo.startsWith('premio-')) return <PremioWidget key={key} tipo={tipo} />
   if (tipo.startsWith('reconhecer-')) return <ReconhecimentoWidget key={key} tipo={tipo} />
   if (tipo === 'pdi-ciclo') return <DesempenhoWidget key={key} tipo={tipo} />
   if (tipo.startsWith('refeicao-')) return <RefeicaoWidget key={key} tipo={tipo} />
