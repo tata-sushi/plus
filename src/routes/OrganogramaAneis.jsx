@@ -297,9 +297,6 @@ export function OrganogramaAneis() {
         <button onClick={() => navigate(-1)} className="hstack gap-1 text-sm text-muted tap">
           <ArrowLeft size={16} /> Voltar
         </button>
-        <div className="mt-3 rounded-card border border-line bg-surface px-3 py-2 text-[11px] text-muted">
-          Gire as unidades e a gerência. Ao alinhar uma unidade e um gerente no fundo (↓), abre o time completo embaixo.
-        </div>
       </div>
 
       {gente === null ? (
@@ -307,18 +304,11 @@ export function OrganogramaAneis() {
           <Loader2 size={22} className="animate-spin" />
         </div>
       ) : (
-        <div className="px-4 pt-3">
+        <div className="px-4 pt-1">
           <div className="relative mx-auto w-full select-none" style={{ maxWidth: 380 }}>
             <svg ref={svgRef} viewBox={`0 0 ${VB} ${VB}`} className="w-full" role="img" aria-label="Organograma em anéis" style={{ touchAction: 'none' }}>
               {/* captura de gestos (fundo) */}
               <rect x="0" y="0" width={VB} height={VB} fill="transparent" onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={() => (drag.current = null)} style={{ pointerEvents: 'all', touchAction: 'none', cursor: 'grab' }} />
-
-              {/* eixo do fundo (slot de alinhamento) */}
-              {(() => {
-                const [ax, ay] = polar(R_CENTRO, BOTTOM)
-                const [bx, by] = polar(R_GER + 16, BOTTOM)
-                return <line x1={ax} y1={ay} x2={bx} y2={by} style={{ stroke: CITRIC, strokeWidth: timeAtivo ? 2.4 : 1.4, strokeDasharray: timeAtivo ? 'none' : '2 5', opacity: timeAtivo ? 0.9 : 0.35, pointerEvents: 'none' }} />
-              })()}
 
               {/* conectores (ramos) */}
               {reveals.map((r) =>
@@ -346,10 +336,9 @@ export function OrganogramaAneis() {
                 const a0 = -Math.PI / 2 + (i / N_U) * TAU + rotU
                 const a1 = -Math.PI / 2 + ((i + 1) / N_U) * TAU + rotU
                 const on = unidadesCasadas.has(i)
-                const noFundo = i === bUniIdx
                 return (
                   <g key={`u-${u.u}`} style={{ pointerEvents: 'none' }}>
-                    <path d={arc(U_IN, U_OUT, a0, a1)} style={{ fill: on ? CITRIC : CARBON, fillOpacity: on ? 0.3 : 0.12, stroke: on || noFundo ? CITRIC : 'rgb(var(--bg))', strokeWidth: on || noFundo ? 2.5 : 2 }} />
+                    <path d={arc(U_IN, U_OUT, a0, a1)} style={{ fill: on ? CITRIC : CARBON, fillOpacity: on ? 0.3 : 0.12, stroke: on ? CITRIC : 'rgb(var(--bg))', strokeWidth: on ? 2.5 : 2 }} />
                     <path id={`uarc-${i}`} d={textArc(U_LAB, a0 + 0.04, a1 - 0.04)} fill="none" />
                     <text style={{ fill: 'rgb(var(--text))', fontSize: 9, fontWeight: 700 }}>
                       <textPath href={`#uarc-${i}`} startOffset="50%" textAnchor="middle">
@@ -389,7 +378,6 @@ export function OrganogramaAneis() {
                 {reveals.map((r) => {
                   const [x, y] = polar(R_GER, r.gAng)
                   const size = Math.max(22, Math.round(AV_GER * k))
-                  const noFundo = bGer?.matricula === r.g.matricula && timeAtivo
                   return (
                     <button
                       key={`ger-${r.g.matricula}`}
@@ -401,7 +389,7 @@ export function OrganogramaAneis() {
                       className="pointer-events-auto absolute -translate-x-1/2 -translate-y-1/2 cursor-grab rounded-full active:cursor-grabbing"
                       style={{ left: x * k, top: y * k, touchAction: 'none' }}
                     >
-                      <span className="block rounded-full" style={{ boxShadow: `0 0 0 ${noFundo ? 3 : 2.5}px ${CITRIC}, 0 2px 7px rgba(0,0,0,.3)` }}>
+                      <span className="block rounded-full" style={{ boxShadow: `0 0 0 2.5px ${CITRIC}, 0 2px 7px rgba(0,0,0,.3)` }}>
                         <Avatar name={r.g.nome} src={r.g.avatar_url} size={size} />
                       </span>
                     </button>
@@ -473,15 +461,11 @@ export function OrganogramaAneis() {
               </div>
               {time && time.key === timeKey ? (
                 timeFlat.length ? (
-                  <div className="card divide-y divide-line overflow-hidden">
-                    {timeFlat.map(({ r, depth }) => (
-                      <button key={r.matricula} onClick={() => { tapHaptic(); navigate(`/perfil/${r.matricula}`) }} className="hstack w-full gap-2.5 py-2 pr-3 text-left tap" style={{ paddingLeft: 12 + Math.min(depth, 5) * 16 }}>
-                        {depth > 0 && <span className="h-4 w-2 shrink-0 border-l border-line" />}
-                        <Avatar name={r.nome} src={r.avatar_url} size={30} />
-                        <div className="min-w-0 flex-1">
-                          <div className="truncate text-[13px] font-semibold">{r.nome}</div>
-                          <div className="truncate text-[10.5px] text-muted">{r.cargo}</div>
-                        </div>
+                  <div className="grid grid-cols-5 gap-x-1 gap-y-3">
+                    {timeFlat.map(({ r }) => (
+                      <button key={r.matricula} onClick={() => { tapHaptic(); navigate(`/perfil/${r.matricula}`) }} className="flex flex-col items-center gap-1 tap" title={`${r.nome} — ${r.cargo || ''}`}>
+                        <Avatar name={r.nome} src={r.avatar_url} size={46} />
+                        <span className="w-full truncate text-center text-[9px] leading-tight text-muted">{primeiro(r.nome)}</span>
                       </button>
                     ))}
                   </div>
