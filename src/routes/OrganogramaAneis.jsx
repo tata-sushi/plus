@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowLeft, Loader2, X, ChevronRight, RotateCcw, ArrowDown } from 'lucide-react'
+import { ArrowLeft, Loader2, X, ChevronRight, RotateCcw } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Avatar } from '../components/Avatar.jsx'
 import { supabase } from '../lib/supabase.js'
@@ -239,6 +239,7 @@ export function OrganogramaAneis() {
       ? { gid: bGer.id_pessoa, unidade: bUnidade, ger: bGer }
       : null
   const timeKey = timeAtivo ? `${timeAtivo.gid}|${timeAtivo.unidade}` : null
+  const alinhadoId = timeAtivo ? timeAtivo.gid : null
 
   useEffect(() => {
     if (!timeKey) {
@@ -345,8 +346,8 @@ export function OrganogramaAneis() {
               {/* captura de gestos (fundo) */}
               <rect x="0" y="0" width={VB} height={VB} fill="transparent" onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={() => (drag.current = null)} style={{ pointerEvents: 'all', touchAction: 'none', cursor: 'grab' }} />
 
-              {/* conectores (ramos) */}
-              {reveals.map((r) =>
+              {/* conectores (ramos) — esconde o leque do gerente alinhado no fundo */}
+              {reveals.filter((r) => r.g.id_pessoa !== alinhadoId).map((r) =>
                 r.nivel1.map((n1, j) => {
                   const [gx, gy] = polar(R_GER + AV_GER / 2 - 2, r.gAng)
                   const [ax, ay] = polar(R_L1 - AV1 / 2, n1.ang)
@@ -431,8 +432,8 @@ export function OrganogramaAneis() {
                   )
                 })}
 
-                {/* líderes revelados */}
-                {reveals.flatMap((r) =>
+                {/* líderes revelados (esconde os do gerente alinhado no fundo) */}
+                {reveals.filter((r) => r.g.id_pessoa !== alinhadoId).flatMap((r) =>
                   r.nivel1.flatMap((n1) => [
                     { p: n1.l, ang: n1.ang, rad: R_L1, av: AV1 },
                     ...n1.kids.map((c) => ({ p: c.l, ang: c.ang, rad: R_L2, av: AV2 })),
@@ -451,6 +452,41 @@ export function OrganogramaAneis() {
               </div>
             )}
           </div>
+
+          {/* Ramificação completa — continua o MESMO tronco pra baixo (sem seção) */}
+          {timeAtivo && (
+            time && time.key === timeKey ? (
+              timeTree ? (
+                <div className="-mt-2 overflow-x-auto pb-6">
+                  <div className="relative mx-auto" style={{ width: timeTree.width, height: timeTree.height }}>
+                    <svg width={timeTree.width} height={timeTree.height} className="absolute left-0 top-0">
+                      {timeTree.nodes[0] && (
+                        <line x1={timeTree.nodes[0].x} y1={0} x2={timeTree.nodes[0].x} y2={timeTree.nodes[0].y} style={{ stroke: CARBON, strokeWidth: 1.6, opacity: 0.55 }} />
+                      )}
+                      {timeTree.links.map((l, i) => (
+                        <line key={i} x1={l.x1} y1={l.y1} x2={l.x2} y2={l.y2} style={{ stroke: CARBON, strokeWidth: 1.6, opacity: 0.55 }} />
+                      ))}
+                    </svg>
+                    {timeTree.nodes.map((n) => {
+                      const raiz = n.r.matricula === time.ger.matricula
+                      return (
+                        <button key={n.r.matricula} onClick={() => { tapHaptic(); navigate(`/perfil/${n.r.matricula}`) }} title={`${n.r.nome} — ${n.r.cargo || ''}`} className="absolute flex -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-0.5 tap" style={{ left: n.x, top: n.y, width: 56 }}>
+                          <span className="block rounded-full" style={{ boxShadow: `0 0 0 2px ${raiz ? CITRIC : CARBON}, 0 1px 4px rgba(0,0,0,.25)` }}>
+                            <Avatar name={n.r.nome} src={n.r.avatar_url} size={timeTree.node} />
+                          </span>
+                          <span className="w-full truncate text-center text-[8.5px] leading-tight text-muted">{primeiro(n.r.nome)}</span>
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+              ) : (
+                <p className="px-1 text-center text-[11px] text-muted">Sem colaboradores nessa unidade.</p>
+              )
+            ) : (
+              <div className="hstack justify-center py-4 text-muted-2"><Loader2 size={16} className="animate-spin" /></div>
+            )
+          )}
 
           {/* Cartão da pessoa */}
           {sel && (
@@ -484,46 +520,6 @@ export function OrganogramaAneis() {
               </button>
             )}
           </div>
-
-          {/* Time completo (alinhamento no fundo) */}
-          {timeAtivo && (
-            <div className="mx-auto mt-4 max-w-[380px]">
-              <div className="hstack gap-2 px-1 pb-2 text-xs">
-                <ArrowDown size={14} className="text-accent" />
-                <span className="font-bold text-text">Time de {primeiro(timeAtivo.ger.nome)}</span>
-                <span className="text-muted">· {timeAtivo.unidade}</span>
-                <span className="ml-auto text-muted-2">{time?.rows?.length || 0}</span>
-              </div>
-              {time && time.key === timeKey ? (
-                timeTree ? (
-                  <div className="overflow-auto rounded-card border border-line bg-surface" style={{ maxHeight: '58vh' }}>
-                    <div className="relative mx-auto" style={{ width: timeTree.width, height: timeTree.height }}>
-                      <svg width={timeTree.width} height={timeTree.height} className="absolute left-0 top-0">
-                        {timeTree.links.map((l, i) => (
-                          <line key={i} x1={l.x1} y1={l.y1} x2={l.x2} y2={l.y2} style={{ stroke: CARBON, strokeWidth: 1.6, opacity: 0.55 }} />
-                        ))}
-                      </svg>
-                      {timeTree.nodes.map((n) => {
-                        const raiz = n.r.matricula === time.ger.matricula
-                        return (
-                          <button key={n.r.matricula} onClick={() => { tapHaptic(); navigate(`/perfil/${n.r.matricula}`) }} title={`${n.r.nome} — ${n.r.cargo || ''}`} className="absolute flex -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-0.5 tap" style={{ left: n.x, top: n.y, width: 56 }}>
-                            <span className="block rounded-full" style={{ boxShadow: `0 0 0 2px ${raiz ? CITRIC : CARBON}, 0 1px 4px rgba(0,0,0,.25)` }}>
-                              <Avatar name={n.r.nome} src={n.r.avatar_url} size={timeTree.node} />
-                            </span>
-                            <span className="w-full truncate text-center text-[8.5px] leading-tight text-muted">{primeiro(n.r.nome)}</span>
-                          </button>
-                        )
-                      })}
-                    </div>
-                  </div>
-                ) : (
-                  <p className="px-1 text-[11px] text-muted">Sem colaboradores nessa unidade.</p>
-                )
-              ) : (
-                <div className="hstack justify-center py-4 text-muted-2"><Loader2 size={16} className="animate-spin" /></div>
-              )}
-            </div>
-          )}
 
           <p className="mx-auto mt-4 max-w-[380px] px-1 pb-10 text-center text-[11px] text-muted-2">
             Protótipo — no fundo (↓) abre o time inteiro; nas outras posições, só os líderes.
