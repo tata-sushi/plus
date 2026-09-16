@@ -8,8 +8,9 @@ import { tapHaptic } from '../lib/haptics.js'
 
 // Organograma em ANÉIS (nativo, versão de teste).
 //   centro: Tatá · anel 1: Sócios · anel 2: Unidades · anel 3: Gerentes (GIRATÓRIO).
-// Gesto único no SVG (com touch-action:none) e hit-test por ângulo/raio — sem
-// captura por fatia, pra não travar o toque. Dados: RPC organograma_lideres().
+// Ao girar os gerentes, quando um gerente "casa" com uma unidade, as fotos dos
+// líderes daquele gerente naquela unidade aparecem no anel externo (e somem
+// quando não casa). Relação chefe→líder por id_superior. RPC organograma_lideres().
 
 const UNIDADES = [
   { u: 'Itaim', cor: '#3b82f6', curto: 'Itaim' },
@@ -22,19 +23,21 @@ const UNIDADES = [
 const OURO = '#eab308'
 const ROXO = '#a855f7'
 
-const VB = 340
-const CX = 170
-const CY = 170
-const R_CENTRO = 26
-const S_IN = 26
-const S_OUT = 78
-const S_LAB = 52
-const U_IN = 78
-const U_OUT = 122
-const U_LAB = 100
-const G_IN = 122
-const G_OUT = 164
-const G_LAB = 143
+const VB = 380
+const CX = 190
+const CY = 190
+const R_CENTRO = 24
+const S_IN = 24
+const S_OUT = 66
+const S_LAB = 47
+const U_IN = 66
+const U_OUT = 110
+const U_LAB = 89
+const G_IN = 110
+const G_OUT = 152
+const G_LAB = 131
+const R_LIDER = 170
+const AV_L = 30
 const TAU = 2 * Math.PI
 
 function polar(r, a) {
@@ -51,7 +54,6 @@ function arc(rIn, rOut, a0, a1) {
 function primeiro(nome) {
   return String(nome || '').trim().split(/\s+/)[0]
 }
-// índice do setor sob o ângulo `a` (topo = 0), com deslocamento de rotação
 function setorDe(a, n, off = 0) {
   let x = a + Math.PI / 2 - off
   x = ((x % TAU) + TAU) % TAU
@@ -61,8 +63,9 @@ function setorDe(a, n, off = 0) {
 export function OrganogramaAneis() {
   const navigate = useNavigate()
   const [gente, setGente] = useState(null)
-  const [rot, setRot] = useState(0) // rotação do anel de gerentes (rad)
-  const [sel, setSel] = useState(null) // pessoa selecionada (cartão)
+  const [rot, setRot] = useState(0)
+  const [sel, setSel] = useState(null)
+  const [w, setW] = useState(0)
   const svgRef = useRef(null)
   const drag = useRef(null)
 
@@ -76,33 +79,68 @@ export function OrganogramaAneis() {
     }
   }, [])
 
-  const { socios, gerentes } = useMemo(() => {
+  useEffect(() => {
+    const elx = svgRef.current
+    if (!elx) return
+    const medir = () => setW(elx.getBoundingClientRect().width || 0)
+    medir()
+    const ro = new ResizeObserver(medir)
+    ro.observe(elx)
+    return () => ro.disconnect()
+  }, [gente])
+
+  const { socios, gerentes, lideres } = useMemo(() => {
     const g = gente || []
     const porFaixa = (f) =>
       g
         .filter((p) => p.faixa === f)
         .sort((a, b) => (a.ordem ?? 0) - (b.ordem ?? 0) || a.nome.localeCompare(b.nome, 'pt'))
-    return { socios: porFaixa(1), gerentes: porFaixa(2) }
+    return { socios: porFaixa(1), gerentes: porFaixa(2), lideres: porFaixa(3) }
   }, [gente])
 
   const N_S = Math.max(1, socios.length)
   const N_U = UNIDADES.length
   const N_G = Math.max(1, gerentes.length)
+  const k = w ? w / VB : 0
+
+  // Casamentos atuais (dependem da rotação): para cada gerente, qual unidade o
+  // centro dele aponta agora e quais líderes dele há nessa unidade.
+  const reveals = useMemo(() => {
+    const out = []
+    gerentes.forEach((g, i) => {
+      const center = -Math.PI / 2 + ((i + 0.5) / N_G) * TAU + rot
+      const uIdx = setorDe(center, N_U)
+      const unidade = UNIDADES[uIdx].u
+      const lids = lideres.filter((l) => l.id_superior === g.id_pessoa && l.unidade === unidade)
+      if (!lids.length) return
+      const step = 0.34
+      const start = center - ((lids.length - 1) / 2) * step
+      out.push({
+        g,
+        center,
+        uIdx,
+        cor: UNIDADES[uIdx].cor,
+        nodes: lids.map((l, j) => ({ l, ang: start + j * step })),
+      })
+    })
+    return out
+  }, [gerentes, lideres, rot, N_G, N_U])
+
+  const unidadesCasadas = new Set(reveals.map((r) => r.uIdx))
+  const gerentesCasados = new Set(reveals.map((r) => r.g.matricula))
 
   // ── gesto único no SVG ─────────────────────────────────────────────────────
   function ponto(e) {
     const r = svgRef.current.getBoundingClientRect()
     const sx = ((e.clientX - r.left) / r.width) * VB
     const sy = ((e.clientY - r.top) / r.height) * VB
-    const dx = sx - CX
-    const dy = sy - CY
-    return { r: Math.hypot(dx, dy), a: Math.atan2(dy, dx) }
+    return { r: Math.hypot(sx - CX, sy - CY), a: Math.atan2(sy - CY, sx - CX) }
   }
   function regiao(rr) {
     if (rr <= R_CENTRO + 3) return 'centro'
     if (rr <= S_OUT) return 'socios'
     if (rr <= U_OUT) return 'uni'
-    if (rr <= 176) return 'ger'
+    if (rr <= G_OUT + 12) return 'ger'
     return 'fora'
   }
   function onDown(e) {
@@ -124,7 +162,7 @@ export function OrganogramaAneis() {
   function onUp(e) {
     const d0 = drag.current
     drag.current = null
-    if (!d0 || d0.moved) return // girou → não seleciona
+    if (!d0 || d0.moved) return
     const { r, a } = ponto(e)
     const reg = regiao(r)
     if (reg === 'centro') return setSel(null)
@@ -148,7 +186,7 @@ export function OrganogramaAneis() {
         </button>
         <div className="mt-3 hstack gap-2 rounded-card border border-line bg-surface px-3 py-2 text-[11px] text-muted">
           <RotateCcw size={14} className="shrink-0 text-accent" />
-          <span>Versão de teste. Arraste o anel de fora (gerentes) pra girar. Toque num nome pra ver a pessoa.</span>
+          <span>Gire os gerentes: ao casar com uma unidade, os líderes daquele gerente ali aparecem. Toque num nome/foto pra ver a pessoa.</span>
         </div>
       </div>
 
@@ -158,7 +196,7 @@ export function OrganogramaAneis() {
         </div>
       ) : (
         <div className="px-4 pt-3">
-          <div className="mx-auto w-full select-none" style={{ maxWidth: 360 }}>
+          <div className="relative mx-auto w-full select-none" style={{ maxWidth: 380 }}>
             <svg
               ref={svgRef}
               viewBox={`0 0 ${VB} ${VB}`}
@@ -171,14 +209,24 @@ export function OrganogramaAneis() {
               onPointerCancel={() => (drag.current = null)}
               style={{ touchAction: 'none', cursor: 'pointer' }}
             >
-              {/* anel 2 — unidades (mesma proporção) */}
+              {/* conectores gerente → líderes revelados */}
+              {reveals.map((r) =>
+                r.nodes.map((nd, j) => {
+                  const [x1, y1] = polar(G_OUT, r.center)
+                  const [x2, y2] = polar(R_LIDER - 14, nd.ang)
+                  return <line key={`cn-${r.g.matricula}-${j}`} x1={x1} y1={y1} x2={x2} y2={y2} style={{ stroke: r.cor, strokeWidth: 1.6, opacity: 0.55 }} />
+                }),
+              )}
+
+              {/* anel 2 — unidades */}
               {UNIDADES.map((u, i) => {
                 const a0 = -Math.PI / 2 + (i / N_U) * TAU
                 const a1 = -Math.PI / 2 + ((i + 1) / N_U) * TAU
                 const [lx, ly] = polar(U_LAB, (a0 + a1) / 2)
+                const cas = unidadesCasadas.has(i)
                 return (
                   <g key={`u-${u.u}`} style={{ pointerEvents: 'none' }}>
-                    <path d={arc(U_IN, U_OUT, a0, a1)} style={{ fill: u.cor, fillOpacity: 0.16, stroke: 'rgb(var(--bg))', strokeWidth: 2 }} />
+                    <path d={arc(U_IN, U_OUT, a0, a1)} style={{ fill: u.cor, fillOpacity: cas ? 0.4 : 0.14, stroke: cas ? u.cor : 'rgb(var(--bg))', strokeWidth: cas ? 2.5 : 2 }} />
                     <text x={lx} y={ly} textAnchor="middle" dominantBaseline="central" style={{ fill: 'rgb(var(--text))', fontSize: 9, fontWeight: 700 }}>
                       {u.curto}
                     </text>
@@ -207,7 +255,7 @@ export function OrganogramaAneis() {
                 const a0 = -Math.PI / 2 + (i / N_G) * TAU + rot
                 const a1 = -Math.PI / 2 + ((i + 1) / N_G) * TAU + rot
                 const [lx, ly] = polar(G_LAB, (a0 + a1) / 2)
-                const on = sel?.matricula === p.matricula
+                const on = sel?.matricula === p.matricula || gerentesCasados.has(p.matricula)
                 return (
                   <g key={`g-${p.matricula}`} style={{ pointerEvents: 'none' }}>
                     <path d={arc(G_IN, G_OUT, a0, a1)} style={{ fill: ROXO, fillOpacity: on ? 0.4 : 0.18, stroke: on ? ROXO : 'rgb(var(--bg))', strokeWidth: on ? 2.5 : 2 }} />
@@ -220,22 +268,50 @@ export function OrganogramaAneis() {
 
               {/* centro Tatá */}
               <circle cx={CX} cy={CY} r={R_CENTRO} style={{ fill: 'rgb(var(--accent))', stroke: 'rgb(var(--surface))', strokeWidth: 2.5, pointerEvents: 'none' }} />
-              <text x={CX} y={CY} textAnchor="middle" dominantBaseline="central" style={{ fill: 'rgb(var(--bg))', fontSize: 10, fontWeight: 800, letterSpacing: 0.5, pointerEvents: 'none' }}>
+              <text x={CX} y={CY} textAnchor="middle" dominantBaseline="central" style={{ fill: 'rgb(var(--bg))', fontSize: 11, fontWeight: 800, letterSpacing: 0.5, pointerEvents: 'none' }}>
                 TATÁ
               </text>
             </svg>
+
+            {/* Fotos dos líderes revelados (DOM) */}
+            {k > 0 && (
+              <div className="pointer-events-none absolute inset-0">
+                {reveals.map((r) =>
+                  r.nodes.map((nd) => {
+                    const [x, y] = polar(R_LIDER, nd.ang)
+                    const size = Math.max(22, Math.round(AV_L * k))
+                    return (
+                      <button
+                        key={`lid-${nd.l.matricula}`}
+                        onClick={() => {
+                          tapHaptic()
+                          setSel(nd.l)
+                        }}
+                        aria-label={nd.l.nome}
+                        className="pointer-events-auto absolute -translate-x-1/2 -translate-y-1/2 rounded-full tap"
+                        style={{ left: x * k, top: y * k }}
+                      >
+                        <span className="block rounded-full" style={{ boxShadow: `0 0 0 2.5px ${r.cor}, 0 2px 7px rgba(0,0,0,.3)` }}>
+                          <Avatar name={nd.l.nome} src={nd.l.avatar_url} size={size} />
+                        </span>
+                      </button>
+                    )
+                  }),
+                )}
+              </div>
+            )}
           </div>
 
           {/* Cartão da pessoa selecionada */}
           {sel && (
-            <div className="mx-auto mt-3 max-w-[360px]">
+            <div className="mx-auto mt-3 max-w-[380px]">
               <div className="card hstack gap-3 p-3">
                 <Avatar name={sel.nome} src={sel.avatar_url} size={52} />
                 <div className="min-w-0 flex-1">
                   <div className="truncate text-sm font-bold">{sel.nome}</div>
                   <div className="truncate text-[11px] text-muted">
                     {sel.cargo}
-                    {sel.faixa === 1 ? ' · Sócio' : sel.faixa === 2 ? ' · Gerência' : ''}
+                    {sel.faixa === 1 ? ' · Sócio' : sel.faixa === 2 ? ' · Gerência' : sel.unidade ? ` · ${sel.unidade}` : ''}
                   </div>
                   <button
                     onClick={() => {
@@ -255,7 +331,7 @@ export function OrganogramaAneis() {
           )}
 
           {/* Legenda */}
-          <div className="mx-auto mt-3 flex max-w-[360px] flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[11px] text-muted">
+          <div className="mx-auto mt-3 flex max-w-[380px] flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[11px] text-muted">
             <span className="hstack gap-1.5"><span className="h-2.5 w-2.5 rounded-full" style={{ background: OURO }} /><b className="text-text">Sócios</b></span>
             <span className="hstack gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-muted-2" />Unidades</span>
             <span className="hstack gap-1.5"><span className="h-2.5 w-2.5 rounded-full" style={{ background: ROXO }} /><b className="text-text">Gerentes</b> (gira)</span>
@@ -272,8 +348,8 @@ export function OrganogramaAneis() {
             </div>
           )}
 
-          <p className="mx-auto mt-4 max-w-[360px] px-1 pb-10 text-center text-[11px] text-muted-2">
-            Protótipo — próximos passos: alinhar cada gerente à sua unidade e abrir os líderes.
+          <p className="mx-auto mt-4 max-w-[380px] px-1 pb-10 text-center text-[11px] text-muted-2">
+            Protótipo — gire os gerentes pra revelar os líderes de cada unidade.
           </p>
         </div>
       )}
