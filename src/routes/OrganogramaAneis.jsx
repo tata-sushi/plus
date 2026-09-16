@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowLeft, Loader2, X, ChevronRight, RotateCcw } from 'lucide-react'
+import { ArrowLeft, ArrowDown, Loader2, X, ChevronRight, RotateCcw } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Avatar } from '../components/Avatar.jsx'
 import { supabase } from '../lib/supabase.js'
@@ -8,10 +8,10 @@ import { tapHaptic } from '../lib/haptics.js'
 
 // Organograma em ANÉIS (nativo, versão de teste).
 //   centro: logo Tatá + Sócios · anel: Unidades (GIRA) · gerência: fotos (GIRA).
-//   Ramificação ORGÂNICA: os líderes da unidade sob o gerente abrem num leque
-//   a partir dele (nível 1), os líderes deles no nível 2 — e, quando o gerente
-//   está alinhado no FUNDO, a MESMA recursão continua até o fim com todo mundo.
-//   Paleta: carbon + citric + p&b.
+//   Ramificação: os líderes da unidade sob o gerente descem dele (nível 1), os
+//   líderes deles no nível 2 — e, quando o gerente está alinhado no FUNDO, a
+//   linha de líderes segue até o último que tem liderados e o TIME COMPLETO
+//   aparece embaixo, em fileiras (uma por líder). Paleta: carbon + citric + p&b.
 
 const UNIDADES = [
   { u: 'Itaim', curto: 'Itaim' },
@@ -180,26 +180,14 @@ export function OrganogramaAneis() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [timeKey])
 
-  // 3) ramificação orgânica de cada gerente: leque de líderes (2 níveis) — ou,
-  //    se alinhado no fundo com o time carregado, a mesma recursão até o fim.
+  // 3) ramificação de cada gerente: só LÍDERES (quem tem liderado ativo). Fora
+  //    do fundo mostra 2 níveis; alinhado no fundo segue até o último líder —
+  //    a mesma árvore, só mais funda, então o desenho de cima não muda.
   const reveals = gerAngs.map((ga) => {
-    const aligned = alinhadoId === ga.g.id_pessoa && !!time && time.key === timeKey
-    let diretos
-    let kidsOf
-    let maxDepth
-    if (aligned) {
-      const byPai = {}
-      time.rows.forEach((r) => { (byPai[r.id_superior] = byPai[r.id_superior] || []).push(r) })
-      const temKids = (r) => ((byPai[r.id_pessoa] || []).length > 0 ? 1 : 0)
-      const cmp = (a, b) => temKids(b) - temKids(a) || a.nome.localeCompare(b.nome, 'pt')
-      diretos = (byPai[ga.g.id_pessoa] || []).slice().sort(cmp)
-      kidsOf = (r) => (byPai[r.id_pessoa] || []).slice().sort(cmp)
-      maxDepth = 99
-    } else {
-      diretos = lideres.filter((l) => l.id_superior === ga.g.id_pessoa && l.unidade === ga.unidade)
-      kidsOf = (r) => lideres.filter((c) => c.id_superior === r.id_pessoa)
-      maxDepth = 2
-    }
+    const aligned = alinhadoId === ga.g.id_pessoa
+    const diretos = lideres.filter((l) => l.id_superior === ga.g.id_pessoa && l.unidade === ga.unidade)
+    const kidsOf = (r) => lideres.filter((c) => c.id_superior === r.id_pessoa)
+    const maxDepth = aligned ? 99 : 2
     // Árvore ARRUMADA: cada subárvore reserva sua largura (sem irmãos se
     // atropelando); filhos em fileiras de até PER_FILA centradas sob o pai; a
     // fileira seguinte só começa abaixo das famílias da de cima. Mapeada no
@@ -254,6 +242,34 @@ export function OrganogramaAneis() {
   })
 
   const unidadesCasadas = new Set(reveals.filter((r) => r.acende).map((r) => r.uIdx))
+
+  // 4) time completo (fundo): quem NÃO é líder, agrupado em fileiras pelo seu
+  //    líder direto, na ordem em que os líderes aparecem na ramificação.
+  let timeGrupos = null
+  if (time && time.key === timeKey) {
+    const liderIds = new Set(lideres.map((l) => l.id_pessoa))
+    const byId = {}
+    lideres.forEach((l) => (byId[l.id_pessoa] = l))
+    time.rows.forEach((r) => (byId[r.id_pessoa] = r))
+    const rv = reveals.find((r) => r.g.id_pessoa === alinhadoId)
+    const ordem = [time.ger, ...(rv ? rv.nodes.map((n) => n.p) : [])]
+    const idxDe = new Map(ordem.map((p, i) => [p.id_pessoa, i]))
+    const grupos = ordem.map((p) => ({ lider: p, pessoas: [] }))
+    const resto = []
+    time.rows.forEach((r) => {
+      if (liderIds.has(r.id_pessoa)) return
+      // sobe a cadeia até achar um líder desenhado na ramificação
+      let sup = r.id_superior
+      let hops = 0
+      while (sup && !idxDe.has(sup) && hops < 20) { sup = byId[sup]?.id_superior; hops++ }
+      if (sup && idxDe.has(sup)) grupos[idxDe.get(sup)].pessoas.push(r)
+      else resto.push(r)
+    })
+    if (resto.length) grupos.push({ lider: null, pessoas: resto })
+    grupos.forEach((g) => g.pessoas.sort((a, b) => a.nome.localeCompare(b.nome, 'pt')))
+    timeGrupos = grupos.filter((g) => g.pessoas.length)
+  }
+  const timeTotal = timeGrupos ? timeGrupos.reduce((s, g) => s + g.pessoas.length, 0) : 0
 
   // altura do container: cresce pra baixo conforme a ramificação mais funda
   let contH
@@ -431,11 +447,6 @@ export function OrganogramaAneis() {
             )}
           </div>
 
-          {/* carregando o time ao alinhar */}
-          {timeAtivo && !(time && time.key === timeKey) && (
-            <div className="hstack justify-center py-4 text-muted-2"><Loader2 size={16} className="animate-spin" /></div>
-          )}
-
           {/* Cartão da pessoa */}
           {sel && (
             <div className="mx-auto mt-3 max-w-[380px]">
@@ -458,6 +469,52 @@ export function OrganogramaAneis() {
             </div>
           )}
 
+          {/* Time completo (alinhamento no fundo): fileiras, uma por líder */}
+          {timeAtivo && (
+            <div className="mx-auto mt-4 max-w-[380px]">
+              <div className="hstack gap-2 px-1 pb-2 text-xs">
+                <ArrowDown size={14} className="text-accent" />
+                <span className="font-bold text-text">Time de {primeiro(timeAtivo.ger.nome)}</span>
+                <span className="text-muted">· {timeAtivo.unidade}</span>
+                {timeGrupos && <span className="ml-auto text-muted-2">{timeTotal}</span>}
+              </div>
+              {!timeGrupos ? (
+                <div className="hstack justify-center py-4 text-muted-2"><Loader2 size={16} className="animate-spin" /></div>
+              ) : timeGrupos.length === 0 ? (
+                <p className="px-1 text-[11px] text-muted">Sem colaboradores nessa unidade.</p>
+              ) : (
+                <div className="card divide-y divide-line overflow-hidden">
+                  {timeGrupos.map((g, gi) => (
+                    <div key={g.lider ? g.lider.matricula : `resto-${gi}`} className="px-3 pb-3 pt-2.5">
+                      <div className="hstack gap-2 pb-2.5 text-[11px]">
+                        {g.lider ? (
+                          <button onClick={() => { tapHaptic(); navigate(`/perfil/${g.lider.matricula}`) }} className="hstack min-w-0 gap-2 text-left tap">
+                            <span className="block shrink-0 rounded-full" style={{ boxShadow: `0 0 0 1.5px ${g.lider.faixa === 2 ? CITRIC : CARBON}` }}>
+                              <Avatar name={g.lider.nome} src={g.lider.avatar_url} size={22} />
+                            </span>
+                            <b className="shrink-0 text-text">{primeiro(g.lider.nome)}</b>
+                            <span className="truncate text-muted">{g.lider.cargo}</span>
+                          </button>
+                        ) : (
+                          <b className="text-text">Demais</b>
+                        )}
+                        <span className="ml-auto shrink-0 text-muted-2">{g.pessoas.length}</span>
+                      </div>
+                      <div className="grid grid-cols-5 gap-x-1 gap-y-3">
+                        {g.pessoas.map((r) => (
+                          <button key={r.matricula} onClick={() => { tapHaptic(); navigate(`/perfil/${r.matricula}`) }} className="flex flex-col items-center gap-1 tap" title={`${r.nome} — ${r.cargo || ''}`}>
+                            <Avatar name={r.nome} src={r.avatar_url} size={46} />
+                            <span className="w-full truncate text-center text-[9px] leading-tight text-muted">{primeiro(r.nome)}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Legenda + realinhar */}
           <div className="mx-auto mt-3 flex max-w-[380px] flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[11px] text-muted">
             <span className="hstack gap-1.5"><span className="h-2.5 w-2.5 rounded-full" style={{ background: CITRIC }} /><b className="text-text">Sócios e gerência</b></span>
@@ -470,7 +527,7 @@ export function OrganogramaAneis() {
           </div>
 
           <p className="mx-auto mt-4 max-w-[380px] px-1 pb-10 text-center text-[11px] text-muted-2">
-            Protótipo — no fundo (↓) a ramificação continua até o fim, com todo mundo.
+            Protótipo — no fundo (↓) a linha de líderes vai até o fim e o time completo aparece embaixo.
           </p>
         </div>
       )}
