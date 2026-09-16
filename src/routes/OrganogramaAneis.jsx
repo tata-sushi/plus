@@ -95,12 +95,12 @@ function fatiasSocios(socios) {
 
 const cmpNome = (a, b) => a.r.nome.localeCompare(b.r.nome, 'pt')
 const ordena = (n) => { n.kids.sort(cmpNome); n.kids.forEach(ordena) }
-// floresta de LÍDERES diretos do gerente (recursivo entre líderes)
-function forestLideres(gerId, lideres) {
+// floresta de LÍDERES diretos do gerente NA UNIDADE sob ele (recursivo entre líderes)
+function forestLideres(gerId, lideres, unidade) {
   const byId = {}
   lideres.forEach((l) => (byId[l.id_pessoa] = { r: l, kids: [] }))
   lideres.forEach((l) => { const p = byId[l.id_superior]; if (p) p.kids.push(byId[l.id_pessoa]) })
-  const roots = lideres.filter((l) => l.id_superior === gerId).map((l) => byId[l.id_pessoa])
+  const roots = lideres.filter((l) => l.id_superior === gerId && l.unidade === unidade).map((l) => byId[l.id_pessoa])
   roots.sort(cmpNome); roots.forEach(ordena)
   return roots
 }
@@ -218,7 +218,7 @@ export function OrganogramaAneis() {
   const reveals = gerAngs.map((ga) => {
     const aligned = alinhadoId === ga.g.id_pessoa
     const rootKids =
-      aligned && time && time.key === timeKey ? forestTime(time.rows) : forestLideres(ga.g.id_pessoa, lideres)
+      aligned && time && time.key === timeKey ? forestTime(time.rows) : forestLideres(ga.g.id_pessoa, lideres, UNIDADES[ga.uIdx].u)
     const root = layoutLocal(rootKids)
     const rootLx = root._lx || 0
     const cosA = Math.cos(ga.gAng)
@@ -363,8 +363,8 @@ export function OrganogramaAneis() {
             </svg>
 
             {/* Conectores das ramificações (px; pode passar da roda) */}
-            {k > 0 && contH && (
-              <svg className="pointer-events-none absolute left-0 top-0" width={w} height={contH} style={{ overflow: 'visible' }}>
+            {k > 0 && (
+              <svg className="pointer-events-none absolute left-0 top-0" width={w} height={contH || w} style={{ overflow: 'visible' }}>
                 {reveals.map((rv) => rv.links.map((l, i) => (
                   <line key={`${rv.g.matricula}-${i}`} x1={l.x1 * k} y1={l.y1 * k} x2={l.x2 * k} y2={l.y2 * k} style={{ stroke: CARBON, strokeWidth: 1.5, opacity: 0.5 }} />
                 )))}
