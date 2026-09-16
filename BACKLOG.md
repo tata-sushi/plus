@@ -4,6 +4,22 @@ Ideias e pendências levantadas para desenvolvimento futuro.
 
 ## Pendências
 
+- [ ] **Governança (portal lideres) — permissão de "ver valores" (Cargos & Salários / Recrutamento)** —
+  **Já feito (server-side, no banco):** (a) as RPCs de valores do Recrutamento
+  (`vagas_sandbox_listar`, `cargos_salarios_sandbox_listar`, `rec_candidaturas_sandbox_listar`)
+  passaram a decidir a permissão pelo **login real** (`tata_plus.minha_matricula()`) em vez da
+  matrícula que o cliente mandava via `localStorage['sandbox_matricula']` — isso destravou os
+  liberados (ex.: Thamires) e **fechou o furo** (dava pra setar `sandbox_matricula='7'` no console e
+  ver todos os salários); (b) `perm_ver_valores` recebeu linha `geral` para os admins sócios/gerência
+  (Cinthia 1, Fabio 2, Tito 8, Luiz 9). **Falta:**
+  - [ ] **Tela "Liberar valores" no painel admin de Governança** — hoje `dp_rh.perm_ver_valores` só
+    é editável direto no banco; já existem as RPCs (`perm_valores_listar`, `perm_valores_set`,
+    `perm_valores_set_geral`, `perm_valores_sync`, `perm_valores_areas`), falta a UI que as consome
+    (é por isso que "não tem opção de liberar no app" — permissão de valores é separada do acesso à página).
+  - [ ] **Faxina no front** — remover o stub morto de sandbox (`_sandboxMatricula()` /
+    `localStorage['sandbox_matricula']` / `p_matricula`) de `recrutamento.html` e `doc.html` no repo
+    `lideres` (o backend já ignora o `p_matricula`). _(anotado em 2026-09-16)_
+
 - [ ] **Assinatura digital — Fase 2 (ICP-Brasil)** — Fase 1 COMPLETA (2026-08-22): documentos de
   texto (RH/política/recibo) **e PDF** com rubrica + selfie + trilha de auditoria; RH/líder cria,
   atribui e acompanha (tela `/assinaturas-admin`, vê selfie+rubrica+auditoria); colaborador tem a
