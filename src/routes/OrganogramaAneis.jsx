@@ -114,31 +114,34 @@ function arvoreTime(rows) {
   roots.forEach(ordena)
   return roots
 }
-// nó recursivo: foto + nome/cargo, com rail vertical e cotovelo ligando à equipe
-function RamoTime({ node, navigate }) {
-  const { r, kids } = node
-  return (
-    <div>
-      <button onClick={() => { tapHaptic(); navigate(`/perfil/${r.matricula}`) }} className="hstack w-full gap-2.5 py-1.5 text-left tap">
-        <Avatar name={r.nome} src={r.avatar_url} size={34} />
-        <div className="min-w-0 flex-1">
-          <div className="truncate text-[13px] font-semibold">{r.nome}</div>
-          <div className="truncate text-[10.5px] text-muted">{r.cargo}</div>
-        </div>
-      </button>
-      {kids.length > 0 && (
-        <div className="pl-2.5">
-          {kids.map((k, i) => (
-            <div key={k.r.matricula} className="relative pl-5">
-              <span className="absolute left-1 top-0 border-l-2 border-line" style={{ height: i === kids.length - 1 ? 25 : '100%' }} />
-              <span className="absolute left-1 top-[25px] w-4 border-t-2 border-line" />
-              <RamoTime node={k} navigate={navigate} />
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  )
+// organograma top-down: posiciona cada nó (folhas em sequência; pais centrados)
+function layoutTopo(root) {
+  const COL = 60
+  const ROW = 82
+  const NODE = 42
+  let cursor = 0
+  let maxD = 0
+  const assign = (n, d) => {
+    n._y = d * ROW + NODE / 2 + 8
+    if (n.kids && n.kids.length) {
+      n.kids.forEach((k) => assign(k, d + 1))
+      n._x = (n.kids[0]._x + n.kids[n.kids.length - 1]._x) / 2
+    } else {
+      n._x = cursor * COL + COL / 2
+      cursor++
+    }
+    if (d > maxD) maxD = d
+  }
+  assign(root, 0)
+  const nodes = []
+  const links = []
+  const collect = (n, parent) => {
+    nodes.push({ r: n.r, x: n._x, y: n._y })
+    if (parent) links.push({ x1: parent._x, y1: parent._y, x2: n._x, y2: n._y })
+    ;(n.kids || []).forEach((k) => collect(k, n))
+  }
+  collect(root, null)
+  return { nodes, links, width: Math.max(cursor * COL, COL), height: (maxD + 1) * ROW + 20, node: NODE }
 }
 
 export function OrganogramaAneis() {
@@ -253,7 +256,13 @@ export function OrganogramaAneis() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [timeKey])
 
-  const timeRoots = useMemo(() => (time?.rows?.length ? arvoreTime(time.rows) : []), [time])
+  const timeTree = useMemo(() => {
+    if (!time?.rows?.length) return null
+    const roots = arvoreTime(time.rows)
+    const g = time.ger
+    const root = { r: { matricula: g.matricula, nome: g.nome, cargo: g.cargo, avatar_url: g.avatar_url }, kids: roots }
+    return layoutTopo(root)
+  }, [time])
 
   // ── gesto: gira unidades (banda) ou gerência (órbita) ───────────────────────
   function ponto(e) {
@@ -486,11 +495,26 @@ export function OrganogramaAneis() {
                 <span className="ml-auto text-muted-2">{time?.rows?.length || 0}</span>
               </div>
               {time && time.key === timeKey ? (
-                timeRoots.length ? (
-                  <div className="card p-3">
-                    {timeRoots.map((root) => (
-                      <RamoTime key={root.r.matricula} node={root} navigate={navigate} />
-                    ))}
+                timeTree ? (
+                  <div className="overflow-auto rounded-card border border-line bg-surface" style={{ maxHeight: '58vh' }}>
+                    <div className="relative mx-auto" style={{ width: timeTree.width, height: timeTree.height }}>
+                      <svg width={timeTree.width} height={timeTree.height} className="absolute left-0 top-0">
+                        {timeTree.links.map((l, i) => (
+                          <line key={i} x1={l.x1} y1={l.y1} x2={l.x2} y2={l.y2} style={{ stroke: CARBON, strokeWidth: 1.6, opacity: 0.55 }} />
+                        ))}
+                      </svg>
+                      {timeTree.nodes.map((n) => {
+                        const raiz = n.r.matricula === time.ger.matricula
+                        return (
+                          <button key={n.r.matricula} onClick={() => { tapHaptic(); navigate(`/perfil/${n.r.matricula}`) }} title={`${n.r.nome} — ${n.r.cargo || ''}`} className="absolute flex -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-0.5 tap" style={{ left: n.x, top: n.y, width: 56 }}>
+                            <span className="block rounded-full" style={{ boxShadow: `0 0 0 2px ${raiz ? CITRIC : CARBON}, 0 1px 4px rgba(0,0,0,.25)` }}>
+                              <Avatar name={n.r.nome} src={n.r.avatar_url} size={timeTree.node} />
+                            </span>
+                            <span className="w-full truncate text-center text-[8.5px] leading-tight text-muted">{primeiro(n.r.nome)}</span>
+                          </button>
+                        )
+                      })}
+                    </div>
                   </div>
                 ) : (
                   <p className="px-1 text-[11px] text-muted">Sem colaboradores nessa unidade.</p>
