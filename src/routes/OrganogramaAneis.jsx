@@ -116,13 +116,12 @@ function arvoreTime(rows) {
 }
 // organograma top-down: posiciona cada nó (folhas em sequência; pais centrados)
 function layoutTopo(root) {
-  const COL = 60
-  const ROW = 82
-  const NODE = 42
+  const COL = 58
+  const ROW = 74
+  const NODE = 40
   let cursor = 0
-  let maxD = 0
   const assign = (n, d) => {
-    n._y = d * ROW + NODE / 2 + 8
+    n._y = d * ROW
     if (n.kids && n.kids.length) {
       n.kids.forEach((k) => assign(k, d + 1))
       n._x = (n.kids[0]._x + n.kids[n.kids.length - 1]._x) / 2
@@ -130,7 +129,6 @@ function layoutTopo(root) {
       n._x = cursor * COL + COL / 2
       cursor++
     }
-    if (d > maxD) maxD = d
   }
   assign(root, 0)
   const nodes = []
@@ -141,7 +139,7 @@ function layoutTopo(root) {
     ;(n.kids || []).forEach((k) => collect(k, n))
   }
   collect(root, null)
-  return { nodes, links, width: Math.max(cursor * COL, COL), height: (maxD + 1) * ROW + 20, node: NODE }
+  return { nodes, links, rootX: root._x, rootY: root._y, node: NODE }
 }
 
 export function OrganogramaAneis() {
@@ -325,6 +323,24 @@ export function OrganogramaAneis() {
     setSel(g)
   }
 
+  // Ramificação completa ancorada no gerente do anel (sem repetir a foto dele):
+  // as linhas saem da posição dele e a árvore desce. Só quando alinhado no fundo.
+  let treeLayer = null
+  let contH
+  if (timeAtivo && time && time.key === timeKey && timeTree && k) {
+    const anchorX = w / 2
+    const anchorY = (CY + R_GER) * k
+    const dx = anchorX - timeTree.rootX
+    const dy = anchorY - timeTree.rootY + AV_GER * k * 0.42 // sai da borda de baixo do gerente
+    const nodes = timeTree.nodes
+      .filter((n) => n.r.matricula !== time.ger.matricula)
+      .map((n) => ({ r: n.r, sx: n.x + dx, sy: n.y + dy }))
+    const links = timeTree.links.map((l) => ({ x1: l.x1 + dx, y1: l.y1 + dy, x2: l.x2 + dx, y2: l.y2 + dy }))
+    const maxY = nodes.reduce((m, n) => Math.max(m, n.sy), anchorY)
+    contH = maxY + 46
+    treeLayer = { nodes, links }
+  }
+
   return (
     <>
       <Header title="Organograma" />
@@ -341,7 +357,7 @@ export function OrganogramaAneis() {
         </div>
       ) : (
         <div className="px-4 pt-1">
-          <div className="relative mx-auto w-full select-none" style={{ maxWidth: 380 }}>
+          <div className="relative mx-auto w-full select-none" style={{ maxWidth: 380, height: treeLayer ? contH : undefined }}>
             <svg ref={svgRef} viewBox={`0 0 ${VB} ${VB}`} className="w-full" role="img" aria-label="Organograma em anéis" style={{ touchAction: 'none' }}>
               {/* captura de gestos (fundo) */}
               <rect x="0" y="0" width={VB} height={VB} fill="transparent" onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={() => (drag.current = null)} style={{ pointerEvents: 'all', touchAction: 'none', cursor: 'grab' }} />
@@ -451,41 +467,29 @@ export function OrganogramaAneis() {
                 })}
               </div>
             )}
+            {/* ramificação completa — ancorada no gerente do anel (sem repetir a foto) */}
+            {treeLayer && (
+              <>
+                <svg className="pointer-events-none absolute left-0 top-0" width={w} height={contH} style={{ overflow: 'visible' }}>
+                  {treeLayer.links.map((l, i) => (
+                    <line key={i} x1={l.x1} y1={l.y1} x2={l.x2} y2={l.y2} style={{ stroke: CARBON, strokeWidth: 1.6, opacity: 0.55 }} />
+                  ))}
+                </svg>
+                {treeLayer.nodes.map((n) => (
+                  <button key={n.r.matricula} onClick={() => { tapHaptic(); navigate(`/perfil/${n.r.matricula}`) }} title={`${n.r.nome} — ${n.r.cargo || ''}`} className="absolute z-10 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-0.5 tap" style={{ left: n.sx, top: n.sy, width: 54 }}>
+                    <span className="block rounded-full" style={{ boxShadow: `0 0 0 2px ${CARBON}, 0 1px 4px rgba(0,0,0,.25)` }}>
+                      <Avatar name={n.r.nome} src={n.r.avatar_url} size={40} />
+                    </span>
+                    <span className="w-full truncate text-center text-[8.5px] leading-tight text-muted">{primeiro(n.r.nome)}</span>
+                  </button>
+                ))}
+              </>
+            )}
           </div>
 
-          {/* Ramificação completa — continua o MESMO tronco pra baixo (sem seção) */}
-          {timeAtivo && (
-            time && time.key === timeKey ? (
-              timeTree ? (
-                <div className="-mt-2 overflow-x-auto pb-6">
-                  <div className="relative mx-auto" style={{ width: timeTree.width, height: timeTree.height }}>
-                    <svg width={timeTree.width} height={timeTree.height} className="absolute left-0 top-0">
-                      {timeTree.nodes[0] && (
-                        <line x1={timeTree.nodes[0].x} y1={0} x2={timeTree.nodes[0].x} y2={timeTree.nodes[0].y} style={{ stroke: CARBON, strokeWidth: 1.6, opacity: 0.55 }} />
-                      )}
-                      {timeTree.links.map((l, i) => (
-                        <line key={i} x1={l.x1} y1={l.y1} x2={l.x2} y2={l.y2} style={{ stroke: CARBON, strokeWidth: 1.6, opacity: 0.55 }} />
-                      ))}
-                    </svg>
-                    {timeTree.nodes.map((n) => {
-                      const raiz = n.r.matricula === time.ger.matricula
-                      return (
-                        <button key={n.r.matricula} onClick={() => { tapHaptic(); navigate(`/perfil/${n.r.matricula}`) }} title={`${n.r.nome} — ${n.r.cargo || ''}`} className="absolute flex -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-0.5 tap" style={{ left: n.x, top: n.y, width: 56 }}>
-                          <span className="block rounded-full" style={{ boxShadow: `0 0 0 2px ${raiz ? CITRIC : CARBON}, 0 1px 4px rgba(0,0,0,.25)` }}>
-                            <Avatar name={n.r.nome} src={n.r.avatar_url} size={timeTree.node} />
-                          </span>
-                          <span className="w-full truncate text-center text-[8.5px] leading-tight text-muted">{primeiro(n.r.nome)}</span>
-                        </button>
-                      )
-                    })}
-                  </div>
-                </div>
-              ) : (
-                <p className="px-1 text-center text-[11px] text-muted">Sem colaboradores nessa unidade.</p>
-              )
-            ) : (
-              <div className="hstack justify-center py-4 text-muted-2"><Loader2 size={16} className="animate-spin" /></div>
-            )
+          {/* carregando o time ao alinhar */}
+          {timeAtivo && !(time && time.key === timeKey) && (
+            <div className="hstack justify-center py-4 text-muted-2"><Loader2 size={16} className="animate-spin" /></div>
           )}
 
           {/* Cartão da pessoa */}
