@@ -7,12 +7,9 @@ import { supabase } from '../lib/supabase.js'
 import { tapHaptic } from '../lib/haptics.js'
 
 // Organograma em ANÉIS (nativo, versão de teste).
-//   centro: Tatá
-//   anel 1: Sócios (campos com o nome)
-//   anel 2: Unidades (mesma proporção)
-//   anel 3: Gerentes — GIRATÓRIO (arraste pra rodar)
-// Sócios e gerentes são "campos" (fatias com nome). Tocar abre um cartão com a
-// foto + botão "Ver perfil". Dados: RPC organograma_lideres() (faixas 1 e 2).
+//   centro: Tatá · anel 1: Sócios · anel 2: Unidades · anel 3: Gerentes (GIRATÓRIO).
+// Gesto único no SVG (com touch-action:none) e hit-test por ângulo/raio — sem
+// captura por fatia, pra não travar o toque. Dados: RPC organograma_lideres().
 
 const UNIDADES = [
   { u: 'Itaim', cor: '#3b82f6', curto: 'Itaim' },
@@ -38,6 +35,7 @@ const U_LAB = 100
 const G_IN = 122
 const G_OUT = 164
 const G_LAB = 143
+const TAU = 2 * Math.PI
 
 function polar(r, a) {
   return [CX + r * Math.cos(a), CY + r * Math.sin(a)]
@@ -53,13 +51,19 @@ function arc(rIn, rOut, a0, a1) {
 function primeiro(nome) {
   return String(nome || '').trim().split(/\s+/)[0]
 }
+// índice do setor sob o ângulo `a` (topo = 0), com deslocamento de rotação
+function setorDe(a, n, off = 0) {
+  let x = a + Math.PI / 2 - off
+  x = ((x % TAU) + TAU) % TAU
+  return Math.floor(x / (TAU / n)) % n
+}
 
 export function OrganogramaAneis() {
   const navigate = useNavigate()
   const [gente, setGente] = useState(null)
   const [rot, setRot] = useState(0) // rotação do anel de gerentes (rad)
   const [sel, setSel] = useState(null) // pessoa selecionada (cartão)
-  const boxRef = useRef(null)
+  const svgRef = useRef(null)
   const drag = useRef(null)
 
   useEffect(() => {
@@ -81,37 +85,58 @@ export function OrganogramaAneis() {
     return { socios: porFaixa(1), gerentes: porFaixa(2) }
   }, [gente])
 
-  // ── arrastar pra girar o anel de gerentes ──────────────────────────────────
-  function angDe(e) {
-    const r = boxRef.current.getBoundingClientRect()
-    return Math.atan2(e.clientY - (r.top + r.height / 2), e.clientX - (r.left + r.width / 2))
-  }
-  function onDown(e) {
-    drag.current = { last: angDe(e), moved: false }
-    e.currentTarget.setPointerCapture?.(e.pointerId)
-  }
-  function onMove(e) {
-    if (!drag.current) return
-    const a = angDe(e)
-    let d = a - drag.current.last
-    if (d > Math.PI) d -= 2 * Math.PI
-    if (d < -Math.PI) d += 2 * Math.PI
-    if (Math.abs(d) > 0.012) drag.current.moved = true
-    drag.current.last = a
-    setRot((r) => r + d)
-  }
-  function onUp(e, pessoa) {
-    const moved = drag.current?.moved
-    drag.current = null
-    if (!moved && pessoa) {
-      tapHaptic()
-      setSel(pessoa)
-    }
-  }
-
   const N_S = Math.max(1, socios.length)
   const N_U = UNIDADES.length
   const N_G = Math.max(1, gerentes.length)
+
+  // ── gesto único no SVG ─────────────────────────────────────────────────────
+  function ponto(e) {
+    const r = svgRef.current.getBoundingClientRect()
+    const sx = ((e.clientX - r.left) / r.width) * VB
+    const sy = ((e.clientY - r.top) / r.height) * VB
+    const dx = sx - CX
+    const dy = sy - CY
+    return { r: Math.hypot(dx, dy), a: Math.atan2(dy, dx) }
+  }
+  function regiao(rr) {
+    if (rr <= R_CENTRO + 3) return 'centro'
+    if (rr <= S_OUT) return 'socios'
+    if (rr <= U_OUT) return 'uni'
+    if (rr <= 176) return 'ger'
+    return 'fora'
+  }
+  function onDown(e) {
+    const { r, a } = ponto(e)
+    drag.current = { reg: regiao(r), last: a, moved: false }
+    svgRef.current.setPointerCapture?.(e.pointerId)
+  }
+  function onMove(e) {
+    const d0 = drag.current
+    if (!d0 || d0.reg !== 'ger') return
+    const { a } = ponto(e)
+    let d = a - d0.last
+    if (d > Math.PI) d -= TAU
+    if (d < -Math.PI) d += TAU
+    if (Math.abs(d) > 0.01) d0.moved = true
+    d0.last = a
+    setRot((v) => v + d)
+  }
+  function onUp(e) {
+    const d0 = drag.current
+    drag.current = null
+    if (!d0 || d0.moved) return // girou → não seleciona
+    const { r, a } = ponto(e)
+    const reg = regiao(r)
+    if (reg === 'centro') return setSel(null)
+    if (reg === 'socios' && socios.length) {
+      tapHaptic()
+      return setSel(socios[setorDe(a, N_S)])
+    }
+    if (reg === 'ger' && gerentes.length) {
+      tapHaptic()
+      return setSel(gerentes[setorDe(a, N_G, rot)])
+    }
+  }
 
   return (
     <>
@@ -133,56 +158,60 @@ export function OrganogramaAneis() {
         </div>
       ) : (
         <div className="px-4 pt-3">
-          <div ref={boxRef} className="mx-auto w-full select-none" style={{ maxWidth: 360 }}>
-            <svg viewBox={`0 0 ${VB} ${VB}`} className="w-full" role="img" aria-label="Organograma em anéis">
+          <div className="mx-auto w-full select-none" style={{ maxWidth: 360 }}>
+            <svg
+              ref={svgRef}
+              viewBox={`0 0 ${VB} ${VB}`}
+              className="w-full"
+              role="img"
+              aria-label="Organograma em anéis"
+              onPointerDown={onDown}
+              onPointerMove={onMove}
+              onPointerUp={onUp}
+              onPointerCancel={() => (drag.current = null)}
+              style={{ touchAction: 'none', cursor: 'pointer' }}
+            >
               {/* anel 2 — unidades (mesma proporção) */}
               {UNIDADES.map((u, i) => {
-                const a0 = -Math.PI / 2 + (i / N_U) * 2 * Math.PI
-                const a1 = -Math.PI / 2 + ((i + 1) / N_U) * 2 * Math.PI
+                const a0 = -Math.PI / 2 + (i / N_U) * TAU
+                const a1 = -Math.PI / 2 + ((i + 1) / N_U) * TAU
                 const [lx, ly] = polar(U_LAB, (a0 + a1) / 2)
                 return (
-                  <g key={`u-${u.u}`}>
+                  <g key={`u-${u.u}`} style={{ pointerEvents: 'none' }}>
                     <path d={arc(U_IN, U_OUT, a0, a1)} style={{ fill: u.cor, fillOpacity: 0.16, stroke: 'rgb(var(--bg))', strokeWidth: 2 }} />
-                    <text x={lx} y={ly} textAnchor="middle" dominantBaseline="central" style={{ fill: 'rgb(var(--text))', fontSize: 9, fontWeight: 700, pointerEvents: 'none' }}>
+                    <text x={lx} y={ly} textAnchor="middle" dominantBaseline="central" style={{ fill: 'rgb(var(--text))', fontSize: 9, fontWeight: 700 }}>
                       {u.curto}
                     </text>
                   </g>
                 )
               })}
 
-              {/* anel 1 — sócios (campos com nome) */}
+              {/* anel 1 — sócios */}
               {socios.map((p, i) => {
-                const a0 = -Math.PI / 2 + (i / N_S) * 2 * Math.PI
-                const a1 = -Math.PI / 2 + ((i + 1) / N_S) * 2 * Math.PI
+                const a0 = -Math.PI / 2 + (i / N_S) * TAU
+                const a1 = -Math.PI / 2 + ((i + 1) / N_S) * TAU
                 const [lx, ly] = polar(S_LAB, (a0 + a1) / 2)
                 const on = sel?.matricula === p.matricula
                 return (
-                  <g key={`s-${p.matricula}`} onClick={() => { tapHaptic(); setSel(p) }} style={{ cursor: 'pointer' }}>
+                  <g key={`s-${p.matricula}`} style={{ pointerEvents: 'none' }}>
                     <path d={arc(S_IN, S_OUT, a0, a1)} style={{ fill: OURO, fillOpacity: on ? 0.4 : 0.15, stroke: on ? OURO : 'rgb(var(--bg))', strokeWidth: on ? 2.5 : 2 }} />
-                    <text x={lx} y={ly} textAnchor="middle" dominantBaseline="central" style={{ fill: 'rgb(var(--text))', fontSize: 10, fontWeight: 700, pointerEvents: 'none' }}>
+                    <text x={lx} y={ly} textAnchor="middle" dominantBaseline="central" style={{ fill: 'rgb(var(--text))', fontSize: 10, fontWeight: 700 }}>
                       {primeiro(p.nome)}
                     </text>
                   </g>
                 )
               })}
 
-              {/* anel 3 — gerentes (campos giratórios) */}
+              {/* anel 3 — gerentes (giratório) */}
               {gerentes.map((p, i) => {
-                const a0 = -Math.PI / 2 + (i / N_G) * 2 * Math.PI + rot
-                const a1 = -Math.PI / 2 + ((i + 1) / N_G) * 2 * Math.PI + rot
+                const a0 = -Math.PI / 2 + (i / N_G) * TAU + rot
+                const a1 = -Math.PI / 2 + ((i + 1) / N_G) * TAU + rot
                 const [lx, ly] = polar(G_LAB, (a0 + a1) / 2)
                 const on = sel?.matricula === p.matricula
                 return (
-                  <g
-                    key={`g-${p.matricula}`}
-                    onPointerDown={onDown}
-                    onPointerMove={onMove}
-                    onPointerUp={(e) => onUp(e, p)}
-                    onPointerCancel={() => (drag.current = null)}
-                    style={{ cursor: 'grab', touchAction: 'none' }}
-                  >
+                  <g key={`g-${p.matricula}`} style={{ pointerEvents: 'none' }}>
                     <path d={arc(G_IN, G_OUT, a0, a1)} style={{ fill: ROXO, fillOpacity: on ? 0.4 : 0.18, stroke: on ? ROXO : 'rgb(var(--bg))', strokeWidth: on ? 2.5 : 2 }} />
-                    <text x={lx} y={ly} textAnchor="middle" dominantBaseline="central" style={{ fill: 'rgb(var(--text))', fontSize: 10, fontWeight: 700, pointerEvents: 'none' }}>
+                    <text x={lx} y={ly} textAnchor="middle" dominantBaseline="central" style={{ fill: 'rgb(var(--text))', fontSize: 10, fontWeight: 700 }}>
                       {primeiro(p.nome)}
                     </text>
                   </g>
@@ -190,7 +219,7 @@ export function OrganogramaAneis() {
               })}
 
               {/* centro Tatá */}
-              <circle cx={CX} cy={CY} r={R_CENTRO} onClick={() => setSel(null)} style={{ fill: 'rgb(var(--accent))', stroke: 'rgb(var(--surface))', strokeWidth: 2.5, cursor: 'pointer' }} />
+              <circle cx={CX} cy={CY} r={R_CENTRO} style={{ fill: 'rgb(var(--accent))', stroke: 'rgb(var(--surface))', strokeWidth: 2.5, pointerEvents: 'none' }} />
               <text x={CX} y={CY} textAnchor="middle" dominantBaseline="central" style={{ fill: 'rgb(var(--bg))', fontSize: 10, fontWeight: 800, letterSpacing: 0.5, pointerEvents: 'none' }}>
                 TATÁ
               </text>
