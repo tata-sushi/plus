@@ -119,6 +119,7 @@ export function OrganogramaAneis() {
       const gAng = -Math.PI / 2 + (i / N_G) * TAU + rot
       const uIdx = setorDe(gAng, N_U)
       const unidade = UNIDADES[uIdx].u
+      const acende = (g.unidades_alcance || []).includes(unidade) // alcance total (direto+indireto)
       const l1 = lideres.filter((l) => l.id_superior === g.id_pessoa && l.unidade === unidade)
       const step1 = 0.32
       const start1 = gAng - ((l1.length - 1) / 2) * step1
@@ -129,11 +130,11 @@ export function OrganogramaAneis() {
         const start2 = ang - ((kids.length - 1) / 2) * step2
         return { l, ang, kids: kids.map((c, m) => ({ l: c, ang: start2 + m * step2 })) }
       })
-      return { g, gAng, uIdx, nivel1 }
+      return { g, gAng, uIdx, acende, nivel1 }
     })
   }, [gerentes, lideres, rot, N_G, N_U])
 
-  const unidadesCasadas = new Set(reveals.filter((r) => r.nivel1.length).map((r) => r.uIdx))
+  const unidadesCasadas = new Set(reveals.filter((r) => r.acende).map((r) => r.uIdx))
 
   // ── girar a gerência (arrasta) ─────────────────────────────────────────────
   function angPtr(e) {
