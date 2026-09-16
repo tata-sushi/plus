@@ -26,18 +26,18 @@ const ROXO = '#a855f7'
 const VB = 380
 const CX = 190
 const CY = 190
-const R_CENTRO = 24
-const S_IN = 24
-const S_OUT = 66
-const S_LAB = 47
-const U_IN = 66
-const U_OUT = 110
-const U_LAB = 89
-const G_IN = 110
-const G_OUT = 152
-const G_LAB = 131
-const R_LIDER = 170
-const AV_L = 30
+const R_CENTRO = 22
+const S_IN = 22
+const S_OUT = 60
+const S_LAB = 42
+const U_IN = 60
+const U_OUT = 100
+const U_LAB = 81
+const G_IN = 100
+const G_OUT = 138
+const G_LAB = 120
+const R_LIDER = 168
+const AV_L = 28
 const TAU = 2 * Math.PI
 
 function polar(r, a) {
@@ -212,9 +212,9 @@ export function OrganogramaAneis() {
               {/* conectores gerente → líderes revelados */}
               {reveals.map((r) =>
                 r.nodes.map((nd, j) => {
-                  const [x1, y1] = polar(G_OUT, r.center)
-                  const [x2, y2] = polar(R_LIDER - 14, nd.ang)
-                  return <line key={`cn-${r.g.matricula}-${j}`} x1={x1} y1={y1} x2={x2} y2={y2} style={{ stroke: r.cor, strokeWidth: 1.6, opacity: 0.55 }} />
+                  const [x1, y1] = polar(G_OUT + 2, r.center)
+                  const [x2, y2] = polar(R_LIDER - 15, nd.ang)
+                  return <line key={`cn-${r.g.matricula}-${j}`} x1={x1} y1={y1} x2={x2} y2={y2} style={{ stroke: r.cor, strokeWidth: 1.8, opacity: 0.7, strokeLinecap: 'round' }} />
                 }),
               )}
 
