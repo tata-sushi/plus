@@ -363,7 +363,7 @@ export function OrganogramaAneis() {
                 const on = unidadesCasadas.has(i)
                 return (
                   <g key={`u-${u.u}`} style={{ pointerEvents: 'none' }}>
-                    <path d={arc(U_IN, U_OUT, a0, a1)} style={{ fill: on ? CITRIC : CARBON, fillOpacity: on ? 0.3 : 0.12, stroke: on ? CITRIC : 'rgb(var(--bg))', strokeWidth: on ? 2.5 : 2 }} />
+                    <path d={arc(U_IN, U_OUT, a0, a1)} style={{ fill: on ? CITRIC : CARBON, fillOpacity: on ? 0.3 : 0.12, stroke: on ? CITRIC : 'rgb(var(--bg))', strokeWidth: on ? 1.25 : 2 }} />
                     <path id={`uarc-${i}`} d={textArc(U_LAB, a0 + 0.04, a1 - 0.04)} fill="none" />
                     <text style={{ fill: 'rgb(var(--text))', fontSize: 9, fontWeight: 700 }}>
                       <textPath href={`#uarc-${i}`} startOffset="50%" textAnchor="middle">{u.curto}</textPath>
@@ -373,14 +373,14 @@ export function OrganogramaAneis() {
               })}
 
               {/* centro — sócios (Tito maior no topo) */}
-              {socioSlices.map(({ p, a0, a1 }) => {
-                const [lx, ly] = polar(S_LAB, (a0 + a1) / 2)
+              {socioSlices.map(({ p, a0, a1 }, i) => {
                 const on = sel?.matricula === p.matricula
                 return (
                   <g key={`s-${p.matricula}`} style={{ pointerEvents: 'none' }}>
-                    <path d={arc(S_IN, S_OUT, a0, a1)} style={{ fill: CITRIC, fillOpacity: on ? 0.42 : 0.16, stroke: on ? CITRIC : 'rgb(var(--bg))', strokeWidth: on ? 2.5 : 2 }} />
-                    <text x={lx} y={ly} textAnchor="middle" dominantBaseline="central" style={{ fill: 'rgb(var(--text))', fontSize: 8.5, fontWeight: 700 }}>
-                      {AP_SOCIO[p.matricula] || primeiro(p.nome)}
+                    <path d={arc(S_IN, S_OUT, a0, a1)} style={{ fill: CITRIC, fillOpacity: on ? 0.42 : 0.16, stroke: on ? CITRIC : 'rgb(var(--bg))', strokeWidth: on ? 1.25 : 2 }} />
+                    <path id={`sarc-${i}`} d={textArc(S_LAB, a0 + 0.06, a1 - 0.06)} fill="none" />
+                    <text style={{ fill: 'rgb(var(--text))', fontSize: 8.5, fontWeight: 700 }}>
+                      <textPath href={`#sarc-${i}`} startOffset="50%" textAnchor="middle">{AP_SOCIO[p.matricula] || primeiro(p.nome)}</textPath>
                     </text>
                   </g>
                 )
@@ -404,7 +404,7 @@ export function OrganogramaAneis() {
             {k > 0 && (
               <div className="pointer-events-none absolute inset-0">
                 <button onClick={() => setSel(null)} aria-label="Tatá" className="pointer-events-auto absolute -translate-x-1/2 -translate-y-1/2 grid place-items-center" style={{ left: CX * k, top: CY * k, width: 2 * R_CENTRO * k, height: 2 * R_CENTRO * k }}>
-                  <img src="/icons/logo-mark.png" alt="Tatá" style={{ width: 30 * k, height: 'auto' }} />
+                  <img src="/icons/logo-mark.png" alt="Tatá" style={{ width: 24 * k, height: 'auto' }} />
                 </button>
 
                 {/* ramificações (líderes — ou time inteiro no fundo) */}
@@ -412,7 +412,16 @@ export function OrganogramaAneis() {
                   rv.nodes.map((n) => {
                     const size = Math.max(12, Math.round(avNivel(n.depth) * k))
                     return (
-                      <button key={`ph-${rv.g.matricula}-${n.p.matricula}`} onClick={() => { tapHaptic(); setSel(n.p) }} aria-label={n.p.nome} className="pointer-events-auto absolute z-10 -translate-x-1/2 -translate-y-1/2 rounded-full tap" style={{ left: n.x * k, top: n.y * k }}>
+                      <button
+                        key={`ph-${rv.g.matricula}-${n.p.matricula}`}
+                        onPointerDown={gerDown}
+                        onPointerMove={onMove}
+                        onPointerUp={(e) => gerUp(e, n.p)}
+                        onPointerCancel={() => (drag.current = null)}
+                        aria-label={n.p.nome}
+                        className="pointer-events-auto absolute z-10 -translate-x-1/2 -translate-y-1/2 cursor-grab rounded-full active:cursor-grabbing"
+                        style={{ left: n.x * k, top: n.y * k, touchAction: 'none' }}
+                      >
                         <span className="block rounded-full" style={{ boxShadow: `0 0 0 2px ${CARBON}, 0 2px 5px rgba(0,0,0,.3)` }}>
                           <Avatar name={n.p.nome} src={n.p.avatar_url} size={size} />
                         </span>
