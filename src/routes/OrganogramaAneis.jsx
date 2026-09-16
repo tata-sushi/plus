@@ -114,32 +114,54 @@ function arvoreTime(rows) {
   roots.forEach(ordena)
   return roots
 }
-// organograma top-down: posiciona cada nó (folhas em sequência; pais centrados)
-function layoutTopo(root) {
-  const COL = 58
-  const ROW = 74
-  const NODE = 40
-  let cursor = 0
-  const assign = (n, d) => {
-    n._y = d * ROW
-    if (n.kids && n.kids.length) {
-      n.kids.forEach((k) => assign(k, d + 1))
-      n._x = (n.kids[0]._x + n.kids[n.kids.length - 1]._x) / 2
-    } else {
-      n._x = cursor * COL + COL / 2
-      cursor++
-    }
+// Ramificação RADIAL completa: raiz = gerente (na órbita), tudo irradia pra fora
+// em raios crescentes por nível; fatia angular por nº de folhas. Coords em VB.
+function layoutRadial(rows, gerId, gAng) {
+  const R0 = R_GER
+  const STEP = 26
+  const byId = {}
+  rows.forEach((r) => (byId[r.id_pessoa] = { r, kids: [] }))
+  const roots = []
+  rows.forEach((r) => {
+    const pai = r.id_superior ? byId[r.id_superior] : null
+    if (pai) pai.kids.push(byId[r.id_pessoa])
+    else roots.push(byId[r.id_pessoa])
+  })
+  const cmp = (a, b) => a.r.nome.localeCompare(b.r.nome, 'pt')
+  const ordena = (n) => {
+    n.kids.sort(cmp)
+    n.kids.forEach(ordena)
   }
-  assign(root, 0)
+  roots.sort(cmp)
+  roots.forEach(ordena)
+  const root = { r: { id_pessoa: gerId }, kids: roots, raiz: true }
+  const lc = (n) => (n.kids.length ? n.kids.reduce((s, k) => s + lc(k), 0) : 1)
+  const leaves = lc(root) || 1
+  const SPAN = Math.min(Math.max(leaves * 0.12, 0.7), Math.PI * 1.2)
   const nodes = []
   const links = []
-  const collect = (n, parent) => {
-    nodes.push({ r: n.r, x: n._x, y: n._y })
-    if (parent) links.push({ x1: parent._x, y1: parent._y, x2: n._x, y2: n._y })
-    ;(n.kids || []).forEach((k) => collect(k, n))
+  let maxDepth = 0
+  const place = (n, depth, a0, a1, parentAng) => {
+    const ang = (a0 + a1) / 2
+    if (depth > maxDepth) maxDepth = depth
+    const [x, y] = polar(R0 + depth * STEP, ang)
+    if (!n.raiz) nodes.push({ r: n.r, x, y, depth })
+    if (parentAng != null) {
+      const [px, py] = polar(R0 + (depth - 1) * STEP, parentAng)
+      links.push({ x1: px, y1: py, x2: x, y2: y })
+    }
+    if (n.kids.length) {
+      const tot = n.kids.reduce((s, k) => s + lc(k), 0)
+      let a = a0
+      n.kids.forEach((k) => {
+        const wdt = (lc(k) / tot) * (a1 - a0)
+        place(k, depth + 1, a, a + wdt, ang)
+        a += wdt
+      })
+    }
   }
-  collect(root, null)
-  return { nodes, links, rootX: root._x, rootY: root._y, node: NODE }
+  place(root, 0, gAng - SPAN / 2, gAng + SPAN / 2, null)
+  return { nodes, links, maxRad: R0 + maxDepth * STEP }
 }
 
 export function OrganogramaAneis() {
@@ -255,14 +277,6 @@ export function OrganogramaAneis() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [timeKey])
 
-  const timeTree = useMemo(() => {
-    if (!time?.rows?.length) return null
-    const roots = arvoreTime(time.rows)
-    const g = time.ger
-    const root = { r: { matricula: g.matricula, nome: g.nome, cargo: g.cargo, avatar_url: g.avatar_url }, kids: roots }
-    return layoutTopo(root)
-  }, [time])
-
   // ── gesto: gira unidades (banda) ou gerência (órbita) ───────────────────────
   function ponto(e) {
     const r = svgRef.current.getBoundingClientRect()
@@ -323,22 +337,19 @@ export function OrganogramaAneis() {
     setSel(g)
   }
 
-  // Ramificação completa ancorada no gerente do anel (sem repetir a foto dele):
-  // as linhas saem da posição dele e a árvore desce. Só quando alinhado no fundo.
-  let treeLayer = null
+  // Ramificação RADIAL completa (todas as pessoas) saindo do gerente do anel.
+  // Só quando alinhado no fundo (senão vazaria pra fora). Coords VB → px (×k).
+  let radial = null
   let contH
-  if (timeAtivo && time && time.key === timeKey && timeTree && k) {
-    const anchorX = w / 2
-    const anchorY = (CY + R_GER) * k
-    const dx = anchorX - timeTree.rootX
-    const dy = anchorY - timeTree.rootY + AV_GER * k * 0.42 // sai da borda de baixo do gerente
-    const nodes = timeTree.nodes
-      .filter((n) => n.r.matricula !== time.ger.matricula)
-      .map((n) => ({ r: n.r, sx: n.x + dx, sy: n.y + dy }))
-    const links = timeTree.links.map((l) => ({ x1: l.x1 + dx, y1: l.y1 + dy, x2: l.x2 + dx, y2: l.y2 + dy }))
-    const maxY = nodes.reduce((m, n) => Math.max(m, n.sy), anchorY)
-    contH = maxY + 46
-    treeLayer = { nodes, links }
+  if (timeAtivo && time && time.key === timeKey && time.rows.length && k) {
+    const gi = gerentes.findIndex((g) => g.id_pessoa === timeAtivo.gid)
+    const gAngAl = -Math.PI / 2 + (gi / N_G) * TAU + rot
+    const rl = layoutRadial(time.rows, timeAtivo.gid, gAngAl)
+    const nodes = rl.nodes.map((n) => ({ r: n.r, sx: n.x * k, sy: n.y * k, depth: n.depth }))
+    const links = rl.links.map((l) => ({ x1: l.x1 * k, y1: l.y1 * k, x2: l.x2 * k, y2: l.y2 * k }))
+    const maxY = nodes.reduce((m, n) => Math.max(m, n.sy), w)
+    contH = maxY + 30
+    radial = { nodes, links }
   }
 
   return (
@@ -356,8 +367,8 @@ export function OrganogramaAneis() {
           <Loader2 size={22} className="animate-spin" />
         </div>
       ) : (
-        <div className="px-4 pt-1">
-          <div className="relative mx-auto w-full select-none" style={{ maxWidth: 380, height: treeLayer ? contH : undefined }}>
+        <div className="overflow-x-hidden px-4 pt-1">
+          <div className="relative mx-auto w-full select-none" style={{ maxWidth: 380, height: radial ? contH : undefined }}>
             <svg ref={svgRef} viewBox={`0 0 ${VB} ${VB}`} className="w-full" role="img" aria-label="Organograma em anéis" style={{ touchAction: 'none' }}>
               {/* captura de gestos (fundo) */}
               <rect x="0" y="0" width={VB} height={VB} fill="transparent" onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={() => (drag.current = null)} style={{ pointerEvents: 'all', touchAction: 'none', cursor: 'grab' }} />
@@ -467,22 +478,24 @@ export function OrganogramaAneis() {
                 })}
               </div>
             )}
-            {/* ramificação completa — ancorada no gerente do anel (sem repetir a foto) */}
-            {treeLayer && (
+            {/* ramificação RADIAL completa — sai do gerente do anel (sem repetir a foto) */}
+            {radial && (
               <>
                 <svg className="pointer-events-none absolute left-0 top-0" width={w} height={contH} style={{ overflow: 'visible' }}>
-                  {treeLayer.links.map((l, i) => (
-                    <line key={i} x1={l.x1} y1={l.y1} x2={l.x2} y2={l.y2} style={{ stroke: CARBON, strokeWidth: 1.6, opacity: 0.55 }} />
+                  {radial.links.map((l, i) => (
+                    <line key={i} x1={l.x1} y1={l.y1} x2={l.x2} y2={l.y2} style={{ stroke: CARBON, strokeWidth: 1.5, opacity: 0.5 }} />
                   ))}
                 </svg>
-                {treeLayer.nodes.map((n) => (
-                  <button key={n.r.matricula} onClick={() => { tapHaptic(); navigate(`/perfil/${n.r.matricula}`) }} title={`${n.r.nome} — ${n.r.cargo || ''}`} className="absolute z-10 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-0.5 tap" style={{ left: n.sx, top: n.sy, width: 54 }}>
-                    <span className="block rounded-full" style={{ boxShadow: `0 0 0 2px ${CARBON}, 0 1px 4px rgba(0,0,0,.25)` }}>
-                      <Avatar name={n.r.nome} src={n.r.avatar_url} size={40} />
-                    </span>
-                    <span className="w-full truncate text-center text-[8.5px] leading-tight text-muted">{primeiro(n.r.nome)}</span>
-                  </button>
-                ))}
+                {radial.nodes.map((n) => {
+                  const size = Math.max(14, Math.round((28 - Math.min(n.depth, 4) * 2.5) * k))
+                  return (
+                    <button key={n.r.matricula} onClick={() => { tapHaptic(); navigate(`/perfil/${n.r.matricula}`) }} title={`${n.r.nome} — ${n.r.cargo || ''}`} className="absolute z-10 -translate-x-1/2 -translate-y-1/2 rounded-full tap" style={{ left: n.sx, top: n.sy }}>
+                      <span className="block rounded-full" style={{ boxShadow: `0 0 0 2px ${CARBON}, 0 1px 3px rgba(0,0,0,.25)` }}>
+                        <Avatar name={n.r.nome} src={n.r.avatar_url} size={size} />
+                      </span>
+                    </button>
+                  )
+                })}
               </>
             )}
           </div>
