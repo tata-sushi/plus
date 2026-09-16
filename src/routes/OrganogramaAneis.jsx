@@ -95,8 +95,8 @@ function fatiasSocios(socios) {
   }
   return socios.map((p, i) => ({ p, a0: -Math.PI / 2 + (i / Math.max(1, N)) * TAU, a1: -Math.PI / 2 + ((i + 1) / Math.max(1, N)) * TAU }))
 }
-// achata a árvore do time (id_superior) em linhas indentadas
-function achatarTime(rows) {
+// monta a árvore do time (por id_superior); pais fora do conjunto viram raízes
+function arvoreTime(rows) {
   const byId = {}
   rows.forEach((r) => (byId[r.id_pessoa] = { r, kids: [] }))
   const roots = []
@@ -105,14 +105,40 @@ function achatarTime(rows) {
     if (pai) pai.kids.push(byId[r.id_pessoa])
     else roots.push(byId[r.id_pessoa])
   })
-  const flat = []
   const cmp = (a, b) => a.r.nome.localeCompare(b.r.nome, 'pt')
-  const walk = (n, d) => {
-    flat.push({ r: n.r, depth: d })
-    n.kids.sort(cmp).forEach((k) => walk(k, d + 1))
+  const ordena = (n) => {
+    n.kids.sort(cmp)
+    n.kids.forEach(ordena)
   }
-  roots.sort(cmp).forEach((r) => walk(r, 0))
-  return flat
+  roots.sort(cmp)
+  roots.forEach(ordena)
+  return roots
+}
+// nó recursivo: foto + nome/cargo, com rail vertical e cotovelo ligando à equipe
+function RamoTime({ node, navigate }) {
+  const { r, kids } = node
+  return (
+    <div>
+      <button onClick={() => { tapHaptic(); navigate(`/perfil/${r.matricula}`) }} className="hstack w-full gap-2.5 py-1.5 text-left tap">
+        <Avatar name={r.nome} src={r.avatar_url} size={34} />
+        <div className="min-w-0 flex-1">
+          <div className="truncate text-[13px] font-semibold">{r.nome}</div>
+          <div className="truncate text-[10.5px] text-muted">{r.cargo}</div>
+        </div>
+      </button>
+      {kids.length > 0 && (
+        <div className="pl-2.5">
+          {kids.map((k, i) => (
+            <div key={k.r.matricula} className="relative pl-5">
+              <span className="absolute left-1 top-0 border-l-2 border-line" style={{ height: i === kids.length - 1 ? 25 : '100%' }} />
+              <span className="absolute left-1 top-[25px] w-4 border-t-2 border-line" />
+              <RamoTime node={k} navigate={navigate} />
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
 }
 
 export function OrganogramaAneis() {
@@ -227,7 +253,7 @@ export function OrganogramaAneis() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [timeKey])
 
-  const timeFlat = useMemo(() => (time?.rows?.length ? achatarTime(time.rows) : []), [time])
+  const timeRoots = useMemo(() => (time?.rows?.length ? arvoreTime(time.rows) : []), [time])
 
   // ── gesto: gira unidades (banda) ou gerência (órbita) ───────────────────────
   function ponto(e) {
@@ -457,16 +483,13 @@ export function OrganogramaAneis() {
                 <ArrowDown size={14} className="text-accent" />
                 <span className="font-bold text-text">Time de {primeiro(timeAtivo.ger.nome)}</span>
                 <span className="text-muted">· {timeAtivo.unidade}</span>
-                <span className="ml-auto text-muted-2">{timeFlat.length}</span>
+                <span className="ml-auto text-muted-2">{time?.rows?.length || 0}</span>
               </div>
               {time && time.key === timeKey ? (
-                timeFlat.length ? (
-                  <div className="grid grid-cols-5 gap-x-1 gap-y-3">
-                    {timeFlat.map(({ r }) => (
-                      <button key={r.matricula} onClick={() => { tapHaptic(); navigate(`/perfil/${r.matricula}`) }} className="flex flex-col items-center gap-1 tap" title={`${r.nome} — ${r.cargo || ''}`}>
-                        <Avatar name={r.nome} src={r.avatar_url} size={46} />
-                        <span className="w-full truncate text-center text-[9px] leading-tight text-muted">{primeiro(r.nome)}</span>
-                      </button>
+                timeRoots.length ? (
+                  <div className="card p-3">
+                    {timeRoots.map((root) => (
+                      <RamoTime key={root.r.matricula} node={root} navigate={navigate} />
                     ))}
                   </div>
                 ) : (
