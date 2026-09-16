@@ -8,10 +8,10 @@ import { tapHaptic } from '../lib/haptics.js'
 
 // Organograma em ANÉIS (nativo, versão de teste).
 //   centro: logo Tatá + Sócios · anel: Unidades (GIRA) · gerência: fotos (GIRA).
-//   A ramificação de cada gerente é uma árvore top-down mapeada no referencial
-//   dele (cresce "pra fora" do anel — no fundo, cresce pra baixo). Mesmo layout
-//   pra líderes (padrão) e pro time inteiro (só quando o gerente está no fundo),
-//   então os líderes não re-arranjam. Paleta: carbon + citric + p&b.
+//   Ramificação ORGÂNICA: os líderes da unidade sob o gerente abrem num leque
+//   a partir dele (nível 1), os líderes deles no nível 2 — e, quando o gerente
+//   está alinhado no FUNDO, a MESMA recursão continua até o fim com todo mundo.
+//   Paleta: carbon + citric + p&b.
 
 const UNIDADES = [
   { u: 'Itaim', curto: 'Itaim' },
@@ -36,10 +36,13 @@ const U_OUT = 84
 const U_LAB = 69
 const R_GER = 106
 const AV_GER = 30
-const COL = 23 // passo lateral (tangencial) por folha, em VB
-const ROW = 30 // passo pra fora (radial) por nível, em VB
 const TAU = 2 * Math.PI
 const BOTTOM = Math.PI / 2
+
+// raio e passo angular por nível (nível 1 = 140/0.32, nível 2 = 168/0.24 — o padrão original)
+const rNivel = (d) => R_GER + 34 + (d - 1) * 28
+const stepNivel = (d) => 0.32 * Math.pow(0.76, d - 1)
+const avNivel = (d) => Math.max(12, 24 - (d - 1) * 3)
 
 function polar(r, a) {
   return [CX + r * Math.cos(a), CY + r * Math.sin(a)]
@@ -93,44 +96,6 @@ function fatiasSocios(socios) {
   return socios.map((p, i) => ({ p, a0: -Math.PI / 2 + (i / Math.max(1, N)) * TAU, a1: -Math.PI / 2 + ((i + 1) / Math.max(1, N)) * TAU }))
 }
 
-const cmpNome = (a, b) => a.r.nome.localeCompare(b.r.nome, 'pt')
-const ordena = (n) => { n.kids.sort(cmpNome); n.kids.forEach(ordena) }
-// floresta de LÍDERES diretos do gerente NA UNIDADE sob ele (recursivo entre líderes)
-function forestLideres(gerId, lideres, unidade) {
-  const byId = {}
-  lideres.forEach((l) => (byId[l.id_pessoa] = { r: l, kids: [] }))
-  lideres.forEach((l) => { const p = byId[l.id_superior]; if (p) p.kids.push(byId[l.id_pessoa]) })
-  const roots = lideres.filter((l) => l.id_superior === gerId && l.unidade === unidade).map((l) => byId[l.id_pessoa])
-  roots.sort(cmpNome); roots.forEach(ordena)
-  return roots
-}
-// floresta do TIME inteiro (todas as pessoas retornadas pela RPC)
-function forestTime(rows) {
-  const byId = {}
-  rows.forEach((r) => (byId[r.id_pessoa] = { r, kids: [] }))
-  const roots = []
-  rows.forEach((r) => { const p = r.id_superior ? byId[r.id_superior] : null; if (p) p.kids.push(byId[r.id_pessoa]); else roots.push(byId[r.id_pessoa]) })
-  roots.sort(cmpNome); roots.forEach(ordena)
-  return roots
-}
-// layout top-down local: folhas em sequência (lx), pais centrados; nível → ly
-function layoutLocal(rootKids) {
-  let cursor = 0
-  const root = { kids: rootKids }
-  const assign = (n, d) => {
-    n._ly = d * ROW
-    if (n.kids && n.kids.length) {
-      n.kids.forEach((k) => assign(k, d + 1))
-      n._lx = (n.kids[0]._lx + n.kids[n.kids.length - 1]._lx) / 2
-    } else {
-      n._lx = cursor * COL
-      cursor++
-    }
-  }
-  assign(root, 0)
-  return root
-}
-
 export function OrganogramaAneis() {
   const navigate = useNavigate()
   const [gente, setGente] = useState(null)
@@ -173,15 +138,16 @@ export function OrganogramaAneis() {
   const k = w ? w / VB : 0
   const socioSlices = useMemo(() => fatiasSocios(socios), [socios])
 
-  // 1) ângulos/alcance de cada gerente (sem a árvore ainda)
+  // 1) posição/unidade/alcance de cada gerente
   const gerAngs = gerentes.map((g, i) => {
     const gAng = -Math.PI / 2 + (i / N_G) * TAU + rot
     const uIdx = setorDe(gAng, N_U, rotU)
-    const acende = (g.unidades_alcance || []).includes(UNIDADES[uIdx].u)
-    return { g, gAng, uIdx, acende }
+    const unidade = UNIDADES[uIdx].u
+    const acende = (g.unidades_alcance || []).includes(unidade)
+    return { g, gAng, uIdx, unidade, acende }
   })
 
-  // 2) alinhamento no fundo → time ativo
+  // 2) alinhamento no fundo (unidade + gerente com alcance) → time ativo
   let bUniIdx = -1
   let bUniD = 0.42
   UNIDADES.forEach((u, i) => {
@@ -214,40 +180,53 @@ export function OrganogramaAneis() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [timeKey])
 
-  // 3) árvore de cada gerente (líderes por padrão; time inteiro se alinhado)
+  // 3) ramificação orgânica de cada gerente: leque de líderes (2 níveis) — ou,
+  //    se alinhado no fundo com o time carregado, a mesma recursão até o fim.
   const reveals = gerAngs.map((ga) => {
-    const aligned = alinhadoId === ga.g.id_pessoa
-    const rootKids =
-      aligned && time && time.key === timeKey ? forestTime(time.rows) : forestLideres(ga.g.id_pessoa, lideres, UNIDADES[ga.uIdx].u)
-    const root = layoutLocal(rootKids)
-    const rootLx = root._lx || 0
-    const cosA = Math.cos(ga.gAng)
-    const sinA = Math.sin(ga.gAng)
-    // mapeia (lx, ly) locais pro referencial do gerente: ly = pra fora, lx = tangencial
-    const map = (lx, ly) => [
-      CX + (R_GER + ly) * cosA - (lx - rootLx) * sinA,
-      CY + (R_GER + ly) * sinA + (lx - rootLx) * cosA,
-    ]
+    const aligned = alinhadoId === ga.g.id_pessoa && !!time && time.key === timeKey
+    let diretos
+    let kidsOf
+    let maxDepth
+    if (aligned) {
+      const byPai = {}
+      time.rows.forEach((r) => { (byPai[r.id_superior] = byPai[r.id_superior] || []).push(r) })
+      const temKids = (r) => ((byPai[r.id_pessoa] || []).length > 0 ? 1 : 0)
+      const cmp = (a, b) => temKids(b) - temKids(a) || a.nome.localeCompare(b.nome, 'pt')
+      diretos = (byPai[ga.g.id_pessoa] || []).slice().sort(cmp)
+      kidsOf = (r) => (byPai[r.id_pessoa] || []).slice().sort(cmp)
+      maxDepth = 99
+    } else {
+      diretos = lideres.filter((l) => l.id_superior === ga.g.id_pessoa && l.unidade === ga.unidade)
+      kidsOf = (r) => lideres.filter((c) => c.id_superior === r.id_pessoa)
+      maxDepth = 2
+    }
     const nodes = []
     const links = []
-    const walk = (n, parentPos) => {
-      const [x, y] = map(n._lx, n._ly)
-      if (n.r) nodes.push({ r: n.r, x, y, depth: Math.round(n._ly / ROW) })
-      if (parentPos) links.push({ x1: parentPos[0], y1: parentPos[1], x2: x, y2: y })
-      ;(n.kids || []).forEach((c) => walk(c, [x, y]))
+    const build = (p, ang, d, parentAng, parentD) => {
+      const [x, y] = polar(rNivel(d), ang)
+      nodes.push({ p, x, y, depth: d })
+      const [px, py] = parentD === 0 ? polar(R_GER, parentAng) : polar(rNivel(parentD), parentAng)
+      links.push({ x1: px, y1: py, x2: x, y2: y })
+      if (d >= maxDepth) return
+      const kids = kidsOf(p)
+      // família grande: limita a abertura do leque (≈63°) pra descer em vez de virar arco
+      const st = kids.length > 1 ? Math.min(stepNivel(d + 1), 1.1 / (kids.length - 1)) : stepNivel(d + 1)
+      const start = ang - ((kids.length - 1) / 2) * st
+      kids.forEach((c, m) => build(c, start + m * st, d + 1, ang, d))
     }
-    const gpos = map(rootLx, 0) // posição do gerente (raiz, sem foto duplicada)
-    ;(root.kids || []).forEach((c) => walk(c, gpos))
+    const st1 = stepNivel(1)
+    const start1 = ga.gAng - ((diretos.length - 1) / 2) * st1
+    diretos.forEach((p, j) => build(p, start1 + j * st1, 1, ga.gAng, 0))
     return { ...ga, nodes, links, aligned }
   })
 
   const unidadesCasadas = new Set(reveals.filter((r) => r.acende).map((r) => r.uIdx))
 
-  // altura do container: cresce pra baixo conforme a maior ramificação
+  // altura do container: cresce pra baixo conforme a ramificação mais funda
   let contH
-  const maxY = reveals.reduce((m, rv) => rv.nodes.reduce((mm, n) => Math.max(mm, n.y), m), 0)
   if (k) {
-    const h = Math.max(w, maxY * k + 34)
+    const maxY = reveals.reduce((m, rv) => rv.nodes.reduce((mm, n) => Math.max(mm, n.y), m), 0)
+    const h = maxY * k + 34
     if (h > w + 2) contH = h
   }
 
@@ -362,12 +341,18 @@ export function OrganogramaAneis() {
               <circle cx={CX} cy={CY} r={R_CENTRO} style={{ fill: '#000', stroke: CITRIC, strokeWidth: 2, pointerEvents: 'none' }} />
             </svg>
 
-            {/* Conectores das ramificações (px; pode passar da roda) */}
+            {/* Conectores das ramificações (sempre; pode passar da roda) */}
             {k > 0 && (
               <svg className="pointer-events-none absolute left-0 top-0" width={w} height={contH || w} style={{ overflow: 'visible' }}>
-                {reveals.map((rv) => rv.links.map((l, i) => (
-                  <line key={`${rv.g.matricula}-${i}`} x1={l.x1 * k} y1={l.y1 * k} x2={l.x2 * k} y2={l.y2 * k} style={{ stroke: CARBON, strokeWidth: 1.5, opacity: 0.5 }} />
-                )))}
+                {reveals.map((rv) =>
+                  rv.links.map((l, i) => {
+                    // curva leve (orgânica): controle no meio, deslocado perpendicular
+                    const x1 = l.x1 * k, y1 = l.y1 * k, x2 = l.x2 * k, y2 = l.y2 * k
+                    const cx = (x1 + x2) / 2 + (y2 - y1) * 0.18
+                    const cy = (y1 + y2) / 2 - (x2 - x1) * 0.18
+                    return <path key={`${rv.g.matricula}-${i}`} d={`M${x1} ${y1} Q${cx} ${cy} ${x2} ${y2}`} fill="none" style={{ stroke: CARBON, strokeWidth: 1.6, opacity: 0.55, strokeLinecap: 'round' }} />
+                  }),
+                )}
               </svg>
             )}
 
@@ -378,14 +363,14 @@ export function OrganogramaAneis() {
                   <img src="/icons/logo-mark.png" alt="Tatá" style={{ width: 30 * k, height: 'auto' }} />
                 </button>
 
-                {/* ramificações (líderes ou time inteiro) */}
+                {/* ramificações (líderes — ou time inteiro no fundo) */}
                 {reveals.map((rv) =>
                   rv.nodes.map((n) => {
-                    const size = Math.max(13, Math.round((26 - Math.min(n.depth, 5) * 2.2) * k))
+                    const size = Math.max(12, Math.round(avNivel(n.depth) * k))
                     return (
-                      <button key={`ph-${rv.g.matricula}-${n.r.matricula}`} onClick={() => { tapHaptic(); setSel(n.r) }} aria-label={n.r.nome} className="pointer-events-auto absolute z-10 -translate-x-1/2 -translate-y-1/2 rounded-full tap" style={{ left: n.x * k, top: n.y * k }}>
-                        <span className="block rounded-full" style={{ boxShadow: `0 0 0 2px ${CARBON}, 0 1px 3px rgba(0,0,0,.25)` }}>
-                          <Avatar name={n.r.nome} src={n.r.avatar_url} size={size} />
+                      <button key={`ph-${rv.g.matricula}-${n.p.matricula}`} onClick={() => { tapHaptic(); setSel(n.p) }} aria-label={n.p.nome} className="pointer-events-auto absolute z-10 -translate-x-1/2 -translate-y-1/2 rounded-full tap" style={{ left: n.x * k, top: n.y * k }}>
+                        <span className="block rounded-full" style={{ boxShadow: `0 0 0 2px ${CARBON}, 0 2px 5px rgba(0,0,0,.3)` }}>
+                          <Avatar name={n.p.nome} src={n.p.avatar_url} size={size} />
                         </span>
                       </button>
                     )
@@ -456,7 +441,7 @@ export function OrganogramaAneis() {
           </div>
 
           <p className="mx-auto mt-4 max-w-[380px] px-1 pb-10 text-center text-[11px] text-muted-2">
-            Protótipo — no fundo (↓) a ramificação abre o time inteiro, crescendo pra baixo.
+            Protótipo — no fundo (↓) a ramificação continua até o fim, com todo mundo.
           </p>
         </div>
       )}
