@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowLeft, Loader2, RotateCcw } from 'lucide-react'
+import { ArrowLeft, Loader2, RotateCcw, X, ChevronRight } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Avatar } from '../components/Avatar.jsx'
 import { supabase } from '../lib/supabase.js'
@@ -8,11 +8,11 @@ import { tapHaptic } from '../lib/haptics.js'
 
 // Organograma em ANÉIS (nativo, versão de teste).
 //   centro: Tatá
-//   anel 1: Sócios (Tito, Luiz, Léo)
+//   anel 1: Sócios (campos com o nome)
 //   anel 2: Unidades (mesma proporção)
 //   anel 3: Gerentes — GIRATÓRIO (arraste pra rodar)
-// Sócios/Gerentes vêm da RPC organograma_lideres() (faixas 1 e 2), com foto real.
-// "Depois a gente desenvolve outra parte" (líderes etc.).
+// Sócios e gerentes são "campos" (fatias com nome). Tocar abre um cartão com a
+// foto + botão "Ver perfil". Dados: RPC organograma_lideres() (faixas 1 e 2).
 
 const UNIDADES = [
   { u: 'Itaim', cor: '#3b82f6', curto: 'Itaim' },
@@ -29,13 +29,15 @@ const VB = 340
 const CX = 170
 const CY = 170
 const R_CENTRO = 26
-const R1_IN = 26
-const R1_OUT = 74 // sócios
-const R2_IN = 74
-const R2_OUT = 120 // unidades
-const R_SOCIO = 50
-const R_UNI_LAB = 97
-const R_GER = 142 // gerentes (giratório)
+const S_IN = 26
+const S_OUT = 78
+const S_LAB = 52
+const U_IN = 78
+const U_OUT = 122
+const U_LAB = 100
+const G_IN = 122
+const G_OUT = 164
+const G_LAB = 143
 
 function polar(r, a) {
   return [CX + r * Math.cos(a), CY + r * Math.sin(a)]
@@ -55,8 +57,8 @@ function primeiro(nome) {
 export function OrganogramaAneis() {
   const navigate = useNavigate()
   const [gente, setGente] = useState(null)
-  const [w, setW] = useState(0)
   const [rot, setRot] = useState(0) // rotação do anel de gerentes (rad)
+  const [sel, setSel] = useState(null) // pessoa selecionada (cartão)
   const boxRef = useRef(null)
   const drag = useRef(null)
 
@@ -70,24 +72,14 @@ export function OrganogramaAneis() {
     }
   }, [])
 
-  useEffect(() => {
-    const elx = boxRef.current
-    if (!elx) return
-    const medir = () => setW(elx.clientWidth || 0)
-    medir()
-    const ro = new ResizeObserver(medir)
-    ro.observe(elx)
-    return () => ro.disconnect()
-  }, [gente])
-
   const { socios, gerentes } = useMemo(() => {
     const g = gente || []
     const porFaixa = (f) =>
-      g.filter((p) => p.faixa === f).sort((a, b) => (a.ordem ?? 0) - (b.ordem ?? 0) || a.nome.localeCompare(b.nome, 'pt'))
+      g
+        .filter((p) => p.faixa === f)
+        .sort((a, b) => (a.ordem ?? 0) - (b.ordem ?? 0) || a.nome.localeCompare(b.nome, 'pt'))
     return { socios: porFaixa(1), gerentes: porFaixa(2) }
   }, [gente])
-
-  const k = w ? w / VB : 0
 
   // ── arrastar pra girar o anel de gerentes ──────────────────────────────────
   function angDe(e) {
@@ -104,25 +96,22 @@ export function OrganogramaAneis() {
     let d = a - drag.current.last
     if (d > Math.PI) d -= 2 * Math.PI
     if (d < -Math.PI) d += 2 * Math.PI
-    if (Math.abs(d) > 0.01) drag.current.moved = true
+    if (Math.abs(d) > 0.012) drag.current.moved = true
     drag.current.last = a
     setRot((r) => r + d)
   }
-  function onUp(e, mat) {
+  function onUp(e, pessoa) {
     const moved = drag.current?.moved
     drag.current = null
-    if (!moved && mat) {
+    if (!moved && pessoa) {
       tapHaptic()
-      navigate(`/perfil/${mat}`)
+      setSel(pessoa)
     }
   }
 
-  const dragHandlers = (mat) => ({
-    onPointerDown: onDown,
-    onPointerMove: onMove,
-    onPointerUp: (e) => onUp(e, mat),
-    onPointerCancel: () => (drag.current = null),
-  })
+  const N_S = Math.max(1, socios.length)
+  const N_U = UNIDADES.length
+  const N_G = Math.max(1, gerentes.length)
 
   return (
     <>
@@ -134,7 +123,7 @@ export function OrganogramaAneis() {
         </button>
         <div className="mt-3 hstack gap-2 rounded-card border border-line bg-surface px-3 py-2 text-[11px] text-muted">
           <RotateCcw size={14} className="shrink-0 text-accent" />
-          <span>Versão de teste. Arraste o anel de fora (gerentes) pra girar. Toque numa pessoa pra abrir o perfil.</span>
+          <span>Versão de teste. Arraste o anel de fora (gerentes) pra girar. Toque num nome pra ver a pessoa.</span>
         </div>
       </div>
 
@@ -144,115 +133,97 @@ export function OrganogramaAneis() {
         </div>
       ) : (
         <div className="px-4 pt-3">
-          <div ref={boxRef} className="relative mx-auto w-full select-none" style={{ maxWidth: 360 }}>
+          <div ref={boxRef} className="mx-auto w-full select-none" style={{ maxWidth: 360 }}>
             <svg viewBox={`0 0 ${VB} ${VB}`} className="w-full" role="img" aria-label="Organograma em anéis">
               {/* anel 2 — unidades (mesma proporção) */}
               {UNIDADES.map((u, i) => {
-                const N = UNIDADES.length
-                const a0 = -Math.PI / 2 + (i / N) * 2 * Math.PI
-                const a1 = -Math.PI / 2 + ((i + 1) / N) * 2 * Math.PI
+                const a0 = -Math.PI / 2 + (i / N_U) * 2 * Math.PI
+                const a1 = -Math.PI / 2 + ((i + 1) / N_U) * 2 * Math.PI
+                const [lx, ly] = polar(U_LAB, (a0 + a1) / 2)
                 return (
-                  <path
-                    key={`u-${u.u}`}
-                    d={arc(R2_IN, R2_OUT, a0, a1)}
-                    style={{ fill: u.cor, fillOpacity: 0.16, stroke: 'rgb(var(--bg))', strokeWidth: 2 }}
-                  />
+                  <g key={`u-${u.u}`}>
+                    <path d={arc(U_IN, U_OUT, a0, a1)} style={{ fill: u.cor, fillOpacity: 0.16, stroke: 'rgb(var(--bg))', strokeWidth: 2 }} />
+                    <text x={lx} y={ly} textAnchor="middle" dominantBaseline="central" style={{ fill: 'rgb(var(--text))', fontSize: 9, fontWeight: 700, pointerEvents: 'none' }}>
+                      {u.curto}
+                    </text>
+                  </g>
                 )
               })}
-              {/* anel 1 — sócios (fundo) */}
-              {socios.map((_, i) => {
-                const N = Math.max(1, socios.length)
-                const a0 = -Math.PI / 2 + (i / N) * 2 * Math.PI
-                const a1 = -Math.PI / 2 + ((i + 1) / N) * 2 * Math.PI
+
+              {/* anel 1 — sócios (campos com nome) */}
+              {socios.map((p, i) => {
+                const a0 = -Math.PI / 2 + (i / N_S) * 2 * Math.PI
+                const a1 = -Math.PI / 2 + ((i + 1) / N_S) * 2 * Math.PI
+                const [lx, ly] = polar(S_LAB, (a0 + a1) / 2)
+                const on = sel?.matricula === p.matricula
                 return (
-                  <path
-                    key={`sb-${i}`}
-                    d={arc(R1_IN, R1_OUT, a0, a1)}
-                    style={{ fill: OURO, fillOpacity: 0.14, stroke: 'rgb(var(--bg))', strokeWidth: 2 }}
-                  />
+                  <g key={`s-${p.matricula}`} onClick={() => { tapHaptic(); setSel(p) }} style={{ cursor: 'pointer' }}>
+                    <path d={arc(S_IN, S_OUT, a0, a1)} style={{ fill: OURO, fillOpacity: on ? 0.4 : 0.15, stroke: on ? OURO : 'rgb(var(--bg))', strokeWidth: on ? 2.5 : 2 }} />
+                    <text x={lx} y={ly} textAnchor="middle" dominantBaseline="central" style={{ fill: 'rgb(var(--text))', fontSize: 10, fontWeight: 700, pointerEvents: 'none' }}>
+                      {primeiro(p.nome)}
+                    </text>
+                  </g>
                 )
               })}
-              {/* rótulos das unidades */}
-              {UNIDADES.map((u, i) => {
-                const N = UNIDADES.length
-                const mid = -Math.PI / 2 + ((i + 0.5) / N) * 2 * Math.PI
-                const [x, y] = polar(R_UNI_LAB, mid)
+
+              {/* anel 3 — gerentes (campos giratórios) */}
+              {gerentes.map((p, i) => {
+                const a0 = -Math.PI / 2 + (i / N_G) * 2 * Math.PI + rot
+                const a1 = -Math.PI / 2 + ((i + 1) / N_G) * 2 * Math.PI + rot
+                const [lx, ly] = polar(G_LAB, (a0 + a1) / 2)
+                const on = sel?.matricula === p.matricula
                 return (
-                  <text
-                    key={`ul-${u.u}`}
-                    x={x}
-                    y={y}
-                    textAnchor="middle"
-                    dominantBaseline="central"
-                    style={{ fill: 'rgb(var(--text))', fontSize: 9, fontWeight: 700, pointerEvents: 'none' }}
+                  <g
+                    key={`g-${p.matricula}`}
+                    onPointerDown={onDown}
+                    onPointerMove={onMove}
+                    onPointerUp={(e) => onUp(e, p)}
+                    onPointerCancel={() => (drag.current = null)}
+                    style={{ cursor: 'grab', touchAction: 'none' }}
                   >
-                    {u.curto}
-                  </text>
+                    <path d={arc(G_IN, G_OUT, a0, a1)} style={{ fill: ROXO, fillOpacity: on ? 0.4 : 0.18, stroke: on ? ROXO : 'rgb(var(--bg))', strokeWidth: on ? 2.5 : 2 }} />
+                    <text x={lx} y={ly} textAnchor="middle" dominantBaseline="central" style={{ fill: 'rgb(var(--text))', fontSize: 10, fontWeight: 700, pointerEvents: 'none' }}>
+                      {primeiro(p.nome)}
+                    </text>
+                  </g>
                 )
               })}
-              {/* faixa do anel de gerentes (fundo giratório) */}
-              <circle cx={CX} cy={CY} r={R_GER} fill="none" style={{ stroke: 'rgb(var(--line))', strokeWidth: 1.4, strokeDasharray: '2 4' }} />
+
               {/* centro Tatá */}
-              <circle cx={CX} cy={CY} r={R_CENTRO} style={{ fill: 'rgb(var(--accent))', stroke: 'rgb(var(--surface))', strokeWidth: 2.5 }} />
+              <circle cx={CX} cy={CY} r={R_CENTRO} onClick={() => setSel(null)} style={{ fill: 'rgb(var(--accent))', stroke: 'rgb(var(--surface))', strokeWidth: 2.5, cursor: 'pointer' }} />
               <text x={CX} y={CY} textAnchor="middle" dominantBaseline="central" style={{ fill: 'rgb(var(--bg))', fontSize: 10, fontWeight: 800, letterSpacing: 0.5, pointerEvents: 'none' }}>
                 TATÁ
               </text>
             </svg>
-
-            {/* Camada de fotos (DOM) */}
-            {k > 0 && (
-              <div className="absolute inset-0">
-                {/* Sócios (fixos) */}
-                {socios.map((p, i) => {
-                  const N = Math.max(1, socios.length)
-                  const mid = -Math.PI / 2 + ((i + 0.5) / N) * 2 * Math.PI
-                  const [x, y] = polar(R_SOCIO, mid)
-                  return (
-                    <button
-                      key={p.matricula}
-                      onClick={() => {
-                        tapHaptic()
-                        navigate(`/perfil/${p.matricula}`)
-                      }}
-                      aria-label={p.nome}
-                      className="absolute flex -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-0.5 tap"
-                      style={{ left: x * k, top: y * k }}
-                    >
-                      <span className="block rounded-full" style={{ boxShadow: `0 0 0 2.5px ${OURO}, 0 2px 6px rgba(0,0,0,.28)` }}>
-                        <Avatar name={p.nome} src={p.avatar_url} size={Math.round(34 * k)} />
-                      </span>
-                      <span className="rounded-full bg-surface/90 px-1 text-[9px] font-semibold leading-tight text-text">
-                        {primeiro(p.nome)}
-                      </span>
-                    </button>
-                  )
-                })}
-
-                {/* Gerentes (anel giratório) */}
-                {gerentes.map((p, i) => {
-                  const N = Math.max(1, gerentes.length)
-                  const mid = -Math.PI / 2 + ((i + 0.5) / N) * 2 * Math.PI + rot
-                  const [x, y] = polar(R_GER, mid)
-                  return (
-                    <button
-                      key={p.matricula}
-                      {...dragHandlers(p.matricula)}
-                      aria-label={p.nome}
-                      className="absolute flex -translate-x-1/2 -translate-y-1/2 cursor-grab touch-none flex-col items-center gap-0.5 active:cursor-grabbing"
-                      style={{ left: x * k, top: y * k }}
-                    >
-                      <span className="block rounded-full" style={{ boxShadow: `0 0 0 2.5px ${ROXO}, 0 2px 7px rgba(0,0,0,.3)` }}>
-                        <Avatar name={p.nome} src={p.avatar_url} size={Math.round(40 * k)} />
-                      </span>
-                      <span className="rounded-full bg-surface/90 px-1 text-[9px] font-semibold leading-tight text-text">
-                        {primeiro(p.nome)}
-                      </span>
-                    </button>
-                  )
-                })}
-              </div>
-            )}
           </div>
+
+          {/* Cartão da pessoa selecionada */}
+          {sel && (
+            <div className="mx-auto mt-3 max-w-[360px]">
+              <div className="card hstack gap-3 p-3">
+                <Avatar name={sel.nome} src={sel.avatar_url} size={52} />
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-sm font-bold">{sel.nome}</div>
+                  <div className="truncate text-[11px] text-muted">
+                    {sel.cargo}
+                    {sel.faixa === 1 ? ' · Sócio' : sel.faixa === 2 ? ' · Gerência' : ''}
+                  </div>
+                  <button
+                    onClick={() => {
+                      tapHaptic()
+                      navigate(`/perfil/${sel.matricula}`)
+                    }}
+                    className="mt-1.5 hstack gap-1 rounded-full bg-accent-soft px-3 py-1 text-[11px] font-bold text-accent tap"
+                  >
+                    Ver perfil <ChevronRight size={13} />
+                  </button>
+                </div>
+                <button onClick={() => setSel(null)} aria-label="Fechar" className="grid h-7 w-7 place-items-center rounded-full text-muted-2 tap hover:bg-fill">
+                  <X size={15} />
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* Legenda */}
           <div className="mx-auto mt-3 flex max-w-[360px] flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[11px] text-muted">
@@ -264,10 +235,7 @@ export function OrganogramaAneis() {
           {rot !== 0 && (
             <div className="mt-3 text-center">
               <button
-                onClick={() => {
-                  tapHaptic()
-                  setRot(0)
-                }}
+                onClick={() => { tapHaptic(); setRot(0) }}
                 className="hstack mx-auto gap-1.5 rounded-full border border-line bg-surface px-3 py-1.5 text-xs font-semibold text-muted tap"
               >
                 <RotateCcw size={13} /> Realinhar anel
