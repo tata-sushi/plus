@@ -202,21 +202,30 @@ export function OrganogramaAneis() {
     }
     const nodes = []
     const links = []
-    const build = (p, ang, d, parentAng, parentD) => {
-      const [x, y] = polar(rNivel(d), ang)
+    const PER_FILA = 5 // família grande desce em fileiras de até 5, intercaladas
+    const build = (p, ang, rad, d, pAng, pRad) => {
+      const [x, y] = polar(rad, ang)
       nodes.push({ p, x, y, depth: d })
-      const [px, py] = parentD === 0 ? polar(R_GER, parentAng) : polar(rNivel(parentD), parentAng)
+      const [px, py] = polar(pRad, pAng)
       links.push({ x1: px, y1: py, x2: x, y2: y })
       if (d >= maxDepth) return
       const kids = kidsOf(p)
-      // família grande: limita a abertura do leque (≈63°) pra descer em vez de virar arco
-      const st = kids.length > 1 ? Math.min(stepNivel(d + 1), 1.1 / (kids.length - 1)) : stepNivel(d + 1)
-      const start = ang - ((kids.length - 1) / 2) * st
-      kids.forEach((c, m) => build(c, start + m * st, d + 1, ang, d))
+      if (kids.length) espalha(kids, ang, rad, rad + 28, d + 1)
     }
-    const st1 = stepNivel(1)
-    const start1 = ga.gAng - ((diretos.length - 1) / 2) * st1
-    diretos.forEach((p, j) => build(p, start1 + j * st1, 1, ga.gAng, 0))
+    // espalha os filhos ao redor do pai: fileiras de PER_FILA, cada uma mais pra
+    // fora (+22), fileiras ímpares deslocadas meio passo (encaixam entre as de cima)
+    const espalha = (kids, pAng, pRad, baseRad, d) => {
+      const st = stepNivel(d)
+      kids.forEach((c, m) => {
+        const fila = Math.floor(m / PER_FILA)
+        const idx = m % PER_FILA
+        const naFila = Math.min(PER_FILA, kids.length - fila * PER_FILA)
+        const desloc = fila % 2 === 1 ? st / 2 : 0
+        const cAng = pAng - ((naFila - 1) / 2) * st + idx * st + desloc
+        build(c, cAng, baseRad + fila * 22, d, pAng, pRad)
+      })
+    }
+    espalha(diretos, ga.gAng, R_GER, rNivel(1), 1)
     return { ...ga, nodes, links, aligned }
   })
 
@@ -345,13 +354,9 @@ export function OrganogramaAneis() {
             {k > 0 && (
               <svg className="pointer-events-none absolute left-0 top-0" width={w} height={contH || w} style={{ overflow: 'visible' }}>
                 {reveals.map((rv) =>
-                  rv.links.map((l, i) => {
-                    // curva leve (orgânica): controle no meio, deslocado perpendicular
-                    const x1 = l.x1 * k, y1 = l.y1 * k, x2 = l.x2 * k, y2 = l.y2 * k
-                    const cx = (x1 + x2) / 2 + (y2 - y1) * 0.18
-                    const cy = (y1 + y2) / 2 - (x2 - x1) * 0.18
-                    return <path key={`${rv.g.matricula}-${i}`} d={`M${x1} ${y1} Q${cx} ${cy} ${x2} ${y2}`} fill="none" style={{ stroke: CARBON, strokeWidth: 1.6, opacity: 0.55, strokeLinecap: 'round' }} />
-                  }),
+                  rv.links.map((l, i) => (
+                    <line key={`${rv.g.matricula}-${i}`} x1={l.x1 * k} y1={l.y1 * k} x2={l.x2 * k} y2={l.y2 * k} style={{ stroke: CARBON, strokeWidth: 1.6, opacity: 0.55, strokeLinecap: 'round' }} />
+                  )),
                 )}
               </svg>
             )}
