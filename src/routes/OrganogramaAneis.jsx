@@ -200,32 +200,56 @@ export function OrganogramaAneis() {
       kidsOf = (r) => lideres.filter((c) => c.id_superior === r.id_pessoa)
       maxDepth = 2
     }
+    // Árvore ARRUMADA: cada subárvore reserva sua largura (sem irmãos se
+    // atropelando); filhos em fileiras de até PER_FILA centradas sob o pai; a
+    // fileira seguinte só começa abaixo das famílias da de cima. Mapeada no
+    // referencial do gerente: nível = pra fora (no fundo, pra baixo), largura = tangente.
+    const PER_FILA = 5
+    // largura (em VB) que uma foto ocupa no seu nível: diâmetro + folga
+    const larguraFoto = (d) => avNivel(Math.max(1, d)) + 4
+    const mk = (p, d) => ({ p, d, kids: d < maxDepth ? kidsOf(p).map((c) => mk(c, d + 1)) : [] })
+    const root = { p: null, d: 0, kids: diretos.map((c) => mk(c, 1)) }
+    const medir = (n) => {
+      if (!n.kids.length) { n._w = larguraFoto(n.d); n._h = 1; return }
+      n.kids.forEach(medir)
+      let w = 0
+      let h = 0
+      for (let r = 0; r < n.kids.length; r += PER_FILA) {
+        const fila = n.kids.slice(r, r + PER_FILA)
+        w = Math.max(w, fila.reduce((s, c) => s + c._w, 0))
+        h += Math.max(...fila.map((c) => c._h))
+      }
+      n._w = Math.max(larguraFoto(n.d), w)
+      n._h = 1 + h
+    }
+    medir(root)
     const nodes = []
     const links = []
-    const PER_FILA = 5 // família grande desce em fileiras de até 5, intercaladas
-    const build = (p, ang, rad, d, pAng, pRad) => {
-      const [x, y] = polar(rad, ang)
-      nodes.push({ p, x, y, depth: d })
-      const [px, py] = polar(pRad, pAng)
-      links.push({ x1: px, y1: py, x2: x, y2: y })
-      if (d >= maxDepth) return
-      const kids = kidsOf(p)
-      if (kids.length) espalha(kids, ang, rad, rad + 28, d + 1)
+    const cosA = Math.cos(ga.gAng)
+    const sinA = Math.sin(ga.gAng)
+    const rootLx = root._w / 2
+    const map = (lx, ly) => {
+      const dl = lx - rootLx
+      const rad = ly === 0 ? R_GER : rNivel(ly)
+      return [CX + rad * cosA - dl * sinA, CY + rad * sinA + dl * cosA]
     }
-    // espalha os filhos ao redor do pai: fileiras de PER_FILA, cada uma mais pra
-    // fora (+22), fileiras ímpares deslocadas meio passo (encaixam entre as de cima)
-    const espalha = (kids, pAng, pRad, baseRad, d) => {
-      const st = stepNivel(d)
-      kids.forEach((c, m) => {
-        const fila = Math.floor(m / PER_FILA)
-        const idx = m % PER_FILA
-        const naFila = Math.min(PER_FILA, kids.length - fila * PER_FILA)
-        const desloc = fila % 2 === 1 ? st / 2 : 0
-        const cAng = pAng - ((naFila - 1) / 2) * st + idx * st + desloc
-        build(c, cAng, baseRad + fila * 22, d, pAng, pRad)
-      })
+    const place = (n, lx0, ly, parentPos) => {
+      const lx = lx0 + n._w / 2
+      const pos = map(lx, ly)
+      if (n.p) {
+        nodes.push({ p: n.p, x: pos[0], y: pos[1], depth: n.d })
+        links.push({ x1: parentPos[0], y1: parentPos[1], x2: pos[0], y2: pos[1] })
+      }
+      let filaLy = ly + 1
+      for (let r = 0; r < n.kids.length; r += PER_FILA) {
+        const fila = n.kids.slice(r, r + PER_FILA)
+        const fw = fila.reduce((s, c) => s + c._w, 0)
+        let cx = lx0 + (n._w - fw) / 2
+        fila.forEach((c) => { place(c, cx, filaLy, pos); cx += c._w })
+        filaLy += Math.max(...fila.map((c) => c._h))
+      }
     }
-    espalha(diretos, ga.gAng, R_GER, rNivel(1), 1)
+    place(root, 0, 0, null)
     return { ...ga, nodes, links, aligned }
   })
 
