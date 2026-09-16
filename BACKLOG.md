@@ -20,6 +20,14 @@ Ideias e pendências levantadas para desenvolvimento futuro.
     `localStorage['sandbox_matricula']` / `p_matricula`) de `recrutamento.html` e `doc.html` no repo
     `lideres` (o backend já ignora o `p_matricula`). _(anotado em 2026-09-16)_
 
+- [x] **Exame agendado → card automático no Kanban do RH** — ao informar a data em Medicina
+  Ocupacional (`exame_agendar`), nasce um card em **RH → Outros**: título "Exame agendado — {nome}",
+  descrição (colaborador/cargo/unidade/tipo/data), prazo = data agendada, **responsável Thamires**
+  e **etiqueta Medicina Ocupacional**; card novo a cada data informada; limpar a data não cria card.
+  Tudo server-side na RPC `tata_plus.exame_agendar` (colunas `data_agendada`/`agendado_por`/`agendado_em`
+  em `dp_rh.exames`; `exames_listar` devolve a data). Botão "Agendar exame" registrado no catálogo do
+  painel admin de Governança (`governanca_abas`, tipo botão). **Testado OK.** _(feito 2026-09-16)_
+
 - [ ] **Assinatura digital — Fase 2 (ICP-Brasil)** — Fase 1 COMPLETA (2026-08-22): documentos de
   texto (RH/política/recibo) **e PDF** com rubrica + selfie + trilha de auditoria; RH/líder cria,
   atribui e acompanha (tela `/assinaturas-admin`, vê selfie+rubrica+auditoria); colaborador tem a
