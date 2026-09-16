@@ -246,7 +246,7 @@ export function OrganogramaAneis() {
   function onDown(e) {
     const { r, a } = ponto(e)
     drag.current = { reg: regiao(r), last: a, moved: false }
-    svgRef.current.setPointerCapture?.(e.pointerId)
+    e.currentTarget.setPointerCapture?.(e.pointerId)
   }
   function onMove(e) {
     const d0 = drag.current
