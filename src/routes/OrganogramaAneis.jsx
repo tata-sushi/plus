@@ -10,8 +10,8 @@ import { tapHaptic } from '../lib/haptics.js'
 //   centro: logo Tatá + Sócios · anel: Unidades (GIRA) · gerência: fotos (GIRA).
 //   Ramificação: os líderes da unidade sob o gerente descem dele (nível 1), os
 //   líderes deles no nível 2 — e, quando o gerente está alinhado no FUNDO, a
-//   linha de líderes segue até o último que tem liderados e o TIME COMPLETO
-//   aparece embaixo, em fileiras (uma por líder). Paleta: carbon + citric + p&b.
+//   linha de líderes segue até o último que tem liderados e o resto do TIME
+//   aparece embaixo, num grid de fotos. Paleta: carbon + citric + p&b.
 
 const UNIDADES = [
   { u: 'Itaim', curto: 'Itaim' },
@@ -31,16 +31,16 @@ const R_CENTRO = 26
 const S_IN = 26
 const S_OUT = 54
 const S_LAB = 40
-const U_IN = 54
-const U_OUT = 84
-const U_LAB = 69
-const R_GER = 106
+const U_IN = 60 // folga entre o círculo dos sócios e o anel das unidades
+const U_OUT = 88
+const U_LAB = 74
+const R_GER = 109
 const AV_GER = 30
 const TAU = 2 * Math.PI
 const BOTTOM = Math.PI / 2
 
 // raio e passo angular por nível (nível 1 = 140/0.32, nível 2 = 168/0.24 — o padrão original)
-const rNivel = (d) => R_GER + 34 + (d - 1) * 28
+const rNivel = (d) => R_GER + 42 + (d - 1) * 34
 const stepNivel = (d) => 0.32 * Math.pow(0.76, d - 1)
 const avNivel = (d) => Math.max(12, 24 - (d - 1) * 3)
 
@@ -194,7 +194,7 @@ export function OrganogramaAneis() {
     // referencial do gerente: nível = pra fora (no fundo, pra baixo), largura = tangente.
     const PER_FILA = 5
     // largura (em VB) que uma foto ocupa no seu nível: diâmetro + folga
-    const larguraFoto = (d) => avNivel(Math.max(1, d)) + 4
+    const larguraFoto = (d) => avNivel(Math.max(1, d)) + 10
     const mk = (p, d) => ({ p, d, kids: d < maxDepth ? kidsOf(p).map((c) => mk(c, d + 1)) : [] })
     const root = { p: null, d: 0, kids: diretos.map((c) => mk(c, 1)) }
     const medir = (n) => {
@@ -243,9 +243,9 @@ export function OrganogramaAneis() {
 
   const unidadesCasadas = new Set(reveals.filter((r) => r.acende).map((r) => r.uIdx))
 
-  // 4) time completo (fundo): quem NÃO é líder, agrupado em fileiras pelo seu
-  //    líder direto, na ordem em que os líderes aparecem na ramificação.
-  let timeGrupos = null
+  // 4) time completo (fundo): quem NÃO é líder (os líderes já estão no anel),
+  //    num grid único, na ordem dos líderes na ramificação e depois por nome.
+  let timePessoas = null
   if (time && time.key === timeKey) {
     const liderIds = new Set(lideres.map((l) => l.id_pessoa))
     const byId = {}
@@ -267,9 +267,8 @@ export function OrganogramaAneis() {
     })
     if (resto.length) grupos.push({ lider: null, pessoas: resto })
     grupos.forEach((g) => g.pessoas.sort((a, b) => a.nome.localeCompare(b.nome, 'pt')))
-    timeGrupos = grupos.filter((g) => g.pessoas.length)
+    timePessoas = grupos.flatMap((g) => g.pessoas)
   }
-  const timeTotal = timeGrupos ? timeGrupos.reduce((s, g) => s + g.pessoas.length, 0) : 0
 
   // altura do container: cresce pra baixo conforme a ramificação mais funda
   let contH
@@ -476,39 +475,19 @@ export function OrganogramaAneis() {
                 <ArrowDown size={14} className="text-accent" />
                 <span className="font-bold text-text">Time de {primeiro(timeAtivo.ger.nome)}</span>
                 <span className="text-muted">· {timeAtivo.unidade}</span>
-                {timeGrupos && <span className="ml-auto text-muted-2">{timeTotal}</span>}
+                {timePessoas && <span className="ml-auto text-muted-2">{timePessoas.length}</span>}
               </div>
-              {!timeGrupos ? (
+              {!timePessoas ? (
                 <div className="hstack justify-center py-4 text-muted-2"><Loader2 size={16} className="animate-spin" /></div>
-              ) : timeGrupos.length === 0 ? (
+              ) : timePessoas.length === 0 ? (
                 <p className="px-1 text-[11px] text-muted">Sem colaboradores nessa unidade.</p>
               ) : (
-                <div className="card divide-y divide-line overflow-hidden">
-                  {timeGrupos.map((g, gi) => (
-                    <div key={g.lider ? g.lider.matricula : `resto-${gi}`} className="px-3 pb-3 pt-2.5">
-                      <div className="hstack gap-2 pb-2.5 text-[11px]">
-                        {g.lider ? (
-                          <button onClick={() => { tapHaptic(); navigate(`/perfil/${g.lider.matricula}`) }} className="hstack min-w-0 gap-2 text-left tap">
-                            <span className="block shrink-0 rounded-full" style={{ boxShadow: `0 0 0 1.5px ${g.lider.faixa === 2 ? CITRIC : CARBON}` }}>
-                              <Avatar name={g.lider.nome} src={g.lider.avatar_url} size={22} />
-                            </span>
-                            <b className="shrink-0 text-text">{primeiro(g.lider.nome)}</b>
-                            <span className="truncate text-muted">{g.lider.cargo}</span>
-                          </button>
-                        ) : (
-                          <b className="text-text">Demais</b>
-                        )}
-                        <span className="ml-auto shrink-0 text-muted-2">{g.pessoas.length}</span>
-                      </div>
-                      <div className="grid grid-cols-5 gap-x-1 gap-y-3">
-                        {g.pessoas.map((r) => (
-                          <button key={r.matricula} onClick={() => { tapHaptic(); navigate(`/perfil/${r.matricula}`) }} className="flex flex-col items-center gap-1 tap" title={`${r.nome} — ${r.cargo || ''}`}>
-                            <Avatar name={r.nome} src={r.avatar_url} size={46} />
-                            <span className="w-full truncate text-center text-[9px] leading-tight text-muted">{primeiro(r.nome)}</span>
-                          </button>
-                        ))}
-                      </div>
-                    </div>
+                <div className="grid grid-cols-5 gap-x-1 gap-y-3 px-1">
+                  {timePessoas.map((r) => (
+                    <button key={r.matricula} onClick={() => { tapHaptic(); navigate(`/perfil/${r.matricula}`) }} className="flex flex-col items-center gap-1 tap" title={`${r.nome} — ${r.cargo || ''}`}>
+                      <Avatar name={r.nome} src={r.avatar_url} size={46} />
+                      <span className="w-full truncate text-center text-[9px] leading-tight text-muted">{primeiro(r.nome)}</span>
+                    </button>
                   ))}
                 </div>
               )}
