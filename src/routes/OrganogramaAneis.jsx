@@ -537,20 +537,14 @@ export function OrganogramaAneis() {
             </div>
           )}
 
-          {/* Legenda + realinhar */}
-          <div className="mx-auto mt-3 flex max-w-[380px] flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[11px] text-muted">
-            <span className="hstack gap-1.5"><span className="h-2.5 w-2.5 rounded-full" style={{ background: CITRIC }} /><b className="text-text">Sócios e gerência</b></span>
-            <span className="hstack gap-1.5"><span className="h-2.5 w-2.5 rounded-full" style={{ background: CARBON }} />Líderes</span>
-            {(rot !== 0 || rotU !== 0 || rotC !== 0) && (
-              <button onClick={() => { tapHaptic(); setRot(0); setRotU(0); setRotC(0) }} className="hstack gap-1 rounded-full border border-line bg-surface px-2.5 py-1 font-semibold text-muted tap">
+          {/* Realinhar (só quando algo foi girado) */}
+          {(rot !== 0 || rotU !== 0 || rotC !== 0) && (
+            <div className="mx-auto mt-3 flex max-w-[380px] items-center justify-center pb-10">
+              <button onClick={() => { tapHaptic(); setRot(0); setRotU(0); setRotC(0) }} className="hstack gap-1 rounded-full border border-line bg-surface px-3 py-1.5 text-[11px] font-semibold text-muted tap">
                 <RotateCcw size={12} /> Realinhar
               </button>
-            )}
-          </div>
-
-          <p className="mx-auto mt-4 max-w-[380px] px-1 pb-10 text-center text-[11px] text-muted-2">
-            Protótipo — no fundo (↓) a linha de líderes vai até o fim e o time completo aparece embaixo.
-          </p>
+            </div>
+          )}
         </div>
       )}
     </>
