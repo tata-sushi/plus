@@ -237,9 +237,12 @@ export function OrganogramaAneis() {
     const cosA = Math.cos(ga.gAng)
     const sinA = Math.sin(ga.gAng)
     const rootLx = root._w / 2
+    // gerência: os líderes diretos caem no MESMO círculo do anel dos
+    // coordenadores (R_COORD) — nível 1 = R_COORD, depois seguem pra fora.
+    const branchBase = ga.reg === 'ger' ? R_COORD - 42 : ga.orbitR
     const map = (lx, ly) => {
       const dl = lx - rootLx
-      const rad = ly === 0 ? ga.orbitR : rNivel(ly, ga.orbitR)
+      const rad = ly === 0 ? ga.orbitR : rNivel(ly, branchBase)
       return [CX + rad * cosA - dl * sinA, CY + rad * sinA + dl * cosA]
     }
     const place = (n, lx0, ly, parentPos) => {
@@ -369,7 +372,7 @@ export function OrganogramaAneis() {
 
   return (
     <>
-      <Header title="Organograma" />
+      <Header title="Organograma Tatá" />
 
       <div className="px-5 pt-4">
         <button onClick={() => navigate(-1)} className="hstack gap-1 text-sm text-muted tap">
