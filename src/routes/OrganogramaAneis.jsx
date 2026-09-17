@@ -381,7 +381,10 @@ export function OrganogramaAneis() {
         <button onClick={() => navigate(-1)} className="hstack gap-1 text-sm text-muted tap">
           <ArrowLeft size={16} /> Voltar
         </button>
-        <h1 className="mt-2 font-display text-xl font-bold tracking-tight">Organograma Tatá</h1>
+      </div>
+
+      <div className="mb-1 mt-3 text-center">
+        <div className="font-display text-[19px] font-bold leading-tight">Organograma Tatá</div>
       </div>
 
       {gente === null ? (
