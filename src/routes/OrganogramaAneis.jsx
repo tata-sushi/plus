@@ -299,7 +299,7 @@ export function OrganogramaAneis() {
   // ramificação que sobe; contH reserva um espaço estável embaixo pra ramificação
   // que desce. A ramificação mais funda transborda e a pessoa rola a página.
   const topPad = k ? 70 * k : 0
-  const contH = k ? Math.round(w * 1.32) : undefined
+  const contH = k ? Math.round(w * 1.08) : undefined
 
   // ── gesto: gira unidades (banda) ou gerência (órbita) ───────────────────────
   function ponto(e) {
@@ -408,7 +408,7 @@ export function OrganogramaAneis() {
                 const rLab = Math.sin((a0 + a1) / 2) < 0 ? 34 : S_LAB
                 return (
                   <g key={`s-${p.matricula}`} style={{ pointerEvents: 'none' }}>
-                    <path d={arc(S_IN, S_OUT, a0, a1)} style={{ fill: CITRIC, fillOpacity: on ? 0.42 : 0.16, stroke: on ? CITRIC : 'rgb(var(--bg))', strokeWidth: on ? 1.25 : 2 }} />
+                    <path d={arc(S_IN, S_OUT, a0, a1)} onPointerUp={() => { tapHaptic(); setSel(p) }} style={{ fill: CITRIC, fillOpacity: on ? 0.42 : 0.16, stroke: on ? CITRIC : 'rgb(var(--bg))', strokeWidth: on ? 1.25 : 2, pointerEvents: 'all', cursor: 'pointer' }} />
                     <path id={`sarc-${i}`} d={textArc(rLab, a0 + 0.06, a1 - 0.06)} fill="none" />
                     <text style={{ fill: 'rgb(var(--text))', fontSize: 8.5, fontWeight: 700 }}>
                       <textPath href={`#sarc-${i}`} startOffset="50%" textAnchor="middle">{AP_SOCIO[p.matricula] || primeiro(p.nome)}</textPath>
@@ -491,8 +491,8 @@ export function OrganogramaAneis() {
             {sel && (
               <div className="pointer-events-none absolute inset-x-0 top-0 z-40 flex items-center justify-center px-6" style={{ height: w }}>
                 <div className="pointer-events-auto relative w-full max-w-[210px] rounded-2xl border border-line bg-surface p-4 text-center shadow-xl">
-                  <button onClick={() => setSel(null)} aria-label="Fechar" className="absolute right-2 top-2 grid h-7 w-7 place-items-center rounded-full text-muted-2 tap hover:bg-fill">
-                    <X size={15} />
+                  <button onClick={() => setSel(null)} aria-label="Fechar" className="absolute -right-2 -top-2 grid h-9 w-9 place-items-center rounded-full border border-line bg-surface text-muted shadow-sm tap">
+                    <X size={17} />
                   </button>
                   <div className="flex justify-center">
                     <Avatar name={sel.nome} src={sel.avatar_url} size={70} />
