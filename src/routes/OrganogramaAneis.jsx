@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowLeft, ArrowDown, Loader2, X, ChevronRight, RotateCcw } from 'lucide-react'
+import { ArrowLeft, ArrowDown, Loader2, X, ChevronRight } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Avatar } from '../components/Avatar.jsx'
 import { supabase } from '../lib/supabase.js'
@@ -537,14 +537,7 @@ export function OrganogramaAneis() {
             </div>
           )}
 
-          {/* Realinhar (só quando algo foi girado) */}
-          {(rot !== 0 || rotU !== 0 || rotC !== 0) && (
-            <div className="mx-auto mt-3 flex max-w-[380px] items-center justify-center pb-10">
-              <button onClick={() => { tapHaptic(); setRot(0); setRotU(0); setRotC(0) }} className="hstack gap-1 rounded-full border border-line bg-surface px-3 py-1.5 text-[11px] font-semibold text-muted tap">
-                <RotateCcw size={12} /> Realinhar
-              </button>
-            </div>
-          )}
+          <div className="pb-10" />
         </div>
       )}
     </>
