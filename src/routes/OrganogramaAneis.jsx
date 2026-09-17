@@ -30,7 +30,7 @@ const CY = 190
 const R_CENTRO = 26
 const S_IN = 26
 const S_OUT = 54
-const S_LAB = 35
+const S_LAB = 40
 const U_IN = 60 // folga entre o círculo dos sócios e o anel das unidades
 const U_OUT = 88
 const U_LAB = 74
@@ -404,10 +404,12 @@ export function OrganogramaAneis() {
               {/* centro — sócios (Tito maior no topo) */}
               {socioSlices.map(({ p, a0, a1 }, i) => {
                 const on = sel?.matricula === p.matricula
+                // só a fatia de cima (Tito) desce um pouco; as de baixo mantêm o raio
+                const rLab = Math.sin((a0 + a1) / 2) < 0 ? 34 : S_LAB
                 return (
                   <g key={`s-${p.matricula}`} style={{ pointerEvents: 'none' }}>
                     <path d={arc(S_IN, S_OUT, a0, a1)} style={{ fill: CITRIC, fillOpacity: on ? 0.42 : 0.16, stroke: on ? CITRIC : 'rgb(var(--bg))', strokeWidth: on ? 1.25 : 2 }} />
-                    <path id={`sarc-${i}`} d={textArc(S_LAB, a0 + 0.06, a1 - 0.06)} fill="none" />
+                    <path id={`sarc-${i}`} d={textArc(rLab, a0 + 0.06, a1 - 0.06)} fill="none" />
                     <text style={{ fill: 'rgb(var(--text))', fontSize: 8.5, fontWeight: 700 }}>
                       <textPath href={`#sarc-${i}`} startOffset="50%" textAnchor="middle">{AP_SOCIO[p.matricula] || primeiro(p.nome)}</textPath>
                     </text>
@@ -483,34 +485,27 @@ export function OrganogramaAneis() {
                 })}
               </div>
             )}
-          </div>
 
-          {/* Cartão da pessoa — flutuante e centralizado sobre o anel; toca fora
-              (ou no X) pra fechar e voltar a girar os anéis sem travar */}
-          {sel && (
-            <div
-              className="fixed inset-0 z-40 flex items-center justify-center px-8"
-              style={{ background: 'rgba(0,0,0,.18)' }}
-              onClick={() => setSel(null)}
-            >
-              <div
-                className="relative w-full max-w-[220px] rounded-2xl border border-line bg-surface p-4 text-center shadow-xl"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <button onClick={() => setSel(null)} aria-label="Fechar" className="absolute right-2 top-2 grid h-7 w-7 place-items-center rounded-full text-muted-2 tap hover:bg-fill">
-                  <X size={15} />
-                </button>
-                <div className="flex justify-center">
-                  <Avatar name={sel.nome} src={sel.avatar_url} size={72} />
-                </div>
-                <div className="mt-2 text-sm font-bold leading-tight">{sel.nome}</div>
-                <div className="mt-0.5 text-[11px] text-muted">
-                  {sel.cargo}
-                  {sel.faixa === 1 ? ' · Sócio' : sel.faixa === 2 ? ' · Gerência' : sel.unidade ? ` · ${sel.unidade}` : ''}
+            {/* Cartão flutuante centralizado sobre os anéis, SEM bloquear a tela:
+                dá pra tocar em outra pessoa ou girar com ele aberto (X pra fechar) */}
+            {sel && (
+              <div className="pointer-events-none absolute inset-x-0 top-0 z-40 flex items-center justify-center px-6" style={{ height: w }}>
+                <div className="pointer-events-auto relative w-full max-w-[210px] rounded-2xl border border-line bg-surface p-4 text-center shadow-xl">
+                  <button onClick={() => setSel(null)} aria-label="Fechar" className="absolute right-2 top-2 grid h-7 w-7 place-items-center rounded-full text-muted-2 tap hover:bg-fill">
+                    <X size={15} />
+                  </button>
+                  <div className="flex justify-center">
+                    <Avatar name={sel.nome} src={sel.avatar_url} size={70} />
+                  </div>
+                  <div className="mt-2 text-sm font-bold leading-tight">{sel.nome}</div>
+                  <div className="mt-0.5 text-[11px] text-muted">
+                    {sel.cargo}
+                    {sel.faixa === 1 ? ' · Sócio' : sel.faixa === 2 ? ' · Gerência' : sel.unidade ? ` · ${sel.unidade}` : ''}
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
 
           {/* Equipe da unidade (alinhamento no fundo): junta os times dos alinhados */}
           {temTime && (
