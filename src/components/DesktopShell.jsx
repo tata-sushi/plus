@@ -30,7 +30,6 @@ const QuadroCanvas = lazy(() => import('../routes/Quadros.jsx').then((m) => ({ d
 // Páginas que ocupam a área principal (só para quem tem Governança).
 const CANVAS = {
   portal: 'https://lideres.tatasushi.tech/compliance/',
-  organograma: 'https://lideres.tatasushi.tech/compliance/areas/organograma2.html',
 }
 
 // Shell de desktop: navegação dupla.
@@ -322,14 +321,6 @@ export function DesktopShell() {
                   title="Portal de Governança"
                   allow="clipboard-write; camera; microphone; geolocation; fullscreen"
                   className="h-full w-full"
-                />
-              )}
-              {canvas === 'organograma' && (
-                <iframe
-                  src={CANVAS.organograma}
-                  title="Organograma"
-                  className="h-full w-full border-0 bg-white"
-                  allow="clipboard-write; fullscreen"
                 />
               )}
               {canvas === 'ouvidoria' && (

@@ -19,7 +19,6 @@ import { Avaliar } from './routes/Avaliar.jsx'
 import { Comunidade } from './routes/Comunidade.jsx'
 import { Ouvidoria } from './routes/Ouvidoria.jsx'
 import { Governanca } from './routes/Governanca.jsx'
-import { Organograma } from './routes/Organograma.jsx'
 import { OrganogramaAneis } from './routes/OrganogramaAneis.jsx'
 import { ControleEscala } from './routes/ControleEscala.jsx'
 import { GerenciarAtalhos } from './routes/GerenciarAtalhos.jsx'
@@ -118,7 +117,8 @@ export function App() {
         <Route path="/passatempos" element={<Passatempos />} />
         <Route path="/minha-experiencia" element={<MinhaExperiencia />} />
         <Route path="/governanca" element={<Governanca />} />
-        <Route path="/organograma" element={<Organograma />} />
+        {/* organograma antigo (iframe) removido — redireciona pro novo nativo */}
+        <Route path="/organograma" element={<Navigate to="/organograma-aneis" replace />} />
         <Route path="/organograma-aneis" element={<OrganogramaAneis />} />
         <Route path="/controle-escala" element={<ControleEscala />} />
         <Route path="/radio" element={<Radio />} />

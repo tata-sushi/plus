@@ -72,7 +72,6 @@ function labelCurto(title) {
 // ícone + rótulo, todos visíveis de uma vez (sem carrossel).
 function SugestoesGrid({ cards, desktop, setCanvas }) {
   const tile = (c) => {
-    const orgNoDesktop = desktop && c.to === '/organograma'
     const Icon = c.badgeIcon
     const inner = (
       <>
@@ -97,13 +96,6 @@ function SugestoesGrid({ cards, desktop, setCanvas }) {
         <div key={c.title} className={cn(cls, 'opacity-60')} aria-disabled="true">
           {inner}
         </div>
-      )
-    }
-    if (orgNoDesktop) {
-      return (
-        <button key={c.title} type="button" onClick={() => setCanvas('organograma')} className={cn(cls, 'tap')}>
-          {inner}
-        </button>
       )
     }
     return (
