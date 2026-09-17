@@ -385,7 +385,7 @@ export function OrganogramaAneis() {
 
       <div className="mb-1 mt-3 px-6 text-center">
         <div className="font-display text-[19px] font-bold leading-tight">Organograma</div>
-        <div className="mt-1 text-xs text-muted">A estrutura do Tatá em anéis · gire pra explorar unidades e times</div>
+        <div className="mt-1 text-xs text-muted">Gire pra explorar unidades e times</div>
       </div>
 
       {gente === null ? (
