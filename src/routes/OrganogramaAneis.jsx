@@ -36,11 +36,13 @@ const U_OUT = 88
 const U_LAB = 74
 const R_GER = 109
 const AV_GER = 30
+const R_COORD = 138 // anel externo pontilhado: quem responde direto aos sócios (ex.: Eduardo)
+const AV_COORD = 24
 const TAU = 2 * Math.PI
 const BOTTOM = Math.PI / 2
 
-// raio e passo angular por nível (nível 1 = 140/0.32, nível 2 = 168/0.24 — o padrão original)
-const rNivel = (d) => R_GER + 42 + (d - 1) * 34
+// raio por nível a partir de uma órbita base (nível 1 = base+42, +34 por nível)
+const rNivel = (d, base = R_GER) => base + 42 + (d - 1) * 34
 const stepNivel = (d) => 0.32 * Math.pow(0.76, d - 1)
 const avNivel = (d) => Math.max(12, 24 - (d - 1) * 3)
 
@@ -100,6 +102,7 @@ export function OrganogramaAneis() {
   const navigate = useNavigate()
   const [gente, setGente] = useState(null)
   const [rot, setRot] = useState(0) // gerência
+  const [rotC, setRotC] = useState(0) // coordenadores (anel externo)
   const [rotU, setRotU] = useState(0) // unidades
   const [sel, setSel] = useState(null)
   const [time, setTime] = useState(null) // { key, ger, unidade, rows }
@@ -125,11 +128,11 @@ export function OrganogramaAneis() {
     return () => ro.disconnect()
   }, [gente])
 
-  const { socios, gerentes, lideres } = useMemo(() => {
+  const { socios, gerentes, lideres, coord } = useMemo(() => {
     const g = gente || []
     const porFaixa = (f) =>
       g.filter((p) => p.faixa === f).sort((a, b) => (a.ordem ?? 0) - (b.ordem ?? 0) || a.nome.localeCompare(b.nome, 'pt'))
-    return { socios: porFaixa(1), gerentes: porFaixa(2), lideres: porFaixa(3) }
+    return { socios: porFaixa(1), gerentes: porFaixa(2), lideres: porFaixa(3), coord: porFaixa(4) }
   }, [gente])
 
   const N_S = Math.max(1, socios.length)
@@ -138,14 +141,24 @@ export function OrganogramaAneis() {
   const k = w ? w / VB : 0
   const socioSlices = useMemo(() => fatiasSocios(socios), [socios])
 
-  // 1) posição/unidade/alcance de cada gerente
+  // 1) posição/unidade/alcance de cada orbitador (gerência + coordenadores)
+  const N_C = Math.max(1, coord.length)
   const gerAngs = gerentes.map((g, i) => {
     const gAng = -Math.PI / 2 + (i / N_G) * TAU + rot
     const uIdx = setorDe(gAng, N_U, rotU)
     const unidade = UNIDADES[uIdx].u
     const acende = (g.unidades_alcance || []).includes(unidade)
-    return { g, gAng, uIdx, unidade, acende }
+    return { g, gAng, uIdx, unidade, acende, orbitR: R_GER, reg: 'ger' }
   })
+  // coordenadores (Eduardo): anel externo pontilhado, gira independente (rotC)
+  const coordAngs = coord.map((g, i) => {
+    const gAng = -Math.PI / 2 + (i / N_C) * TAU + rotC
+    const uIdx = setorDe(gAng, N_U, rotU)
+    const unidade = UNIDADES[uIdx].u
+    const acende = (g.unidades_alcance || []).includes(unidade)
+    return { g, gAng, uIdx, unidade, acende, orbitR: R_COORD, reg: 'coord' }
+  })
+  const orbitadores = [...gerAngs, ...coordAngs]
 
   // 2) alinhamento no fundo (unidade + gerente com alcance) → time ativo
   let bUniIdx = -1
@@ -157,7 +170,7 @@ export function OrganogramaAneis() {
   })
   let bGa = null
   let bGerD = 0.42
-  gerAngs.forEach((ga) => {
+  orbitadores.forEach((ga) => {
     const d = difBottom(ga.gAng)
     if (d < bGerD) { bGerD = d; bGa = ga }
   })
@@ -183,7 +196,7 @@ export function OrganogramaAneis() {
   // 3) ramificação de cada gerente: só LÍDERES (quem tem liderado ativo). Fora
   //    do fundo mostra 2 níveis; alinhado no fundo segue até o último líder —
   //    a mesma árvore, só mais funda, então o desenho de cima não muda.
-  const reveals = gerAngs.map((ga) => {
+  const reveals = orbitadores.map((ga) => {
     const aligned = alinhadoId === ga.g.id_pessoa
     const diretos = lideres.filter((l) => l.id_superior === ga.g.id_pessoa && l.unidade === ga.unidade)
     const kidsOf = (r) => lideres.filter((c) => c.id_superior === r.id_pessoa)
@@ -218,7 +231,7 @@ export function OrganogramaAneis() {
     const rootLx = root._w / 2
     const map = (lx, ly) => {
       const dl = lx - rootLx
-      const rad = ly === 0 ? R_GER : rNivel(ly)
+      const rad = ly === 0 ? ga.orbitR : rNivel(ly, ga.orbitR)
       return [CX + rad * cosA - dl * sinA, CY + rad * sinA + dl * cosA]
     }
     const place = (n, lx0, ly, parentPos) => {
@@ -297,7 +310,8 @@ export function OrganogramaAneis() {
     if (rr <= R_CENTRO + 3) return 'centro'
     if (rr <= S_OUT) return 'socios'
     if (rr <= U_OUT + 2) return 'uni'
-    if (rr <= R_GER + 20) return 'ger'
+    if (rr <= R_GER + 14) return 'ger'
+    if (rr <= R_COORD + 14) return 'coord'
     return 'fora'
   }
   function onDown(e) {
@@ -307,7 +321,7 @@ export function OrganogramaAneis() {
   }
   function onMove(e) {
     const d0 = drag.current
-    if (!d0 || (d0.reg !== 'uni' && d0.reg !== 'ger')) return
+    if (!d0 || (d0.reg !== 'uni' && d0.reg !== 'ger' && d0.reg !== 'coord')) return
     const { a } = ponto(e)
     let d = a - d0.last
     if (d > Math.PI) d -= TAU
@@ -315,6 +329,7 @@ export function OrganogramaAneis() {
     if (Math.abs(d) > 0.01) d0.moved = true
     d0.last = a
     if (d0.reg === 'uni') setRotU((v) => v + d)
+    else if (d0.reg === 'coord') setRotC((v) => v + d)
     else setRot((v) => v + d)
   }
   function onUp(e) {
@@ -329,16 +344,16 @@ export function OrganogramaAneis() {
       if (s) { tapHaptic(); setSel(s.p) }
     }
   }
-  function gerDown(e) {
-    drag.current = { reg: 'ger', last: ponto(e).a, moved: false }
+  function orbDown(e, reg) {
+    drag.current = { reg, last: ponto(e).a, moved: false }
     e.currentTarget.setPointerCapture?.(e.pointerId)
   }
-  function gerUp(e, g) {
+  function orbUp(e, p) {
     const d0 = drag.current
     drag.current = null
     if (!d0 || d0.moved) return
     tapHaptic()
-    setSel(g)
+    setSel(p)
   }
 
   return (
@@ -363,6 +378,10 @@ export function OrganogramaAneis() {
 
               {/* órbita da gerência (guia) */}
               <circle cx={CX} cy={CY} r={R_GER} fill="none" style={{ stroke: CARBON, strokeWidth: 1.2, strokeDasharray: '2 5', opacity: 0.4, pointerEvents: 'none' }} />
+              {/* órbita dos coordenadores que respondem aos sócios (guia) */}
+              {coord.length > 0 && (
+                <circle cx={CX} cy={CY} r={R_COORD} fill="none" style={{ stroke: CARBON, strokeWidth: 1.2, strokeDasharray: '2 5', opacity: 0.4, pointerEvents: 'none' }} />
+              )}
 
               {/* anel — unidades (gira; nome na curva) */}
               {UNIDADES.map((u, i) => {
@@ -422,9 +441,9 @@ export function OrganogramaAneis() {
                     return (
                       <button
                         key={`ph-${rv.g.matricula}-${n.p.matricula}`}
-                        onPointerDown={gerDown}
+                        onPointerDown={(e) => orbDown(e, rv.reg)}
                         onPointerMove={onMove}
-                        onPointerUp={(e) => gerUp(e, n.p)}
+                        onPointerUp={(e) => orbUp(e, n.p)}
                         onPointerCancel={() => (drag.current = null)}
                         aria-label={n.p.nome}
                         className="pointer-events-auto absolute z-10 -translate-x-1/2 -translate-y-1/2 cursor-grab rounded-full active:cursor-grabbing"
@@ -438,16 +457,17 @@ export function OrganogramaAneis() {
                   }),
                 )}
 
-                {/* gerência (fotos giratórias) */}
-                {gerAngs.map((ga) => {
-                  const [x, y] = polar(R_GER, ga.gAng)
-                  const size = Math.max(22, Math.round(AV_GER * k))
+                {/* gerência + coordenadores (fotos giratórias) */}
+                {orbitadores.map((ga) => {
+                  const [x, y] = polar(ga.orbitR, ga.gAng)
+                  const av = ga.reg === 'coord' ? AV_COORD : AV_GER
+                  const size = Math.max(22, Math.round(av * k))
                   return (
                     <button
-                      key={`ger-${ga.g.matricula}`}
-                      onPointerDown={gerDown}
+                      key={`orb-${ga.g.matricula}`}
+                      onPointerDown={(e) => orbDown(e, ga.reg)}
                       onPointerMove={onMove}
-                      onPointerUp={(e) => gerUp(e, ga.g)}
+                      onPointerUp={(e) => orbUp(e, ga.g)}
                       onPointerCancel={() => (drag.current = null)}
                       aria-label={ga.g.nome}
                       className="pointer-events-auto absolute z-20 -translate-x-1/2 -translate-y-1/2 cursor-grab rounded-full active:cursor-grabbing"
@@ -515,8 +535,8 @@ export function OrganogramaAneis() {
           <div className="mx-auto mt-3 flex max-w-[380px] flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[11px] text-muted">
             <span className="hstack gap-1.5"><span className="h-2.5 w-2.5 rounded-full" style={{ background: CITRIC }} /><b className="text-text">Sócios e gerência</b></span>
             <span className="hstack gap-1.5"><span className="h-2.5 w-2.5 rounded-full" style={{ background: CARBON }} />Líderes</span>
-            {(rot !== 0 || rotU !== 0) && (
-              <button onClick={() => { tapHaptic(); setRot(0); setRotU(0) }} className="hstack gap-1 rounded-full border border-line bg-surface px-2.5 py-1 font-semibold text-muted tap">
+            {(rot !== 0 || rotU !== 0 || rotC !== 0) && (
+              <button onClick={() => { tapHaptic(); setRot(0); setRotU(0); setRotC(0) }} className="hstack gap-1 rounded-full border border-line bg-surface px-2.5 py-1 font-semibold text-muted tap">
                 <RotateCcw size={12} /> Realinhar
               </button>
             )}
