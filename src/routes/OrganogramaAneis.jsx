@@ -272,10 +272,18 @@ export function OrganogramaAneis() {
 
   // altura do container: cresce pra baixo conforme a ramificação mais funda
   let contH
+  let topPad = 0
   if (k) {
     const maxY = reveals.reduce((m, rv) => rv.nodes.reduce((mm, n) => Math.max(mm, n.y), m), 0)
     const h = maxY * k + 34
     if (h > w + 2) contH = h
+    // headroom no topo: quando a ramificação sobe (gerente no topo), abre espaço
+    // pra não cortar as fotos de cima (minTop = borda superior do nó mais alto).
+    const minTop = reveals.reduce(
+      (m, rv) => rv.nodes.reduce((mm, n) => Math.min(mm, n.y - avNivel(n.depth) / 2), m),
+      Infinity,
+    )
+    if (isFinite(minTop)) topPad = Math.max(0, (8 - minTop) * k)
   }
 
   // ── gesto: gira unidades (banda) ou gerência (órbita) ───────────────────────
@@ -348,7 +356,7 @@ export function OrganogramaAneis() {
           <Loader2 size={22} className="animate-spin" />
         </div>
       ) : (
-        <div className="overflow-x-hidden px-4 pt-1">
+        <div className="overflow-x-hidden px-4" style={{ paddingTop: 4 + topPad }}>
           <div className="relative mx-auto w-full select-none" style={{ maxWidth: 380, height: contH }}>
             <svg ref={svgRef} viewBox={`0 0 ${VB} ${VB}`} className="w-full" role="img" aria-label="Organograma em anéis" style={{ touchAction: 'none' }}>
               <rect x="0" y="0" width={VB} height={VB} fill="transparent" onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={() => (drag.current = null)} style={{ pointerEvents: 'all', touchAction: 'none', cursor: 'grab' }} />
