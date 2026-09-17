@@ -57,6 +57,8 @@ const Anagrama = lazy(() => import('./routes/Anagrama.jsx'))
 const Documentos = lazy(() => import('./routes/Documentos.jsx'))
 // Holerites — contracheques do colaborador (só visualização), carregado sob demanda.
 const Holerites = lazy(() => import('./routes/Holerites.jsx'))
+// Eventos — lista de presença por QR, carregado sob demanda (usa jsQR/qrcode).
+const Eventos = lazy(() => import('./routes/Eventos.jsx'))
 // Pendências — painel do líder (só leitura), carregado sob demanda.
 const Pendencias = lazy(() => import('./routes/Pendencias.jsx'))
 // Comprovante imprimível de uma assinatura, carregado sob demanda.
@@ -120,6 +122,16 @@ export function App() {
         {/* organograma antigo (iframe) removido — redireciona pro novo nativo */}
         <Route path="/organograma" element={<Navigate to="/organograma-aneis" replace />} />
         <Route path="/organograma-aneis" element={<OrganogramaAneis />} />
+        <Route
+          path="/eventos"
+          element={
+            <ErroBoundary>
+              <Suspense fallback={<Splash />}>
+                <Eventos />
+              </Suspense>
+            </ErroBoundary>
+          }
+        />
         <Route path="/controle-escala" element={<ControleEscala />} />
         <Route path="/radio" element={<Radio />} />
         <Route path="/compartilhar" element={<Compartilhar />} />
