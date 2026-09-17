@@ -186,14 +186,18 @@ export function OrganogramaAneis() {
   useEffect(() => {
     if (!timeKey) { setTime(null); return }
     let ativo = true
-    Promise.all(
-      alinhados.map((a) =>
-        supabase
-          .rpc('organograma_time', { p_id: a.g.id_pessoa, p_unidade: bUnidade })
-          .then(({ data }) => ({ gid: a.g.id_pessoa, ger: a.g, rows: Array.isArray(data) ? data : [] })),
-      ),
-    ).then((teams) => { if (ativo) setTime({ key: timeKey, unidade: bUnidade, teams }) })
-    return () => { ativo = false }
+    // debounce: só busca quando o giro estabiliza (não a cada micro-alinhamento),
+    // e mantém o time anterior visível enquanto o novo carrega (sem flicker/trava).
+    const t = setTimeout(() => {
+      Promise.all(
+        alinhados.map((a) =>
+          supabase
+            .rpc('organograma_time', { p_id: a.g.id_pessoa, p_unidade: bUnidade })
+            .then(({ data }) => ({ gid: a.g.id_pessoa, ger: a.g, rows: Array.isArray(data) ? data : [] })),
+        ),
+      ).then((teams) => { if (ativo) setTime({ key: timeKey, unidade: bUnidade, teams }) })
+    }, 180)
+    return () => { ativo = false; clearTimeout(t) }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [timeKey])
 
@@ -263,36 +267,31 @@ export function OrganogramaAneis() {
   // 4) EQUIPE DA UNIDADE (fundo): junta o time de TODOS os alinhados, só quem
   //    NÃO é líder (líderes já estão no anel), na ordem da ramificação de cada
   //    um; dedupe por matrícula. É a equipe daquela unidade, não "time de fulano".
-  let timePessoas = null
-  if (time && time.key === timeKey) {
+  //    useMemo p/ NÃO recalcular ao girar (senão trava com muita foto aberta);
+  //    ordenado por nome dentro de cada time, dedupe por matrícula.
+  const timePessoas = useMemo(() => {
+    if (!time || !time.teams) return null
     const liderIds = new Set(lideres.map((l) => l.id_pessoa))
     const seen = new Set()
     const out = []
     time.teams.forEach((t) => {
-      const byId = {}
-      lideres.forEach((l) => (byId[l.id_pessoa] = l))
-      t.rows.forEach((r) => (byId[r.id_pessoa] = r))
-      const rv = reveals.find((r) => r.g.id_pessoa === t.gid)
-      const ordem = [t.ger, ...(rv ? rv.nodes.map((n) => n.p) : [])]
-      const idxDe = new Map(ordem.map((p, i) => [p.id_pessoa, i]))
-      const grupos = ordem.map(() => [])
-      const resto = []
-      t.rows.forEach((r) => {
-        if (liderIds.has(r.id_pessoa)) return
-        let sup = r.id_superior
-        let hops = 0
-        while (sup && !idxDe.has(sup) && hops < 20) { sup = byId[sup]?.id_superior; hops++ }
-        if (sup && idxDe.has(sup)) grupos[idxDe.get(sup)].push(r)
-        else resto.push(r)
-      })
-      grupos.forEach((g) => g.sort((a, b) => a.nome.localeCompare(b.nome, 'pt')))
-      resto.sort((a, b) => a.nome.localeCompare(b.nome, 'pt'))
-      ;[...grupos.flat(), ...resto].forEach((r) => {
-        if (!seen.has(r.matricula)) { seen.add(r.matricula); out.push(r) }
-      })
+      t.rows
+        .filter((r) => !liderIds.has(r.id_pessoa))
+        .sort((a, b) => a.nome.localeCompare(b.nome, 'pt'))
+        .forEach((r) => { if (!seen.has(r.matricula)) { seen.add(r.matricula); out.push(r) } })
     })
-    timePessoas = out
-  }
+    return out
+  }, [time, lideres])
+  // grade de fotos memoizada: não re-renderiza as 40+ fotos a cada giro
+  const gridEquipe = useMemo(
+    () => (timePessoas || []).map((r) => (
+      <button key={r.matricula} onClick={() => { tapHaptic(); navigate(`/perfil/${r.matricula}`) }} className="flex flex-col items-center gap-1 tap" title={`${r.nome} — ${r.cargo || ''}`}>
+        <Avatar name={r.nome} src={r.avatar_url} size={46} />
+        <span className="w-full truncate text-center text-[9px] leading-tight text-muted">{primeiro(r.nome)}</span>
+      </button>
+    )),
+    [timePessoas, navigate],
+  )
 
   // Alturas FIXAS (dependem só da escala, não recalculam ao girar) → sem
   // redimensionar/travar durante a navegação. topPad desce os anéis pra caber a
@@ -330,9 +329,19 @@ export function OrganogramaAneis() {
     if (d < -Math.PI) d += TAU
     if (Math.abs(d) > 0.01) d0.moved = true
     d0.last = a
-    if (d0.reg === 'uni') setRotU((v) => v + d)
-    else if (d0.reg === 'coord') setRotC((v) => v + d)
-    else setRot((v) => v + d)
+    // acumula e aplica no máx. 1x por frame (evita travar com muitas fotos abertas)
+    d0.acc = (d0.acc || 0) + d
+    if (!d0.raf) {
+      d0.raf = requestAnimationFrame(() => {
+        const delta = d0.acc || 0
+        d0.acc = 0
+        d0.raf = 0
+        if (!delta) return
+        if (d0.reg === 'uni') setRotU((v) => v + delta)
+        else if (d0.reg === 'coord') setRotC((v) => v + delta)
+        else setRot((v) => v + delta)
+      })
+    }
   }
   function onUp(e) {
     const d0 = drag.current
@@ -434,7 +443,7 @@ export function OrganogramaAneis() {
             {/* Camada DOM: logo + fotos */}
             {k > 0 && (
               <div className="pointer-events-none absolute inset-0">
-                <button onClick={() => setSel(null)} aria-label="Tatá" className="pointer-events-auto absolute -translate-x-1/2 -translate-y-1/2 grid place-items-center" style={{ left: CX * k, top: CY * k, width: 2 * R_CENTRO * k, height: 2 * R_CENTRO * k }}>
+                <button onClick={() => setSel(null)} aria-label="Tatá" className="pointer-events-auto absolute -translate-x-1/2 -translate-y-1/2 grid place-items-center rounded-full" style={{ left: CX * k, top: CY * k, width: 2 * (R_CENTRO - 3) * k, height: 2 * (R_CENTRO - 3) * k }}>
                   <img src="/icons/logo-mark.png" alt="Tatá" style={{ width: 24 * k, height: 'auto' }} />
                 </button>
 
@@ -522,12 +531,7 @@ export function OrganogramaAneis() {
                 <p className="px-1 text-[11px] text-muted">Sem colaboradores nessa unidade.</p>
               ) : (
                 <div className="grid grid-cols-5 gap-x-1 gap-y-3 px-1">
-                  {timePessoas.map((r) => (
-                    <button key={r.matricula} onClick={() => { tapHaptic(); navigate(`/perfil/${r.matricula}`) }} className="flex flex-col items-center gap-1 tap" title={`${r.nome} — ${r.cargo || ''}`}>
-                      <Avatar name={r.nome} src={r.avatar_url} size={46} />
-                      <span className="w-full truncate text-center text-[9px] leading-tight text-muted">{primeiro(r.nome)}</span>
-                    </button>
-                  ))}
+                  {gridEquipe}
                 </div>
               )}
             </div>
