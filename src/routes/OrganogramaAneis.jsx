@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
-import { ArrowLeft, ArrowDown, Loader2, X } from 'lucide-react'
+import { ArrowLeft, ArrowDown, Loader2, X, HelpCircle } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Avatar } from '../components/Avatar.jsx'
 import { supabase } from '../lib/supabase.js'
@@ -108,8 +109,18 @@ export function OrganogramaAneis() {
   const [sel, setSel] = useState(null)
   const [time, setTime] = useState(null) // { key, ger, unidade, rows }
   const [w, setW] = useState(0)
+  const [intro, setIntro] = useState(false)
   const svgRef = useRef(null)
   const drag = useRef(null)
+
+  // explicação na 1ª visita (reabre pelo botão de ajuda)
+  useEffect(() => {
+    try { if (!localStorage.getItem('organograma.intro.v1')) setIntro(true) } catch { /* vazio */ }
+  }, [])
+  function fecharIntro() {
+    try { localStorage.setItem('organograma.intro.v1', '1') } catch { /* vazio */ }
+    setIntro(false)
+  }
 
   useEffect(() => {
     let ativo = true
@@ -377,11 +388,16 @@ export function OrganogramaAneis() {
     <>
       <Header />
 
-      <div className="px-5 pt-4">
+      <div className="hstack justify-between px-5 pt-4">
         <button onClick={() => navigate(-1)} className="hstack gap-1 text-sm text-muted tap">
           <ArrowLeft size={16} /> Voltar
         </button>
+        <button onClick={() => setIntro(true)} aria-label="Como funciona" className="hstack gap-1 text-sm text-muted tap">
+          <HelpCircle size={18} />
+        </button>
       </div>
+
+      {intro && <FolhaIntro onClose={fecharIntro} />}
 
       <div className="mb-1 mt-3 px-6 text-center">
         <div className="font-display text-[19px] font-bold leading-tight">Organograma</div>
@@ -552,6 +568,49 @@ export function OrganogramaAneis() {
         </div>
       )}
     </>
+  )
+}
+
+// Folha de explicação (mesmo padrão dos desafios) — com uma mini-animação dos
+// anéis girando pra ilustrar o "gire pra explorar".
+function FolhaIntro({ onClose }) {
+  return createPortal(
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true">
+      <button aria-label="Fechar" onClick={onClose} className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
+      <div className="relative max-h-[86dvh] w-full max-w-[400px] overflow-y-auto overscroll-contain rounded-2xl border border-line bg-bg px-5 pb-6 pt-6 shadow-xl">
+        <div className="text-center">
+          {/* mini-anéis girando */}
+          <div className="relative mx-auto mb-3 h-24 w-24">
+            <div className="absolute inset-0 rounded-full border-2 border-dashed border-line motion-safe:animate-[spin_9s_linear_infinite]">
+              <span className="absolute left-1/2 top-0 h-5 w-5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-accent bg-accent-soft" />
+            </div>
+            <div className="absolute inset-[14px] rounded-full border-2 border-dashed border-line motion-safe:animate-[spin_7s_linear_infinite_reverse]">
+              <span className="absolute left-1/2 top-0 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-carbon bg-surface" />
+            </div>
+            <div className="absolute left-1/2 top-1/2 grid h-9 w-9 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-black">
+              <img src="/icons/logo-mark.png" alt="Tatá" style={{ width: 18, height: 'auto' }} />
+            </div>
+          </div>
+          <div className="font-display text-xl font-bold">Organograma</div>
+          <p className="mx-auto mt-2 max-w-[340px] text-sm leading-relaxed text-muted">
+            A estrutura do Tatá em <b className="text-text">anéis</b>. Gire pra explorar as{' '}
+            <b className="text-text">unidades</b> e os <b className="text-text">times</b>.
+          </p>
+        </div>
+        <div className="mt-5 rounded-2xl border border-line bg-surface p-4">
+          <div className="text-sm font-bold text-text">Como funciona</div>
+          <ul className="mt-2 flex flex-col gap-1.5 text-sm leading-relaxed text-muted">
+            <li>🔄 <b className="text-text">Gire</b> o anel das unidades e as fotos da gerência/coordenação — cada um roda no seu círculo.</li>
+            <li>⬇️ Alinhe um <b className="text-text">líder com uma unidade no fundo</b> pra abrir o <b className="text-text">time completo</b> daquela unidade embaixo.</li>
+            <li>👆 <b className="text-text">Toque</b> em qualquer pessoa pra ver o cartão dela.</li>
+          </ul>
+        </div>
+        <button onClick={onClose} className="btn-primary mt-5 w-full !py-3 text-sm font-bold">
+          Entendi!
+        </button>
+      </div>
+    </div>,
+    document.body,
   )
 }
 
