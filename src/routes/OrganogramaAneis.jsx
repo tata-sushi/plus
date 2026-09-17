@@ -600,9 +600,9 @@ function FolhaIntro({ onClose }) {
         <div className="mt-5 rounded-2xl border border-line bg-surface p-4">
           <div className="text-sm font-bold text-text">Como funciona</div>
           <ul className="mt-2 flex flex-col gap-1.5 text-sm leading-relaxed text-muted">
-            <li>🔄 <b className="text-text">Gire</b> o anel das unidades e as fotos para alinhamento.</li>
-            <li>⬇️ Alinhe um <b className="text-text">líder com uma unidade na parte de baixo</b> para abrir a <b className="text-text">equipe completa</b>.</li>
-            <li>👆 <b className="text-text">Toque</b> nas fotos para abrir os perfis.</li>
+            <li>• <b className="text-text">Gire</b> o anel das unidades e as fotos para alinhamento.</li>
+            <li>• Alinhe um <b className="text-text">líder com uma unidade na parte de baixo</b> para abrir a <b className="text-text">equipe completa</b>.</li>
+            <li>• <b className="text-text">Toque</b> nas fotos para abrir os perfis.</li>
           </ul>
         </div>
         <button onClick={onClose} className="btn-primary mt-5 w-full !py-3 text-sm font-bold">

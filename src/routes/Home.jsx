@@ -55,7 +55,7 @@ const sugestoesCards = [
     subtitle: 'Avalie a refeição do dia',
   },
   {
-    to: '/organograma',
+    to: '/organograma-aneis',
     badgeIcon: Network,
     title: 'Organograma',
     subtitle: 'Conheça nossos líderes',

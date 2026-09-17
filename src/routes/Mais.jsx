@@ -58,7 +58,7 @@ const itens = [
   { to: '/brainstorm', label: 'Brainstorm Líderes', icon: Lightbulb, brainstorm: true },
   { to: '/documentos', label: 'Assinaturas', icon: FileSignature },
   { to: '/holerites', label: 'Holerite', icon: ReceiptText },
-  { to: '/organograma-aneis', label: 'Organograma', icon: Network, teste: true },
+  { to: '/organograma-aneis', label: 'Organograma', icon: Network },
   { to: '/passatempos', label: 'Passatempos', icon: Puzzle, jogo: true },
   { to: '/manutencao', label: 'Painel de Ajustes', icon: Wrench },
   { to: '/atalhos-governanca', label: 'Atalhos', icon: Pin, gov: true },
