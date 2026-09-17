@@ -479,7 +479,7 @@ export function OrganogramaAneis() {
                       className="pointer-events-auto absolute z-20 -translate-x-1/2 -translate-y-1/2 cursor-grab rounded-full active:cursor-grabbing"
                       style={{ left: x * k, top: y * k, touchAction: 'none' }}
                     >
-                      <span className="block rounded-full" style={{ boxShadow: `0 0 0 2.5px ${CITRIC}, 0 2px 7px rgba(0,0,0,.3)` }}>
+                      <span className="block rounded-full" style={{ boxShadow: `0 0 0 1.4px ${CITRIC}, 0 1px 4px rgba(0,0,0,.28)` }}>
                         <Avatar name={ga.g.nome} src={ga.g.avatar_url} size={size} />
                       </span>
                     </button>
