@@ -500,9 +500,11 @@ export function OrganogramaAneis() {
                     {sel.cargo}
                     {sel.faixa === 1 ? ' · Sócio' : sel.faixa === 2 ? ' · Gerência' : sel.unidade ? ` · ${sel.unidade}` : ''}
                   </div>
-                  <button onClick={() => { tapHaptic(); navigate(`/perfil/${sel.matricula}`) }} className="mt-1.5 hstack gap-1 rounded-full bg-accent-soft px-3 py-1 text-[11px] font-bold text-accent tap">
-                    Ver perfil <ChevronRight size={13} />
-                  </button>
+                  {sel.faixa !== 3 && (
+                    <button onClick={() => { tapHaptic(); navigate(`/perfil/${sel.matricula}`) }} className="mt-1.5 hstack gap-1 rounded-full bg-accent-soft px-3 py-1 text-[11px] font-bold text-accent tap">
+                      Ver perfil <ChevronRight size={13} />
+                    </button>
+                  )}
                 </div>
                 <button onClick={() => setSel(null)} aria-label="Fechar" className="grid h-7 w-7 place-items-center rounded-full text-muted-2 tap hover:bg-fill">
                   <X size={15} />
