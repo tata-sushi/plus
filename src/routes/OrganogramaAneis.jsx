@@ -168,27 +168,30 @@ export function OrganogramaAneis() {
     const d = difBottom(c)
     if (d < bUniD) { bUniD = d; bUniIdx = i }
   })
-  let bGa = null
-  let bGerD = 0.42
-  orbitadores.forEach((ga) => {
-    const d = difBottom(ga.gAng)
-    if (d < bGerD) { bGerD = d; bGa = ga }
-  })
   const bUnidade = bUniIdx >= 0 ? UNIDADES[bUniIdx].u : null
-  const timeAtivo =
-    bGa && bUnidade && (bGa.g.unidades_alcance || []).includes(bUnidade)
-      ? { gid: bGa.g.id_pessoa, unidade: bUnidade, ger: bGa.g }
-      : null
-  const timeKey = timeAtivo ? `${timeAtivo.gid}|${timeAtivo.unidade}` : null
-  const alinhadoId = timeAtivo ? timeAtivo.gid : null
+  // TODOS os orbitadores alinhados no fundo que alcançam a unidade do fundo
+  // (pode ser mais de um: ex. Cíntia e Wellington apontando pra baixo juntos).
+  const alinhados = bUnidade
+    ? orbitadores.filter(
+        (ga) => difBottom(ga.gAng) < 0.42 && (ga.g.unidades_alcance || []).includes(bUnidade),
+      )
+    : []
+  const alignedIds = new Set(alinhados.map((a) => a.g.id_pessoa))
+  const temTime = alinhados.length > 0
+  const timeKey = temTime
+    ? `${bUnidade}|${alinhados.map((a) => a.g.id_pessoa).sort().join(',')}`
+    : null
 
   useEffect(() => {
     if (!timeKey) { setTime(null); return }
-    const [gid, unidade] = timeKey.split('|')
     let ativo = true
-    supabase.rpc('organograma_time', { p_id: gid, p_unidade: unidade }).then(({ data }) => {
-      if (ativo) setTime({ key: timeKey, ger: timeAtivo.ger, unidade, rows: Array.isArray(data) ? data : [] })
-    })
+    Promise.all(
+      alinhados.map((a) =>
+        supabase
+          .rpc('organograma_time', { p_id: a.g.id_pessoa, p_unidade: bUnidade })
+          .then(({ data }) => ({ gid: a.g.id_pessoa, ger: a.g, rows: Array.isArray(data) ? data : [] })),
+      ),
+    ).then((teams) => { if (ativo) setTime({ key: timeKey, unidade: bUnidade, teams }) })
     return () => { ativo = false }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [timeKey])
@@ -197,7 +200,7 @@ export function OrganogramaAneis() {
   //    do fundo mostra 2 níveis; alinhado no fundo segue até o último líder —
   //    a mesma árvore, só mais funda, então o desenho de cima não muda.
   const reveals = orbitadores.map((ga) => {
-    const aligned = alinhadoId === ga.g.id_pessoa
+    const aligned = alignedIds.has(ga.g.id_pessoa)
     const diretos = lideres.filter((l) => l.id_superior === ga.g.id_pessoa && l.unidade === ga.unidade)
     const kidsOf = (r) => lideres.filter((c) => c.id_superior === r.id_pessoa)
     const maxDepth = aligned ? 99 : 2
@@ -256,47 +259,50 @@ export function OrganogramaAneis() {
 
   const unidadesCasadas = new Set(reveals.filter((r) => r.acende).map((r) => r.uIdx))
 
-  // 4) time completo (fundo): quem NÃO é líder (os líderes já estão no anel),
-  //    num grid único, na ordem dos líderes na ramificação e depois por nome.
+  // 4) EQUIPE DA UNIDADE (fundo): junta o time de TODOS os alinhados, só quem
+  //    NÃO é líder (líderes já estão no anel), na ordem da ramificação de cada
+  //    um; dedupe por matrícula. É a equipe daquela unidade, não "time de fulano".
   let timePessoas = null
   if (time && time.key === timeKey) {
     const liderIds = new Set(lideres.map((l) => l.id_pessoa))
-    const byId = {}
-    lideres.forEach((l) => (byId[l.id_pessoa] = l))
-    time.rows.forEach((r) => (byId[r.id_pessoa] = r))
-    const rv = reveals.find((r) => r.g.id_pessoa === alinhadoId)
-    const ordem = [time.ger, ...(rv ? rv.nodes.map((n) => n.p) : [])]
-    const idxDe = new Map(ordem.map((p, i) => [p.id_pessoa, i]))
-    const grupos = ordem.map((p) => ({ lider: p, pessoas: [] }))
-    const resto = []
-    time.rows.forEach((r) => {
-      if (liderIds.has(r.id_pessoa)) return
-      // sobe a cadeia até achar um líder desenhado na ramificação
-      let sup = r.id_superior
-      let hops = 0
-      while (sup && !idxDe.has(sup) && hops < 20) { sup = byId[sup]?.id_superior; hops++ }
-      if (sup && idxDe.has(sup)) grupos[idxDe.get(sup)].pessoas.push(r)
-      else resto.push(r)
+    const seen = new Set()
+    const out = []
+    time.teams.forEach((t) => {
+      const byId = {}
+      lideres.forEach((l) => (byId[l.id_pessoa] = l))
+      t.rows.forEach((r) => (byId[r.id_pessoa] = r))
+      const rv = reveals.find((r) => r.g.id_pessoa === t.gid)
+      const ordem = [t.ger, ...(rv ? rv.nodes.map((n) => n.p) : [])]
+      const idxDe = new Map(ordem.map((p, i) => [p.id_pessoa, i]))
+      const grupos = ordem.map(() => [])
+      const resto = []
+      t.rows.forEach((r) => {
+        if (liderIds.has(r.id_pessoa)) return
+        let sup = r.id_superior
+        let hops = 0
+        while (sup && !idxDe.has(sup) && hops < 20) { sup = byId[sup]?.id_superior; hops++ }
+        if (sup && idxDe.has(sup)) grupos[idxDe.get(sup)].push(r)
+        else resto.push(r)
+      })
+      grupos.forEach((g) => g.sort((a, b) => a.nome.localeCompare(b.nome, 'pt')))
+      resto.sort((a, b) => a.nome.localeCompare(b.nome, 'pt'))
+      ;[...grupos.flat(), ...resto].forEach((r) => {
+        if (!seen.has(r.matricula)) { seen.add(r.matricula); out.push(r) }
+      })
     })
-    if (resto.length) grupos.push({ lider: null, pessoas: resto })
-    grupos.forEach((g) => g.pessoas.sort((a, b) => a.nome.localeCompare(b.nome, 'pt')))
-    timePessoas = grupos.flatMap((g) => g.pessoas)
+    timePessoas = out
   }
 
   // altura do container: cresce pra baixo conforme a ramificação mais funda
   let contH
-  let topPad = 0
+  // headroom FIXO no topo (depende só de k, não recalcula ao girar → sem
+  // redimensionar/travar durante a navegação): desce os anéis o bastante pra
+  // caber a ramificação que sobe.
+  const topPad = k ? 70 * k : 0
   if (k) {
     const maxY = reveals.reduce((m, rv) => rv.nodes.reduce((mm, n) => Math.max(mm, n.y), m), 0)
     const h = maxY * k + 34
     if (h > w + 2) contH = h
-    // headroom no topo: quando a ramificação sobe (gerente no topo), abre espaço
-    // pra não cortar as fotos de cima (minTop = borda superior do nó mais alto).
-    const minTop = reveals.reduce(
-      (m, rv) => rv.nodes.reduce((mm, n) => Math.min(mm, n.y - avNivel(n.depth) / 2), m),
-      Infinity,
-    )
-    if (isFinite(minTop)) topPad = Math.max(0, (8 - minTop) * k)
   }
 
   // ── gesto: gira unidades (banda) ou gerência (órbita) ───────────────────────
@@ -413,7 +419,7 @@ export function OrganogramaAneis() {
                 )
               })}
 
-              <circle cx={CX} cy={CY} r={R_CENTRO} style={{ fill: '#000', stroke: CITRIC, strokeWidth: 2, pointerEvents: 'none' }} />
+              <circle cx={CX} cy={CY} r={R_CENTRO} style={{ fill: '#000', stroke: CITRIC, strokeWidth: 1.1, pointerEvents: 'none' }} />
             </svg>
 
             {/* Conectores das ramificações (sempre; pode passar da roda) */}
@@ -449,7 +455,7 @@ export function OrganogramaAneis() {
                         className="pointer-events-auto absolute z-10 -translate-x-1/2 -translate-y-1/2 cursor-grab rounded-full active:cursor-grabbing"
                         style={{ left: n.x * k, top: n.y * k, touchAction: 'none' }}
                       >
-                        <span className="block rounded-full" style={{ boxShadow: `0 0 0 2px ${CARBON}, 0 2px 5px rgba(0,0,0,.3)` }}>
+                        <span className="block rounded-full" style={{ boxShadow: `0 0 0 1.1px ${CARBON}, 0 1px 4px rgba(0,0,0,.28)` }}>
                           <Avatar name={n.p.nome} src={n.p.avatar_url} size={size} />
                         </span>
                       </button>
@@ -505,14 +511,14 @@ export function OrganogramaAneis() {
             </div>
           )}
 
-          {/* Time completo (alinhamento no fundo): fileiras, uma por líder */}
-          {timeAtivo && (
+          {/* Equipe da unidade (alinhamento no fundo): junta os times dos alinhados */}
+          {temTime && (
             <div className="mx-auto mt-4 max-w-[380px]">
               <div className="hstack gap-2 px-1 pb-2 text-xs">
                 <ArrowDown size={14} className="text-accent" />
-                <span className="font-bold text-text">Time de {primeiro(timeAtivo.ger.nome)}</span>
-                <span className="text-muted">· {timeAtivo.unidade}</span>
-                {timePessoas && <span className="ml-auto text-muted-2">{timePessoas.length}</span>}
+                <span className="shrink-0 font-bold text-text">Equipe {bUnidade}</span>
+                <span className="truncate text-muted">· {alinhados.map((a) => primeiro(a.g.nome)).join(', ')}</span>
+                {timePessoas && <span className="ml-auto shrink-0 text-muted-2">{timePessoas.length}</span>}
               </div>
               {!timePessoas ? (
                 <div className="hstack justify-center py-4 text-muted-2"><Loader2 size={16} className="animate-spin" /></div>
