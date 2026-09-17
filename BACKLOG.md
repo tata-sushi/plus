@@ -20,6 +20,14 @@ Ideias e pendências levantadas para desenvolvimento futuro.
     `localStorage['sandbox_matricula']` / `p_matricula`) de `recrutamento.html` e `doc.html` no repo
     `lideres` (o backend já ignora o `p_matricula`). _(anotado em 2026-09-16)_
 
+- [x] **Organograma em anéis (nativo)** — EM PRODUÇÃO (liberado a todos). Substitui o iframe antigo:
+  centro com logo + sócios, anel de unidades (gira), gerência e coordenadores (Eduardo/Wellington)
+  em anéis pontilhados que giram independente; alinhar líder + unidade no fundo abre a **equipe da
+  unidade** embaixo (junta os alinhados). Cartão flutuante ao tocar, folha "Como funciona" (1ª vez +
+  botão de ajuda). Dados: RPCs `organograma_lideres`/`organograma_time`/`organograma_reach` + tabela
+  `organograma_faixa` (faixas 1 sócios · 2 gerência · 4 coordenadores · 3 líderes por regra de
+  subordinado ativo). Ligado na Home e no Mais. _(concluído em 2026-09-17)_
+
 - [x] **Exame agendado → card automático no Kanban do RH** — ao informar a data em Medicina
   Ocupacional (`exame_agendar`), nasce um card em **RH → Outros**: título "Exame agendado — {nome}",
   descrição (colaborador/cargo/unidade/tipo/data), prazo = data agendada, **responsável Thamires**
