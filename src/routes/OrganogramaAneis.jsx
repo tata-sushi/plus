@@ -30,7 +30,7 @@ const CY = 190
 const R_CENTRO = 26
 const S_IN = 26
 const S_OUT = 54
-const S_LAB = 40
+const S_LAB = 35
 const U_IN = 60 // folga entre o círculo dos sócios e o anel das unidades
 const U_OUT = 88
 const U_LAB = 74
@@ -57,8 +57,9 @@ function arc(rIn, rOut, a0, a1) {
   const p3 = polar(rIn, a0)
   return `M${p0[0]} ${p0[1]}A${rOut} ${rOut} 0 ${large} 1 ${p1[0]} ${p1[1]}L${p2[0]} ${p2[1]}A${rIn} ${rIn} 0 ${large} 0 ${p3[0]} ${p3[1]}Z`
 }
-function textArc(r, a0, a1) {
-  const flip = Math.sin((a0 + a1) / 2) > 0
+function textArc(r, a0, a1, f) {
+  // f: orientação fixa (true = legível embaixo). Se undefined, decide pela posição.
+  const flip = f === undefined ? Math.sin((a0 + a1) / 2) > 0 : f
   const [x0, y0] = polar(r, flip ? a1 : a0)
   const [x1, y1] = polar(r, flip ? a0 : a1)
   const large = Math.abs(a1 - a0) > Math.PI ? 1 : 0
@@ -293,17 +294,12 @@ export function OrganogramaAneis() {
     timePessoas = out
   }
 
-  // altura do container: cresce pra baixo conforme a ramificação mais funda
-  let contH
-  // headroom FIXO no topo (depende só de k, não recalcula ao girar → sem
-  // redimensionar/travar durante a navegação): desce os anéis o bastante pra
-  // caber a ramificação que sobe.
+  // Alturas FIXAS (dependem só da escala, não recalculam ao girar) → sem
+  // redimensionar/travar durante a navegação. topPad desce os anéis pra caber a
+  // ramificação que sobe; contH reserva um espaço estável embaixo pra ramificação
+  // que desce. A ramificação mais funda transborda e a pessoa rola a página.
   const topPad = k ? 70 * k : 0
-  if (k) {
-    const maxY = reveals.reduce((m, rv) => rv.nodes.reduce((mm, n) => Math.max(mm, n.y), m), 0)
-    const h = maxY * k + 34
-    if (h > w + 2) contH = h
-  }
+  const contH = k ? Math.round(w * 1.32) : undefined
 
   // ── gesto: gira unidades (banda) ou gerência (órbita) ───────────────────────
   function ponto(e) {
@@ -397,7 +393,7 @@ export function OrganogramaAneis() {
                 return (
                   <g key={`u-${u.u}`} style={{ pointerEvents: 'none' }}>
                     <path d={arc(U_IN, U_OUT, a0, a1)} style={{ fill: on ? CITRIC : CARBON, fillOpacity: on ? 0.3 : 0.12, stroke: on ? CITRIC : 'rgb(var(--bg))', strokeWidth: on ? 1.25 : 2 }} />
-                    <path id={`uarc-${i}`} d={textArc(U_LAB, a0 + 0.04, a1 - 0.04)} fill="none" />
+                    <path id={`uarc-${i}`} d={textArc(U_LAB, a0 + 0.04, a1 - 0.04, true)} fill="none" />
                     <text style={{ fill: 'rgb(var(--text))', fontSize: 9, fontWeight: 700 }}>
                       <textPath href={`#uarc-${i}`} startOffset="50%" textAnchor="middle">{u.curto}</textPath>
                     </text>
@@ -489,21 +485,29 @@ export function OrganogramaAneis() {
             )}
           </div>
 
-          {/* Cartão da pessoa */}
+          {/* Cartão da pessoa — flutuante e centralizado sobre o anel; toca fora
+              (ou no X) pra fechar e voltar a girar os anéis sem travar */}
           {sel && (
-            <div className="mx-auto mt-3 max-w-[380px]">
-              <div className="card hstack gap-3 p-3">
-                <Avatar name={sel.nome} src={sel.avatar_url} size={52} />
-                <div className="min-w-0 flex-1">
-                  <div className="truncate text-sm font-bold">{sel.nome}</div>
-                  <div className="truncate text-[11px] text-muted">
-                    {sel.cargo}
-                    {sel.faixa === 1 ? ' · Sócio' : sel.faixa === 2 ? ' · Gerência' : sel.unidade ? ` · ${sel.unidade}` : ''}
-                  </div>
-                </div>
-                <button onClick={() => setSel(null)} aria-label="Fechar" className="grid h-7 w-7 place-items-center rounded-full text-muted-2 tap hover:bg-fill">
+            <div
+              className="fixed inset-0 z-40 flex items-center justify-center px-8"
+              style={{ background: 'rgba(0,0,0,.18)' }}
+              onClick={() => setSel(null)}
+            >
+              <div
+                className="relative w-full max-w-[220px] rounded-2xl border border-line bg-surface p-4 text-center shadow-xl"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <button onClick={() => setSel(null)} aria-label="Fechar" className="absolute right-2 top-2 grid h-7 w-7 place-items-center rounded-full text-muted-2 tap hover:bg-fill">
                   <X size={15} />
                 </button>
+                <div className="flex justify-center">
+                  <Avatar name={sel.nome} src={sel.avatar_url} size={72} />
+                </div>
+                <div className="mt-2 text-sm font-bold leading-tight">{sel.nome}</div>
+                <div className="mt-0.5 text-[11px] text-muted">
+                  {sel.cargo}
+                  {sel.faixa === 1 ? ' · Sócio' : sel.faixa === 2 ? ' · Gerência' : sel.unidade ? ` · ${sel.unidade}` : ''}
+                </div>
               </div>
             </div>
           )}
