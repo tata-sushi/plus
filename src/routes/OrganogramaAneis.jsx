@@ -252,11 +252,14 @@ export function OrganogramaAneis() {
         nodes.push({ p: n.p, x: pos[0], y: pos[1], depth: n.d })
         links.push({ x1: parentPos[0], y1: parentPos[1], x2: pos[0], y2: pos[1] })
       }
+      // líder ÚNICO direto do gerente: encosta pro lado (linha angulada, não reta
+      // e colada) — como acontece naturalmente quando há dois.
+      const solo = n.d === 0 && n.kids.length === 1 ? larguraFoto(1) / 2 : 0
       let filaLy = ly + 1
       for (let r = 0; r < n.kids.length; r += PER_FILA) {
         const fila = n.kids.slice(r, r + PER_FILA)
         const fw = fila.reduce((s, c) => s + c._w, 0)
-        let cx = lx0 + (n._w - fw) / 2
+        let cx = lx0 + (n._w - fw) / 2 + solo
         fila.forEach((c) => { place(c, cx, filaLy, pos); cx += c._w })
         filaLy += Math.max(...fila.map((c) => c._h))
       }
