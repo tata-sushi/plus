@@ -4,6 +4,18 @@ Ideias e pendências levantadas para desenvolvimento futuro.
 
 ## Pendências
 
+- [ ] **Publicar o Tatá Plus nas lojas (Play Store / App Store)** — ideia: além do PWA, ter o app
+  listado nas lojas. Caminho realista (o app continua sendo o mesmo PWA por dentro):
+  - **Play Store (Android)** — mais fácil: empacotar o PWA como **TWA** (Trusted Web Activity) via
+    **Bubblewrap** ou **PWABuilder**. Precisa: conta Google Play Developer (US$ 25 única), publicar o
+    `assetlinks.json` no domínio (Digital Asset Links) e gerar o AAB. Abre o PWA em tela cheia, sem barra.
+  - **App Store (iOS)** — mais trabalhoso: exige um **shell nativo** (Capacitor/WKWebView, ex. via
+    PWABuilder). Precisa: conta Apple Developer (US$ 99/ano). Atenção à review da Apple (diretriz 4.2 —
+    podem rejeitar "wrapper" web fino sem função nativa) e a **push** (no app da loja o ideal é APNs
+    nativo; web push só funciona no PWA instalado, iOS 16.4+).
+  - **A considerar:** ícones/splash por plataforma, manutenção do wrapper e ciclos de review, versão
+    mínima, e como tratar notificações push em cada caso. _(anotado em 2026-09-17)_
+
 - [ ] **Governança (portal lideres) — permissão de "ver valores" (Cargos & Salários / Recrutamento)** —
   **Já feito (server-side, no banco):** (a) as RPCs de valores do Recrutamento
   (`vagas_sandbox_listar`, `cargos_salarios_sandbox_listar`, `rec_candidaturas_sandbox_listar`)
