@@ -25,6 +25,7 @@ import {
   ReceiptText,
   Lightbulb,
   Network,
+  QrCode,
 } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Section } from '../components/Section.jsx'
@@ -60,6 +61,7 @@ const itens = [
   { to: '/documentos', label: 'Assinaturas', icon: FileSignature },
   { to: '/holerites', label: 'Holerite', icon: ReceiptText },
   { to: '/organograma-aneis', label: 'Organograma', icon: Network },
+  { to: '/check-in', label: 'Check-in', icon: QrCode, checkin: true },
   { to: '/eventos', label: 'Eventos', icon: CalendarCheck },
   { to: '/passatempos', label: 'Passatempos', icon: Puzzle, jogo: true },
   { to: '/manutencao', label: 'Painel de Ajustes', icon: Wrench },
@@ -120,6 +122,7 @@ export function Mais() {
         (!i.quadros || usuario?.podeQuadros) &&
         (!i.escala || usuario?.podeEscala) &&
         (!i.brainstorm || usuario?.podeBrainstorm) &&
+        (!i.checkin || usuario?.podeCheckin) &&
         (!i.beta || podeVerReconhecimento(usuario)) &&
         (!i.teste || usuario?.matricula === '7') &&
         (!i.rhdocs || usuario?.perfil === 'admin' || usuario?.lider),

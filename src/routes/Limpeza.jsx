@@ -36,10 +36,15 @@ export default function Limpeza() {
   const [ultimo, setUltimo] = useState(null)
   const [itens, setItens] = useState({}) // respostas do checklist: chave -> bool
 
-  // Deep link: QR abriu o app em /limpeza?b=<token>
+  // Deep link: QR abriu o app em /limpeza?b=<token>.
+  // ?scan=1 (vindo do hub de Check-in) abre a câmera direto.
   useEffect(() => {
     const b = params.get('b')
-    if (b) iniciarComToken(b)
+    if (b) { iniciarComToken(b); return }
+    if (params.get('scan')) {
+      setFase('scan')
+      const p = new URLSearchParams(params); p.delete('scan'); setParams(p, { replace: true })
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 

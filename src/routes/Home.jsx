@@ -209,9 +209,9 @@ export function Home() {
       : []),
     { to: '/documentos', badgeIcon: FileSignature, title: 'Assinaturas', subtitle: 'Documentos para assinar' },
     { to: '/holerites', badgeIcon: ReceiptText, title: 'Holerite', subtitle: 'Seus holerites' },
-    // Check-in de eventos (QR) — por enquanto só no meu acesso (matrícula 7).
-    ...(usuario?.matricula === '7'
-      ? [{ to: '/eventos', badgeIcon: QrCode, title: 'Check-in', subtitle: 'Presença em eventos' }]
+    // Check-in (QR) — hub de banheiros/eventos; acesso liberado por pessoa na Governança.
+    ...(usuario?.podeCheckin
+      ? [{ to: '/check-in', badgeIcon: QrCode, title: 'Check-in', subtitle: 'Presença por QR' }]
       : []),
   ]
   const desktop = useDesktop()

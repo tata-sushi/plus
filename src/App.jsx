@@ -59,6 +59,8 @@ const Documentos = lazy(() => import('./routes/Documentos.jsx'))
 const Holerites = lazy(() => import('./routes/Holerites.jsx'))
 // Eventos — lista de presença por QR, carregado sob demanda (usa jsQR/qrcode).
 const Eventos = lazy(() => import('./routes/Eventos.jsx'))
+// Check-in — hub que junta todos os check-ins por QR (banheiros, eventos…).
+const CheckIn = lazy(() => import('./routes/CheckIn.jsx'))
 // Pendências — painel do líder (só leitura), carregado sob demanda.
 const Pendencias = lazy(() => import('./routes/Pendencias.jsx'))
 // Comprovante imprimível de uma assinatura, carregado sob demanda.
@@ -128,6 +130,16 @@ export function App() {
             <ErroBoundary>
               <Suspense fallback={<Splash />}>
                 <Eventos />
+              </Suspense>
+            </ErroBoundary>
+          }
+        />
+        <Route
+          path="/check-in"
+          element={
+            <ErroBoundary>
+              <Suspense fallback={<Splash />}>
+                <CheckIn />
               </Suspense>
             </ErroBoundary>
           }
