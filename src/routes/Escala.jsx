@@ -516,15 +516,20 @@ function Calendario() {
                 : null
               const mov = ev.categoria === 'movimentacao'
               const pag = ev.categoria === 'pagamento'
-              const cor = pag ? '#059669' : mov ? '#8b5cf6' : '#f59e0b'
-              const bg = pag ? 'rgba(5,150,105,0.12)' : mov ? 'rgba(139,92,246,0.12)' : 'rgba(245,158,11,0.12)'
               const IconEv = pag ? CircleDollarSign : mov ? ArrowLeftRight : Sparkles
               const tag = pag ? 'Pagamento' : mov ? 'Movimentação' : null
+              // pagamento usa a paleta (carbon no claro / citric no escuro);
+              // movimentação (violeta) e evento (âmbar) mantêm cor própria.
+              const cor = mov ? '#8b5cf6' : '#f59e0b'
+              const estilo = pag ? undefined : { borderColor: cor, backgroundColor: mov ? 'rgba(139,92,246,0.12)' : 'rgba(245,158,11,0.12)', color: cor }
               return (
                 <div
                   key={`ev${i}`}
-                  className="hstack items-center gap-2 rounded-card border px-4 py-3 text-sm font-semibold"
-                  style={{ borderColor: cor, backgroundColor: bg, color: cor }}
+                  className={cn(
+                    'hstack items-center gap-2 rounded-card border px-4 py-3 text-sm font-semibold',
+                    pag && 'border-carbon/30 bg-carbon/[0.06] text-carbon dark:border-accent/40 dark:bg-accent/10 dark:text-accent',
+                  )}
+                  style={estilo}
                 >
                   <IconEv size={16} className="shrink-0" />
                   <div className="min-w-0">
