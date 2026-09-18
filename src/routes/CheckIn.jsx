@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
 import { createPortal } from 'react-dom'
-import { QrCode, Loader2, Check, X, Star, AlertTriangle, CalendarClock, MapPin } from 'lucide-react'
+import { QrCode, Loader2, Check, Star, AlertTriangle } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Voltar } from '../components/Voltar.jsx'
 import { QrScanner } from '../components/QrScanner.jsx'
@@ -9,8 +9,8 @@ import { useAuth } from '../lib/AuthContext.jsx'
 import { supabase } from '../lib/supabase.js'
 import { tapHaptic } from '../lib/haptics.js'
 
-// Hub de Check-in = leitor ÚNICO de QR. Um só botão abre a câmera e lê qualquer
-// código; o destino é decidido pelo conteúdo do QR:
+// Hub de Check-in = leitor ÚNICO de QR. Um só toque no ícone abre a câmera e lê
+// qualquer código; o destino é decidido pelo conteúdo do QR:
 //   ?b=<token>  → banheiro  → fluxo de limpeza (o servidor trava quem não tem acesso)
 //   ?e=<token>  → evento    → registra presença (aberto a todos)
 // Como cada destino aplica a própria regra, o leitor não precisa de trava própria.
@@ -28,29 +28,11 @@ function classificarQR(txt) {
   return null // token cru é ambíguo (banheiro x evento) — pede pra escanear o QR oficial
 }
 
-function fmtData(iso) {
-  if (!iso) return ''
-  try {
-    return new Intl.DateTimeFormat('pt-BR', {
-      timeZone: 'America/Sao_Paulo', day: '2-digit', month: '2-digit',
-      hour: '2-digit', minute: '2-digit',
-    }).format(new Date(iso))
-  } catch { return '' }
-}
-
 export function CheckIn() {
   const navigate = useNavigate()
   const { usuario } = useAuth()
-  const [eventos, setEventos] = useState(null)
   const [scanning, setScanning] = useState(false)
   const [checkin, setCheckin] = useState(null) // { fase:'loading'|'ok'|'erro', ... }
-
-  function carregar() {
-    supabase.rpc('eventos_listar').then(({ data }) => setEventos(Array.isArray(data) ? data : []))
-  }
-  useEffect(() => {
-    if (usuario?.podeCheckin) carregar()
-  }, [usuario?.podeCheckin])
 
   function fazerCheckinEvento(token) {
     setScanning(false)
@@ -67,7 +49,6 @@ export function CheckIn() {
         setCheckin({ fase: 'ok', ...data })
         tapHaptic()
       }
-      carregar()
     })
   }
 
@@ -89,13 +70,11 @@ export function CheckIn() {
   }
   if (!usuario.podeCheckin) return <Navigate to="/" replace />
 
-  const abertos = eventos || []
-
   return (
     <>
       <Header title="Check-in" />
       <Voltar />
-      <div className="mx-auto w-full max-w-[460px] px-5 pb-24 pt-2">
+      <div className="mx-auto w-full max-w-[420px] px-5 pb-24 pt-4">
         {scanning ? (
           <QrScanner
             dica="Aponte a câmera pro QR do evento ou do banheiro."
@@ -104,51 +83,24 @@ export function CheckIn() {
           />
         ) : (
           <>
-            <div className="mt-6 flex flex-col items-center text-center">
-              <span className="grid h-16 w-16 place-items-center rounded-2xl bg-accent-soft text-accent">
-                <QrCode size={30} />
-              </span>
-              <div className="mt-3 font-display text-lg font-bold">Check-in</div>
-              <div className="mt-1 max-w-xs text-sm text-muted">
-                Um leitor pra tudo: escaneie o QR do evento ou do banheiro. Data, horário e seu nome entram automático.
+            <div className="mb-5 text-center">
+              <div className="font-display text-[19px] font-bold leading-tight">Check-in</div>
+              <div className="mt-1 text-xs text-muted">
+                Escaneie o QR do evento ou do banheiro pra registrar sua presença. Data, horário e seu nome entram automático.
               </div>
-              <button onClick={() => { tapHaptic(); setScanning(true) }} className="btn-primary mt-6 hstack w-full justify-center gap-2 py-3.5 text-sm font-bold">
-                <QrCode size={18} /> Escanear QR
-              </button>
             </div>
 
-            {/* Eventos abertos agora — só informativo (o check-in é sempre pelo QR) */}
-            {abertos.length > 0 && (
-              <div className="mt-8">
-                <div className="mb-2 px-1 text-[11px] font-bold uppercase tracking-widest text-muted">Abertos agora</div>
-                <div className="flex flex-col gap-2">
-                  {abertos.map((e) => (
-                    <div key={e.id} className="card hstack items-center gap-3 !py-3">
-                      <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-accent-soft text-accent">
-                        <CalendarClock size={18} />
-                      </span>
-                      <div className="min-w-0 flex-1">
-                        <div className="truncate text-sm font-semibold leading-tight">{e.titulo}</div>
-                        <div className="mt-0.5 hstack flex-wrap gap-x-2 gap-y-0 text-[11px] text-muted">
-                          <span>{fmtData(e.data_inicio)}</span>
-                          {e.local && <span className="hstack gap-0.5"><MapPin size={11} /> {e.local}</span>}
-                        </div>
-                      </div>
-                      {e.ja_presente ? (
-                        <span className="hstack shrink-0 items-center gap-1 rounded-full bg-accent-soft px-2 py-0.5 text-[10px] font-bold uppercase text-accent">
-                          <Check size={12} /> Presente
-                        </span>
-                      ) : e.pontos > 0 ? (
-                        <span className="hstack shrink-0 items-center gap-1 rounded-full bg-fill px-2 py-0.5 text-[10px] font-bold text-muted">
-                          <Star size={11} /> {e.pontos}
-                        </span>
-                      ) : null}
-                    </div>
-                  ))}
-                </div>
-                <p className="mt-2 px-1 text-[11px] text-muted-2">Toque em “Escanear QR” e aponte pro código do evento pra confirmar presença.</p>
-              </div>
-            )}
+            {/* O próprio ícone é o botão de escanear */}
+            <button
+              onClick={() => { tapHaptic(); setScanning(true) }}
+              aria-label="Escanear QR"
+              className="mx-auto mt-10 flex flex-col items-center gap-3 tap"
+            >
+              <span className="grid h-28 w-28 place-items-center rounded-[28px] bg-accent text-black shadow-md">
+                <QrCode size={52} strokeWidth={2} />
+              </span>
+              <span className="text-sm font-semibold">Escanear QR</span>
+            </button>
           </>
         )}
       </div>
