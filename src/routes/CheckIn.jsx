@@ -74,7 +74,7 @@ export function CheckIn() {
     <>
       <Header title="Check-in" />
       <Voltar />
-      <div className="mx-auto w-full max-w-[420px] px-5 pb-24 pt-4">
+      <div className="mx-auto flex min-h-[72dvh] w-full max-w-[420px] flex-col px-5 pb-24 pt-4">
         {scanning ? (
           <QrScanner
             dica="Aponte a câmera pro QR do evento ou do banheiro."
@@ -86,21 +86,23 @@ export function CheckIn() {
             <div className="mb-5 text-center">
               <div className="font-display text-[19px] font-bold leading-tight">Check-in</div>
               <div className="mt-1 text-xs text-muted">
-                Escaneie o QR do evento ou do banheiro pra registrar sua presença. Data, horário e seu nome entram automático.
+                Escaneie o QR para fazer o check-in das atividades e confirmar a presença em eventos.
               </div>
             </div>
 
-            {/* O próprio ícone é o botão de escanear */}
-            <button
-              onClick={() => { tapHaptic(); setScanning(true) }}
-              aria-label="Escanear QR"
-              className="mx-auto mt-10 flex flex-col items-center gap-3 tap"
-            >
-              <span className="grid h-28 w-28 place-items-center rounded-[28px] bg-accent text-black shadow-md">
-                <QrCode size={52} strokeWidth={2} />
-              </span>
-              <span className="text-sm font-semibold">Escanear QR</span>
-            </button>
+            {/* O próprio ícone é o botão de escanear — centralizado na página */}
+            <div className="flex flex-1 items-center justify-center">
+              <button
+                onClick={() => { tapHaptic(); setScanning(true) }}
+                aria-label="Escanear QR"
+                className="flex flex-col items-center gap-3 tap"
+              >
+                <span className="grid h-28 w-28 place-items-center rounded-[28px] bg-accent text-black shadow-md">
+                  <QrCode size={52} strokeWidth={2} />
+                </span>
+                <span className="text-sm font-semibold">Escanear QR</span>
+              </button>
+            </div>
           </>
         )}
       </div>
