@@ -523,7 +523,7 @@ function Calendario() {
                 >
                   <IconEv size={16} className="shrink-0" />
                   <div className="min-w-0">
-                    {mov && <div className="text-[10px] font-bold uppercase tracking-wide opacity-70">Movimentação</div>}
+                    {mov && <div className="text-[10px] font-bold uppercase opacity-70">Movimentações &amp; pagamentos</div>}
                     <div className="leading-tight">{ev.titulo}</div>
                     {ev.descricao && <div className="mt-0.5 text-[11px] font-normal opacity-80">{ev.descricao}</div>}
                     {(hora || ev.local) && (
@@ -726,7 +726,7 @@ function LegendaSheet({ onClose }) {
         <Item swatch={<span className="h-1 w-4 rounded-full" style={{ backgroundColor: FER_COR }} />} label="Feriado" dentro="Nacional, estadual ou municipal" />
         <Item swatch={<span className="h-1 w-4 rounded-full" style={{ backgroundColor: 'rgba(99,102,241,0.4)' }} />} label="Data comercial" dentro="Ação de marketing (não é folga)" />
         <Item swatch={<span className="h-1 w-4 rounded-full bg-amber-500" />} label="Evento" dentro="Evento do TATÁ (não é folga)" />
-        <Item swatch={<span className="h-1 w-4 rounded-full" style={{ background: '#8b5cf6' }} />} label="Movimentação" dentro="Movimentação do RH marcada no app" />
+        <Item swatch={<span className="h-1 w-4 rounded-full" style={{ background: '#8b5cf6' }} />} label="Movimentações & pagamentos" dentro="Pagamento, adiantamento, VT, admissões, transferências e limites do RH" />
       </div>
     </Folha>
   )
