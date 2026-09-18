@@ -4,6 +4,43 @@ Ideias e pendências levantadas para desenvolvimento futuro.
 
 ## Pendências
 
+- [ ] **Padronização de cabeçalho das páginas — revisar textos + decidir exceções** —
+  criado o componente único `src/components/CabecalhoPagina.jsx` (botão Voltar + título
+  e descrição centralizados, padrão Passatempos/Check-in, com ação opcional à direita)
+  e aplicado em 19 páginas. A tela de limpeza e o Check-in ganharam o ícone-botão de QR
+  centralizado. **Falta:** (a) o Victor revisar os textos abaixo e passar os ajustes;
+  (b) decidir se **Ouvidoria** e **Avaliar** (usam a capa grande estilo Desafios) e os
+  **perfis** (`/jornada`, `/perfil/:id`) e **jogos** também entram. Fora, como combinado:
+  **Desafios** (`/treinamentos`) e **Ranking**.
+
+  | Página (rota) | Título | Descrição | Ajuste |
+  |---|---|---|---|
+  | `/check-in` | Check-in | Escaneie o QR para fazer o check-in das atividades e confirmar a presença em eventos. | |
+  | `/limpeza` | Checklist de limpeza | Escaneie o QR do banheiro pra registrar a limpeza. | |
+  | `/eventos` | Eventos | Confirme presença e gerencie os eventos do time. | |
+  | `/quadros` | Kanban Tatá | Organize as tarefas do time em quadros. | |
+  | `/cardapio` | Cardápio | O cardápio da semana e a avaliação das refeições. | |
+  | `/lojinha` | Lojinha | Troque seus pontos por recompensas e produtos. | |
+  | `/organograma-aneis` | Organograma | Gire pra explorar unidades e times. | |
+  | `/radio` | Rádio Tatá | A playlist e os podcasts do time. | |
+  | `/escala` | Agenda | Sua escala e os eventos da equipe. | |
+  | `/documentos` | Assinaturas | Documentos para você ler e assinar. | |
+  | `/holerites` | Holerite | Consulte e baixe os seus contracheques. | |
+  | `/minha-experiencia` | Avaliações | Responda as avaliações abertas pra você. | |
+  | `/reconhecimentos` | Reconhecimentos | Reconheça e elogie colegas do time. | |
+  | `/comunicados` | Comunicados | Avisos e novidades do Tatá. | |
+  | `/manutencao` | Painel de Ajustes | Notificações, tema e preferências do app. | |
+  | `/carteira` | Carteira | Seus pontos e o histórico de lançamentos. | |
+  | `/buscar` | Buscar colaborador | Encontre alguém do time pelo nome ou cargo. | |
+  | `/atalhos-governanca` | Atalhos | Fixe até N páginas da governança para acesso rápido. | |
+  | `/brainstorm` | Brainstorm Líderes | Uma palavra que resume o que você quer trazer. | |
+
+  _(anotado em 2026-09-18)_
+
+- [ ] **Lista de presença — palestra (evento)** — criar o evento em `/eventos`
+  (título, horário, local e pontos a definir com o Victor) pra liberar o check-in por
+  QR no hub de Check-in. _(anotado em 2026-09-18)_
+
 - [ ] **Publicar o Tatá Plus nas lojas (Play Store / App Store)** — ideia: além do PWA, ter o app
   listado nas lojas. Caminho realista (o app continua sendo o mesmo PWA por dentro):
   - **Play Store (Android)** — mais fácil: empacotar o PWA como **TWA** (Trusted Web Activity) via
