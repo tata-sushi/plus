@@ -355,7 +355,7 @@ function Calendario() {
               >
                 {d.getDate()}
               </span>
-              {noMes && temPagamento && <CircleDollarSign size={13} strokeWidth={2.5} className="text-emerald-600" />}
+              {noMes && temPagamento && <CircleDollarSign size={13} strokeWidth={2.5} className="text-carbon dark:text-accent" />}
               {noMes && ehFerias ? (
                 <Palmtree size={9} style={{ color: FERIAS_TXT }} />
               ) : noMes && gAus ? (
@@ -732,7 +732,7 @@ function LegendaSheet({ onClose }) {
         <Item swatch={<span className="h-1 w-4 rounded-full" style={{ backgroundColor: 'rgba(99,102,241,0.4)' }} />} label="Data comercial" dentro="Ação de marketing (não é folga)" />
         <Item swatch={<span className="h-1 w-4 rounded-full bg-amber-500" />} label="Evento" dentro="Evento do TATÁ (não é folga)" />
         <Item swatch={<span className="h-1 w-4 rounded-full" style={{ background: '#8b5cf6' }} />} label="Movimentação" dentro="Limites de admissão, transferência e VT do RH" />
-        <Item swatch={<CircleDollarSign size={14} className="text-emerald-600" />} label="Pagamentos" dentro="Salário, adiantamento e vale-transporte" />
+        <Item swatch={<CircleDollarSign size={14} className="text-carbon dark:text-accent" />} label="Pagamentos" dentro="Salário, adiantamento e vale-transporte" />
       </div>
     </Folha>
   )
