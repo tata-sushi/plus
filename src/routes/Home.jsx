@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Flag, ShoppingBag, Star, Network, Sun, Check, X, KanbanSquare, SprayCan, Radio as RadioIcon, Puzzle, UtensilsCrossed, Trophy, CalendarClock, FileSignature, ReceiptText } from 'lucide-react'
+import { Flag, ShoppingBag, Star, Network, Sun, Check, X, KanbanSquare, SprayCan, Radio as RadioIcon, Puzzle, UtensilsCrossed, Trophy, CalendarClock, FileSignature, ReceiptText, QrCode } from 'lucide-react'
 import { cn } from '../lib/cn'
 import { Header } from '../components/Header.jsx'
 import { Section } from '../components/Section.jsx'
@@ -209,6 +209,10 @@ export function Home() {
       : []),
     { to: '/documentos', badgeIcon: FileSignature, title: 'Assinaturas', subtitle: 'Documentos para assinar' },
     { to: '/holerites', badgeIcon: ReceiptText, title: 'Holerite', subtitle: 'Seus holerites' },
+    // Check-in de eventos (QR) — por enquanto só no meu acesso (matrícula 7).
+    ...(usuario?.matricula === '7'
+      ? [{ to: '/eventos', badgeIcon: QrCode, title: 'Check-in', subtitle: 'Presença em eventos' }]
+      : []),
   ]
   const desktop = useDesktop()
   const { setCanvas } = useDesktopCanvas()
