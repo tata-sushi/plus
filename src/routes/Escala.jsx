@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Navigate, useNavigate } from 'react-router-dom'
-import { Loader2, ChevronLeft, ChevronRight, CalendarClock, Check, X, Sun, CircleCheck, Coins, MessageCircle, Palmtree, CircleDot, Info, ArrowLeft, Clock, Gift, Flag, Sparkles } from 'lucide-react'
+import { Loader2, ChevronLeft, ChevronRight, CalendarClock, Check, X, Sun, CircleCheck, Coins, MessageCircle, Palmtree, CircleDot, Info, ArrowLeft, Clock, Gift, Flag, Sparkles, ArrowLeftRight } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { tapHaptic } from '../lib/haptics.js'
 import { Avatar } from '../components/Avatar.jsx'
@@ -306,6 +306,8 @@ function Calendario() {
           const feriadoReal = temFeriado && feris.some((f) => f.grupo === 'feriado')
           const evGer = noMes ? eventosGerais?.[iso] : null
           const temEvtGeral = Array.isArray(evGer) && evGer.length > 0
+          const temMovGeral = temEvtGeral && evGer.some((x) => x.categoria === 'movimentacao')
+          const temEvtReal = temEvtGeral && evGer.some((x) => x.categoria !== 'movimentacao')
           const isHoje = iso === hoje
           const folga = !ehFerias && !gAus && !!info?.folga
           const trab = !ehFerias && !gAus && !!info && !info.folga
@@ -380,7 +382,8 @@ function Calendario() {
                   )}
                   {temAniv && <span className="h-[3px] w-full max-w-[22px] rounded-full bg-accent" />}
                   {temEvt && <span className="h-[3px] w-full max-w-[22px] rounded-full bg-accent" />}
-                  {temEvtGeral && <span className="h-[3px] w-full max-w-[22px] rounded-full bg-amber-500" />}
+                  {temEvtReal && <span className="h-[3px] w-full max-w-[22px] rounded-full bg-amber-500" />}
+                  {temMovGeral && <span className="h-[3px] w-full max-w-[22px] rounded-full" style={{ background: '#8b5cf6' }} />}
                 </div>
               )}
             </button>
@@ -509,14 +512,18 @@ function Calendario() {
                   ? `${ev.hora_inicio}–${ev.hora_fim}`
                   : ev.hora_inicio
                 : null
+              const mov = ev.categoria === 'movimentacao'
+              const cor = mov ? '#8b5cf6' : '#f59e0b'
+              const IconEv = mov ? ArrowLeftRight : Sparkles
               return (
                 <div
                   key={`ev${i}`}
                   className="hstack items-center gap-2 rounded-card border px-4 py-3 text-sm font-semibold"
-                  style={{ borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,0.12)', color: '#f59e0b' }}
+                  style={{ borderColor: cor, backgroundColor: mov ? 'rgba(139,92,246,0.12)' : 'rgba(245,158,11,0.12)', color: cor }}
                 >
-                  <Sparkles size={16} className="shrink-0" />
+                  <IconEv size={16} className="shrink-0" />
                   <div className="min-w-0">
+                    {mov && <div className="text-[10px] font-bold uppercase tracking-wide opacity-70">Movimentação</div>}
                     <div className="leading-tight">{ev.titulo}</div>
                     {ev.descricao && <div className="mt-0.5 text-[11px] font-normal opacity-80">{ev.descricao}</div>}
                     {(hora || ev.local) && (
@@ -719,6 +726,7 @@ function LegendaSheet({ onClose }) {
         <Item swatch={<span className="h-1 w-4 rounded-full" style={{ backgroundColor: FER_COR }} />} label="Feriado" dentro="Nacional, estadual ou municipal" />
         <Item swatch={<span className="h-1 w-4 rounded-full" style={{ backgroundColor: 'rgba(99,102,241,0.4)' }} />} label="Data comercial" dentro="Ação de marketing (não é folga)" />
         <Item swatch={<span className="h-1 w-4 rounded-full bg-amber-500" />} label="Evento" dentro="Evento do TATÁ (não é folga)" />
+        <Item swatch={<span className="h-1 w-4 rounded-full" style={{ background: '#8b5cf6' }} />} label="Movimentação" dentro="Movimentação do RH marcada no app" />
       </div>
     </Folha>
   )
