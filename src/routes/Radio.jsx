@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 import { useSearchParams } from 'react-router-dom'
 import { Heart, Trash2, Plus, Music2, Trophy, Play, Loader2, Headphones } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
+import { CabecalhoPagina } from '../components/CabecalhoPagina.jsx'
 import { Voltar } from '../components/Voltar.jsx'
 import { useAuth } from '../lib/AuthContext.jsx'
 import { supabase } from '../lib/supabase.js'
@@ -247,8 +248,8 @@ export function Radio() {
 
   return (
     <>
-      <Header title="Rádio Tatá" />
-      <Voltar />
+      <Header />
+      <CabecalhoPagina titulo="Rádio Tatá" descricao="A playlist e os podcasts do time." />
 
       {/* Cabeçalho fixo da Rádio: o card "Rádio Tatá" não muda entre as abas;
           o seletor (Playlist/Podcasts) fica ABAIXO dele (só matrícula 7). */}
