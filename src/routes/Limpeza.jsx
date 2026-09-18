@@ -3,7 +3,7 @@ import { Navigate, useSearchParams } from 'react-router-dom'
 import jsQR from 'jsqr'
 import { QrCode, Camera, Check, Loader2, X, SprayCan, AlertTriangle, RotateCcw, Star } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
-import { Voltar } from '../components/Voltar.jsx'
+import { CabecalhoPagina } from '../components/CabecalhoPagina.jsx'
 import { Card } from '../components/Card.jsx'
 import { useAuth } from '../lib/AuthContext.jsx'
 import { supabase } from '../lib/supabase.js'
@@ -109,8 +109,8 @@ export default function Limpeza() {
 
   return (
     <>
-      <Header title="Checklist de limpeza" />
-      <Voltar />
+      <Header />
+      <CabecalhoPagina titulo="Checklist de limpeza" descricao="Escaneie o QR do banheiro pra registrar a limpeza." />
       <div className="px-5 pb-24 pt-2">
         {fase === 'inicio' && <TelaInicio onScan={() => { setErro(''); setFase('scan') }} />}
 
@@ -163,16 +163,12 @@ function traduzir(e) {
 // ── Tela inicial ─────────────────────────────────────────────────────────────
 function TelaInicio({ onScan }) {
   return (
-    <div className="mt-6 flex flex-col items-center text-center">
-      <span className="grid h-16 w-16 place-items-center rounded-2xl bg-accent-soft text-accent">
-        <SprayCan size={30} />
-      </span>
-      <div className="mt-3 font-display text-lg font-bold">Check de limpeza</div>
-      <div className="mt-1 max-w-xs text-sm text-muted">
-        Escaneie o QR do banheiro pra registrar a limpeza. Data, horário e seu nome entram automático.
-      </div>
-      <button onClick={onScan} className="btn-primary mt-6 hstack w-full justify-center gap-2 py-3.5 text-sm">
-        <QrCode size={18} /> Escanear QR do banheiro
+    <div className="flex min-h-[50dvh] items-center justify-center">
+      <button onClick={onScan} aria-label="Escanear QR do banheiro" className="flex flex-col items-center gap-3 tap">
+        <span className="grid h-28 w-28 place-items-center rounded-[28px] bg-accent text-black shadow-md">
+          <QrCode size={52} strokeWidth={2} />
+        </span>
+        <span className="text-sm font-semibold">Escanear QR do banheiro</span>
       </button>
     </div>
   )
