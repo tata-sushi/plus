@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowLeft, Loader2, Check, ClipboardList, ChevronRight, Users } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
+import { CabecalhoPagina } from '../components/CabecalhoPagina.jsx'
 import { Section } from '../components/Section.jsx'
 import { Card } from '../components/Card.jsx'
 import { supabase } from '../lib/supabase.js'
@@ -354,12 +355,8 @@ export function MinhaExperiencia() {
 
   return (
     <>
-      <Header title="Avaliações" />
-      <div className="px-5 pt-4">
-        <button onClick={() => navigate(-1)} className="hstack gap-1 text-sm text-muted tap">
-          <ArrowLeft size={16} /> Voltar
-        </button>
-      </div>
+      <Header />
+      <CabecalhoPagina titulo="Avaliações" descricao="Responda as avaliações abertas pra você." />
 
       {carregando ? (
         <div className="grid place-items-center py-16 text-muted-2">

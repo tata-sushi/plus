@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Header } from '../components/Header.jsx'
+import { CabecalhoPagina } from '../components/CabecalhoPagina.jsx'
 import { PainelRecompensas } from '../components/PainelRecompensas.jsx'
 import { PainelLoja } from '../components/PainelLoja.jsx'
 import { cn } from '../lib/cn'
@@ -23,7 +24,8 @@ export function Lojinha({ abaInicial = 'recompensas' }) {
 
   return (
     <>
-      <Header title="Lojinha" />
+      <Header />
+      <CabecalhoPagina titulo="Lojinha" descricao="Troque seus pontos por recompensas e produtos." />
 
       {/* Abas: Recompensas · Loja */}
       <div className="px-5 pt-3">

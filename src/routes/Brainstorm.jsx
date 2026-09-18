@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowLeft, Lightbulb, Send, Loader2, CheckCircle2, Lock } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
+import { CabecalhoPagina } from '../components/CabecalhoPagina.jsx'
 import { Card } from '../components/Card.jsx'
 import { useAuth } from '../lib/AuthContext.jsx'
 import { supabase } from '../lib/supabase.js'
@@ -66,28 +67,9 @@ export function Brainstorm() {
   return (
     <div className="min-h-[100dvh] bg-bg">
       <Header />
-      <div className="px-5 pt-2">
-        <button
-          onClick={() => {
-            tapHaptic()
-            navigate(-1)
-          }}
-          className="hstack gap-1 text-sm font-medium text-muted tap"
-        >
-          <ArrowLeft size={16} /> Voltar
-        </button>
-      </div>
+      <CabecalhoPagina titulo="Brainstorm Líderes" descricao="Uma palavra que resume o que você quer trazer." />
 
       <div className="mx-auto w-full max-w-[520px] px-5 pb-28 pt-4">
-        <div className="mb-4 hstack items-center gap-2">
-          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-accent-soft text-accent">
-            <Lightbulb size={18} />
-          </span>
-          <div>
-            <div className="font-display text-[19px] font-bold leading-tight">Brainstorm Líderes</div>
-            <div className="text-[13px] text-muted">Uma palavra que resume o que você quer trazer.</div>
-          </div>
-        </div>
 
         {usuario?.podeBrainstorm === false ? (
           <Card className="hstack items-start gap-2.5 text-sm text-muted">

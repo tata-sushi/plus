@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Eye, Loader2, Calendar } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
+import { CabecalhoPagina } from '../components/CabecalhoPagina.jsx'
 import { Voltar } from '../components/Voltar.jsx'
 import { Card } from '../components/Card.jsx'
 import { LeitorVoz } from '../components/LeitorVoz.jsx'
@@ -34,7 +35,7 @@ export function Comunicados() {
   return (
     <>
       <Header />
-      <Voltar />
+      <CabecalhoPagina titulo="Comunicados" descricao="Avisos e novidades do Tatá." />
 
       <div className="mt-3 flex flex-col gap-3 px-5">
         {carregando && (

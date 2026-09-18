@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Search, Loader2, ArrowLeft, ChevronRight } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
+import { CabecalhoPagina } from '../components/CabecalhoPagina.jsx'
 import { Avatar } from '../components/Avatar.jsx'
 import { supabase } from '../lib/supabase.js'
 
@@ -38,13 +39,10 @@ export function BuscarPessoas() {
   return (
     <>
       <Header />
+      <CabecalhoPagina titulo="Buscar colaborador" descricao="Encontre alguém do time pelo nome ou cargo." />
 
-      <div className="px-5 pt-4">
-        <button onClick={() => navigate(-1)} className="hstack gap-1 text-sm text-muted tap">
-          <ArrowLeft size={16} /> Voltar
-        </button>
-
-        <div className="relative mt-3">
+      <div className="px-5 pt-1">
+        <div className="relative">
           <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-2" />
           <input
             autoFocus

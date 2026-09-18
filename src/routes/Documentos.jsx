@@ -19,6 +19,7 @@ import {
   Circle,
 } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
+import { CabecalhoPagina } from '../components/CabecalhoPagina.jsx'
 import { AssinaturaPad } from '../components/AssinaturaPad.jsx'
 import { SelfieCapture } from '../components/SelfieCapture.jsx'
 import { PdfViewer } from '../components/PdfViewer.jsx'
@@ -405,21 +406,9 @@ export function Documentos() {
   return (
     <>
       <Header />
-      <div className="px-5 pt-2">
-        <button
-          onClick={() => {
-            tapHaptic()
-            navigate(-1)
-          }}
-          className="hstack gap-1 text-sm font-medium text-muted tap"
-        >
-          <ArrowLeft size={16} /> Voltar
-        </button>
-      </div>
-      <div className="px-5 pt-3">
-        <h1 className="font-display text-xl font-bold">Assinaturas</h1>
-        <p className="mt-0.5 text-sm text-muted">Documentos para você ler e assinar.</p>
-        <p className="mt-1.5 text-[13px] leading-snug text-muted">
+      <CabecalhoPagina titulo="Assinaturas" descricao="Documentos para você ler e assinar." />
+      <div className="mx-auto w-full max-w-[420px] px-5 pt-2 text-center">
+        <p className="text-[13px] leading-snug text-muted">
           O documento deve conter a sua própria assinatura no campo de assinatura e uma selfie
           tirada em lugar claro, sem bonés, máscaras ou óculos.
         </p>

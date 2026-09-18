@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
 import { ArrowLeft, ArrowDown, Loader2, X, HelpCircle } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
+import { CabecalhoPagina } from '../components/CabecalhoPagina.jsx'
 import { Avatar } from '../components/Avatar.jsx'
 import { supabase } from '../lib/supabase.js'
 import { tapHaptic } from '../lib/haptics.js'
@@ -388,21 +389,17 @@ export function OrganogramaAneis() {
     <>
       <Header />
 
-      <div className="hstack justify-between px-5 pt-4">
-        <button onClick={() => navigate(-1)} className="hstack gap-1 text-sm text-muted tap">
-          <ArrowLeft size={16} /> Voltar
-        </button>
-        <button onClick={() => setIntro(true)} aria-label="Como funciona" className="hstack gap-1 text-sm text-muted tap">
-          <HelpCircle size={18} />
-        </button>
-      </div>
+      <CabecalhoPagina
+        titulo="Organograma"
+        descricao="Gire pra explorar unidades e times."
+        acaoDireita={
+          <button onClick={() => setIntro(true)} aria-label="Como funciona" className="hstack gap-1 text-sm text-muted tap">
+            <HelpCircle size={18} />
+          </button>
+        }
+      />
 
       {intro && <FolhaIntro onClose={fecharIntro} />}
-
-      <div className="mb-1 mt-3 px-6 text-center">
-        <div className="font-display text-[19px] font-bold leading-tight">Organograma</div>
-        <div className="mt-1 text-xs text-muted">Gire pra explorar unidades e times</div>
-      </div>
 
       {gente === null ? (
         <div className="hstack justify-center py-16 text-muted-2">

@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowLeft, ReceiptText, FileText, Loader2 } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
+import { CabecalhoPagina } from '../components/CabecalhoPagina.jsx'
 import { supabase } from '../lib/supabase.js'
 import { tapHaptic } from '../lib/haptics.js'
 
@@ -69,22 +70,11 @@ export function Holerites() {
   return (
     <div className="min-h-[100dvh] bg-bg">
       <Header />
-      <div className="px-5 pt-2">
-        <button
-          onClick={() => {
-            tapHaptic()
-            navigate(-1)
-          }}
-          className="hstack gap-1 text-sm font-medium text-muted tap"
-        >
-          <ArrowLeft size={16} /> Voltar
-        </button>
-      </div>
+      <CabecalhoPagina titulo="Holerite" descricao="Consulte e baixe os seus contracheques." />
 
       <div className="mx-auto w-full max-w-[520px] px-5 pb-28 pt-4">
-        <div className="mb-5">
-          <div className="font-display text-[19px] font-bold leading-tight">Holerites</div>
-          <p className="mt-1.5 text-[13px] leading-snug text-muted">
+        <div className="mb-5 text-center">
+          <p className="text-[13px] leading-snug text-muted">
             Para visualizar o seu holerite, digite os 4 primeiros dígitos do seu CPF.
           </p>
         </div>

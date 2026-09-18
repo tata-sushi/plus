@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Plus, Check, ShieldCheck } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
+import { CabecalhoPagina } from '../components/CabecalhoPagina.jsx'
 import { Voltar } from '../components/Voltar.jsx'
 import { Section } from '../components/Section.jsx'
 import { resolveIcon } from '../lib/icons.js'
@@ -77,12 +78,12 @@ export function GerenciarAtalhos() {
   return (
     <>
       <Header />
-      <Voltar />
+      <CabecalhoPagina
+        titulo="Atalhos"
+        descricao={`Fixe até ${MAX_PAGINAS_FIXADAS} páginas da governança para acesso rápido.`}
+      />
 
       <Section className="mt-3">
-        <p className="mb-3 text-center text-sm text-muted">
-          Fixe até {MAX_PAGINAS_FIXADAS} páginas do portal de governança para acesso rápido.
-        </p>
 
         {/* Lista geral — todo mundo */}
         <div className="mb-1.5 hstack items-center justify-between px-1">

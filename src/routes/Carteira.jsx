@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Loader2, Trophy, CalendarCheck2, Gift, ArrowLeftRight, Coins, Receipt, KanbanSquare } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
+import { CabecalhoPagina } from '../components/CabecalhoPagina.jsx'
 import { Voltar } from '../components/Voltar.jsx'
 import { Section } from '../components/Section.jsx'
 import { Fundo } from '../components/IntroDesafio.jsx'
@@ -52,7 +53,7 @@ export function Carteira() {
   return (
     <>
       <Header />
-      <Voltar to="/mais" />
+      <CabecalhoPagina titulo="Carteira" descricao="Seus pontos e o histórico de lançamentos." voltarPara="/mais" />
 
       {/* Topo — só o fundo dos desafios + saldo simples (sem ícone/frase) */}
       <div className="px-5 pt-3">

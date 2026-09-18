@@ -3,7 +3,7 @@ import { Navigate, useNavigate } from 'react-router-dom'
 import { createPortal } from 'react-dom'
 import { QrCode, Loader2, Check, Star, AlertTriangle } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
-import { Voltar } from '../components/Voltar.jsx'
+import { CabecalhoPagina } from '../components/CabecalhoPagina.jsx'
 import { QrScanner } from '../components/QrScanner.jsx'
 import { useAuth } from '../lib/AuthContext.jsx'
 import { supabase } from '../lib/supabase.js'
@@ -72,9 +72,12 @@ export function CheckIn() {
 
   return (
     <>
-      <Header title="Check-in" />
-      <Voltar />
-      <div className="mx-auto flex min-h-[72dvh] w-full max-w-[420px] flex-col px-5 pb-24 pt-4">
+      <Header />
+      <CabecalhoPagina
+        titulo="Check-in"
+        descricao="Escaneie o QR para fazer o check-in das atividades e confirmar a presença em eventos."
+      />
+      <div className="mx-auto flex min-h-[58dvh] w-full max-w-[420px] flex-col px-5 pb-24 pt-2">
         {scanning ? (
           <QrScanner
             dica="Aponte a câmera pro QR do evento ou do banheiro."
@@ -82,28 +85,19 @@ export function CheckIn() {
             onLido={aoLerQR}
           />
         ) : (
-          <>
-            <div className="mb-5 text-center">
-              <div className="font-display text-[19px] font-bold leading-tight">Check-in</div>
-              <div className="mt-1 text-xs text-muted">
-                Escaneie o QR para fazer o check-in das atividades e confirmar a presença em eventos.
-              </div>
-            </div>
-
-            {/* O próprio ícone é o botão de escanear — centralizado na página */}
-            <div className="flex flex-1 items-center justify-center">
-              <button
-                onClick={() => { tapHaptic(); setScanning(true) }}
-                aria-label="Escanear QR"
-                className="flex flex-col items-center gap-3 tap"
-              >
-                <span className="grid h-28 w-28 place-items-center rounded-[28px] bg-accent text-black shadow-md">
-                  <QrCode size={52} strokeWidth={2} />
-                </span>
-                <span className="text-sm font-semibold">Escanear QR</span>
-              </button>
-            </div>
-          </>
+          /* O próprio ícone é o botão de escanear — centralizado na página */
+          <div className="flex flex-1 items-center justify-center">
+            <button
+              onClick={() => { tapHaptic(); setScanning(true) }}
+              aria-label="Escanear QR"
+              className="flex flex-col items-center gap-3 tap"
+            >
+              <span className="grid h-28 w-28 place-items-center rounded-[28px] bg-accent text-black shadow-md">
+                <QrCode size={52} strokeWidth={2} />
+              </span>
+              <span className="text-sm font-semibold">Escanear QR</span>
+            </button>
+          </div>
         )}
       </div>
 

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { useNavigate, Navigate } from 'react-router-dom'
 import { ArrowLeft, Search, Loader2, HeartHandshake, Check } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
+import { CabecalhoPagina } from '../components/CabecalhoPagina.jsx'
 import { Section } from '../components/Section.jsx'
 import { Card } from '../components/Card.jsx'
 import { Avatar } from '../components/Avatar.jsx'
@@ -135,13 +136,8 @@ export function Reconhecimentos() {
 
   return (
     <>
-      <Header title="Reconhecimentos" />
-
-      <div className="px-5 pt-4">
-        <button onClick={() => navigate(-1)} className="hstack gap-1 text-sm text-muted tap">
-          <ArrowLeft size={16} /> Voltar
-        </button>
-      </div>
+      <Header />
+      <CabecalhoPagina titulo="Reconhecimentos" descricao="Reconheça e elogie colegas do time." />
 
       {toast && (
         <div className="mt-3 px-5">

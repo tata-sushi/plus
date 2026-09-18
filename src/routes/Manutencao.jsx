@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Lock, Eye, EyeOff, Check, Loader2, ShieldCheck, Sun, Moon, Bell, BellOff, Sparkles, Fingerprint } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
+import { CabecalhoPagina } from '../components/CabecalhoPagina.jsx'
 import { Voltar } from '../components/Voltar.jsx'
 import { Section } from '../components/Section.jsx'
 import { cn } from '../lib/cn'
@@ -99,8 +100,8 @@ export function Manutencao() {
 
   return (
     <>
-      <Header title="Painel de Ajustes" />
-      <Voltar />
+      <Header />
+      <CabecalhoPagina titulo="Painel de Ajustes" descricao="Notificações, tema e preferências do app." />
 
       <Section className="mt-2" title="Notificações">
         <div className="card p-4">

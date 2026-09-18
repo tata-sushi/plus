@@ -65,6 +65,7 @@ import {
   PartyPopper,
 } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
+import { CabecalhoPagina } from '../components/CabecalhoPagina.jsx'
 import { Voltar } from '../components/Voltar.jsx'
 import { PainelPendencias } from '../components/PainelPendencias.jsx'
 import { Avatar } from '../components/Avatar.jsx'
@@ -283,8 +284,8 @@ function ListaQuadros({ quadros, meusCards = [], onAbrir, onMudou, selecionadoId
 
   return (
     <>
-      <Header title="Kanban Tatá" />
-      <Voltar />
+      <Header />
+      <CabecalhoPagina titulo="Kanban Tatá" descricao="Organize as tarefas do time em quadros." />
       <div className="px-5 pt-2 pb-24">
         <PainelPendencias embutido />
         {quadros == null ? (

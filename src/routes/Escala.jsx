@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 import { Navigate, useNavigate } from 'react-router-dom'
 import { Loader2, ChevronLeft, ChevronRight, CalendarClock, Check, X, Sun, CircleCheck, Coins, MessageCircle, Palmtree, CircleDot, Info, ArrowLeft, Clock, Gift, Flag, Sparkles, ArrowLeftRight, CircleDollarSign } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
+import { CabecalhoPagina } from '../components/CabecalhoPagina.jsx'
 import { tapHaptic } from '../lib/haptics.js'
 import { Avatar } from '../components/Avatar.jsx'
 import { cn } from '../lib/cn'
@@ -108,18 +109,16 @@ function Painel() {
   const [legendaAberta, setLegendaAberta] = useState(false)
   return (
     <div className="flex min-h-[calc(100dvh-5rem)] flex-col">
-      <Header title="Agenda" />
-      {/* Voltar (igual às outras páginas) + legenda ⓘ na mesma linha. O ⓘ é
-          pequeno (não aumenta a altura da linha); o padding/margem negativa dá
-          área de toque sem empurrar o Voltar pra baixo. */}
-      <div className="flex items-center justify-between px-5 pt-2">
-        <button onClick={() => { tapHaptic(); navigate(-1) }} className="hstack gap-1 text-sm font-medium text-muted tap">
-          <ArrowLeft size={16} /> Voltar
-        </button>
-        <button onClick={() => setLegendaAberta(true)} aria-label="Legenda" title="Legenda" className="-m-2 grid place-items-center p-2 text-muted tap">
-          <Info size={18} />
-        </button>
-      </div>
+      <Header />
+      <CabecalhoPagina
+        titulo="Agenda"
+        descricao="Sua escala e os eventos da equipe."
+        acaoDireita={
+          <button onClick={() => setLegendaAberta(true)} aria-label="Legenda" title="Legenda" className="-m-2 grid place-items-center p-2 text-muted tap">
+            <Info size={18} />
+          </button>
+        }
+      />
       <Calendario />
       {/* Aviso no rodapé — empurrado pro fundo, logo acima da barra de navegação. */}
       <p className="mt-auto px-6 pb-2 pt-8 text-center text-[10px] leading-relaxed text-muted-2">

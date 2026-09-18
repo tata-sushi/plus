@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Header } from '../components/Header.jsx'
+import { CabecalhoPagina } from '../components/CabecalhoPagina.jsx'
 import { Voltar } from '../components/Voltar.jsx'
 import { Section } from '../components/Section.jsx'
 import { Card } from '../components/Card.jsx'
@@ -38,7 +39,7 @@ export function Cardapio() {
   return (
     <>
       <Header />
-      <Voltar />
+      <CabecalhoPagina titulo="Cardápio" descricao="O cardápio da semana e a avaliação das refeições." />
 
       <Section className="mt-4" title="Cardápio da semana">
         {proximos.length === 0 ? (

@@ -6,6 +6,7 @@ import {
   Star, Power, Pencil, Download, AlertTriangle,
 } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
+import { CabecalhoPagina } from '../components/CabecalhoPagina.jsx'
 import { Avatar } from '../components/Avatar.jsx'
 import { QrScanner } from '../components/QrScanner.jsx'
 import { supabase } from '../lib/supabase.js'
@@ -95,16 +96,7 @@ export function Eventos() {
     <>
       <Header />
 
-      <div className="hstack justify-between px-5 pt-4">
-        <button onClick={() => navigate(-1)} className="hstack gap-1 text-sm text-muted tap">
-          <ArrowLeft size={16} /> Voltar
-        </button>
-      </div>
-
-      <div className="mb-1 mt-3 px-6 text-center">
-        <div className="font-display text-[19px] font-bold leading-tight">Eventos</div>
-        <div className="mt-1 text-xs text-muted">Escaneie o QR do evento pra registrar presença</div>
-      </div>
+      <CabecalhoPagina titulo="Eventos" descricao="Confirme presença e gerencie os eventos do time." />
 
       <div className="mx-auto w-full max-w-[460px] px-5 pt-3">
         <button onClick={() => { tapHaptic(); setScan(true) }} className="btn-primary hstack w-full justify-center gap-2 !py-3 text-sm font-bold">
