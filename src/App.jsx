@@ -30,6 +30,7 @@ import { Radio } from './routes/Radio.jsx'
 import { Compartilhar } from './routes/Compartilhar.jsx'
 import { Reconhecimentos } from './routes/Reconhecimentos.jsx'
 import { MinhaExperiencia } from './routes/MinhaExperiencia.jsx'
+import { AvaliacoesReconhecimentos } from './routes/AvaliacoesReconhecimentos.jsx'
 import { Passatempos } from './routes/Passatempos.jsx'
 
 // Painel Kanban (Quadros) — carregado sob demanda (poucos têm acesso), pra não
@@ -117,9 +118,9 @@ export function App() {
         <Route path="/cardapio" element={<Cardapio />} />
         <Route path="/avaliar" element={<Avaliar />} />
         <Route path="/comunidade" element={<Comunidade />} />
-        <Route path="/reconhecimentos" element={<Reconhecimentos />} />
+        <Route path="/reconhecimentos" element={<Navigate to="/minha-experiencia" replace />} />
         <Route path="/passatempos" element={<Passatempos />} />
-        <Route path="/minha-experiencia" element={<MinhaExperiencia />} />
+        <Route path="/minha-experiencia" element={<AvaliacoesReconhecimentos />} />
         <Route path="/governanca" element={<Governanca />} />
         {/* organograma antigo (iframe) removido — redireciona pro novo nativo */}
         <Route path="/organograma" element={<Navigate to="/organograma-aneis" replace />} />

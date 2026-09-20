@@ -192,9 +192,6 @@ export function Home() {
       ? [{ to: '/quadros', badgeIcon: KanbanSquare, title: 'Kanban', subtitle: 'Quadro de tarefas' }]
       : []),
     desafios,
-    ...(usuario?.podeLimpeza
-      ? [{ to: '/limpeza', badgeIcon: SprayCan, title: 'Checklist de limpeza', subtitle: 'Check dos banheiros' }]
-      : []),
     cardapio,
     recompensas,
     organograma,

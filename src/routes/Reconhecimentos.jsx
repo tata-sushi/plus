@@ -68,7 +68,7 @@ function Linha({ rec, aba, motivos }) {
   )
 }
 
-export function Reconhecimentos() {
+export function Reconhecimentos({ embutido = false } = {}) {
   const navigate = useNavigate()
   const { usuario } = useAuth()
   const matricula = usuario?.matricula
@@ -132,12 +132,16 @@ export function Reconhecimentos() {
   const curto = termo.trim().length < 2
 
   // Soft-launch: quem não é admin não acessa a página por enquanto.
-  if (usuario && !podeRec) return <Navigate to="/" replace />
+  if (usuario && !podeRec && !embutido) return <Navigate to="/" replace />
 
   return (
     <>
-      <Header />
-      <CabecalhoPagina titulo="Reconhecimentos" descricao="Reconheça e elogie colegas do time." />
+      {!embutido && (
+        <>
+          <Header />
+          <CabecalhoPagina titulo="Reconhecimentos" descricao="Reconheça e elogie colegas do time." />
+        </>
+      )}
 
       {toast && (
         <div className="mt-3 px-5">

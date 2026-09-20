@@ -63,7 +63,7 @@ function LinhaEscala({ item, valor, onEscolher }) {
   )
 }
 
-export function MinhaExperiencia() {
+export function MinhaExperiencia({ embutido = false } = {}) {
   const navigate = useNavigate()
   const [pendentes, setPendentes] = useState(null) // null = carregando
   const [minhas, setMinhas] = useState([])
@@ -165,7 +165,7 @@ export function MinhaExperiencia() {
     const aMelhorar = itens.find((i) => i.id === 'melhorar')
     return (
       <>
-        <Header title="Avaliações" />
+        {!embutido && <Header title="Avaliações" />}
         <div className="px-5 pt-4">
           <button
             onClick={() => setRespondendo(null)}
@@ -262,7 +262,7 @@ export function MinhaExperiencia() {
   if (respondendo) {
     return (
       <>
-        <Header title="Avaliações" />
+        {!embutido && <Header title="Avaliações" />}
         <div className="px-5 pt-4">
           <button
             onClick={() => setRespondendo(null)}
@@ -355,8 +355,12 @@ export function MinhaExperiencia() {
 
   return (
     <>
-      <Header />
-      <CabecalhoPagina titulo="Avaliações" descricao="Responda as avaliações abertas pra você." />
+      {!embutido && (
+        <>
+          <Header />
+          <CabecalhoPagina titulo="Avaliações" descricao="Responda as avaliações abertas pra você." />
+        </>
+      )}
 
       {carregando ? (
         <div className="grid place-items-center py-16 text-muted-2">
