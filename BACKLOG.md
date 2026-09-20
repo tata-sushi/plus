@@ -4,7 +4,11 @@ Ideias e pendências levantadas para desenvolvimento futuro.
 
 ## Pendências
 
-- [ ] **Padronização de cabeçalho das páginas — revisar textos + decidir exceções** —
+- [x] **Padronização de cabeçalho das páginas — CONCLUÍDA (20/09)** — ajustes de texto do
+  Victor aplicados; renomes "Kanban Tatá"→"Kanban" e "Rádio Tatá"→"Rádio" no app todo;
+  Carteira e Agenda mantidas no padrão anterior (fora da padronização); Avaliar padronizada
+  ("Cardápio"); Ouvidoria e perfis fora; Avaliações+Reconhecimentos unificadas numa página
+  só; Limpeza e Eventos saíram dos menus (entram pelo Check-in). Histórico original —
   criado o componente único `src/components/CabecalhoPagina.jsx` (botão Voltar + título
   e descrição centralizados, padrão Passatempos/Check-in, com ação opcional à direita)
   e aplicado em 19 páginas. A tela de limpeza e o Check-in ganharam o ícone-botão de QR
@@ -37,9 +41,10 @@ Ideias e pendências levantadas para desenvolvimento futuro.
 
   _(anotado em 2026-09-18)_
 
-- [ ] **Lista de presença — palestra (evento)** — criar o evento em `/eventos`
-  (título, horário, local e pontos a definir com o Victor) pra liberar o check-in por
-  QR no hub de Check-in. _(anotado em 2026-09-18)_
+- [ ] **Eventos / lista de presença** — a criação de eventos e a geração do QR passam a
+  ficar no **portal de líderes**; o app só **lê** o QR no hub de Check-in. A página `/eventos`
+  do app saiu dos menus (rota mantida por trás, pros deep links). A palestra específica de
+  19/09 já passou. _(atualizado em 2026-09-20)_
 
 - [ ] **Publicar o Tatá Plus nas lojas (Play Store / App Store)** — ideia: além do PWA, ter o app
   listado nas lojas. Caminho realista (o app continua sendo o mesmo PWA por dentro):
