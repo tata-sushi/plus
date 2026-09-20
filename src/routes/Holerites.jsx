@@ -74,8 +74,10 @@ export function Holerites() {
 
       <div className="mx-auto w-full max-w-[520px] px-5 pb-28 pt-4">
         <div className="mb-5 text-center">
-          <p className="text-[13px] leading-snug text-muted">
-            Para visualizar o seu holerite, digite os 4 primeiros dígitos do seu CPF.
+          <p className="text-[13px] leading-relaxed">
+            <mark className="box-decoration-clone rounded bg-[#fde047] px-1 py-0.5 text-black">
+              Para visualizar o seu holerite, digite os 4 primeiros dígitos do seu CPF.
+            </mark>
           </p>
         </div>
 

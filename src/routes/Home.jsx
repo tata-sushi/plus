@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Flag, ShoppingBag, Star, Network, Sun, Check, X, KanbanSquare, SprayCan, Radio as RadioIcon, Puzzle, UtensilsCrossed, Trophy, CalendarClock, FileSignature, ReceiptText, QrCode } from 'lucide-react'
+import { Flag, ShoppingBag, Star, Network, Sun, Check, X, KanbanSquare, SprayCan, Radio as RadioIcon, Puzzle, UtensilsCrossed, Trophy, CalendarClock, FileSignature, ReceiptText, QrCode, HeartHandshake } from 'lucide-react'
 import { cn } from '../lib/cn'
 import { Header } from '../components/Header.jsx'
 import { Section } from '../components/Section.jsx'
@@ -65,6 +65,7 @@ const sugestoesCards = [
 // Rótulo curto pro grid compacto (evita quebra feia com nomes longos).
 function labelCurto(title) {
   if (title.startsWith('Checklist')) return 'Limpeza'
+  if (title.startsWith('Avaliações')) return 'Avaliações'
   return title.replace(' Tatá', '')
 }
 
@@ -204,6 +205,7 @@ export function Home() {
     ...(usuario?.podeEscala
       ? [{ to: '/escala', badgeIcon: CalendarClock, title: 'Agenda', subtitle: 'Sua escala da semana' }]
       : []),
+    { to: '/minha-experiencia', badgeIcon: HeartHandshake, title: 'Avaliações e Reconhecimentos', subtitle: 'Avalie e reconheça' },
     { to: '/documentos', badgeIcon: FileSignature, title: 'Documentos', subtitle: 'Documentos para assinar' },
     { to: '/holerites', badgeIcon: ReceiptText, title: 'Holerite', subtitle: 'Seus holerites' },
     // Check-in (QR) — hub de banheiros/eventos; acesso liberado por pessoa na Governança.

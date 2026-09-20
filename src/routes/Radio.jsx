@@ -3,7 +3,6 @@ import { createPortal } from 'react-dom'
 import { useSearchParams } from 'react-router-dom'
 import { Heart, Trash2, Plus, Music2, Trophy, Play, Loader2, Headphones } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
-import { CabecalhoPagina } from '../components/CabecalhoPagina.jsx'
 import { Voltar } from '../components/Voltar.jsx'
 import { useAuth } from '../lib/AuthContext.jsx'
 import { supabase } from '../lib/supabase.js'
@@ -248,8 +247,8 @@ export function Radio() {
 
   return (
     <>
-      <Header />
-      <CabecalhoPagina titulo="Rádio" descricao="A playlist e os podcasts do time." />
+      <Header title="Rádio" />
+      <Voltar />
 
       {/* Cabeçalho fixo da Rádio: o card "Rádio Tatá" não muda entre as abas;
           o seletor (Playlist/Podcasts) fica ABAIXO dele (só matrícula 7). */}
@@ -286,11 +285,8 @@ export function Radio() {
               <div className="text-[11px] font-bold uppercase tracking-wide text-accent">
                 Cultura e Informação
               </div>
-              <div className="mt-0.5 flex items-center gap-2">
+              <div className="mt-0.5">
                 <span className="font-display text-2xl font-bold leading-tight">Rádio</span>
-                <span className="rounded-pill bg-bg px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-accent">
-                  beta
-                </span>
               </div>
               <div className="mt-1 text-[11px] text-muted">
                 {lista.length} {lista.length === 1 ? 'música' : 'músicas'}

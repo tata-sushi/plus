@@ -21,6 +21,7 @@ import {
   Briefcase,
 } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
+import { Voltar } from '../components/Voltar.jsx'
 import { DestaquesSemana } from '../components/DestaquesSemana.jsx'
 import { Tabs } from '../components/Tabs.jsx'
 import { Section } from '../components/Section.jsx'
@@ -199,6 +200,7 @@ export function Ranking() {
   return (
     <>
       <Header title="Ranking" />
+      <Voltar />
       <Tabs tabs={tipos} value={tipo} onChange={setTipo} className="pt-3" />
 
       {tipo !== 'destaque' && (

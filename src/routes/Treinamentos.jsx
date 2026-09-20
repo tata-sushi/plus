@@ -20,6 +20,7 @@ import {
   Headphones,
 } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
+import { Voltar } from '../components/Voltar.jsx'
 import { Card } from '../components/Card.jsx'
 import { ProgressBar } from '../components/ProgressBar.jsx'
 import { PdfViewer } from '../components/PdfViewer.jsx'
@@ -859,6 +860,7 @@ export function Treinamentos() {
   return (
     <>
       <Header title="Treinamentos" />
+      <Voltar />
 
       {/* Capa da página — mesmo padrão da capa dos desafios */}
       <div className="px-5 pt-2">

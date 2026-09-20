@@ -41,7 +41,7 @@ export function Cardapio() {
       <Header />
       <CabecalhoPagina titulo="Cardápio" descricao="Veja e avalie o cardápio da semana." />
 
-      <Section className="mt-4" title="Cardápio da semana">
+      <Section className="mt-4">
         {proximos.length === 0 ? (
           <Card className="reveal">
             <div className="text-sm text-muted">Sem cardápio para os próximos dias.</div>

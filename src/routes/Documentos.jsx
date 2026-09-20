@@ -408,9 +408,11 @@ export function Documentos() {
       <Header />
       <CabecalhoPagina titulo="Documentos" descricao="Sua pasta de documentos." />
       <div className="mx-auto w-full max-w-[420px] px-5 pt-2 text-center">
-        <p className="text-[13px] leading-snug text-muted">
-          O documento deve conter a sua própria assinatura no campo de assinatura e uma selfie
-          tirada em lugar claro, sem bonés, máscaras ou óculos.
+        <p className="text-[13px] leading-relaxed">
+          <mark className="box-decoration-clone rounded bg-[#fde047] px-1 py-0.5 text-black">
+            O documento deve conter a sua própria assinatura no campo de assinatura e uma selfie
+            tirada em lugar claro, sem bonés, máscaras ou óculos.
+          </mark>
         </p>
       </div>
 
