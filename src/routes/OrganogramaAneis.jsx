@@ -391,7 +391,7 @@ export function OrganogramaAneis() {
 
       <CabecalhoPagina
         titulo="Organograma"
-        descricao="Gire pra explorar unidades e times."
+        descricao="Conheça nossos líderes e equipes."
         acaoDireita={
           <button onClick={() => setIntro(true)} aria-label="Como funciona" className="hstack gap-1 text-sm text-muted tap">
             <HelpCircle size={18} />

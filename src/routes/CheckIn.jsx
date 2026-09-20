@@ -75,7 +75,7 @@ export function CheckIn() {
       <Header />
       <CabecalhoPagina
         titulo="Check-in"
-        descricao="Escaneie o QR para fazer o check-in das atividades e confirmar a presença em eventos."
+        descricao="Escaneie o QR para fazer o check-in das suas atividades e confirmar presenças em eventos."
       />
       <div className="mx-auto flex min-h-[58dvh] w-full max-w-[420px] flex-col px-5 pb-24 pt-2">
         {scanning ? (

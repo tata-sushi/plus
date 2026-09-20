@@ -189,7 +189,7 @@ export function Home() {
   const [desafios, recompensas, cardapio, organograma] = sugestoesCards
   const cards = [
     ...(usuario?.podeQuadros
-      ? [{ to: '/quadros', badgeIcon: KanbanSquare, title: 'Kanban Tatá', subtitle: 'Quadro de tarefas' }]
+      ? [{ to: '/quadros', badgeIcon: KanbanSquare, title: 'Kanban', subtitle: 'Quadro de tarefas' }]
       : []),
     desafios,
     ...(usuario?.podeLimpeza
@@ -198,7 +198,7 @@ export function Home() {
     cardapio,
     recompensas,
     organograma,
-    { to: '/radio', badgeIcon: RadioIcon, title: 'Rádio Tatá', subtitle: 'Playlist do time' },
+    { to: '/radio', badgeIcon: RadioIcon, title: 'Rádio', subtitle: 'Playlist do time' },
     { to: '/passatempos', badgeIcon: Puzzle, title: 'Passatempos', subtitle: 'Jogue e pontue' },
     // Ranking e Agenda respeitam o mesmo acesso do menu "Mais"; Assinaturas é geral.
     ...(usuario?.podeQuadros
@@ -207,7 +207,7 @@ export function Home() {
     ...(usuario?.podeEscala
       ? [{ to: '/escala', badgeIcon: CalendarClock, title: 'Agenda', subtitle: 'Sua escala da semana' }]
       : []),
-    { to: '/documentos', badgeIcon: FileSignature, title: 'Assinaturas', subtitle: 'Documentos para assinar' },
+    { to: '/documentos', badgeIcon: FileSignature, title: 'Documentos', subtitle: 'Documentos para assinar' },
     { to: '/holerites', badgeIcon: ReceiptText, title: 'Holerite', subtitle: 'Seus holerites' },
     // Check-in (QR) — hub de banheiros/eventos; acesso liberado por pessoa na Governança.
     ...(usuario?.podeCheckin

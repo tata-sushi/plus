@@ -67,7 +67,7 @@ export function Brainstorm() {
   return (
     <div className="min-h-[100dvh] bg-bg">
       <Header />
-      <CabecalhoPagina titulo="Brainstorm Líderes" descricao="Uma palavra que resume o que você quer trazer." />
+      <CabecalhoPagina titulo="Brainstorm" descricao="Nossa palavra do dia." />
 
       <div className="mx-auto w-full max-w-[520px] px-5 pb-28 pt-4">
 

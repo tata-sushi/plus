@@ -25,7 +25,7 @@ export function Lojinha({ abaInicial = 'recompensas' }) {
   return (
     <>
       <Header />
-      <CabecalhoPagina titulo="Lojinha" descricao="Troque seus pontos por recompensas e produtos." />
+      <CabecalhoPagina titulo="Lojinha" descricao="Resgate suas recompensas e compre seus presentinhos." />
 
       {/* Abas: Recompensas · Loja */}
       <div className="px-5 pt-3">

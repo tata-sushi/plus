@@ -39,7 +39,7 @@ export function BuscarPessoas() {
   return (
     <>
       <Header />
-      <CabecalhoPagina titulo="Buscar colaborador" descricao="Encontre alguém do time pelo nome ou cargo." />
+      <CabecalhoPagina titulo="Buscar colaborador" descricao="Encontre os colegas de trabalho." />
 
       <div className="px-5 pt-1">
         <div className="relative">

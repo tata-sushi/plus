@@ -285,7 +285,7 @@ function ListaQuadros({ quadros, meusCards = [], onAbrir, onMudou, selecionadoId
   return (
     <>
       <Header />
-      <CabecalhoPagina titulo="Kanban Tatá" descricao="Organize as tarefas do time em quadros." />
+      <CabecalhoPagina titulo="Kanban" descricao="Suas tarefas organizadas em um só lugar." />
       <div className="px-5 pt-2 pb-24">
         <PainelPendencias embutido />
         {quadros == null ? (
@@ -709,7 +709,7 @@ function VisaoQuadro({ quadroId, onVoltar, emCanvas, cardInicial, cardNonce, nov
   }
   return (
     <>
-      <Header title="Kanban Tatá" />
+      <Header title="Kanban" />
       {barra}
       {toolbar}
       <div className="min-h-full" style={fundo}>{conteudoProvido}</div>

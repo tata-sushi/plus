@@ -406,7 +406,7 @@ export function Documentos() {
   return (
     <>
       <Header />
-      <CabecalhoPagina titulo="Assinaturas" descricao="Documentos para você ler e assinar." />
+      <CabecalhoPagina titulo="Documentos" descricao="Sua pasta de documentos." />
       <div className="mx-auto w-full max-w-[420px] px-5 pt-2 text-center">
         <p className="text-[13px] leading-snug text-muted">
           O documento deve conter a sua própria assinatura no campo de assinatura e uma selfie

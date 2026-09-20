@@ -249,7 +249,7 @@ export function Radio() {
   return (
     <>
       <Header />
-      <CabecalhoPagina titulo="Rádio Tatá" descricao="A playlist e os podcasts do time." />
+      <CabecalhoPagina titulo="Rádio" descricao="A playlist e os podcasts do time." />
 
       {/* Cabeçalho fixo da Rádio: o card "Rádio Tatá" não muda entre as abas;
           o seletor (Playlist/Podcasts) fica ABAIXO dele (só matrícula 7). */}
@@ -268,7 +268,7 @@ export function Radio() {
               >
                 <img
                   src={CAPA_RADIO}
-                  alt="Capa da Rádio Tatá"
+                  alt="Capa da Rádio"
                   className="h-20 w-20 rounded-xl object-cover shadow-md"
                 />
                 <span className="absolute -bottom-1 -right-1 grid h-6 w-6 place-items-center rounded-full bg-accent text-black shadow">
@@ -278,7 +278,7 @@ export function Radio() {
             ) : (
               <img
                 src={CAPA_RADIO}
-                alt="Capa da Rádio Tatá"
+                alt="Capa da Rádio"
                 className="h-20 w-20 shrink-0 rounded-xl object-cover shadow-md"
               />
             )}
@@ -287,7 +287,7 @@ export function Radio() {
                 Cultura e Informação
               </div>
               <div className="mt-0.5 flex items-center gap-2">
-                <span className="font-display text-2xl font-bold leading-tight">Rádio Tatá</span>
+                <span className="font-display text-2xl font-bold leading-tight">Rádio</span>
                 <span className="rounded-pill bg-bg px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-accent">
                   beta
                 </span>

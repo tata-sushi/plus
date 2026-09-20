@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Header } from '../components/Header.jsx'
+import { CabecalhoPagina } from '../components/CabecalhoPagina.jsx'
 import { Voltar } from '../components/Voltar.jsx'
 import { Section } from '../components/Section.jsx'
 import { Card } from '../components/Card.jsx'
@@ -55,8 +56,7 @@ export function Avaliar() {
     return (
       <>
         <Header />
-        <Voltar />
-        <Capa />
+        <CabecalhoPagina titulo="Cardápio" descricao="Veja e avalie o cardápio do dia." />
       </>
     )
 
@@ -65,8 +65,7 @@ export function Avaliar() {
   return (
     <>
       <Header />
-      <Voltar />
-      <Capa />
+      <CabecalhoPagina titulo="Cardápio" descricao="Veja e avalie o cardápio do dia." />
 
       <Section className="mt-4">
         {!temMenu ? (

@@ -39,7 +39,7 @@ export function Cardapio() {
   return (
     <>
       <Header />
-      <CabecalhoPagina titulo="Cardápio" descricao="O cardápio da semana e a avaliação das refeições." />
+      <CabecalhoPagina titulo="Cardápio" descricao="Veja e avalie o cardápio da semana." />
 
       <Section className="mt-4" title="Cardápio da semana">
         {proximos.length === 0 ? (

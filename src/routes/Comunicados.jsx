@@ -35,7 +35,7 @@ export function Comunicados() {
   return (
     <>
       <Header />
-      <CabecalhoPagina titulo="Comunicados" descricao="Avisos e novidades do Tatá." />
+      <CabecalhoPagina titulo="Comunicados" descricao="Histórico de comunicados." />
 
       <div className="mt-3 flex flex-col gap-3 px-5">
         {carregando && (
