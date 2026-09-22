@@ -22,6 +22,14 @@ function fmtTempo(meses) {
   return pa || pm || '0 meses'
 }
 
+function fmtData(d) {
+  try {
+    return new Date(d + 'T00:00:00').toLocaleDateString('pt-BR')
+  } catch {
+    return ''
+  }
+}
+
 const ERROS = {
   sem_tempo: 'Você ainda não atingiu o tempo de casa deste marco.',
   ja_resgatado: 'Este marco já foi resgatado.',
@@ -60,22 +68,34 @@ export function PainelJornada() {
     carregar()
   }
 
-  const meses = dados?.meses_casa ?? 0
+  const meses = dados?.meses_jornada ?? 0
+  const implantacao = dados?.implantacao
   const marcos = dados?.marcos ?? []
 
   return (
     <>
-      {/* Tempo de casa */}
+      {/* Tempo no programa (Jornada) */}
       <div className="px-5 pt-3">
         <div className="hero-card reveal p-4">
           <div className="hstack justify-between">
             <div>
-              <div className="text-xs text-muted">Seu tempo de casa</div>
+              <div className="text-xs text-muted">Sua Jornada TATÁ</div>
               <div className="font-display text-2xl font-bold text-accent">{fmtTempo(meses)}</div>
+              {implantacao && (
+                <div className="mt-0.5 text-[11px] text-muted-2">conta desde {fmtData(implantacao)}</div>
+              )}
             </div>
             <div className="grid h-12 w-12 place-items-center rounded-full bg-accent-soft text-2xl">🐢</div>
           </div>
         </div>
+      </div>
+
+      {/* Especificação da regra (não retroativo) */}
+      <div className="px-5 pt-2">
+        <p className="text-[11px] leading-relaxed text-muted-2">
+          O tempo da Jornada conta a partir da implantação do programa — períodos anteriores não
+          entram (não é retroativo).
+        </p>
       </div>
 
       {aviso && (
