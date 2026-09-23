@@ -132,7 +132,6 @@ export function PainelJornada() {
             {marcos.map((m) => {
               const op0 = m.opcoes?.[0]
               const resgatado = !!m.resgatado_opcao
-              const faltam = Math.max(0, m.meses - meses)
               const varias = (m.opcoes || []).length > 1
               return (
                 <Card
@@ -140,17 +139,12 @@ export function PainelJornada() {
                   onClick={() => abrir(m)}
                   className="flex cursor-pointer items-center gap-3.5 !p-3 tap"
                 >
-                  <div className="relative grid h-[74px] w-[74px] shrink-0 place-items-center overflow-hidden rounded-2xl bg-accent-soft text-3xl">
+                  <div className="grid h-[86px] w-[108px] shrink-0 place-items-center overflow-hidden rounded-2xl bg-accent-soft text-4xl">
                     <RecompensaFoto
                       src={op0?.imagem_url}
                       emoji={op0?.emoji || '🐢'}
                       className="h-full w-full object-cover"
                     />
-                    {!m.atingido && !resgatado && (
-                      <span className="absolute right-1 top-1 grid h-5 w-5 place-items-center rounded-full bg-black/55 text-white backdrop-blur">
-                        <Lock size={11} />
-                      </span>
-                    )}
                   </div>
 
                   <div className="min-w-0 flex-1">
@@ -163,8 +157,8 @@ export function PainelJornada() {
 
                   <div className="shrink-0">
                     {resgatado ? (
-                      <span className="hstack items-center gap-1 whitespace-nowrap rounded-full bg-accent-soft px-2.5 py-1.5 text-[11px] font-bold text-accent">
-                        <Check size={12} /> Resgatado
+                      <span className="hstack items-center gap-1 whitespace-nowrap rounded-full bg-accent-soft px-3 py-2 text-xs font-bold text-accent">
+                        <Check size={13} /> Resgatado
                       </span>
                     ) : m.atingido ? (
                       <button
@@ -174,13 +168,13 @@ export function PainelJornada() {
                           if (varias) abrir(m)
                           else setConfirmar({ marco: m, opcao: op0 })
                         }}
-                        className="btn-primary !px-3.5 !py-2 text-xs font-bold"
+                        className="btn-primary !px-4 !py-2 text-xs font-bold"
                       >
                         Resgatar
                       </button>
                     ) : (
-                      <span className="hstack items-center gap-1 whitespace-nowrap rounded-full bg-surface-2 px-2.5 py-1.5 text-[11px] font-semibold text-muted">
-                        <Lock size={11} /> {fmtTempo(faltam)}
+                      <span className="hstack items-center gap-1 whitespace-nowrap rounded-full bg-surface-2 px-4 py-2 text-xs font-semibold text-muted-2">
+                        <Lock size={12} /> Resgatar
                       </span>
                     )}
                   </div>
