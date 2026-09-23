@@ -155,8 +155,8 @@ export function PainelJornada() {
 
                     <div className="mt-auto pt-2">
                       {resgatado ? (
-                        <span className="hstack w-fit items-center gap-1 rounded-full bg-accent-soft px-3.5 py-2 text-xs font-bold text-accent">
-                          <Check size={13} /> Resgatado
+                        <span className="hstack w-full items-center justify-center gap-1 rounded-full bg-accent-soft px-3.5 py-2.5 text-xs font-bold text-accent">
+                          <Check size={14} /> Resgatado
                         </span>
                       ) : m.atingido ? (
                         <button
@@ -166,13 +166,13 @@ export function PainelJornada() {
                             if (varias) abrir(m)
                             else setConfirmar({ marco: m, opcao: op0 })
                           }}
-                          className="btn-primary w-fit !px-6 !py-2 text-xs font-bold"
+                          className="btn-primary w-full !py-2.5 text-xs font-bold"
                         >
-                          Resgatar
+                          Resgate
                         </button>
                       ) : (
-                        <span className="hstack w-fit items-center gap-1 rounded-full bg-surface-2 px-4 py-2 text-xs font-semibold text-muted-2">
-                          <Lock size={12} /> Resgatar
+                        <span className="hstack w-full items-center justify-center gap-1 rounded-full bg-surface-2 px-4 py-2.5 text-xs font-semibold text-muted-2">
+                          <Lock size={13} /> Resgate
                         </span>
                       )}
                     </div>
