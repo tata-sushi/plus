@@ -128,44 +128,61 @@ export function PainelJornada() {
         </div>
       ) : (
         <Section className="reveal reveal-1 mt-5" title="Sua jornada TATÁ">
-          <div className="grid grid-cols-2 gap-3">
+          <div className="flex flex-col gap-3">
             {marcos.map((m) => {
               const op0 = m.opcoes?.[0]
               const resgatado = !!m.resgatado_opcao
               const faltam = Math.max(0, m.meses - meses)
+              const varias = (m.opcoes || []).length > 1
               return (
                 <Card
                   key={m.id}
                   onClick={() => abrir(m)}
-                  className="flex cursor-pointer flex-col !p-3 tap"
+                  className="flex cursor-pointer items-center gap-3.5 !p-3 tap"
                 >
-                  <div className="relative grid aspect-square place-items-center overflow-hidden rounded-2xl bg-accent-soft text-5xl">
+                  <div className="relative grid h-[74px] w-[74px] shrink-0 place-items-center overflow-hidden rounded-2xl bg-accent-soft text-3xl">
                     <RecompensaFoto
                       src={op0?.imagem_url}
                       emoji={op0?.emoji || '🐢'}
                       className="h-full w-full object-cover"
                     />
                     {!m.atingido && !resgatado && (
-                      <span className="absolute right-1.5 top-1.5 grid h-6 w-6 place-items-center rounded-full bg-black/55 text-white backdrop-blur">
-                        <Lock size={12} />
+                      <span className="absolute right-1 top-1 grid h-5 w-5 place-items-center rounded-full bg-black/55 text-white backdrop-blur">
+                        <Lock size={11} />
                       </span>
                     )}
                   </div>
-                  <div className="mt-2 text-sm font-semibold leading-tight">{m.titulo}</div>
-                  <div className="mt-1 hstack justify-between gap-1">
-                    <span className="text-xs font-semibold text-accent">Grátis</span>
-                  </div>
-                  <div
-                    className={cn(
-                      'mt-2 w-full rounded-full py-2 text-center text-xs font-semibold',
-                      resgatado
-                        ? 'bg-accent-soft text-accent'
-                        : m.atingido
-                          ? 'bg-accent text-black'
-                          : 'bg-surface-2 text-muted',
+
+                  <div className="min-w-0 flex-1">
+                    <div className="text-sm font-bold leading-tight">{m.titulo}</div>
+                    {op0?.titulo && (
+                      <div className="mt-0.5 line-clamp-2 text-xs text-muted">{op0.titulo}</div>
                     )}
-                  >
-                    {resgatado ? 'Resgatado' : m.atingido ? 'Resgatar' : `Faltam ${fmtTempo(faltam)}`}
+                    <div className="mt-0.5 text-[11px] font-semibold text-accent">Grátis</div>
+                  </div>
+
+                  <div className="shrink-0">
+                    {resgatado ? (
+                      <span className="hstack items-center gap-1 whitespace-nowrap rounded-full bg-accent-soft px-2.5 py-1.5 text-[11px] font-bold text-accent">
+                        <Check size={12} /> Resgatado
+                      </span>
+                    ) : m.atingido ? (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          tapHaptic()
+                          if (varias) abrir(m)
+                          else setConfirmar({ marco: m, opcao: op0 })
+                        }}
+                        className="btn-primary !px-3.5 !py-2 text-xs font-bold"
+                      >
+                        Resgatar
+                      </button>
+                    ) : (
+                      <span className="hstack items-center gap-1 whitespace-nowrap rounded-full bg-surface-2 px-2.5 py-1.5 text-[11px] font-semibold text-muted">
+                        <Lock size={11} /> {fmtTempo(faltam)}
+                      </span>
+                    )}
                   </div>
                 </Card>
               )
