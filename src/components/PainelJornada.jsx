@@ -8,9 +8,9 @@ import { cn } from '../lib/cn'
 import { tapHaptic } from '../lib/haptics.js'
 import { supabase } from '../lib/supabase.js'
 
-// "Jornada TATÁ": recompensas por tempo de casa. Cada marco (ex.: 3 anos)
-// aparece pra todos, mas só é resgatável quando a pessoa atinge o tempo. Cada
-// marco tem 1+ opções; ao escolher uma, o marco fecha (1x por pessoa, grátis).
+// "Jornada TATÁ": recompensas por tempo de casa, no mesmo layout do catálogo de
+// Recompensas (grade de cards). Cada marco (ex.: 3 anos) aparece pra todos, mas
+// só é resgatável ao atingir o tempo; ao escolher uma opção, o marco fecha.
 
 function fmtTempo(meses) {
   const m = Math.max(0, Number(meses) || 0)
@@ -38,22 +38,33 @@ const ERROS = {
 }
 
 export function PainelJornada() {
-  const [dados, setDados] = useState(null) // { meses_casa, marcos: [] }
+  const [dados, setDados] = useState(null) // { meses_jornada, implantacao, marcos }
   const [carregando, setCarregando] = useState(true)
   const [aviso, setAviso] = useState(null) // { tipo, texto }
+  const [aberto, setAberto] = useState(null) // marco aberto no detalhe
   const [confirmar, setConfirmar] = useState(null) // { marco, opcao }
   const [processando, setProcessando] = useState(false)
 
   const carregar = useCallback(async () => {
     const { data } = await supabase.rpc('jornada_listar')
-    setDados(data || { meses_casa: 0, marcos: [] })
+    setDados(data || { meses_jornada: 0, marcos: [] })
     setCarregando(false)
   }, [])
   useEffect(() => {
     carregar()
   }, [carregar])
 
-  async function escolher() {
+  const meses = dados?.meses_jornada ?? 0
+  const implantacao = dados?.implantacao
+  const marcos = dados?.marcos ?? []
+
+  function abrir(m) {
+    tapHaptic()
+    setAviso(null)
+    setAberto(m)
+  }
+
+  async function resgatar() {
     if (!confirmar) return
     tapHaptic()
     setProcessando(true)
@@ -65,16 +76,13 @@ export function PainelJornada() {
       setAviso({ tipo: 'ok', texto: `"${confirmar.opcao.titulo}" resgatado! 🎉` })
     }
     setConfirmar(null)
+    setAberto(null)
     carregar()
   }
 
-  const meses = dados?.meses_jornada ?? 0
-  const implantacao = dados?.implantacao
-  const marcos = dados?.marcos ?? []
-
   return (
     <>
-      {/* Tempo no programa (Jornada) */}
+      {/* Tempo no programa */}
       <div className="px-5 pt-3">
         <div className="hero-card reveal p-4">
           <div className="hstack justify-between">
@@ -90,7 +98,6 @@ export function PainelJornada() {
         </div>
       </div>
 
-      {/* Especificação da regra (não retroativo) */}
       <div className="px-5 pt-2">
         <p className="text-[11px] leading-relaxed text-muted-2">
           O tempo da Jornada conta a partir da implantação do programa — períodos anteriores não
@@ -121,28 +128,72 @@ export function PainelJornada() {
         </div>
       ) : (
         <Section className="reveal reveal-1 mt-5" title="Sua jornada TATÁ">
-          <div className="flex flex-col gap-4">
-            {marcos.map((mc) => (
-              <MarcoCard
-                key={mc.id}
-                mc={mc}
-                meses={meses}
-                onEscolher={(op) => {
-                  tapHaptic()
-                  setAviso(null)
-                  setConfirmar({ marco: mc, opcao: op })
-                }}
-              />
-            ))}
+          <div className="grid grid-cols-2 gap-3">
+            {marcos.map((m) => {
+              const op0 = m.opcoes?.[0]
+              const resgatado = !!m.resgatado_opcao
+              const faltam = Math.max(0, m.meses - meses)
+              return (
+                <Card
+                  key={m.id}
+                  onClick={() => abrir(m)}
+                  className="flex cursor-pointer flex-col !p-3 tap"
+                >
+                  <div className="relative grid aspect-square place-items-center overflow-hidden rounded-2xl bg-accent-soft text-5xl">
+                    <RecompensaFoto
+                      src={op0?.imagem_url}
+                      emoji={op0?.emoji || '🐢'}
+                      className="h-full w-full object-cover"
+                    />
+                    {!m.atingido && !resgatado && (
+                      <span className="absolute right-1.5 top-1.5 grid h-6 w-6 place-items-center rounded-full bg-black/55 text-white backdrop-blur">
+                        <Lock size={12} />
+                      </span>
+                    )}
+                  </div>
+                  <div className="mt-2 text-sm font-semibold leading-tight">{m.titulo}</div>
+                  <div className="mt-1 hstack justify-between gap-1">
+                    <span className="text-xs font-semibold text-accent">Grátis</span>
+                  </div>
+                  <div
+                    className={cn(
+                      'mt-2 w-full rounded-full py-2 text-center text-xs font-semibold',
+                      resgatado
+                        ? 'bg-accent-soft text-accent'
+                        : m.atingido
+                          ? 'bg-accent text-black'
+                          : 'bg-surface-2 text-muted',
+                    )}
+                  >
+                    {resgatado ? 'Resgatado' : m.atingido ? 'Resgatar' : `Faltam ${fmtTempo(faltam)}`}
+                  </div>
+                </Card>
+              )
+            })}
           </div>
         </Section>
       )}
+
+      {/* Detalhe do marco + escolha da opção */}
+      {aberto &&
+        createPortal(
+          <DetalheMarco
+            marco={aberto}
+            meses={meses}
+            onFechar={() => setAberto(null)}
+            onEscolher={(op) => {
+              tapHaptic()
+              setConfirmar({ marco: aberto, opcao: op })
+            }}
+          />,
+          document.body,
+        )}
 
       {/* Confirmação — escolher fecha o marco */}
       {confirmar &&
         createPortal(
           <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+            className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-4"
             onClick={() => !processando && setConfirmar(null)}
           >
             <div
@@ -165,7 +216,7 @@ export function PainelJornada() {
                   Voltar
                 </button>
                 <button
-                  onClick={escolher}
+                  onClick={resgatar}
                   disabled={processando}
                   className={cn('btn-primary flex-1 !py-3 text-sm', processando && 'opacity-60')}
                 >
@@ -180,98 +231,109 @@ export function PainelJornada() {
   )
 }
 
-function MarcoCard({ mc, meses, onEscolher }) {
-  const resgatadoId = mc.resgatado_opcao
-  const atingido = mc.atingido
-  const faltam = Math.max(0, mc.meses - meses)
+// Janelinha de detalhes do marco (padrão da de Recompensas): mostra as opções e,
+// se o tempo permite, deixa escolher/resgatar. Vários "escolheu 1 fecha".
+function DetalheMarco({ marco, meses, onFechar, onEscolher }) {
+  const resgatadoId = marco.resgatado_opcao
+  const atingido = marco.atingido
+  const faltam = Math.max(0, marco.meses - meses)
+  const varias = (marco.opcoes || []).length > 1
 
   return (
-    <Card className="!p-4">
-      <div className="hstack items-start justify-between gap-2">
-        <div className="min-w-0">
-          <div className="font-display text-base font-bold leading-tight">{mc.titulo}</div>
-          {mc.descricao && <p className="mt-1 text-xs leading-relaxed text-muted">{mc.descricao}</p>}
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={onFechar}>
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="flex max-h-[85dvh] w-full max-w-md flex-col rounded-card border border-line bg-surface"
+      >
+        <div className="hstack justify-between border-b border-line px-5 py-3.5">
+          <div className="min-w-0 font-display text-base font-bold leading-tight">{marco.titulo}</div>
+          <button onClick={onFechar} className="shrink-0 text-muted tap" aria-label="Fechar">
+            <X size={20} />
+          </button>
         </div>
-        {resgatadoId ? (
-          <span className="pill shrink-0 bg-accent-soft text-[10px] uppercase text-accent">
-            <Check size={11} /> Resgatado
-          </span>
-        ) : atingido ? (
-          <span className="pill shrink-0 bg-accent text-black text-[10px] uppercase">Disponível</span>
-        ) : (
-          <span className="pill shrink-0 bg-surface-2 text-[10px] uppercase text-muted">
-            <Lock size={11} /> {fmtTempo(mc.meses)}
-          </span>
-        )}
-      </div>
 
-      {/* Dica de estado */}
-      {!resgatadoId && (
-        <div className="mt-2 text-[11px] font-medium text-muted-2">
-          {atingido
-            ? mc.opcoes.length > 1
-              ? 'Escolha 1 — ao escolher, o marco fecha.'
-              : 'Disponível pra resgatar — resgatou, fecha.'
-            : `Faltam ${fmtTempo(faltam)} pra desbloquear.`}
-        </div>
-      )}
-
-      {/* Opções */}
-      <div className="mt-3 flex flex-col gap-2">
-        {mc.opcoes.map((op) => {
-          const escolhida = resgatadoId === op.id
-          const outraEscolhida = resgatadoId && !escolhida
-          const podeTocar = atingido && !resgatadoId
-          const inner = (
-            <>
-              <div className="grid h-14 w-14 shrink-0 place-items-center overflow-hidden rounded-xl bg-accent-soft text-3xl">
-                <RecompensaFoto src={op.imagem_url} emoji={op.emoji} className="h-full w-full object-cover" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="text-sm font-semibold leading-tight">{op.titulo}</div>
-                {op.descricao && (
-                  <div className="mt-0.5 line-clamp-2 text-xs text-muted">{op.descricao}</div>
-                )}
-              </div>
-              {escolhida ? (
-                <span className="hstack shrink-0 items-center gap-1 text-xs font-bold text-accent">
-                  <Check size={15} /> Escolhido
-                </span>
-              ) : !atingido ? (
-                <Lock size={15} className="shrink-0 text-muted-2" />
-              ) : null}
-            </>
-          )
-          const base =
-            'hstack items-center gap-3 rounded-2xl border p-2.5 text-left transition-colors'
-          if (podeTocar) {
-            return (
-              <button
-                key={op.id}
-                onClick={() => onEscolher(op)}
-                className={cn(base, 'border-line tap active:bg-surface-2')}
-              >
-                {inner}
-              </button>
-            )
-          }
-          return (
-            <div
-              key={op.id}
+        <div className="flex-1 overflow-y-auto px-5 py-4">
+          <div className="hstack items-center justify-between">
+            <span className="font-display text-lg font-bold text-accent">Grátis</span>
+            <span
               className={cn(
-                base,
-                escolhida
-                  ? 'border-accent bg-accent-soft'
-                  : outraEscolhida || !atingido
-                    ? 'border-line opacity-55'
-                    : 'border-line',
+                'pill text-[11px]',
+                resgatadoId
+                  ? 'bg-accent-soft text-accent'
+                  : atingido
+                    ? 'bg-accent text-black'
+                    : 'bg-surface-2 text-muted',
               )}
             >
-              {inner}
+              {resgatadoId ? (
+                <>
+                  <Check size={12} /> Resgatado
+                </>
+              ) : atingido ? (
+                'Disponível'
+              ) : (
+                <>
+                  <Lock size={12} /> Faltam {fmtTempo(faltam)}
+                </>
+              )}
+            </span>
+          </div>
+
+          {marco.descricao && <p className="mt-2 text-sm text-muted">{marco.descricao}</p>}
+
+          {!resgatadoId && (
+            <div className="mt-3 text-xs font-medium text-muted-2">
+              {atingido
+                ? varias
+                  ? 'Escolha 1 — ao escolher, o marco fecha.'
+                  : 'Toque em resgatar — resgatou, o marco fecha.'
+                : `Disponível ao completar ${fmtTempo(marco.meses)} de Jornada.`}
             </div>
-          )
-        })}
+          )}
+
+          <div className="mt-3 flex flex-col gap-2">
+            {(marco.opcoes || []).map((op) => {
+              const escolhida = resgatadoId === op.id
+              const podeTocar = atingido && !resgatadoId
+              return (
+                <div
+                  key={op.id}
+                  className={cn(
+                    'hstack items-center gap-3 rounded-2xl border p-2.5',
+                    escolhida
+                      ? 'border-accent bg-accent-soft'
+                      : resgatadoId || !atingido
+                        ? 'border-line opacity-60'
+                        : 'border-line',
+                  )}
+                >
+                  <div className="grid h-14 w-14 shrink-0 place-items-center overflow-hidden rounded-xl bg-accent-soft text-3xl">
+                    <RecompensaFoto src={op.imagem_url} emoji={op.emoji} className="h-full w-full object-cover" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-sm font-semibold leading-tight">{op.titulo}</div>
+                    {op.descricao && <div className="mt-0.5 text-xs text-muted">{op.descricao}</div>}
+                  </div>
+                  {escolhida ? (
+                    <span className="hstack shrink-0 items-center gap-1 text-xs font-bold text-accent">
+                      <Check size={15} /> Escolhido
+                    </span>
+                  ) : podeTocar ? (
+                    <button
+                      onClick={() => onEscolher(op)}
+                      className="btn-primary shrink-0 !px-3 !py-2 text-xs font-bold"
+                    >
+                      {varias ? 'Escolher' : 'Resgatar'}
+                    </button>
+                  ) : !atingido ? (
+                    <Lock size={15} className="shrink-0 text-muted-2" />
+                  ) : null}
+                </div>
+              )
+            })}
+          </div>
+        </div>
       </div>
-    </Card>
+    </div>
   )
 }
