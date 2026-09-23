@@ -137,9 +137,9 @@ export function PainelJornada() {
                 <Card
                   key={m.id}
                   onClick={() => abrir(m)}
-                  className="flex cursor-pointer items-start gap-3.5 !p-3 tap"
+                  className="flex cursor-pointer items-stretch gap-3.5 !p-3 tap"
                 >
-                  <div className="grid h-[100px] w-[100px] shrink-0 place-items-center overflow-hidden rounded-2xl bg-accent-soft text-4xl">
+                  <div className="grid min-h-[100px] w-[116px] shrink-0 place-items-center overflow-hidden rounded-2xl bg-accent-soft text-4xl">
                     <RecompensaFoto
                       src={op0?.imagem_url}
                       emoji={op0?.emoji || '🐢'}
@@ -150,11 +150,10 @@ export function PainelJornada() {
                   <div className="flex min-w-0 flex-1 flex-col">
                     <div className="text-sm font-bold leading-tight">{m.titulo}</div>
                     {op0?.titulo && (
-                      <div className="mt-0.5 text-xs leading-snug text-muted">{op0.titulo}</div>
+                      <div className="mt-1 text-xs leading-snug text-muted">{op0.titulo}</div>
                     )}
-                    <div className="mt-0.5 text-[11px] font-semibold text-accent">Grátis</div>
 
-                    <div className="mt-2">
+                    <div className="mt-auto pt-2">
                       {resgatado ? (
                         <span className="hstack w-fit items-center gap-1 rounded-full bg-accent-soft px-3.5 py-2 text-xs font-bold text-accent">
                           <Check size={13} /> Resgatado
