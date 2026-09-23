@@ -194,7 +194,8 @@ export function Home() {
       : []),
     desafios,
     cardapio,
-    recompensas,
+    // Lojinha bloqueada durante os testes (liberada por pessoa via podeLojinha).
+    ...(usuario?.podeLojinha ? [recompensas] : []),
     organograma,
     { to: '/radio', badgeIcon: RadioIcon, title: 'Rádio', subtitle: 'Playlist do time' },
     { to: '/passatempos', badgeIcon: Puzzle, title: 'Passatempos', subtitle: 'Jogue e pontue' },

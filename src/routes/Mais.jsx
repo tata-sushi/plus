@@ -49,7 +49,7 @@ const itens = [
   { to: '/jornada', label: 'Meu perfil', icon: UserRound },
   { to: '/buscar', label: 'Buscar colaborador', icon: Search },
   { to: '/comunicados', label: 'Comunicados', icon: Megaphone },
-  { to: '/lojinha', label: 'Lojinha', icon: ShoppingBag },
+  { to: '/lojinha', label: 'Lojinha', icon: ShoppingBag, lojinha: true },
   { to: '/minha-experiencia', label: 'Avaliações e Reconhecimentos', icon: HeartHandshake },
   { to: '/ouvidoria', label: 'Ouvidoria', icon: MessageSquareWarning, gov: true },
   { to: '/cardapio', label: 'Cardápio', icon: UtensilsCrossed },
@@ -121,6 +121,7 @@ export function Mais() {
         (!i.escala || usuario?.podeEscala) &&
         (!i.brainstorm || usuario?.podeBrainstorm) &&
         (!i.checkin || usuario?.podeCheckin) &&
+        (!i.lojinha || usuario?.podeLojinha) &&
         (!i.beta || podeVerReconhecimento(usuario)) &&
         (!i.teste || usuario?.matricula === '7') &&
         (!i.rhdocs || usuario?.perfil === 'admin' || usuario?.lider),
