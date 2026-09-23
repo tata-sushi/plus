@@ -45,6 +45,7 @@ import { AdminDesafios } from '../components/AdminDesafios.jsx'
 import { AdminBanheiros } from '../components/AdminBanheiros.jsx'
 import { AdminPodcast } from '../components/AdminPodcast.jsx'
 import { AdminLojinha } from '../components/AdminLojinha.jsx'
+import { AdminJornada } from '../components/AdminJornada.jsx'
 import { cn } from '../lib/cn'
 import { tapHaptic } from '../lib/haptics.js'
 import { useAuth } from '../lib/AuthContext.jsx'
@@ -55,8 +56,9 @@ const TAM_MAX = 15 * 1024 * 1024 // 15 MB
 
 // Título mostrado na barra de volta ao abrir cada seção do painel.
 const TITULOS = {
-  catalogo: 'Recompensas',
+  catalogo: 'Lojinha',
   lojinha: 'Lojinha',
+  jornada: 'Lojinha',
   pedidos: 'Pedidos',
   envios: 'Envios',
   conquistas: 'Conquistas',
@@ -480,7 +482,6 @@ export function AdminRecompensas() {
   // Menu do hub (padrão do "Mais"): lista corrida, um botão abaixo do outro.
   // Banheiros só p/ perfil admin.
   const itensMenu = [
-    { id: 'catalogo', label: 'Recompensas', icon: Gift },
     { id: 'lojinha', label: 'Lojinha', icon: Store },
     { id: 'pedidos', label: 'Pedidos', icon: ShoppingBag, badge: pendentes },
     { id: 'envios', label: 'Envios', icon: FileCheck2, badge: enviosPendentes },
@@ -502,8 +503,35 @@ export function AdminRecompensas() {
       ) : (
         <>
           <BackBar titulo={TITULOS[aba]} onVoltar={() => setAba('menu')} />
+          {['lojinha', 'jornada', 'catalogo'].includes(aba) && (
+            <div className="px-5 pt-3">
+              <div className="grid grid-cols-3 gap-1 rounded-full border border-line bg-surface-2 p-1">
+                {[
+                  ['lojinha', 'Compras'],
+                  ['jornada', 'Jornada'],
+                  ['catalogo', 'Recompensas'],
+                ].map(([id, label]) => (
+                  <button
+                    key={id}
+                    onClick={() => {
+                      tapHaptic()
+                      setAba(id)
+                    }}
+                    className={cn(
+                      'rounded-full py-2 text-sm font-semibold transition-colors tap',
+                      aba === id ? 'bg-accent text-black shadow-sm' : 'text-muted',
+                    )}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
           {aba === 'lojinha' ? (
         <AdminLojinha />
+      ) : aba === 'jornada' ? (
+        <AdminJornada />
       ) : aba === 'banheiros' ? (
         <AdminBanheiros />
       ) : aba === 'podcast' ? (
