@@ -276,7 +276,7 @@ export function MenuLateral({ aberto, onClose }) {
           <span
             className={cn(
               'h-1.5 w-1.5 shrink-0 rounded-full',
-              isActive ? 'bg-accent' : 'bg-carbon',
+              isActive ? 'bg-accent' : 'bg-carbon dark:bg-accent',
             )}
           />
           <span className="min-w-0 flex-1 truncate">{p.label}</span>
@@ -316,7 +316,7 @@ export function MenuLateral({ aberto, onClose }) {
             <NavLink
               to="/governanca"
               onClick={aoTocar}
-              className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-carbon tap"
+              className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-carbon dark:text-accent tap"
               aria-label="Abrir portal completo"
             >
               <ExternalLink size={18} />
@@ -343,7 +343,7 @@ export function MenuLateral({ aberto, onClose }) {
             const kSobre = 'sec:__sobre'
             const sobreOpen = abertos.has(kSobre)
             return (
-              <div className="border-b border-black/[0.06] dark:border-white/[0.04]">
+              <div className="border-b border-black/[0.06] dark:border-white/[0.08]">
                 <button
                   onClick={() => toggle(kSobre)}
                   className="hstack w-full gap-3 px-2 py-3 text-left tap"
@@ -415,7 +415,7 @@ export function MenuLateral({ aberto, onClose }) {
               if (direto) {
                 const p = sec.paginas[0]
                 return (
-                  <div key={sec.secao} className="border-b border-black/[0.06] dark:border-white/[0.04] last:border-0">
+                  <div key={sec.secao} className="border-b border-black/[0.06] dark:border-white/[0.08] last:border-0">
                     <NavLink
                       to={`/painel/${p.id}`}
                       onClick={aoTocar}
@@ -433,7 +433,7 @@ export function MenuLateral({ aberto, onClose }) {
               }
 
               return (
-                <div key={sec.secao} className="border-b border-black/[0.06] dark:border-white/[0.04] last:border-0">
+                <div key={sec.secao} className="border-b border-black/[0.06] dark:border-white/[0.08] last:border-0">
                   <button
                     onClick={() => toggle(kSec)}
                     className="hstack w-full gap-3 px-2 py-3 text-left tap"
@@ -480,7 +480,7 @@ export function MenuLateral({ aberto, onClose }) {
                                     openSub && 'rotate-90',
                                   )}
                                 />
-                                <span className="min-w-0 flex-1 truncate text-xs font-semibold uppercase tracking-wide text-muted">
+                                <span className="min-w-0 flex-1 truncate text-xs font-semibold uppercase tracking-wide text-muted dark:text-white/80">
                                   {g.nome}
                                 </span>
                               </button>
