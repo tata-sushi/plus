@@ -1,21 +1,60 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { NavLink } from 'react-router-dom'
-import {
-  ChevronDown,
-  ChevronRight,
-  ExternalLink,
-  Loader2,
-  Info,
-  BookOpen,
-  Landmark,
-  LayoutDashboard,
-  Plug,
-  ShieldCheck,
-} from 'lucide-react'
+import { ChevronDown, ChevronRight, ExternalLink, Loader2, Info } from 'lucide-react'
 import { supabase } from '../lib/supabase.js'
 import { cn } from '../lib/cn'
 import { tapHaptic } from '../lib/haptics.js'
+
+// ── Ícones idênticos aos do portal de líderes (menucompliance.html) ──
+// Traço fino (1.8) como no portal, cor herdada de currentColor (carbon).
+const svgBase = {
+  fill: 'none',
+  stroke: 'currentColor',
+  strokeWidth: 1.8,
+  strokeLinecap: 'round',
+  strokeLinejoin: 'round',
+}
+const IcoConceitos = ({ size = 24, ...p }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" {...svgBase} {...p}>
+    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+    <line x1="9" y1="9" x2="15" y2="9" />
+    <line x1="9" y1="13" x2="13" y2="13" />
+  </svg>
+)
+const IcoInstitucional = ({ size = 24, ...p }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" {...svgBase} {...p}>
+    <line x1="3" y1="22" x2="21" y2="22" />
+    <rect x="2" y="10" width="20" height="12" rx="1" />
+    <path d="M2 10l10-8 10 8" />
+    <line x1="9" y1="22" x2="9" y2="14" />
+    <line x1="15" y1="22" x2="15" y2="14" />
+    <rect x="10" y="14" width="4" height="8" />
+  </svg>
+)
+const IcoAreas = ({ size = 24, ...p }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" {...svgBase} {...p}>
+    <line x1="18" y1="20" x2="18" y2="10" />
+    <line x1="12" y1="20" x2="12" y2="4" />
+    <line x1="6" y1="20" x2="6" y2="14" />
+  </svg>
+)
+const IcoParceiros = ({ size = 24, ...p }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" {...svgBase} {...p}>
+    <rect x="2" y="3" width="20" height="14" rx="2" />
+    <line x1="8" y1="21" x2="16" y2="21" />
+    <line x1="12" y1="17" x2="12" y2="21" />
+    <polyline points="6 9 9 12 6 15" />
+    <line x1="12" y1="12" x2="16" y2="12" />
+  </svg>
+)
+const IcoCompliance = ({ size = 24, ...p }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" {...svgBase} {...p}>
+    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+    <polyline points="9 12 11 14 15 10" />
+  </svg>
+)
 
 // ── Estrutura REAL do portal de líderes (menucompliance.html + landings) ──
 // Cada página aponta pro seu `id` (= GOV_PAGE_ID / catálogo governanca_paginas),
@@ -25,7 +64,7 @@ import { tapHaptic } from '../lib/haptics.js'
 const PORTAL = [
   {
     secao: 'Conceitos & Informações',
-    icon: BookOpen,
+    icon: IcoConceitos,
     paginas: [
       { id: 'governanca-conceitos-governanca', label: 'Governança' },
       { id: 'governanca-conceitos-5s', label: 'Metodologia 5S' },
@@ -35,7 +74,7 @@ const PORTAL = [
   },
   {
     secao: 'Institucional',
-    icon: Landmark,
+    icon: IcoInstitucional,
     paginas: [
       { id: 'governanca-institucional-idconceitual', label: 'Conceito, Missão, Visão e Valores' },
       { id: 'governanca-institucional-idvisual', label: 'Identidade da Marca' },
@@ -45,7 +84,7 @@ const PORTAL = [
   },
   {
     secao: 'Áreas & Dashboards',
-    icon: LayoutDashboard,
+    icon: IcoAreas,
     // Páginas soltas (cards que abrem direto, sem subpáginas no portal).
     paginas: [
       { id: 'governanca-areas-organograma', label: 'Organograma Geral' },
@@ -114,13 +153,13 @@ const PORTAL = [
   },
   {
     secao: 'Parceiros & Sistemas',
-    icon: Plug,
+    icon: IcoParceiros,
     paginas: [{ id: 'governanca-parceiros-sistemas', label: 'Parceiros & Sistemas' }],
     grupos: [],
   },
   {
     secao: 'Compliance',
-    icon: ShieldCheck,
+    icon: IcoCompliance,
     paginas: [
       { id: 'governanca-auditoria', label: 'Auditoria de páginas' },
       { id: 'governanca-auditoria-docsrh', label: 'Gestão de Documentos' },
@@ -335,13 +374,19 @@ export function MenuLateral({ aberto, onClose }) {
                 >
                   <div className="overflow-hidden">
                     <div className="px-2 pb-3 pt-1">
-                      <p className="text-xs leading-relaxed text-muted">
+                      <p
+                        lang="pt-BR"
+                        className="text-justify text-xs leading-relaxed text-muted hyphens-auto"
+                      >
                         <strong className="font-semibold text-text">Governança de Processos</strong>{' '}
                         é a maneira pela qual consolidaremos as iniciativas da gestão de processos do
                         Tatá Sushi, com papéis, diretrizes e mecanismos que orientarão como os
                         processos devem ser definidos, executados, monitorados e aprimorados.
                       </p>
-                      <p className="mt-2 text-xs leading-relaxed text-muted">
+                      <p
+                        lang="pt-BR"
+                        className="mt-2 text-justify text-xs leading-relaxed text-muted hyphens-auto"
+                      >
                         <strong className="font-semibold text-text">
                           A Governança de Processos garantirá
                         </strong>{' '}
