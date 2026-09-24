@@ -2,7 +2,6 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { NavLink } from 'react-router-dom'
 import {
-  X,
   ChevronDown,
   ChevronRight,
   ExternalLink,
@@ -276,19 +275,32 @@ export function MenuLateral({ aberto, onClose }) {
               <div className="font-display text-base font-bold leading-tight">Governança</div>
               <div className="text-[11px] text-muted-2">Processos &amp; páginas</div>
             </div>
-            <button
-              onClick={onClose}
-              className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-surface-2 text-carbon tap"
-              aria-label="Fechar"
+            <NavLink
+              to="/governanca"
+              onClick={aoTocar}
+              className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-accent-soft text-accent tap"
+              aria-label="Abrir portal completo"
             >
-              <X size={18} />
-            </button>
+              <ExternalLink size={18} />
+            </NavLink>
           </div>
         </div>
 
         {/* Corpo: acordeão das seções do portal */}
         <div className="flex-1 overflow-y-auto overscroll-contain px-2 py-1">
-          {/* Sobre (recolhido por padrão) — foto + texto da Governança */}
+          {/* Foto da Governança — fora do "Sobre", sempre visível */}
+          <div className="px-2 pb-2 pt-1">
+            <div className="overflow-hidden rounded-xl bg-surface-2">
+              <img
+                src="/governanca-sobre.jpg"
+                alt="Governança de Processos"
+                className="h-36 w-full object-cover"
+                loading="lazy"
+              />
+            </div>
+          </div>
+
+          {/* Sobre (recolhido por padrão) — texto da Governança */}
           {(() => {
             const kSobre = 'sec:__sobre'
             const sobreOpen = abertos.has(kSobre)
@@ -299,12 +311,7 @@ export function MenuLateral({ aberto, onClose }) {
                   className="hstack w-full gap-3 px-2 py-3 text-left tap"
                   aria-expanded={sobreOpen}
                 >
-                  <span
-                    className={cn(
-                      'grid h-9 w-9 shrink-0 place-items-center rounded-full transition-colors',
-                      sobreOpen ? 'bg-accent text-black' : 'bg-surface-2 text-carbon',
-                    )}
-                  >
+                  <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-surface-2 text-carbon">
                     <Info size={18} />
                   </span>
                   <span className="min-w-0 flex-1">
@@ -327,15 +334,7 @@ export function MenuLateral({ aberto, onClose }) {
                 >
                   <div className="overflow-hidden">
                     <div className="px-2 pb-3 pt-1">
-                      <div className="overflow-hidden rounded-xl bg-surface-2">
-                        <img
-                          src="/governanca-sobre.jpg"
-                          alt="Governança de Processos"
-                          className="h-36 w-full object-cover"
-                          loading="lazy"
-                        />
-                      </div>
-                      <p className="mt-3 text-xs leading-relaxed text-muted">
+                      <p className="text-xs leading-relaxed text-muted">
                         <strong className="font-semibold text-text">Governança de Processos</strong>{' '}
                         é a maneira pela qual consolidaremos as iniciativas da gestão de processos do
                         Tatá Sushi, com papéis, diretrizes e mecanismos que orientarão como os
@@ -402,12 +401,7 @@ export function MenuLateral({ aberto, onClose }) {
                     className="hstack w-full gap-3 px-2 py-3 text-left tap"
                     aria-expanded={open}
                   >
-                    <span
-                      className={cn(
-                        'grid h-9 w-9 shrink-0 place-items-center rounded-full transition-colors',
-                        open ? 'bg-accent text-black' : 'bg-surface-2 text-carbon',
-                      )}
-                    >
+                    <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-surface-2 text-carbon">
                       <Icon size={18} />
                     </span>
                     <span className="min-w-0 flex-1">
@@ -482,17 +476,7 @@ export function MenuLateral({ aberto, onClose }) {
               )
             })
           )}
-        </div>
-
-        {/* Rodapé: abre o portal completo */}
-        <div className="safe-bottom border-t border-line p-3">
-          <NavLink
-            to="/governanca"
-            onClick={aoTocar}
-            className="hstack w-full justify-center gap-2 rounded-xl bg-accent-soft py-3 text-sm font-semibold text-accent tap"
-          >
-            <ExternalLink size={16} /> Abrir portal completo
-          </NavLink>
+          <div aria-hidden className="safe-bottom h-3" />
         </div>
       </aside>
     </div>,
