@@ -2,11 +2,20 @@ import { useEffect, useLayoutEffect } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 import { BottomNav } from './BottomNav'
 import { DesktopShell } from './DesktopShell.jsx'
+import { MenuLateral } from './MenuLateral.jsx'
 import { useDesktop } from '../lib/useDesktop.js'
 import { estadoPush, ativarPush } from '../lib/push.js'
 import { cn } from '../lib/cn'
 import { PodcastPlayerProvider } from '../lib/podcastPlayer.jsx'
+import { MenuLateralProvider, useMenuLateral } from '../lib/menuLateral.jsx'
 import { useGovPinBridge } from '../lib/useGovPinBridge.js'
+
+// Renderiza o drawer da Governança lendo o estado global (aberto pela barra de
+// baixo). Fica no celular; no desktop a navegação do portal é pelo rail.
+function MenuLateralHost() {
+  const { aberto, fechar } = useMenuLateral()
+  return <MenuLateral aberto={aberto} onClose={fechar} />
+}
 
 // Rotas em tela cheia, sem a barra de navegação (ex.: organograma em paisagem).
 const SEM_NAV = ['/governanca', '/perfil-disc', '/controle-escala']
@@ -83,5 +92,12 @@ export function AppShell() {
     )
   }
 
-  return <PodcastPlayerProvider>{conteudo}</PodcastPlayerProvider>
+  return (
+    <PodcastPlayerProvider>
+      <MenuLateralProvider>
+        {conteudo}
+        {!desktop && <MenuLateralHost />}
+      </MenuLateralProvider>
+    </PodcastPlayerProvider>
+  )
 }

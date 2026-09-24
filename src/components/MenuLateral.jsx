@@ -286,7 +286,9 @@ export function MenuLateral({ aberto, onClose }) {
   )
 
   return createPortal(
-    <div className="fixed inset-0 z-50">
+    // Encaixa ACIMA da barra de navegação inferior (não a cobre): a base para na
+    // altura publicada pela barra (--tp-nav-h), então a barra segue visível/clicável.
+    <div className="fixed inset-x-0 top-0 z-40" style={{ bottom: 'var(--tp-nav-h, 3.5rem)' }}>
       {/* Fundo escuro (fecha ao tocar) */}
       <button
         aria-label="Fechar menu"
@@ -506,7 +508,7 @@ export function MenuLateral({ aberto, onClose }) {
               )
             })
           )}
-          <div aria-hidden className="safe-bottom h-3" />
+          <div aria-hidden className="h-3" />
         </div>
       </aside>
     </div>,

@@ -26,10 +26,8 @@ import {
   Lightbulb,
   Network,
   QrCode,
-  PanelLeft,
 } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
-import { MenuLateral } from '../components/MenuLateral.jsx'
 import { Section } from '../components/Section.jsx'
 import { Avatar } from '../components/Avatar.jsx'
 import { ProgressRing } from '../components/ProgressRing.jsx'
@@ -66,8 +64,6 @@ const itens = [
   { to: '/passatempos', label: 'Passatempos', icon: Puzzle, jogo: true },
   { to: '/manutencao', label: 'Painel de Ajustes', icon: Wrench },
   { to: '/atalhos-governanca', label: 'Atalhos', icon: Pin, gov: true },
-  // Teste (só matrícula 7): abre o menu de navegação lateral em vez de navegar.
-  { label: 'Menu lateral (teste)', icon: PanelLeft, acao: 'menu', teste: true },
 ]
 
 const TAM_MAX = 8 * 1024 * 1024 // 8 MB
@@ -110,7 +106,6 @@ export function Mais() {
   const loja = usuario?.loja || ''
 
   const inputFoto = useRef(null)
-  const [menuAberto, setMenuAberto] = useState(false) // drawer de navegação (teste)
   const [enviando, setEnviando] = useState(false)
   const [erro, setErro] = useState('')
   const [saldo, setSaldo] = useState(null)
@@ -265,20 +260,6 @@ export function Mais() {
                 <ChevronRight size={16} className="text-carbon" />
               </>
             )
-            if (i.acao === 'menu') {
-              return (
-                <button
-                  key="menu-lateral"
-                  onClick={() => {
-                    tapHaptic()
-                    setMenuAberto(true)
-                  }}
-                  className={`w-full text-left ${cls}`}
-                >
-                  {inner}
-                </button>
-              )
-            }
             return centro ? (
               <button key={i.to} onClick={() => setCanvas(centro)} className={`w-full text-left ${cls}`}>
                 {inner}
@@ -344,8 +325,6 @@ export function Mais() {
         </span>
         <span className="mt-0.5 opacity-70">versão de {versaoBuild()}</span>
       </footer>
-
-      <MenuLateral aberto={menuAberto} onClose={() => setMenuAberto(false)} />
     </>
   )
 }
