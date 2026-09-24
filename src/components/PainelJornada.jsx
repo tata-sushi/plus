@@ -274,8 +274,7 @@ function DetalheMarco({ marco, meses, onFechar, onEscolher }) {
             />
           </div>
 
-          <div className="mt-3 hstack items-center justify-between">
-            <span className="font-display text-lg font-bold text-accent">Grátis</span>
+          <div className="mt-3 hstack items-center justify-end">
             <span
               className={cn(
                 'pill text-[11px]',
@@ -339,12 +338,12 @@ function DetalheMarco({ marco, meses, onFechar, onEscolher }) {
                     <span className="hstack shrink-0 items-center gap-1 text-xs font-bold text-accent">
                       <Check size={15} /> Escolhido
                     </span>
-                  ) : podeTocar ? (
+                  ) : podeTocar && varias ? (
                     <button
                       onClick={() => onEscolher(op)}
                       className="btn-primary shrink-0 !px-3 !py-2 text-xs font-bold"
                     >
-                      {varias ? 'Escolher' : 'Resgatar'}
+                      Escolher
                     </button>
                   ) : !atingido ? (
                     <Lock size={15} className="shrink-0 text-muted-2" />
@@ -353,6 +352,30 @@ function DetalheMarco({ marco, meses, onFechar, onEscolher }) {
               )
             })}
           </div>
+        </div>
+
+        {/* Rodapé: botão de resgate no mesmo padrão do Recompensas */}
+        <div className="border-t border-line px-5 py-3.5">
+          {resgatadoId ? (
+            <div className="hstack w-full items-center justify-center gap-1.5 rounded-full bg-accent-soft py-3 text-sm font-bold text-accent">
+              <Check size={16} /> Resgatado
+            </div>
+          ) : !atingido ? (
+            <div className="hstack w-full items-center justify-center gap-1.5 rounded-full bg-surface-2 py-3 text-sm font-semibold text-muted-2">
+              <Lock size={14} /> Faltam {fmtTempo(faltam)}
+            </div>
+          ) : varias ? (
+            <div className="py-1 text-center text-xs font-medium text-muted-2">
+              Escolha uma opção acima para resgatar.
+            </div>
+          ) : op0 ? (
+            <button
+              onClick={() => onEscolher(op0)}
+              className="btn-primary w-full !py-3 text-sm font-bold"
+            >
+              Resgatar
+            </button>
+          ) : null}
         </div>
       </div>
     </div>
