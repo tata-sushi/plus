@@ -4,6 +4,19 @@ Ideias e pendências levantadas para desenvolvimento futuro.
 
 ## Pendências
 
+- [ ] **Lojinha bloqueada durante os testes — LIBERAR DEPOIS** — a Lojinha inteira
+  (abas Compras/Jornada/Recompensas) está acessível só pra **equipe de teste (admins)**.
+  Gate por pessoa: RPC `tata_plus.lojinha_pode_acessar()` (hoje = `pode_publicar()`),
+  flag `podeLojinha` no `AuthContext`, escondendo o card na Home, o item no Mais e com
+  guarda de rota em `Lojinha.jsx` (cobre `/lojinha` e `/recompensas`). **Pra liberar
+  pra todos:** trocar o corpo do RPC pra `select tata_plus.minha_matricula() is not null;`
+  (um comando só, sem mexer no app). _(anotado em 2026-09-23)_
+
+- [ ] **Jornada — texto do botão de resgate** — o botão hoje diz só **"Resgate"**.
+  O Victor pediu "muda o comecinho deles para resgate. O item XX" — falta decidir se o
+  botão deve incluir o nome/tempo do item (ex.: "Resgate o item — 3 anos de TATÁ") ou
+  ficar só "Resgate". Ajuste em `src/components/PainelJornada.jsx`. _(anotado em 2026-09-23)_
+
 - [x] **Padronização de cabeçalho das páginas — CONCLUÍDA (20/09)** — ajustes de texto do
   Victor aplicados; renomes "Kanban Tatá"→"Kanban" e "Rádio Tatá"→"Rádio" no app todo;
   Carteira e Agenda mantidas no padrão anterior (fora da padronização); Avaliar padronizada
