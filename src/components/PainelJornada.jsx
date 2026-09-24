@@ -274,32 +274,7 @@ function DetalheMarco({ marco, meses, onFechar, onEscolher }) {
             />
           </div>
 
-          <div className="mt-3 hstack items-center justify-end">
-            <span
-              className={cn(
-                'pill text-[11px]',
-                resgatadoId
-                  ? 'bg-accent-soft text-accent'
-                  : atingido
-                    ? 'bg-accent text-black'
-                    : 'bg-surface-2 text-muted',
-              )}
-            >
-              {resgatadoId ? (
-                <>
-                  <Check size={12} /> Resgatado
-                </>
-              ) : atingido ? (
-                'Disponível'
-              ) : (
-                <>
-                  <Lock size={12} /> Faltam {fmtTempo(faltam)}
-                </>
-              )}
-            </span>
-          </div>
-
-          {marco.descricao && <p className="mt-2 text-sm text-muted">{marco.descricao}</p>}
+          {marco.descricao && <p className="mt-3 text-sm text-muted">{marco.descricao}</p>}
 
           {!resgatadoId && (
             <div className="mt-3 text-xs font-medium text-muted-2">
@@ -311,7 +286,8 @@ function DetalheMarco({ marco, meses, onFechar, onEscolher }) {
             </div>
           )}
 
-          <div className="mt-3 flex flex-col gap-2">
+          {varias && (
+            <div className="mt-3 flex flex-col gap-2">
             {(marco.opcoes || []).map((op) => {
               const escolhida = resgatadoId === op.id
               const podeTocar = atingido && !resgatadoId
@@ -351,7 +327,8 @@ function DetalheMarco({ marco, meses, onFechar, onEscolher }) {
                 </div>
               )
             })}
-          </div>
+            </div>
+          )}
         </div>
 
         {/* Rodapé: botão de resgate no mesmo padrão do Recompensas */}
