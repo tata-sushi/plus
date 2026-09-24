@@ -343,13 +343,13 @@ export function MenuLateral({ aberto, onClose }) {
             const kSobre = 'sec:__sobre'
             const sobreOpen = abertos.has(kSobre)
             return (
-              <div className="border-b border-line/60">
+              <div className="border-b border-black/[0.06] dark:border-white/[0.04]">
                 <button
                   onClick={() => toggle(kSobre)}
                   className="hstack w-full gap-3 px-2 py-3 text-left tap"
                   aria-expanded={sobreOpen}
                 >
-                  <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-surface-2 text-carbon">
+                  <span className="grid h-9 w-9 shrink-0 place-items-center text-carbon dark:text-accent">
                     <Info size={18} />
                   </span>
                   <span className="min-w-0 flex-1 truncate text-sm font-bold">Sobre</span>
@@ -415,13 +415,13 @@ export function MenuLateral({ aberto, onClose }) {
               if (direto) {
                 const p = sec.paginas[0]
                 return (
-                  <div key={sec.secao} className="border-b border-line/60 last:border-0">
+                  <div key={sec.secao} className="border-b border-black/[0.06] dark:border-white/[0.04] last:border-0">
                     <NavLink
                       to={`/painel/${p.id}`}
                       onClick={aoTocar}
                       className="hstack w-full gap-3 px-2 py-3 tap"
                     >
-                      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-surface-2 text-carbon">
+                      <span className="grid h-9 w-9 shrink-0 place-items-center text-carbon dark:text-accent">
                         <Icon size={18} />
                       </span>
                       <span className="min-w-0 flex-1 truncate text-sm font-bold">
@@ -433,13 +433,13 @@ export function MenuLateral({ aberto, onClose }) {
               }
 
               return (
-                <div key={sec.secao} className="border-b border-line/60 last:border-0">
+                <div key={sec.secao} className="border-b border-black/[0.06] dark:border-white/[0.04] last:border-0">
                   <button
                     onClick={() => toggle(kSec)}
                     className="hstack w-full gap-3 px-2 py-3 text-left tap"
                     aria-expanded={open}
                   >
-                    <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-surface-2 text-carbon">
+                    <span className="grid h-9 w-9 shrink-0 place-items-center text-carbon dark:text-accent">
                       <Icon size={18} />
                     </span>
                     <span className="min-w-0 flex-1 truncate text-sm font-bold">{sec.secao}</span>
