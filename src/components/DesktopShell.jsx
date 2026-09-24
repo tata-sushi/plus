@@ -22,7 +22,18 @@ import { resolveIcon } from '../lib/icons.js'
 import { Ouvidoria } from '../routes/Ouvidoria.jsx'
 import { AdminRecompensas } from '../routes/AdminRecompensas.jsx'
 import { GovFrame } from './GovFrame.jsx'
+import { NavGovernanca } from './NavGovernanca.jsx'
 import { PodcastRailControl } from '../lib/podcastPlayer.jsx'
+
+const LIDERES_ORIGIN = 'https://lideres.tatasushi.tech'
+const ESCALAS_ORIGIN = 'https://escalas.tatasushi.tech'
+
+// Prefixa a url relativa do catálogo com o domínio certo (igual ao PainelExterno).
+function urlAbsoluta(u) {
+  if (!u) return ''
+  if (/^https?:\/\//i.test(u)) return u
+  return (u.startsWith('/escalas') ? ESCALAS_ORIGIN : LIDERES_ORIGIN) + u
+}
 
 // Board Kanban aberto na área grande — carregado sob demanda (mesmo chunk da rota).
 const QuadroCanvas = lazy(() => import('../routes/Quadros.jsx').then((m) => ({ default: m.QuadroCanvas })))
@@ -47,6 +58,17 @@ export function DesktopShell() {
   const [aberto, setAberto] = useState(() => localStorage.getItem('tp_painel') !== '0')
   // null = padrão (portal p/ gov, logo p/ demais); senão 'organograma' | 'ouvidoria' | 'admin'
   const [canvas, setCanvas] = useState(null)
+  // Governança na barra do meio: quando ligado, o painel do meio mostra o menu
+  // de navegação (acordeão) em vez da página do app; as páginas abrem na área
+  // grande. govPagina = id da página aberta (destaca no menu).
+  const [govNav, setGovNav] = useState(false)
+  const [govPagina, setGovPagina] = useState(null)
+
+  // Abre uma página do portal na ÁREA GRANDE, mantendo o menu no meio.
+  function abrirPaginaGov(p) {
+    setGovPagina(p.id)
+    setCanvas({ tipo: 'painel', url: urlAbsoluta(p.url), titulo: p.label })
+  }
   // Nó da área central — páginas de conteúdo (ex.: desafio aberto) podem abrir
   // aqui via portal, em vez de tomar a tela toda.
   const [canvasEl, setCanvasEl] = useState(null)
@@ -101,7 +123,7 @@ export function DesktopShell() {
     { to: '/ranking', label: 'Ranking', Icon: Trophy },
     { to: '/comunidade', label: 'Feed', Icon: Newspaper },
     gov
-      ? { canvasKey: 'portal', label: 'Governança', Icon: ShieldCheck }
+      ? { navKey: 'gov', label: 'Governança', Icon: ShieldCheck }
       : { canvasKey: 'ouvidoria', label: 'Ouvidoria', Icon: Ear },
     ...(podeQuadros ? [{ to: '/quadros', label: 'Kanban', Icon: KanbanSquare }] : []),
     { to: '/mais', label: 'Mais', Icon: Menu },
@@ -131,17 +153,38 @@ export function DesktopShell() {
           <div className="flex flex-1 flex-col items-center gap-1.5">
             {itens.map((it) => {
               const Icon = it.Icon
+              // Governança: mostra o menu de navegação no painel do meio (não abre
+              // o portal de cara). Destaca enquanto o menu está ativo.
+              if (it.navKey === 'gov') {
+                return (
+                  <button
+                    key="gov"
+                    onClick={() => {
+                      if (!aberto) setAberto(true)
+                      setGovNav(true)
+                    }}
+                    title={it.label}
+                    aria-label={it.label}
+                    className={cn(railBtn, govNav ? 'bg-accent-soft text-accent' : 'text-carbon hover:text-text')}
+                  >
+                    <Icon size={21} strokeWidth={govNav ? 2.4 : 2} />
+                  </button>
+                )
+              }
               if (it.canvasKey) {
                 const ativo = canvas === it.canvasKey
                 return (
                   <button
                     key={it.canvasKey}
-                    onClick={() => setCanvas(it.canvasKey)}
+                    onClick={() => {
+                      setGovNav(false)
+                      setCanvas(it.canvasKey)
+                    }}
                     title={it.label}
                     aria-label={it.label}
-                    className={cn(railBtn, ativo ? 'bg-accent-soft text-accent' : 'text-carbon hover:text-text')}
+                    className={cn(railBtn, ativo && !govNav ? 'bg-accent-soft text-accent' : 'text-carbon hover:text-text')}
                   >
-                    <Icon size={21} strokeWidth={ativo ? 2.4 : 2} />
+                    <Icon size={21} strokeWidth={ativo && !govNav ? 2.4 : 2} />
                   </button>
                 )
               }
@@ -152,12 +195,15 @@ export function DesktopShell() {
                   end={it.end}
                   title={it.label}
                   aria-label={it.label}
-                  onClick={() => !aberto && setAberto(true)}
+                  onClick={() => {
+                    setGovNav(false)
+                    if (!aberto) setAberto(true)
+                  }}
                   className={({ isActive }) =>
-                    cn(railBtn, isActive ? 'bg-accent-soft text-accent' : 'text-carbon hover:text-text')
+                    cn(railBtn, isActive && !govNav ? 'bg-accent-soft text-accent' : 'text-carbon hover:text-text')
                   }
                 >
-                  {({ isActive }) => <Icon size={21} strokeWidth={isActive ? 2.4 : 2} />}
+                  {({ isActive }) => <Icon size={21} strokeWidth={isActive && !govNav ? 2.4 : 2} />}
                 </NavLink>
               )
             })}
@@ -236,7 +282,10 @@ export function DesktopShell() {
             <>
               <span className="my-0.5 h-px w-6 bg-line" />
               <button
-                onClick={() => setCanvas('admin')}
+                onClick={() => {
+                  setGovNav(false)
+                  setCanvas('admin')
+                }}
                 title="Painel de administração"
                 aria-label="Painel de administração"
                 className={cn(
@@ -250,17 +299,31 @@ export function DesktopShell() {
           )}
         </nav>
 
-        {/* Painel do app (retrátil) — conteúdo montado para preservar estado */}
+        {/* Painel do meio (retrátil): mostra o menu da Governança (quando ligado)
+            ou a página do app. Conteúdo montado p/ preservar estado. */}
         <div
           className={cn(
-            'shrink-0 overflow-y-auto bg-bg transition-[width] duration-200 ease-out',
+            'shrink-0 overflow-hidden bg-bg transition-[width] duration-200 ease-out',
             aberto ? 'w-[340px] border-r border-line lg:w-[400px]' : 'w-0',
           )}
         >
-          <div className="w-[340px] lg:w-[400px]">
-            <main key={location.pathname} className="animate-page pb-8">
-              <Outlet />
-            </main>
+          <div className="h-full w-[340px] lg:w-[400px]">
+            {govNav ? (
+              <NavGovernanca
+                onSelecionar={abrirPaginaGov}
+                onAbrirPortal={() => {
+                  setGovPagina(null)
+                  setCanvas('portal')
+                }}
+                ativoId={govPagina}
+              />
+            ) : (
+              <div className="h-full overflow-y-auto">
+                <main key={location.pathname} className="animate-page pb-8">
+                  <Outlet />
+                </main>
+              </div>
+            )}
           </div>
         </div>
 
