@@ -217,8 +217,7 @@ export function PainelLoja() {
                   ))}
                 </div>
               ) : (
-                /* Foto aberta: edge-to-edge no topo do modal (fura o padding). */
-                <div className="-mx-5 -mt-4 mb-4 grid aspect-square place-items-center overflow-hidden bg-accent-soft text-7xl">
+                <div className="grid aspect-square w-full place-items-center overflow-hidden rounded-2xl bg-accent-soft text-7xl">
                   <RecompensaFoto
                     src={aberto.imagem_url}
                     emoji={aberto.emoji}

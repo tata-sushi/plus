@@ -139,7 +139,7 @@ export function PainelJornada() {
                   onClick={() => abrir(m)}
                   className="flex cursor-pointer items-stretch gap-3.5 !p-3 tap"
                 >
-                  <div className="grid min-h-[100px] w-[116px] shrink-0 place-items-center overflow-hidden rounded-2xl bg-accent-soft text-4xl">
+                  <div className="grid min-h-[100px] w-[140px] shrink-0 place-items-center overflow-hidden rounded-2xl bg-accent-soft text-4xl">
                     <RecompensaFoto
                       src={op0?.imagem_url}
                       emoji={op0?.emoji || '🐢'}
@@ -248,6 +248,7 @@ function DetalheMarco({ marco, meses, onFechar, onEscolher }) {
   const atingido = marco.atingido
   const faltam = Math.max(0, marco.meses - meses)
   const varias = (marco.opcoes || []).length > 1
+  const op0 = marco.opcoes?.[0]
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={onFechar}>
@@ -263,7 +264,16 @@ function DetalheMarco({ marco, meses, onFechar, onEscolher }) {
         </div>
 
         <div className="flex-1 overflow-y-auto px-5 py-4">
-          <div className="hstack items-center justify-between">
+          {/* Foto grande no topo, no mesmo padrão dos modais de Recompensas/Compras. */}
+          <div className="grid aspect-square w-full place-items-center overflow-hidden rounded-2xl bg-accent-soft text-7xl">
+            <RecompensaFoto
+              src={op0?.imagem_url}
+              emoji={op0?.emoji || '🐢'}
+              className="h-full w-full object-cover"
+            />
+          </div>
+
+          <div className="mt-3 hstack items-center justify-between">
             <span className="font-display text-lg font-bold text-accent">Grátis</span>
             <span
               className={cn(
