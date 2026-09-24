@@ -281,7 +281,7 @@ function DetalheMarco({ marco, meses, onFechar, onEscolher }) {
               {atingido
                 ? varias
                   ? 'Escolha 1 — ao escolher, o marco fecha.'
-                  : 'Toque em resgatar — resgatou, o marco fecha.'
+                  : 'Parabéns!!! Você já pode resgatar o seu presente.'
                 : `Disponível ao completar ${fmtTempo(marco.meses)} de Jornada.`}
             </div>
           )}
