@@ -264,12 +264,13 @@ function DetalheMarco({ marco, meses, onFechar, onEscolher }) {
         </div>
 
         <div className="flex-1 overflow-y-auto px-5 py-4">
-          {/* Foto grande no topo, no mesmo padrão dos modais de Recompensas/Compras. */}
-          <div className="grid aspect-square w-full place-items-center overflow-hidden rounded-2xl bg-accent-soft text-7xl">
+          {/* Foto grande no topo. A imagem da Jornada é vertical, então mostra no
+              formato natural (largura cheia, sem cortar) em vez de forçar quadrado. */}
+          <div className="grid min-h-[140px] place-items-center overflow-hidden rounded-2xl bg-accent-soft text-7xl">
             <RecompensaFoto
               src={op0?.imagem_url}
               emoji={op0?.emoji || '🐢'}
-              className="h-full w-full object-cover"
+              className="max-h-[60vh] w-full object-contain"
             />
           </div>
 
