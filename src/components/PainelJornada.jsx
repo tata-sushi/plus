@@ -303,12 +303,13 @@ function DetalheMarco({ marco, meses, onFechar, onEscolher }) {
                         : 'border-line',
                   )}
                 >
-                  <div className="grid h-14 w-14 shrink-0 place-items-center overflow-hidden rounded-xl bg-accent-soft text-3xl">
-                    <RecompensaFoto src={op.imagem_url} emoji={op.emoji} className="h-full w-full object-cover" />
-                  </div>
                   <div className="min-w-0 flex-1">
                     <div className="text-sm font-semibold leading-tight">{op.titulo}</div>
-                    {op.descricao && <div className="mt-0.5 text-xs text-muted">{op.descricao}</div>}
+                    {op.descricao && (
+                      <div className="mt-1 whitespace-pre-wrap text-xs leading-relaxed text-muted">
+                        {op.descricao}
+                      </div>
+                    )}
                   </div>
                   {escolhida ? (
                     <span className="hstack shrink-0 items-center gap-1 text-xs font-bold text-accent">
