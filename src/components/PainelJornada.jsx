@@ -277,7 +277,7 @@ function DetalheMarco({ marco, meses, onFechar, onEscolher }) {
           {marco.descricao && <p className="mt-3 text-sm text-muted">{marco.descricao}</p>}
 
           {!resgatadoId && (
-            <div className="mt-3 text-xs font-medium text-muted-2">
+            <div className="mt-3 text-center text-xs font-medium text-muted-2">
               {atingido
                 ? varias
                   ? 'Escolha 1 — ao escolher, o marco fecha.'
