@@ -483,9 +483,6 @@ export function MenuLateral({ aberto, onClose }) {
                                 <span className="min-w-0 flex-1 truncate text-xs font-semibold uppercase tracking-wide text-muted">
                                   {g.nome}
                                 </span>
-                                <span className="shrink-0 text-[11px] text-muted-2">
-                                  {g.paginas.length}
-                                </span>
                               </button>
                               <div
                                 className={cn(
