@@ -309,10 +309,8 @@ export function MenuLateral({ aberto, onClose }) {
       >
         {/* Topo */}
         <div className="safe-top border-b border-line px-4 pb-3 pt-3">
-          <div className="hstack items-center gap-2">
-            {/* espelho do ícone à direita p/ o título ficar centralizado */}
-            <div aria-hidden className="h-9 w-9 shrink-0" />
-            <div className="min-w-0 flex-1 text-center font-display text-base font-bold leading-tight">
+          <div className="hstack items-center justify-between gap-2">
+            <div className="min-w-0 font-display text-base font-bold leading-tight">
               Governança de Processos
             </div>
             <NavLink
@@ -354,10 +352,7 @@ export function MenuLateral({ aberto, onClose }) {
                   <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-surface-2 text-carbon">
                     <Info size={18} />
                   </span>
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate text-sm font-bold">Sobre</span>
-                    <span className="block text-[11px] text-muted-2">Governança de Processos</span>
-                  </span>
+                  <span className="min-w-0 flex-1 truncate text-sm font-bold">Sobre</span>
                   <ChevronDown
                     size={18}
                     className={cn(
@@ -432,7 +427,6 @@ export function MenuLateral({ aberto, onClose }) {
                       <span className="min-w-0 flex-1 truncate text-sm font-bold">
                         {sec.secao}
                       </span>
-                      <ChevronRight size={16} className="shrink-0 text-muted-2" />
                     </NavLink>
                   </div>
                 )
