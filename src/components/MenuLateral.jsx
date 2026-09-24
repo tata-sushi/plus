@@ -7,6 +7,7 @@ import {
   ChevronRight,
   ExternalLink,
   Loader2,
+  Info,
   BookOpen,
   Landmark,
   LayoutDashboard,
@@ -287,6 +288,74 @@ export function MenuLateral({ aberto, onClose }) {
 
         {/* Corpo: acordeão das seções do portal */}
         <div className="flex-1 overflow-y-auto overscroll-contain px-2 py-1">
+          {/* Sobre (recolhido por padrão) — foto + texto da Governança */}
+          {(() => {
+            const kSobre = 'sec:__sobre'
+            const sobreOpen = abertos.has(kSobre)
+            return (
+              <div className="border-b border-line/60">
+                <button
+                  onClick={() => toggle(kSobre)}
+                  className="hstack w-full gap-3 px-2 py-3 text-left tap"
+                  aria-expanded={sobreOpen}
+                >
+                  <span
+                    className={cn(
+                      'grid h-9 w-9 shrink-0 place-items-center rounded-full transition-colors',
+                      sobreOpen ? 'bg-accent text-black' : 'bg-surface-2 text-carbon',
+                    )}
+                  >
+                    <Info size={18} />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-sm font-bold">Sobre</span>
+                    <span className="block text-[11px] text-muted-2">Governança de Processos</span>
+                  </span>
+                  <ChevronDown
+                    size={18}
+                    className={cn(
+                      'shrink-0 text-muted-2 transition-transform duration-300',
+                      sobreOpen && 'rotate-180',
+                    )}
+                  />
+                </button>
+                <div
+                  className={cn(
+                    'grid transition-all duration-300 ease-out',
+                    sobreOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]',
+                  )}
+                >
+                  <div className="overflow-hidden">
+                    <div className="px-2 pb-3 pt-1">
+                      <div className="overflow-hidden rounded-xl bg-surface-2">
+                        <img
+                          src="/governanca-sobre.jpg"
+                          alt="Governança de Processos"
+                          className="h-36 w-full object-cover"
+                          loading="lazy"
+                        />
+                      </div>
+                      <p className="mt-3 text-xs leading-relaxed text-muted">
+                        <strong className="font-semibold text-text">Governança de Processos</strong>{' '}
+                        é a maneira pela qual consolidaremos as iniciativas da gestão de processos do
+                        Tatá Sushi, com papéis, diretrizes e mecanismos que orientarão como os
+                        processos devem ser definidos, executados, monitorados e aprimorados.
+                      </p>
+                      <p className="mt-2 text-xs leading-relaxed text-muted">
+                        <strong className="font-semibold text-text">
+                          A Governança de Processos garantirá
+                        </strong>{' '}
+                        a padronização e a melhoria contínua das rotinas, além do alinhamento
+                        operacional com os objetivos estratégicos da companhia, assegurando que cada
+                        área gere valor com eficiência e qualidade consistentes.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )
+          })()}
+
           {arvore === null ? (
             <div className="grid place-items-center py-16 text-muted-2">
               <Loader2 size={22} className="animate-spin" />
