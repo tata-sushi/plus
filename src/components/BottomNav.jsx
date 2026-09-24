@@ -53,7 +53,7 @@ export function BottomNav({ flow = false }) {
   ]
 
   const base =
-    'relative flex min-w-0 flex-col items-center justify-center gap-1 overflow-hidden px-0.5 py-2.5 text-[9px] font-medium tap'
+    'relative flex w-full min-w-0 flex-col items-center justify-center gap-1 overflow-hidden px-0.5 py-2.5 text-[9px] font-medium tap'
 
   const miolo = (ativo, Icon, label) => (
     <>
