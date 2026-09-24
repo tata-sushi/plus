@@ -237,7 +237,7 @@ export function MenuLateral({ aberto, onClose }) {
           <span
             className={cn(
               'h-1.5 w-1.5 shrink-0 rounded-full',
-              isActive ? 'bg-accent' : 'bg-muted-2',
+              isActive ? 'bg-accent' : 'bg-carbon',
             )}
           />
           <span className="min-w-0 flex-1 truncate">{p.label}</span>
@@ -272,13 +272,14 @@ export function MenuLateral({ aberto, onClose }) {
         <div className="safe-top border-b border-line px-4 pb-3 pt-3">
           <div className="hstack justify-between">
             <div className="min-w-0">
-              <div className="font-display text-base font-bold leading-tight">Governança</div>
-              <div className="text-[11px] text-muted-2">Processos &amp; páginas</div>
+              <div className="font-display text-base font-bold leading-tight">
+                Governança de Processos
+              </div>
             </div>
             <NavLink
               to="/governanca"
               onClick={aoTocar}
-              className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-accent-soft text-accent tap"
+              className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-carbon tap"
               aria-label="Abrir portal completo"
             >
               <ExternalLink size={18} />
