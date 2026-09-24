@@ -7,81 +7,150 @@ import {
   ChevronRight,
   ExternalLink,
   Loader2,
-  ShieldCheck,
   BookOpen,
   Landmark,
-  Network,
   LayoutDashboard,
   Plug,
-  Wrench,
-  Smartphone,
-  Folder,
+  ShieldCheck,
 } from 'lucide-react'
 import { supabase } from '../lib/supabase.js'
 import { cn } from '../lib/cn'
 import { tapHaptic } from '../lib/haptics.js'
 
-// Ícone por seção da Governança de Processos (o resto cai no Folder).
-const ICONE_SECAO = {
-  'Governança de Processos': ShieldCheck,
-  'Conceitos & Informações': BookOpen,
-  Institucional: Landmark,
-  'Áreas & Cargos': Network,
-  Dashboards: LayoutDashboard,
-  'Parceiros & Sistemas': Plug,
-  Admin: Wrench,
-  App: Smartphone,
+// ── Estrutura REAL do portal de líderes (menucompliance.html + landings) ──
+// Cada página aponta pro seu `id` (= GOV_PAGE_ID / catálogo governanca_paginas),
+// que abre no visualizador in-app /painel/:id. A visibilidade é filtrada pelo
+// que a pessoa pode acessar (RPC gov_meus_acessos); admin vê tudo.
+// Fonte: varredura de tata-sushi/lideres em 2026-09-24.
+const PORTAL = [
+  {
+    secao: 'Conceitos & Informações',
+    icon: BookOpen,
+    paginas: [
+      { id: 'governanca-conceitos-governanca', label: 'Governança' },
+      { id: 'governanca-conceitos-5s', label: 'Metodologia 5S' },
+      { id: 'governanca-conceitos-kanban', label: 'Kanban' },
+    ],
+    grupos: [],
+  },
+  {
+    secao: 'Institucional',
+    icon: Landmark,
+    paginas: [
+      { id: 'governanca-institucional-idconceitual', label: 'Conceito, Missão, Visão e Valores' },
+      { id: 'governanca-institucional-idvisual', label: 'Identidade da Marca' },
+      { id: 'governanca-institucional-papelaria', label: 'Papelaria' },
+    ],
+    grupos: [],
+  },
+  {
+    secao: 'Áreas & Dashboards',
+    icon: LayoutDashboard,
+    // Páginas soltas (cards que abrem direto, sem subpáginas no portal).
+    paginas: [
+      { id: 'governanca-areas-organograma', label: 'Organograma Geral' },
+      { id: 'governanca-kpis-manutencao', label: 'Manutenção' },
+      { id: 'governanca-kpis-compras-abastecimento', label: 'Compras' },
+    ],
+    // Departamentos (têm landing + subpáginas).
+    grupos: [
+      {
+        nome: 'Gente & Gestão',
+        paginas: [
+          { id: 'governanca-kpis-rh', label: 'Visão geral' },
+          { id: 'governanca-areas-rh-papeis', label: 'Papéis & Responsabilidades' },
+          { id: 'governanca-kpis-rh-admissao', label: 'Admissão' },
+          { id: 'governanca-kpis-rh-absenteismo', label: 'Absenteísmo' },
+          { id: 'governanca-kpis-rh-agenda', label: 'Agenda' },
+          { id: 'governanca-kpis-rh-armarios', label: 'Armários & Chaves' },
+          { id: 'governanca-kpis-rh-bancodehoras', label: 'Banco de Horas' },
+          { id: 'governanca-kpis-rh-beneficios', label: 'Benefícios' },
+          { id: 'governanca-kpis-rh-ces', label: 'Cargos e Salários' },
+          { id: 'governanca-kpis-rh-cei', label: 'Cultura & Clima' },
+          { id: 'governanca-kpis-rh-comunicacao', label: 'Comunicação Interna' },
+          { id: 'governanca-kpis-rh-demandas', label: 'Demandas' },
+          { id: 'governanca-kpis-rh-desligamentos', label: 'Desligamentos' },
+          { id: 'governanca-app-escala', label: 'Controle de Escala' },
+          { id: 'governanca-kpis-rh-experiencias', label: 'Experiência' },
+          { id: 'governanca-kpis-rh-feriados', label: 'Feriados' },
+          { id: 'governanca-kpis-rh-ferias', label: 'Férias' },
+          { id: 'governanca-kpis-rh-folha', label: 'Folha de Pagamento' },
+          { id: 'governanca-kpis-rh-doc', label: 'Documentos' },
+          { id: 'governanca-kpis-rh-hc', label: 'Headcount' },
+          { id: 'governanca-kpis-rh-medicina', label: 'Medicina Ocupacional' },
+          { id: 'governanca-kpis-rh-ouvidoria', label: 'Ouvidoria' },
+          { id: 'governanca-kpis-rh-performance', label: 'Performance' },
+          { id: 'governanca-kpis-rh-reclamacoes', label: 'Reclamações Trabalhistas' },
+          { id: 'governanca-kpis-rh-recrutamento', label: 'Recrutamento & Seleção' },
+          { id: 'governanca-kpis-rh-semanal', label: 'Report Semanal' },
+          { id: 'governanca-kpis-rh-sancoes', label: 'Sanções Disciplinares' },
+          { id: 'governanca-kpis-rh-solicitacoes', label: 'Solicitações' },
+          { id: 'governanca-kpis-rh-ted', label: 'T&D' },
+          { id: 'governanca-kpis-rh-estoqueadm', label: 'Uniformes & EPIs' },
+        ],
+      },
+      {
+        nome: 'Estoque',
+        paginas: [
+          { id: 'governanca-kpis-estoque', label: 'Visão geral' },
+          { id: 'governanca-kpis-estoque-semanal', label: 'Inventário Semanal' },
+        ],
+      },
+      {
+        nome: 'Limpeza',
+        paginas: [
+          { id: 'governanca-kpis-limpeza', label: 'Visão geral' },
+          { id: 'governanca-kpis-limpeza-checklist', label: 'Checklist de limpeza' },
+        ],
+      },
+      {
+        nome: 'Tatá House',
+        paginas: [
+          { id: 'governanca-kpis-tatahouse', label: 'Visão geral' },
+          { id: 'governanca-kpis-tatahouse-cardapio', label: 'Cardápio' },
+        ],
+      },
+    ],
+  },
+  {
+    secao: 'Parceiros & Sistemas',
+    icon: Plug,
+    paginas: [{ id: 'governanca-parceiros-sistemas', label: 'Parceiros & Sistemas' }],
+    grupos: [],
+  },
+  {
+    secao: 'Compliance',
+    icon: ShieldCheck,
+    paginas: [
+      { id: 'governanca-auditoria', label: 'Auditoria de páginas' },
+      { id: 'governanca-auditoria-docsrh', label: 'Gestão de Documentos' },
+    ],
+    grupos: [],
+  },
+]
+
+// Filtra a árvore pelo conjunto de páginas liberadas (Set de ids). Some grupos
+// e seções que ficarem vazios.
+function filtrar(acesso) {
+  const has = (id) => acesso.has(id)
+  return PORTAL.map((sec) => {
+    const paginas = sec.paginas.filter((p) => has(p.id))
+    const grupos = (sec.grupos || [])
+      .map((g) => ({ ...g, paginas: g.paginas.filter((p) => has(p.id)) }))
+      .filter((g) => g.paginas.length > 0)
+    return { ...sec, paginas, grupos }
+  }).filter((sec) => sec.paginas.length > 0 || sec.grupos.length > 0)
 }
 
-// Destino de cada página: as do portal abrem no visualizador in-app (/painel/:id);
-// as marcadas como app:// apontam pra uma rota do próprio app.
-function alvo(p) {
-  if (p.url?.startsWith('app://')) return '/' + p.url.slice('app://'.length)
-  return `/painel/${p.pagina_id}`
-}
-
-// Agrupa a lista achatada (secao/sub/ordem) numa árvore ordenada:
-// secao → { páginas sem sub } + { subgrupos → páginas }. A lista já vem
-// ordenada por `ordem`, então basta preservar a ordem de inserção.
-function agrupar(paginas) {
-  const map = new Map() // secao -> { ordem, semSub[], subs: Map(sub -> {ordem, itens[]}) }
-  for (const p of paginas || []) {
-    const s = p.secao || 'Outros'
-    if (!map.has(s)) map.set(s, { ordem: p.ordem, semSub: [], subs: new Map() })
-    const g = map.get(s)
-    g.ordem = Math.min(g.ordem, p.ordem)
-    const sub = (p.sub || '').trim()
-    if (!sub) {
-      g.semSub.push(p)
-    } else {
-      if (!g.subs.has(sub)) g.subs.set(sub, { ordem: p.ordem, itens: [] })
-      const sg = g.subs.get(sub)
-      sg.ordem = Math.min(sg.ordem, p.ordem)
-      sg.itens.push(p)
-    }
-  }
-  return [...map.entries()]
-    .map(([secao, g]) => ({
-      secao,
-      ordem: g.ordem,
-      semSub: g.semSub,
-      subs: [...g.subs.entries()]
-        .map(([nome, sg]) => ({ nome, ordem: sg.ordem, itens: sg.itens }))
-        .sort((a, b) => a.ordem - b.ordem),
-    }))
-    .sort((a, b) => a.ordem - b.ordem)
-}
-
-// Menu de navegação lateral (drawer) da Governança de Processos. Desliza da
-// esquerda, lista as seções do portal de líderes em cascata (acordeão) e cada
-// seção/subgrupo abre e recolhe. Montado no rodapé (portal), controlado por
+// Menu de navegação lateral (drawer) da Governança de Processos — espelha o
+// portal de líderes (5 seções). Desliza da esquerda; seções e departamentos
+// abrem/recolhem em cascata. Montado no rodapé (portal), controlado por
 // `aberto`/`onClose` de fora.
 export function MenuLateral({ aberto, onClose }) {
-  // render = está no DOM (segura durante a saída); show = estado visível (anima)
   const [render, setRender] = useState(aberto)
   const [show, setShow] = useState(false)
-  const [paginas, setPaginas] = useState(null) // null = carregando
-  const [abertos, setAbertos] = useState(() => new Set()) // seções/subgrupos abertos
+  const [acesso, setAcesso] = useState(null) // null = carregando · Set de ids
+  const [abertos, setAbertos] = useState(() => new Set())
   const carregou = useRef(false)
 
   // Entrada suave: monta primeiro, deixa o navegador pintar o estado inicial
@@ -108,7 +177,9 @@ export function MenuLateral({ aberto, onClose }) {
   useEffect(() => {
     if (!aberto || carregou.current) return
     carregou.current = true
-    supabase.rpc('gov_meus_acessos').then(({ data }) => setPaginas(data || []))
+    supabase.rpc('gov_meus_acessos').then(({ data }) => {
+      setAcesso(new Set((data || []).map((p) => p.pagina_id)))
+    })
   }, [aberto])
 
   // Trava a rolagem do fundo enquanto aberto.
@@ -131,7 +202,7 @@ export function MenuLateral({ aberto, onClose }) {
     return () => window.removeEventListener('keydown', aoTeclar)
   }, [render, onClose])
 
-  const secoes = useMemo(() => agrupar(paginas), [paginas])
+  const arvore = useMemo(() => (acesso ? filtrar(acesso) : null), [acesso])
 
   if (!render) return null
 
@@ -147,11 +218,11 @@ export function MenuLateral({ aberto, onClose }) {
     onClose()
   }
 
-  // Uma página (folha do acordeão). `dentro` = está sob um subgrupo (recuo maior).
+  // Uma página (folha). `dentro` = está sob um departamento (recuo maior).
   const linhaPagina = (p, dentro) => (
     <NavLink
-      key={p.pagina_id}
-      to={alvo(p)}
+      key={p.id}
+      to={`/painel/${p.id}`}
       onClick={aoTocar}
       className={({ isActive }) =>
         cn(
@@ -214,23 +285,47 @@ export function MenuLateral({ aberto, onClose }) {
           </div>
         </div>
 
-        {/* Corpo: acordeão das seções */}
+        {/* Corpo: acordeão das seções do portal */}
         <div className="flex-1 overflow-y-auto overscroll-contain px-2 py-1">
-          {paginas === null ? (
+          {arvore === null ? (
             <div className="grid place-items-center py-16 text-muted-2">
               <Loader2 size={22} className="animate-spin" />
             </div>
-          ) : secoes.length === 0 ? (
+          ) : arvore.length === 0 ? (
             <div className="px-4 py-16 text-center text-sm text-muted">
               Nenhuma página da Governança liberada pra você.
             </div>
           ) : (
-            secoes.map((sec) => {
-              const Icon = ICONE_SECAO[sec.secao] || Folder
+            arvore.map((sec) => {
+              const Icon = sec.icon
               const kSec = 'sec:' + sec.secao
               const open = abertos.has(kSec)
               const total =
-                sec.semSub.length + sec.subs.reduce((n, s) => n + s.itens.length, 0)
+                sec.paginas.length + sec.grupos.reduce((n, g) => n + g.paginas.length, 0)
+              // Seção de página única (ex.: Parceiros & Sistemas) vira link direto.
+              const direto = sec.paginas.length === 1 && sec.grupos.length === 0
+
+              if (direto) {
+                const p = sec.paginas[0]
+                return (
+                  <div key={sec.secao} className="border-b border-line/60 last:border-0">
+                    <NavLink
+                      to={`/painel/${p.id}`}
+                      onClick={aoTocar}
+                      className="hstack w-full gap-3 px-2 py-3 tap"
+                    >
+                      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-surface-2 text-carbon">
+                        <Icon size={18} />
+                      </span>
+                      <span className="min-w-0 flex-1 truncate text-sm font-bold">
+                        {sec.secao}
+                      </span>
+                      <ChevronRight size={16} className="shrink-0 text-muted-2" />
+                    </NavLink>
+                  </div>
+                )
+              }
+
               return (
                 <div key={sec.secao} className="border-b border-line/60 last:border-0">
                   <button
@@ -270,13 +365,13 @@ export function MenuLateral({ aberto, onClose }) {
                   >
                     <div className="overflow-hidden">
                       <div className="pb-2 pl-2 pr-1">
-                        {sec.semSub.map((p) => linhaPagina(p, false))}
+                        {sec.paginas.map((p) => linhaPagina(p, false))}
 
-                        {sec.subs.map((sub) => {
-                          const kSub = 'sub:' + sec.secao + '|' + sub.nome
+                        {sec.grupos.map((g) => {
+                          const kSub = 'sub:' + sec.secao + '|' + g.nome
                           const openSub = abertos.has(kSub)
                           return (
-                            <div key={sub.nome} className="mt-0.5">
+                            <div key={g.nome} className="mt-0.5">
                               <button
                                 onClick={() => toggle(kSub)}
                                 className="hstack w-full gap-2 rounded-lg px-2 py-2 text-left tap"
@@ -290,10 +385,10 @@ export function MenuLateral({ aberto, onClose }) {
                                   )}
                                 />
                                 <span className="min-w-0 flex-1 truncate text-xs font-semibold uppercase tracking-wide text-muted">
-                                  {sub.nome}
+                                  {g.nome}
                                 </span>
                                 <span className="shrink-0 text-[11px] text-muted-2">
-                                  {sub.itens.length}
+                                  {g.paginas.length}
                                 </span>
                               </button>
                               <div
@@ -304,7 +399,7 @@ export function MenuLateral({ aberto, onClose }) {
                               >
                                 <div className="overflow-hidden">
                                   <div className="pb-1">
-                                    {sub.itens.map((p) => linhaPagina(p, true))}
+                                    {g.paginas.map((p) => linhaPagina(p, true))}
                                   </div>
                                 </div>
                               </div>
