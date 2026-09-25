@@ -91,7 +91,7 @@ export function PainelJornada() {
               <div className="text-xs text-muted">Sua Jornada TATÁ</div>
               <div className="font-display text-2xl font-bold text-accent">{fmtTempo(meses)}</div>
               {implantacao && (
-                <div className="mt-0.5 text-[11px] text-muted-2">conta desde {fmtData(implantacao)}</div>
+                <div className="mt-0.5 text-[11px] text-muted-2">Programa desde {fmtData(implantacao)}</div>
               )}
             </div>
             <div className="grid h-12 w-12 place-items-center rounded-full bg-accent-soft text-accent">
