@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Heart, MessageCircle, Image as ImageIcon, Send, Loader2, Trash2, X, Gift, Video, Pin } from 'lucide-react'
+import { Heart, MessageCircle, Image as ImageIcon, Send, Loader2, Trash2, X, Gift, Video, Pin, Trophy } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Card } from '../components/Card.jsx'
 import { Avatar } from '../components/Avatar.jsx'
@@ -112,6 +112,36 @@ function ResgateCard({ post }) {
         </div>
         <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-accent-soft text-accent">
           <Gift size={14} />
+        </span>
+      </button>
+    </Card>
+  )
+}
+
+// Resgate da JORNADA TATÁ — mesmo card compacto do resgate, mas o selo à direita
+// brilha (gloss metálico) e ganha uma referência do marco ("★ 5 anos de TATÁ").
+// texto = prêmio da opção; titulo = marco (ex.: "5 anos de TATÁ").
+function JornadaCard({ post }) {
+  const navigate = useNavigate()
+  return (
+    <Card className="reveal !p-3">
+      <button
+        onClick={() => post.autor_matricula && navigate(`/perfil/${post.autor_matricula}`)}
+        className="hstack w-full gap-2.5 text-left tap"
+      >
+        <Avatar name={post.autor_nome || '—'} src={post.autor_avatar} size={30} />
+        <div className="min-w-0 flex-1 text-xs leading-snug">
+          <span className="font-semibold">{soPrimeiro(post.autor_nome)}</span>
+          <span className="text-muted"> resgatou </span>
+          <span className="font-semibold">{post.texto}</span>
+          {post.titulo && (
+            <div className="mt-0.5 text-[9px] font-extrabold uppercase tracking-wide text-accent">
+              ★ {post.titulo}
+            </div>
+          )}
+        </div>
+        <span className="chip-jornada grid h-7 w-7 shrink-0 place-items-center rounded-full text-accent">
+          <Trophy size={13} className="relative z-[1]" />
         </span>
       </button>
     </Card>
@@ -689,7 +719,7 @@ export function Comunidade() {
       rec: r,
     }))
     const ps = (posts || []).map((p) => ({
-      kind: p.tipo === 'resgate' ? 'resgate' : 'post',
+      kind: p.tipo === 'resgate' ? 'resgate' : p.tipo === 'jornada' ? 'jornada' : 'post',
       key: 'post-' + p.id,
       created_at: p.created_at,
       post: p,
@@ -836,6 +866,8 @@ export function Comunidade() {
             <ReconhecimentoCard key={item.key} rec={item.rec} motivos={motivos} />
           ) : item.kind === 'resgate' ? (
             <ResgateCard key={item.key} post={item.post} />
+          ) : item.kind === 'jornada' ? (
+            <JornadaCard key={item.key} post={item.post} />
           ) : (
             <PostCard
               key={item.key}

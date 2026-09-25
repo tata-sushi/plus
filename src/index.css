@@ -161,6 +161,22 @@
       radial-gradient(120% 140% at 0% 0%, rgb(var(--accent) / 0.18) 0%, rgb(var(--accent) / 0.05) 45%, transparent 70%),
       rgb(var(--surface));
   }
+
+  /* Selo brilhante do resgate da Jornada (feed): gloss metálico que passa por cima. */
+  .chip-jornada {
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(135deg, rgb(var(--accent) / 0.30), rgb(var(--accent) / 0.14));
+    box-shadow: 0 0 12px rgb(var(--accent) / 0.40);
+  }
+  .chip-jornada::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(115deg, transparent 30%, rgba(255, 255, 255, 0.8) 47%, transparent 60%);
+    transform: translateX(-120%);
+    animation: chipSweep 2.6s ease-in-out infinite;
+  }
 }
 
 @layer utilities {
@@ -335,8 +351,14 @@
 }
 .animate-rise { animation: riseIn 0.4s 0.18s ease-out both; }
 
+@keyframes chipSweep {
+  0%, 20% { transform: translateX(-120%); }
+  55%, 100% { transform: translateX(120%); }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-page, .reveal, .animate-nudge, .animate-pop, .animate-rise { animation: none; }
+  .chip-jornada::after { animation: none; opacity: 0.25; }
 }
 
 /* Scrollbars discretas */
