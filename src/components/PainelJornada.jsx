@@ -42,7 +42,6 @@ export function PainelJornada() {
   const [carregando, setCarregando] = useState(true)
   const [aviso, setAviso] = useState(null) // { tipo, texto }
   const [aberto, setAberto] = useState(null) // marco aberto no detalhe
-  const [confirmar, setConfirmar] = useState(null) // { marco, opcao }
   const [processando, setProcessando] = useState(false)
 
   const carregar = useCallback(async () => {
@@ -64,18 +63,18 @@ export function PainelJornada() {
     setAberto(m)
   }
 
-  async function resgatar() {
-    if (!confirmar) return
+  // Resgate direto (sem alerta de confirmação): um toque e pronto.
+  async function resgatarOpcao(opcao) {
+    if (!opcao || processando) return
     tapHaptic()
     setProcessando(true)
-    const { data, error } = await supabase.rpc('jornada_resgatar', { p_opcao: confirmar.opcao.id })
+    const { data, error } = await supabase.rpc('jornada_resgatar', { p_opcao: opcao.id })
     setProcessando(false)
     if (error || !data?.ok) {
       setAviso({ tipo: 'erro', texto: ERROS[data?.erro] || 'Não foi possível resgatar agora.' })
     } else {
-      setAviso({ tipo: 'ok', texto: `"${confirmar.opcao.titulo}" resgatado! 🎉` })
+      setAviso({ tipo: 'ok', texto: `"${opcao.titulo}" resgatado! 🎉` })
     }
-    setConfirmar(null)
     setAberto(null)
     carregar()
   }
@@ -164,7 +163,7 @@ export function PainelJornada() {
                             e.stopPropagation()
                             tapHaptic()
                             if (varias) abrir(m)
-                            else setConfirmar({ marco: m, opcao: op0 })
+                            else resgatarOpcao(op0)
                           }}
                           className="btn-primary w-full !py-2.5 text-xs font-bold"
                         >
@@ -191,50 +190,8 @@ export function PainelJornada() {
             marco={aberto}
             meses={meses}
             onFechar={() => setAberto(null)}
-            onEscolher={(op) => {
-              tapHaptic()
-              setConfirmar({ marco: aberto, opcao: op })
-            }}
+            onEscolher={(op) => resgatarOpcao(op)}
           />,
-          document.body,
-        )}
-
-      {/* Confirmação — escolher fecha o marco */}
-      {confirmar &&
-        createPortal(
-          <div
-            className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 p-4"
-            onClick={() => !processando && setConfirmar(null)}
-          >
-            <div
-              onClick={(e) => e.stopPropagation()}
-              className="w-full max-w-sm rounded-card border border-line bg-surface p-5"
-            >
-              <div className="font-display text-base font-bold leading-tight">
-                {confirmar.opcao.titulo}
-              </div>
-              <p className="mt-2 text-sm text-muted">
-                Ao escolher, o marco <b>{confirmar.marco.titulo}</b> fecha e você não poderá trocar
-                depois. Confirmar?
-              </p>
-              <div className="mt-4 hstack gap-2">
-                <button
-                  onClick={() => setConfirmar(null)}
-                  disabled={processando}
-                  className="btn-ghost flex-1 !py-3 text-sm text-muted"
-                >
-                  Voltar
-                </button>
-                <button
-                  onClick={resgatar}
-                  disabled={processando}
-                  className={cn('btn-primary flex-1 !py-3 text-sm', processando && 'opacity-60')}
-                >
-                  {processando ? <Loader2 size={16} className="animate-spin" /> : 'Resgatar'}
-                </button>
-              </div>
-            </div>
-          </div>,
           document.body,
         )}
     </>
