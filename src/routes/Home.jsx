@@ -78,13 +78,18 @@ function SugestoesGrid({ cards, desktop, setCanvas }) {
       <>
         <span
           className={cn(
-            'grid h-14 w-14 place-items-center rounded-2xl border',
+            'relative grid h-14 w-14 place-items-center rounded-2xl border',
             c.emBreve
               ? 'border-line bg-surface-3 text-muted'
               : 'border-carbon/30 bg-accent-soft text-carbon dark:border-accent/30 dark:text-accent',
           )}
         >
           <Icon size={24} strokeWidth={2} />
+          {c.badge > 0 && (
+            <span className="absolute -right-1.5 -top-1.5 grid h-[18px] min-w-[18px] place-items-center rounded-full border-2 border-bg bg-danger px-1 text-[10px] font-extrabold leading-none text-white">
+              {c.badge > 9 ? '9+' : c.badge}
+            </span>
+          )}
         </span>
         <span className="mt-1.5 text-center text-[11px] font-medium leading-tight">
           {labelCurto(c.title)}
@@ -185,6 +190,18 @@ export function Home() {
   const cargo = usuario?.cargo || ''
   const loja = usuario?.loja || ''
 
+  // Documentos pendentes de assinatura → bolinha (contador) no tile "Documentos".
+  const [docsPend, setDocsPend] = useState(0)
+  useEffect(() => {
+    let ativo = true
+    supabase.rpc('docs_pendentes_contagem').then(({ data }) => {
+      if (ativo) setDocsPend(Number(data) || 0)
+    })
+    return () => {
+      ativo = false
+    }
+  }, [])
+
   // Ordem dos cards de Sugestões: Kanban · Desafios · Checklist · Cardápio · Recompensas · Organograma · Rádio · Passatempos.
   // Kanban e Checklist só aparecem pra quem tem o acesso (podeQuadros / podeLimpeza).
   const [desafios, recompensas, cardapio, organograma] = sugestoesCards
@@ -207,7 +224,7 @@ export function Home() {
       ? [{ to: '/escala', badgeIcon: CalendarClock, title: 'Agenda', subtitle: 'Sua escala da semana' }]
       : []),
     { to: '/minha-experiencia', badgeIcon: HeartHandshake, title: 'Avaliações e Reconhecimentos', subtitle: 'Avalie e reconheça' },
-    { to: '/documentos', badgeIcon: FileSignature, title: 'Documentos', subtitle: 'Documentos para assinar' },
+    { to: '/documentos', badgeIcon: FileSignature, title: 'Documentos', subtitle: 'Documentos para assinar', badge: docsPend },
     { to: '/holerites', badgeIcon: ReceiptText, title: 'Holerite', subtitle: 'Seus holerites' },
     // Check-in (QR) — hub de banheiros/eventos; acesso liberado por pessoa na Governança.
     ...(usuario?.podeCheckin
