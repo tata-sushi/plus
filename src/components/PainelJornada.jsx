@@ -161,13 +161,15 @@ export function PainelJornada() {
                     )}
 
                     <div className="mt-auto pt-2">
-                      {resgatado ? (
+                      {resgatado || (umAno && m.perdeu) ? (
+                        // 1 ano vencido antes da largada = já entregue → "Resgatado".
                         <span className="hstack w-full items-center justify-center gap-1 rounded-full bg-accent-soft px-3.5 py-2.5 text-xs font-bold text-accent">
                           <Check size={14} /> Resgatado
                         </span>
                       ) : m.perdeu ? (
+                        // Acima de 1 ano vencido antes da largada → perdeu a janela.
                         <span className="hstack w-full items-center justify-center gap-1 rounded-full bg-surface-2 px-4 py-2.5 text-xs font-semibold text-muted-2">
-                          <Lock size={13} /> {umAno ? 'Não elegível' : 'Encerrado'}
+                          <Lock size={13} /> Não elegível
                         </span>
                       ) : m.atingido ? (
                         <button
@@ -311,13 +313,13 @@ function DetalheMarco({ marco, meses, onFechar, onEscolher }) {
 
         {/* Rodapé: botão de resgate no mesmo padrão do Recompensas */}
         <div className="border-t border-line px-5 py-3.5">
-          {resgatadoId ? (
+          {resgatadoId || (umAno && perdeu) ? (
             <div className="hstack w-full items-center justify-center gap-1.5 rounded-full bg-accent-soft py-3 text-sm font-bold text-accent">
               <Check size={16} /> Resgatado
             </div>
           ) : perdeu ? (
             <div className="hstack w-full items-center justify-center gap-1.5 rounded-full bg-surface-2 py-3 text-sm font-semibold text-muted-2">
-              <Lock size={14} /> {umAno ? 'Não elegível' : 'Oportunidade encerrada'}
+              <Lock size={14} /> Não elegível
             </div>
           ) : !atingido ? (
             <div className="hstack w-full items-center justify-center gap-1.5 rounded-full bg-surface-2 py-3 text-sm font-semibold text-muted-2">
