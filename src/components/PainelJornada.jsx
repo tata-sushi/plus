@@ -34,6 +34,7 @@ function fmtData(d) {
 const ERROS = {
   sem_tempo: 'Você ainda não atingiu o tempo de casa deste marco.',
   ja_resgatado: 'Este marco já foi resgatado.',
+  perdeu: 'A oportunidade deste marco já encerrou (venceu antes da implantação).',
   indisponivel: 'Recompensa indisponível.',
   sem_acesso: 'Sessão expirada. Entre novamente.',
 }
@@ -163,6 +164,10 @@ export function PainelJornada() {
                         <span className="hstack w-full items-center justify-center gap-1 rounded-full bg-accent-soft px-3.5 py-2.5 text-xs font-bold text-accent">
                           <Check size={14} /> Resgatado
                         </span>
+                      ) : m.perdeu ? (
+                        <span className="hstack w-full items-center justify-center gap-1 rounded-full bg-surface-2 px-4 py-2.5 text-xs font-semibold text-muted-2">
+                          <Lock size={13} /> Encerrado
+                        </span>
                       ) : m.atingido ? (
                         <button
                           onClick={(e) => {
@@ -209,6 +214,7 @@ export function PainelJornada() {
 function DetalheMarco({ marco, meses, onFechar, onEscolher }) {
   const resgatadoId = marco.resgatado_opcao
   const atingido = marco.atingido
+  const perdeu = marco.perdeu
   const faltam = Math.max(0, marco.meses - meses)
   const varias = (marco.opcoes || []).length > 1
   const op0 = marco.opcoes?.[0]
@@ -248,7 +254,7 @@ function DetalheMarco({ marco, meses, onFechar, onEscolher }) {
             <div className="mt-3 flex flex-col gap-2">
             {(marco.opcoes || []).map((op) => {
               const escolhida = resgatadoId === op.id
-              const podeTocar = atingido && !resgatadoId
+              const podeTocar = atingido && !resgatadoId && !perdeu
               return (
                 <div
                   key={op.id}
@@ -306,6 +312,10 @@ function DetalheMarco({ marco, meses, onFechar, onEscolher }) {
           {resgatadoId ? (
             <div className="hstack w-full items-center justify-center gap-1.5 rounded-full bg-accent-soft py-3 text-sm font-bold text-accent">
               <Check size={16} /> Resgatado
+            </div>
+          ) : perdeu ? (
+            <div className="hstack w-full items-center justify-center gap-1.5 rounded-full bg-surface-2 py-3 text-sm font-semibold text-muted-2">
+              <Lock size={14} /> Oportunidade encerrada
             </div>
           ) : !atingido ? (
             <div className="hstack w-full items-center justify-center gap-1.5 rounded-full bg-surface-2 py-3 text-sm font-semibold text-muted-2">
