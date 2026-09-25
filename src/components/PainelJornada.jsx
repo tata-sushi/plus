@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Loader2, Lock, Check, X } from 'lucide-react'
+import { Loader2, Lock, Check, X, ExternalLink } from 'lucide-react'
 import { Section } from './Section.jsx'
 import { Card } from './Card.jsx'
 import { RecompensaFoto } from './RecompensaFoto.jsx'
@@ -309,6 +309,17 @@ function DetalheMarco({ marco, meses, onFechar, onEscolher }) {
                       <div className="mt-1 whitespace-pre-wrap text-xs leading-relaxed text-muted">
                         {op.descricao}
                       </div>
+                    )}
+                    {op.link && (
+                      <a
+                        href={op.link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={(e) => e.stopPropagation()}
+                        className="mt-1.5 inline-flex items-center gap-1 text-xs font-semibold text-accent tap"
+                      >
+                        <ExternalLink size={12} /> Ver mais
+                      </a>
                     )}
                   </div>
                   {escolhida ? (

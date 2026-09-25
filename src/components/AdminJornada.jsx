@@ -107,6 +107,7 @@ export function AdminJornada() {
       p_emoji: editOpcao.emoji || null,
       p_imagem_url: imagem_url,
       p_ordem: Number(editOpcao.ordem) || 0,
+      p_link: editOpcao.link || null,
     })
     setSalvando(false)
     setEditOpcao(null)
@@ -216,7 +217,7 @@ export function AdminJornada() {
                   </div>
                 ))}
                 <button
-                  onClick={() => { setErro(''); setArquivo(null); setEditOpcao({ marco_id: m.id, titulo: '', descricao: '', emoji: '', imagem_url: '', ordem: (m.opcoes?.length || 0) + 1 }) }}
+                  onClick={() => { setErro(''); setArquivo(null); setEditOpcao({ marco_id: m.id, titulo: '', descricao: '', emoji: '', imagem_url: '', link: '', ordem: (m.opcoes?.length || 0) + 1 }) }}
                   className="hstack w-full justify-center gap-1.5 rounded-lg border border-dashed border-line py-2 text-xs font-semibold text-muted tap"
                 >
                   <Plus size={14} /> Opção de premiação
@@ -291,6 +292,16 @@ export function AdminJornada() {
                 Descrição (opcional)
                 <textarea value={editOpcao.descricao || ''} rows={2}
                   onChange={(e) => setEditOpcao((s) => ({ ...s, descricao: e.target.value }))} className={`${inputCls} resize-none`} />
+              </label>
+              <label className="block text-xs font-semibold text-muted">
+                Link (opcional) — site, local no mapa, regulamento…
+                <input
+                  type="url"
+                  value={editOpcao.link || ''}
+                  onChange={(e) => setEditOpcao((s) => ({ ...s, link: e.target.value }))}
+                  placeholder="https://..."
+                  className={inputCls}
+                />
               </label>
               {erro && <div className="text-xs font-medium text-danger">{erro}</div>}
               <div className="hstack gap-2">
