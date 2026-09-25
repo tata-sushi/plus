@@ -146,8 +146,8 @@ export function PainelJornada() {
                 >
                   <div className="grid min-h-[100px] w-[140px] shrink-0 place-items-center overflow-hidden rounded-2xl bg-accent-soft text-4xl">
                     <RecompensaFoto
-                      src={op0?.imagem_url}
-                      emoji={op0?.emoji || '🎁'}
+                      src={m.imagem_url || op0?.imagem_url}
+                      emoji="🎁"
                       className="h-full w-full object-cover"
                     />
                   </div>
@@ -234,8 +234,8 @@ function DetalheMarco({ marco, meses, onFechar, onEscolher }) {
               formato natural (largura cheia, sem cortar) em vez de forçar quadrado. */}
           <div className="grid min-h-[140px] place-items-center overflow-hidden rounded-2xl bg-accent-soft text-7xl">
             <RecompensaFoto
-              src={op0?.imagem_url}
-              emoji={op0?.emoji || '🎁'}
+              src={marco.imagem_url || op0?.imagem_url}
+              emoji="🎁"
               className="max-h-[60vh] w-full object-contain"
             />
           </div>

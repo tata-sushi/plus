@@ -57,15 +57,30 @@ export function AdminJornada() {
     }
     setSalvando(true)
     setErro('')
+    let imagem_url = editMarco.imagem_url || null
+    if (arquivo) {
+      const caminho = `jornada/${crypto.randomUUID()}.${(arquivo.file.name.split('.').pop() || 'jpg').toLowerCase()}`
+      const { error: upErr } = await supabase.storage
+        .from('recompensas')
+        .upload(caminho, arquivo.file, { cacheControl: '3600', contentType: arquivo.file.type || 'image/jpeg' })
+      if (upErr) {
+        setSalvando(false)
+        setErro('Não foi possível enviar a imagem.')
+        return
+      }
+      imagem_url = supabase.storage.from('recompensas').getPublicUrl(caminho).data.publicUrl
+    }
     await supabase.rpc('jornada_marco_salvar', {
       p_id: editMarco.id || null,
       p_meses: Number(editMarco.meses),
       p_titulo: editMarco.titulo,
       p_descricao: editMarco.descricao || null,
       p_ordem: Number(editMarco.ordem) || 0,
+      p_imagem_url: imagem_url,
     })
     setSalvando(false)
     setEditMarco(null)
+    setArquivo(null)
     carregar()
   }
 
@@ -86,32 +101,18 @@ export function AdminJornada() {
     }
     setSalvando(true)
     setErro('')
-    let imagem_url = editOpcao.imagem_url || null
-    if (arquivo) {
-      const caminho = `jornada/${crypto.randomUUID()}.${(arquivo.file.name.split('.').pop() || 'jpg').toLowerCase()}`
-      const { error: upErr } = await supabase.storage
-        .from('recompensas')
-        .upload(caminho, arquivo.file, { cacheControl: '3600', contentType: arquivo.file.type || 'image/jpeg' })
-      if (upErr) {
-        setSalvando(false)
-        setErro('Não foi possível enviar a imagem.')
-        return
-      }
-      imagem_url = supabase.storage.from('recompensas').getPublicUrl(caminho).data.publicUrl
-    }
     await supabase.rpc('jornada_opcao_salvar', {
       p_id: editOpcao.id || null,
       p_marco: editOpcao.marco_id,
       p_titulo: editOpcao.titulo,
       p_descricao: editOpcao.descricao || null,
-      p_emoji: editOpcao.emoji || null,
-      p_imagem_url: imagem_url,
+      p_emoji: null,
+      p_imagem_url: null,
       p_ordem: Number(editOpcao.ordem) || 0,
       p_link: editOpcao.link || null,
     })
     setSalvando(false)
     setEditOpcao(null)
-    setArquivo(null)
     carregar()
   }
   async function toggleOpcao(o) {
@@ -168,7 +169,8 @@ export function AdminJornada() {
           <button
             onClick={() => {
               setErro('')
-              setEditMarco({ meses: '', titulo: '', descricao: '', ordem: marcos.length + 1 })
+              setArquivo(null)
+              setEditMarco({ meses: '', titulo: '', descricao: '', imagem_url: '', ordem: marcos.length + 1 })
             }}
             className="hstack gap-1 text-sm font-semibold text-accent tap"
           >
@@ -182,6 +184,9 @@ export function AdminJornada() {
           )}
           {marcos.map((m) => (
             <Card key={m.id} className={cn('!p-4', !m.ativo && 'opacity-70')}>
+              {m.imagem_url && (
+                <img src={m.imagem_url} alt="" className="mb-3 h-24 w-full rounded-lg object-cover" />
+              )}
               <div className="hstack items-start justify-between gap-2">
                 <div className="min-w-0">
                   <div className="hstack items-center gap-2">
@@ -194,7 +199,7 @@ export function AdminJornada() {
                   </div>
                 </div>
                 <div className="hstack shrink-0 gap-1">
-                  <IconBtn title="Editar" onClick={() => { setErro(''); setEditMarco({ ...m }) }}><Pencil size={15} /></IconBtn>
+                  <IconBtn title="Editar" onClick={() => { setErro(''); setArquivo(null); setEditMarco({ ...m }) }}><Pencil size={15} /></IconBtn>
                   <IconBtn title={m.ativo ? 'Desativar' : 'Ativar'} ativo={m.ativo} onClick={() => toggleMarco(m)}><Power size={15} /></IconBtn>
                   <IconBtn title="Excluir" onClick={() => excluirMarco(m)}><Trash2 size={15} /></IconBtn>
                 </div>
@@ -204,9 +209,6 @@ export function AdminJornada() {
               <div className="mt-3 flex flex-col gap-2 border-t border-line pt-3">
                 {(m.opcoes || []).map((o) => (
                   <div key={o.id} className={cn('hstack items-center gap-2.5', !o.ativo && 'opacity-50')}>
-                    <div className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-lg bg-accent-soft text-xl">
-                      <RecompensaFoto src={o.imagem_url} emoji={o.emoji} className="h-full w-full object-cover" />
-                    </div>
                     <div className="min-w-0 flex-1">
                       <div className="truncate text-sm font-semibold">{o.titulo}</div>
                       {o.descricao && <div className="truncate text-[11px] text-muted">{o.descricao}</div>}
@@ -231,8 +233,22 @@ export function AdminJornada() {
       {/* Editor de marco */}
       {editMarco &&
         createPortal(
-          <ModalBase titulo={editMarco.id ? 'Editar marco' : 'Novo marco'} onClose={() => setEditMarco(null)}>
+          <ModalBase titulo={editMarco.id ? 'Editar marco' : 'Novo marco'} onClose={() => { setEditMarco(null); setArquivo(null) }}>
             <div className="flex flex-col gap-3">
+              <div className="hstack items-center gap-3">
+                <div className="grid h-16 w-24 shrink-0 place-items-center overflow-hidden rounded-xl bg-accent-soft text-3xl">
+                  <RecompensaFoto src={arquivo?.preview || editMarco.imagem_url} emoji="🎁" className="h-full w-full object-cover" />
+                </div>
+                <label className="hstack cursor-pointer items-center gap-1.5 rounded-lg border border-line px-3 py-1.5 text-xs font-semibold text-muted tap">
+                  <ImagePlus size={14} /> Capa da faixa
+                  <input type="file" accept="image/*" className="hidden" onChange={(e) => {
+                    const f = e.target.files?.[0]; e.target.value = ''
+                    if (!f) return
+                    if (f.size > TAM_MAX) { setErro('Imagem muito grande (máx. 15 MB).'); return }
+                    setArquivo({ file: f, preview: URL.createObjectURL(f) })
+                  }} />
+                </label>
+              </div>
               <label className="block text-xs font-semibold text-muted">
                 Tempo (em meses) — ex.: 12 = 1 ano, 60 = 5 anos
                 <input type="number" min="1" value={editMarco.meses}
@@ -250,7 +266,7 @@ export function AdminJornada() {
               </label>
               {erro && <div className="text-xs font-medium text-danger">{erro}</div>}
               <div className="hstack gap-2">
-                <button onClick={() => setEditMarco(null)} className="btn-ghost flex-1 !py-2.5 text-sm text-muted">Cancelar</button>
+                <button onClick={() => { setEditMarco(null); setArquivo(null) }} className="btn-ghost flex-1 !py-2.5 text-sm text-muted">Cancelar</button>
                 <button onClick={salvarMarco} disabled={salvando} className="btn-primary flex-1 hstack justify-center gap-1.5 !py-2.5 text-sm disabled:opacity-60">
                   {salvando ? <Loader2 size={15} className="animate-spin" /> : <Check size={15} />} Salvar
                 </button>
@@ -263,26 +279,8 @@ export function AdminJornada() {
       {/* Editor de opção */}
       {editOpcao &&
         createPortal(
-          <ModalBase titulo={editOpcao.id ? 'Editar opção' : 'Nova opção'} onClose={() => { setEditOpcao(null); setArquivo(null) }}>
+          <ModalBase titulo={editOpcao.id ? 'Editar opção' : 'Nova opção'} onClose={() => setEditOpcao(null)}>
             <div className="flex flex-col gap-3">
-              <div className="hstack items-center gap-3">
-                <div className="grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-xl bg-accent-soft text-3xl">
-                  <RecompensaFoto src={arquivo?.preview || editOpcao.imagem_url} emoji={editOpcao.emoji} className="h-full w-full object-cover" />
-                </div>
-                <div className="flex flex-col gap-1.5">
-                  <label className="hstack cursor-pointer items-center gap-1.5 rounded-lg border border-line px-3 py-1.5 text-xs font-semibold text-muted tap">
-                    <ImagePlus size={14} /> Imagem
-                    <input type="file" accept="image/*" className="hidden" onChange={(e) => {
-                      const f = e.target.files?.[0]; e.target.value = ''
-                      if (!f) return
-                      if (f.size > TAM_MAX) { setErro('Imagem muito grande (máx. 15 MB).'); return }
-                      setArquivo({ file: f, preview: URL.createObjectURL(f) })
-                    }} />
-                  </label>
-                  <input value={editOpcao.emoji || ''} maxLength={4} onChange={(e) => setEditOpcao((s) => ({ ...s, emoji: e.target.value }))}
-                    placeholder="ou emoji 🎁" className="w-24 rounded-lg border border-line bg-bg px-2 py-1 text-center text-sm outline-none" />
-                </div>
-              </div>
               <label className="block text-xs font-semibold text-muted">
                 Título (a premiação)
                 <input value={editOpcao.titulo} onChange={(e) => setEditOpcao((s) => ({ ...s, titulo: e.target.value }))}
