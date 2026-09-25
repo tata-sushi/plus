@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Loader2, Lock, Check, X, ExternalLink } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { Loader2, Lock, Check, X, ExternalLink, Gift } from 'lucide-react'
 import { Section } from './Section.jsx'
 import { Card } from './Card.jsx'
 import { RecompensaFoto } from './RecompensaFoto.jsx'
@@ -92,15 +93,20 @@ export function PainelJornada() {
                 <div className="mt-0.5 text-[11px] text-muted-2">conta desde {fmtData(implantacao)}</div>
               )}
             </div>
-            <div className="grid h-12 w-12 place-items-center rounded-full bg-accent-soft text-2xl">🐢</div>
+            <div className="grid h-12 w-12 place-items-center rounded-full bg-accent-soft text-accent">
+              <Gift size={22} />
+            </div>
           </div>
         </div>
       </div>
 
       <div className="px-5 pt-2">
         <p className="text-[11px] leading-relaxed text-muted-2">
-          O tempo da Jornada conta a partir da implantação do programa — períodos anteriores não
-          entram (não é retroativo).
+          Confira as regras do programa em{' '}
+          <Link to="/treinamentos" className="font-semibold text-accent">
+            desafios
+          </Link>
+          .
         </p>
       </div>
 
@@ -123,7 +129,7 @@ export function PainelJornada() {
         </div>
       ) : marcos.length === 0 ? (
         <div className="px-8 py-16 text-center text-sm text-muted">
-          Sua Jornada TATÁ está sendo preparada. 🐢
+          Sua Jornada TATÁ está sendo preparada. 🎁
         </div>
       ) : (
         <Section className="reveal reveal-1 mt-5" title="Sua jornada TATÁ">
@@ -141,7 +147,7 @@ export function PainelJornada() {
                   <div className="grid min-h-[100px] w-[140px] shrink-0 place-items-center overflow-hidden rounded-2xl bg-accent-soft text-4xl">
                     <RecompensaFoto
                       src={op0?.imagem_url}
-                      emoji={op0?.emoji || '🐢'}
+                      emoji={op0?.emoji || '🎁'}
                       className="h-full w-full object-cover"
                     />
                   </div>
@@ -226,7 +232,7 @@ function DetalheMarco({ marco, meses, onFechar, onEscolher }) {
           <div className="grid min-h-[140px] place-items-center overflow-hidden rounded-2xl bg-accent-soft text-7xl">
             <RecompensaFoto
               src={op0?.imagem_url}
-              emoji={op0?.emoji || '🐢'}
+              emoji={op0?.emoji || '🎁'}
               className="max-h-[60vh] w-full object-contain"
             />
           </div>
