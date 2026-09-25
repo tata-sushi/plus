@@ -4,13 +4,13 @@ Ideias e pendências levantadas para desenvolvimento futuro.
 
 ## Pendências
 
-- [ ] **Lojinha bloqueada durante os testes — LIBERAR DEPOIS** — a Lojinha inteira
-  (abas Compras/Jornada/Recompensas) está acessível só pra **equipe de teste (admins)**.
-  Gate por pessoa: RPC `tata_plus.lojinha_pode_acessar()` (hoje = `pode_publicar()`),
-  flag `podeLojinha` no `AuthContext`, escondendo o card na Home, o item no Mais e com
-  guarda de rota em `Lojinha.jsx` (cobre `/lojinha` e `/recompensas`). **Pra liberar
-  pra todos:** trocar o corpo do RPC pra `select tata_plus.minha_matricula() is not null;`
-  (um comando só, sem mexer no app). _(anotado em 2026-09-23)_
+- [x] **Lojinha — LIBERADA PARA TODOS (25/09/2026)** — a Lojinha inteira
+  (abas Compras/Jornada/Recompensas) está acessível a **todos os colaboradores logados**.
+  Gate único: RPC `tata_plus.lojinha_pode_acessar()` (agora = `select tata_plus.minha_matricula()
+  is not null`), de onde vem a flag `podeLojinha` no `AuthContext` (card na Home, item no Mais
+  e guarda de rota em `Lojinha.jsx`, que cobre `/lojinha` e `/recompensas`). **Pra voltar a travar
+  só admins:** trocar o corpo do RPC pra `select coalesce(tata_plus.pode_publicar(), false);`
+  (um comando só, sem mexer no app). _(liberado em 25/09/2026; bloqueio original de 2026-09-23)_
 
 - [ ] **Jornada — texto do botão de resgate** — o botão hoje diz só **"Resgate"**.
   O Victor pediu "muda o comecinho deles para resgate. O item XX" — falta decidir se o
