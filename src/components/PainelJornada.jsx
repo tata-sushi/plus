@@ -139,6 +139,7 @@ export function PainelJornada() {
               const op0 = m.opcoes?.[0]
               const resgatado = !!m.resgatado_opcao
               const varias = (m.opcoes || []).length > 1
+              const umAno = Number(m.meses) === 12 // marco de 1 ano
               return (
                 <Card
                   key={m.id}
@@ -166,7 +167,7 @@ export function PainelJornada() {
                         </span>
                       ) : m.perdeu ? (
                         <span className="hstack w-full items-center justify-center gap-1 rounded-full bg-surface-2 px-4 py-2.5 text-xs font-semibold text-muted-2">
-                          <Lock size={13} /> Encerrado
+                          <Lock size={13} /> {umAno ? 'Não elegível' : 'Encerrado'}
                         </span>
                       ) : m.atingido ? (
                         <button
@@ -215,6 +216,7 @@ function DetalheMarco({ marco, meses, onFechar, onEscolher }) {
   const resgatadoId = marco.resgatado_opcao
   const atingido = marco.atingido
   const perdeu = marco.perdeu
+  const umAno = Number(marco.meses) === 12 // marco de 1 ano
   const faltam = Math.max(0, marco.meses - meses)
   const varias = (marco.opcoes || []).length > 1
   const op0 = marco.opcoes?.[0]
@@ -315,7 +317,7 @@ function DetalheMarco({ marco, meses, onFechar, onEscolher }) {
             </div>
           ) : perdeu ? (
             <div className="hstack w-full items-center justify-center gap-1.5 rounded-full bg-surface-2 py-3 text-sm font-semibold text-muted-2">
-              <Lock size={14} /> Oportunidade encerrada
+              <Lock size={14} /> {umAno ? 'Não elegível' : 'Oportunidade encerrada'}
             </div>
           ) : !atingido ? (
             <div className="hstack w-full items-center justify-center gap-1.5 rounded-full bg-surface-2 py-3 text-sm font-semibold text-muted-2">
