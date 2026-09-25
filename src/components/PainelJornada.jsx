@@ -212,6 +212,9 @@ function DetalheMarco({ marco, meses, onFechar, onEscolher }) {
   const faltam = Math.max(0, marco.meses - meses)
   const varias = (marco.opcoes || []).length > 1
   const op0 = marco.opcoes?.[0]
+  // Texto descritivo da faixa: usa a descrição do marco; se não houver e for de
+  // 1 opção, cai pra descrição/título dessa opção.
+  const faixaTexto = marco.descricao || (!varias ? op0?.descricao || op0?.titulo : null)
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={onFechar}>
@@ -237,16 +240,8 @@ function DetalheMarco({ marco, meses, onFechar, onEscolher }) {
             />
           </div>
 
-          {marco.descricao && <p className="mt-3 text-sm text-muted">{marco.descricao}</p>}
-
-          {!resgatadoId && (
-            <div className="mt-3 text-center text-xs font-medium text-muted-2">
-              {atingido
-                ? varias
-                  ? 'Escolha 1 — ao escolher, o marco fecha.'
-                  : 'Parabéns!!! Você já pode resgatar o seu presente.'
-                : `Disponível ao completar ${fmtTempo(marco.meses)} de Jornada.`}
-            </div>
+          {faixaTexto && (
+            <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-muted">{faixaTexto}</p>
           )}
 
           {varias && (
