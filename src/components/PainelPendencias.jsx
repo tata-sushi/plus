@@ -20,6 +20,7 @@ const COR = {
   exp_colab: '#38bdf8', // azul — auto-avaliação do colaborador
   exp_lider: '#a78bfa', // roxo — avaliação que o líder faz
   lideranca: '#f472b6', // rosa — avaliação de liderança
+  desempenho: '#f97316', // laranja — avaliação de desempenho a fazer (líder → liderado)
   absenteismo: '#ef4444', // vermelho — falta sem devolutiva
   exame_colab: '#14b8a6', // teal — exame periódico (colaborador)
   exame_lider: '#14b8a6', // teal — exame periódico (líder)
@@ -33,6 +34,7 @@ const ROTA = {
   assinatura: '/documentos',
   exp_colab: '/minha-experiencia',
   lideranca: '/minha-experiencia',
+  desempenho: '/governanca', // líder faz a avaliação de desempenho no portal de governança
   exp_lider: '/governanca', // líder avalia o novato no portal de governança
   absenteismo: '/governanca', // líder dá a devolutiva da falta no portal
   exame_lider: '/governanca', // líder acompanha o exame do time no portal
@@ -44,14 +46,15 @@ const ROTA = {
 const ORDEM_TIPO = {
   exp_colab: 1,
   lideranca: 2,
-  exp_lider: 3,
-  absenteismo: 4,
-  exame_colab: 5,
-  exame_lider: 6,
-  feriado: 7,
-  recrutamento: 8,
-  assinatura: 9,
-  assinatura_lider: 10,
+  desempenho: 3,
+  exp_lider: 4,
+  absenteismo: 5,
+  exame_colab: 6,
+  exame_lider: 7,
+  feriado: 8,
+  recrutamento: 9,
+  assinatura: 10,
+  assinatura_lider: 11,
 }
 
 export function PainelPendencias({ embutido = false }) {
