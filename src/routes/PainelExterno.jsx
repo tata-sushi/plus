@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useParams, Navigate } from 'react-router-dom'
+import { useParams, useSearchParams, Navigate } from 'react-router-dom'
 import { Loader2 } from 'lucide-react'
 import { supabase } from '../lib/supabase.js'
 import { governancaCatalogo } from '../lib/mockData.js'
@@ -21,6 +21,8 @@ function urlAbsoluta(u) {
 // Plus, ela nega.
 export function PainelExterno() {
   const { id } = useParams()
+  const [sp] = useSearchParams()
+  const aba = sp.get('aba') // deep-link opcional: abre a página numa aba específica (#aba=...)
   const [pagina, setPagina] = useState(undefined) // undefined=carregando · null=sem acesso
 
   // Procura a página no catálogo novo (tabela, ao vivo). Se não achar, cai no
@@ -52,7 +54,7 @@ export function PainelExterno() {
     <div className="-mb-24 flex h-[calc(100dvh-3.5rem-env(safe-area-inset-bottom))] flex-col">
       <div className="safe-top shrink-0 bg-bg" />
       <GovFrame
-        src={urlAbsoluta(pagina.url)}
+        src={urlAbsoluta(pagina.url) + (aba ? '#aba=' + encodeURIComponent(aba) : '')}
         title={pagina.label}
         allow="clipboard-write; camera; microphone; geolocation"
         className="flex-1"

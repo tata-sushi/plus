@@ -34,7 +34,7 @@ const ROTA = {
   assinatura: '/documentos',
   exp_colab: '/minha-experiencia',
   lideranca: '/minha-experiencia',
-  desempenho: '/governanca', // líder faz a avaliação de desempenho no portal de governança
+  desempenho: '/painel/governanca-kpis-rh-performance?aba=pendentes', // abre Performance na aba Pendentes
   exp_lider: '/governanca', // líder avalia o novato no portal de governança
   absenteismo: '/governanca', // líder dá a devolutiva da falta no portal
   exame_lider: '/governanca', // líder acompanha o exame do time no portal
