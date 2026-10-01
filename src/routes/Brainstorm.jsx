@@ -13,14 +13,15 @@ import { cn } from '../lib/cn'
 // (dp_rh.brainstorm_palavras) via a RPC brainstorm_add. Acesso liberado por
 // pessoa no painel admin (aba Aplicativo) — guard: usuario.podeBrainstorm.
 const SESSAO = 'Brainstorm Geral'
-// Mesmas categorias (e ordem) do modal original do portal.
+// Mesmas categorias (e ordem) do modal original do portal, mas com as dicas
+// em 1ª pessoa (a palavra parte de como EU vejo/sinto).
 const CATEGORIAS = [
-  { nome: 'Emoções', desc: 'Como as pessoas se sentem' },
-  { nome: 'Dores/Problemas', desc: 'O que está dificultando' },
-  { nome: 'Causas', desc: 'Por que isso acontece' },
-  { nome: 'Comportamentos', desc: 'Como isso aparece na prática' },
-  { nome: 'Ações', desc: 'O que precisa ser feito' },
-  { nome: 'Forças', desc: 'O que deve ser valorizado' },
+  { nome: 'Emoções', desc: 'Como estou me sentindo?' },
+  { nome: 'Dores/Problemas', desc: 'O que está me atrapalhando?' },
+  { nome: 'Causas', desc: 'Por que eu acho que acontece?' },
+  { nome: 'Comportamentos', desc: 'Como eu vejo na prática?' },
+  { nome: 'Ações', desc: 'O que eu posso fazer?' },
+  { nome: 'Forças', desc: 'O que eu mais valorizo?' },
 ]
 
 export function Brainstorm() {
