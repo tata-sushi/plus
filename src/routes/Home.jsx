@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Flag, ShoppingBag, Star, Network, Sun, Check, X, KanbanSquare, SprayCan, Radio as RadioIcon, Puzzle, UtensilsCrossed, Trophy, CalendarClock, FileSignature, ReceiptText, QrCode, HeartHandshake } from 'lucide-react'
+import { Flag, ShoppingBag, Star, Network, Sun, Check, X, KanbanSquare, SprayCan, Radio as RadioIcon, Puzzle, UtensilsCrossed, Trophy, CalendarClock, FileSignature, ReceiptText, QrCode, HeartHandshake, Lightbulb } from 'lucide-react'
 import { cn } from '../lib/cn'
 import { Header } from '../components/Header.jsx'
 import { Section } from '../components/Section.jsx'
@@ -233,6 +233,10 @@ export function Home() {
       : []),
     ...(usuario?.podeEscala
       ? [{ to: '/escala', badgeIcon: CalendarClock, title: 'Agenda', subtitle: 'Sua escala da semana' }]
+      : []),
+    // Brainstorm "Compartilhe sua palavra" — mesma regra do Mais (podeBrainstorm).
+    ...(usuario?.podeBrainstorm
+      ? [{ to: '/brainstorm', badgeIcon: Lightbulb, title: 'Brainstorm', subtitle: 'Compartilhe sua palavra' }]
       : []),
     { to: '/minha-experiencia', badgeIcon: HeartHandshake, title: 'Avaliações e Reconhecimentos', subtitle: 'Avalie e reconheça' },
     { to: '/documentos', badgeIcon: FileSignature, title: 'Documentos', subtitle: 'Documentos para assinar', badge: docsPend },
