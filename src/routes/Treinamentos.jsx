@@ -529,7 +529,19 @@ function Detalhe({
       ) : ehVideo ? (
         <VideoPlayer src={data.arquivo_url} onAssistido={() => setVideosOk(true)} />
       ) : ehPdf && !ehRico ? (
-        <PdfViewer src={data.arquivo_url} onLido={() => setRolou(true)} onAbrir={() => setRolou(true)} />
+        <div className="flex min-h-0 flex-1 flex-col">
+          <PdfViewer src={data.arquivo_url} onLido={() => setRolou(true)} onAbrir={() => setRolou(true)} />
+          <div className="shrink-0 border-t border-line bg-bg px-5 py-3">
+            <a
+              href={`${data.arquivo_url}?download`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-ghost w-full !py-3 text-sm"
+            >
+              <Download size={16} /> Baixar PDF
+            </a>
+          </div>
+        </div>
       ) : ehRico ? (
         <div ref={conteudoRef} onScroll={aoRolarConteudo} className="flex-1 overflow-y-auto px-5 py-4">
           {frase && (
