@@ -12,10 +12,8 @@ Ideias e pendências levantadas para desenvolvimento futuro.
   só admins:** trocar o corpo do RPC pra `select coalesce(tata_plus.pode_publicar(), false);`
   (um comando só, sem mexer no app). _(liberado em 25/09/2026; bloqueio original de 2026-09-23)_
 
-- [ ] **Jornada — texto do botão de resgate** — o botão hoje diz só **"Resgate"**.
-  O Victor pediu "muda o comecinho deles para resgate. O item XX" — falta decidir se o
-  botão deve incluir o nome/tempo do item (ex.: "Resgate o item — 3 anos de TATÁ") ou
-  ficar só "Resgate". Ajuste em `src/components/PainelJornada.jsx`. _(anotado em 2026-09-23)_
+- [x] **Jornada — texto do botão de resgate — DECIDIDO (01/10/2026): fica só "Resgate"**
+  (sem nome/tempo do item). Nada a mudar. _(anotado em 2026-09-23; decidido 01/10/2026)_
 
 - [x] **Padronização de cabeçalho das páginas — CONCLUÍDA (20/09)** — ajustes de texto do
   Victor aplicados; renomes "Kanban Tatá"→"Kanban" e "Rádio Tatá"→"Rádio" no app todo;
@@ -79,10 +77,9 @@ Ideias e pendências levantadas para desenvolvimento futuro.
   liberados (ex.: Thamires) e **fechou o furo** (dava pra setar `sandbox_matricula='7'` no console e
   ver todos os salários); (b) `perm_ver_valores` recebeu linha `geral` para os admins sócios/gerência
   (Cinthia 1, Fabio 2, Tito 8, Luiz 9). **Falta:**
-  - [ ] **Tela "Liberar valores" no painel admin de Governança** — hoje `dp_rh.perm_ver_valores` só
-    é editável direto no banco; já existem as RPCs (`perm_valores_listar`, `perm_valores_set`,
-    `perm_valores_set_geral`, `perm_valores_sync`, `perm_valores_areas`), falta a UI que as consome
-    (é por isso que "não tem opção de liberar no app" — permissão de valores é separada do acesso à página).
+  - [—] **Tela "Liberar valores" no painel admin de Governança — FORA DO NOSSO ESCOPO (01/10/2026)**:
+    é função do time do portal `lideres`, não nossa. O backend já existe (RPCs `perm_valores_*`); a UI
+    fica com eles. _(decidido 01/10/2026)_
   - [ ] **Faxina no front** — remover o stub morto de sandbox (`_sandboxMatricula()` /
     `localStorage['sandbox_matricula']` / `p_matricula`) de `recrutamento.html` e `doc.html` no repo
     `lideres` (o backend já ignora o `p_matricula`). _(anotado em 2026-09-16)_
@@ -111,9 +108,7 @@ Ideias e pendências levantadas para desenvolvimento futuro.
   por RPC), bucket privado `assinaturas` (docs/rubricas/selfies/assinados), RPCs `docs_*`. **Falta:**
   nível **ICP-Brasil** via provedor externo (o modelo já tem o campo `nivel`). _(anotado 2026-08-22)_
 
-- [ ] **Esquema de pontuação** — definir uma mecânica de pontos/recompensa (surgiu
-  na conversa logo após o easter egg do rodapé do "Mais": clicar em "Victor Carvalho"
-  → perfil do dev). Detalhar as regras depois. _(anotado em 2026-08-12)_
+- [x] **Esquema de pontuação — FINALIZADO (01/10/2026)**. _(anotado em 2026-08-12; finalizado 01/10/2026)_
 
 - [x] **Rádio 2.0 — Podcast "Tatá Cast"** — **EM PRODUÇÃO** (liberado pra todos). Entregue:
   player global (continua tocando ao navegar, mini-player com botão de fechar, **velocidade
@@ -122,12 +117,11 @@ Ideias e pendências levantadas para desenvolvimento futuro.
   (`tata_plus.podcast_episodios` + bucket `podcast`), **pontuação de verdade** ao concluir
   (`podcast_pontuar`, conta no ranking, 1×/episódio) e **check "concluído" persistente**
   (`podcast_meus_concluidos`). _(concluído em 2026-08-16)_
-  - [ ] **Retomar de onde parou** nos episódios longos (hoje reinicia do zero). _(pendente)_
-  - [ ] **Ep. 02 "Setembro Amarelo"** está como **rascunho** — ativar em setembro. _(lembrete)_
+  - [x] **Retomar de onde parou** nos episódios longos. _(finalizado 01/10/2026)_
+  - [x] **Ep. 02 "Setembro Amarelo"**. _(finalizado 01/10/2026)_
 
-- [ ] **Jogo "Rota do Sushi"** (estilo *Zip* do LinkedIn) — 2º desafio diário: ligar os
-  números 1→N arrastando e passando por todas as casas. Gerado pela data, sem manutenção.
-  Fica como alternativa/complemento ao "Tatá Tango". _(anotado em 2026-08-20)_
+- [x] **Jogo "Rota do Sushi"** (estilo *Zip* do LinkedIn) — 2º desafio diário. **FINALIZADO
+  (01/10/2026)**. _(anotado em 2026-08-20; finalizado 01/10/2026)_
 
 - [x] **Solver rápido pro Tatá Tango (8×8 e 10×10)** — ~~o gerador só era rápido em 6×6
   (10×10 ~5s)~~. Feito: motor por **propagação lógica** (gera removendo pistas enquanto a

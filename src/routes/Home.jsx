@@ -191,14 +191,25 @@ export function Home() {
   const loja = usuario?.loja || ''
 
   // Documentos pendentes de assinatura → bolinha (contador) no tile "Documentos".
+  // Rebusca ao voltar o foco/visibilidade, pra a bolinha sumir assim que a pessoa
+  // assina e volta pra Home; segue visível enquanto houver pendência (> 0).
   const [docsPend, setDocsPend] = useState(0)
   useEffect(() => {
     let ativo = true
-    supabase.rpc('docs_pendentes_contagem').then(({ data }) => {
-      if (ativo) setDocsPend(Number(data) || 0)
-    })
+    const buscar = () =>
+      supabase.rpc('docs_pendentes_contagem').then(({ data }) => {
+        if (ativo) setDocsPend(Number(data) || 0)
+      })
+    buscar()
+    const onVisivel = () => {
+      if (document.visibilityState === 'visible') buscar()
+    }
+    document.addEventListener('visibilitychange', onVisivel)
+    window.addEventListener('focus', buscar)
     return () => {
       ativo = false
+      document.removeEventListener('visibilitychange', onVisivel)
+      window.removeEventListener('focus', buscar)
     }
   }, [])
 
