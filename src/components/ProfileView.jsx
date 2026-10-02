@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Clock, X, Loader2 } from 'lucide-react'
+import { Clock, X, Loader2, Sparkles, Target } from 'lucide-react'
 import { Header } from './Header.jsx'
 import { Voltar } from './Voltar.jsx'
 import { Section } from './Section.jsx'
@@ -31,6 +31,8 @@ export function ProfileView({ colaborador, isSelf }) {
   const [resumo, setResumo] = useState(null)
   // Lista dos desafios que o próprio já concluiu (só na Minha Jornada).
   const [concluidos, setConcluidos] = useState(null)
+  // Feedback da avaliação de desempenho (do líder): pontos fortes / a melhorar.
+  const [feedback, setFeedback] = useState(null)
   // Foto ampliada (lightbox) ao tocar no avatar, quando há foto de verdade.
   const [zoom, setZoom] = useState(false)
 
@@ -42,6 +44,9 @@ export function ProfileView({ colaborador, isSelf }) {
     })
     supabase.rpc('meus_desafios_concluidos').then(({ data }) => {
       if (ativo) setConcluidos(data || [])
+    })
+    supabase.rpc('meu_feedback_desempenho').then(({ data }) => {
+      if (ativo) setFeedback(data || null)
     })
     return () => {
       ativo = false
@@ -130,18 +135,39 @@ export function ProfileView({ colaborador, isSelf }) {
         </Section>
       )}
 
-      {/* Ações — em breve */}
+      {/* Meu desenvolvimento — pontos fortes / a melhorar da avaliação de desempenho (líder) */}
       {isSelf && (
-        <Section className="reveal reveal-3 mt-5" title="Ações">
-          <Card className="hstack gap-3">
-            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-surface-2 text-muted-2">
-              <Clock size={16} />
-            </span>
-            <div className="min-w-0 flex-1">
-              <div className="text-sm font-semibold">Em breve</div>
-              <div className="text-xs text-muted">Novas ações chegando por aqui.</div>
-            </div>
-          </Card>
+        <Section className="reveal reveal-3 mt-5" title="Meu desenvolvimento">
+          {feedback && (feedback.pontos_fortes || feedback.desenvolver) ? (
+            <Card className="overflow-hidden !p-0">
+              <div className="p-4">
+                <div className="hstack gap-1.5 text-[11px] font-bold uppercase tracking-wide text-accent">
+                  <Sparkles size={13} /> Pontos fortes
+                </div>
+                <p className="mt-1.5 whitespace-pre-wrap text-sm leading-relaxed text-text">
+                  {feedback.pontos_fortes || '—'}
+                </p>
+              </div>
+              <div className="border-t border-line p-4">
+                <div className="hstack gap-1.5 text-[11px] font-bold uppercase tracking-wide text-warn">
+                  <Target size={13} /> Pontos a melhorar
+                </div>
+                <p className="mt-1.5 whitespace-pre-wrap text-sm leading-relaxed text-text">
+                  {feedback.desenvolver || '—'}
+                </p>
+              </div>
+            </Card>
+          ) : (
+            <Card className="hstack gap-3">
+              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-surface-2 text-muted-2">
+                <Clock size={16} />
+              </span>
+              <div className="min-w-0 flex-1">
+                <div className="text-sm font-semibold">Em breve</div>
+                <div className="text-xs text-muted">Seu feedback de desempenho aparecerá aqui.</div>
+              </div>
+            </Card>
+          )}
         </Section>
       )}
 
