@@ -26,6 +26,8 @@ export function ProfileView({ colaborador, isSelf }) {
   const { usuario } = useAuth()
   // Demo do radar só no meu usuário (matrícula 7), sem afetar os outros.
   const demoRadar = isSelf && usuario?.matricula === '7'
+  // Card "Meu desenvolvimento" (feedback do líder) — em teste: só no meu usuário (mat 7).
+  const verFeedback = isSelf && usuario?.matricula === '7'
   const ehDev = usuario?.matricula === '7' // perfil do dev → tema dourado
   // Resumo real: saldo, resgates e progresso de desafios.
   const [resumo, setResumo] = useState(null)
@@ -45,9 +47,11 @@ export function ProfileView({ colaborador, isSelf }) {
     supabase.rpc('meus_desafios_concluidos').then(({ data }) => {
       if (ativo) setConcluidos(data || [])
     })
-    supabase.rpc('meu_feedback_desempenho').then(({ data }) => {
-      if (ativo) setFeedback(data || null)
-    })
+    if (usuario?.matricula === '7') {
+      supabase.rpc('meu_feedback_desempenho').then(({ data }) => {
+        if (ativo) setFeedback(data || null)
+      })
+    }
     return () => {
       ativo = false
     }
@@ -135,8 +139,9 @@ export function ProfileView({ colaborador, isSelf }) {
         </Section>
       )}
 
-      {/* Meu desenvolvimento — pontos fortes / a melhorar da avaliação de desempenho (líder) */}
-      {isSelf && (
+      {/* Meu desenvolvimento — pontos fortes / a melhorar da avaliação de desempenho (líder).
+          Em teste: só no meu usuário (mat 7). Os demais seguem com "Ações — em breve". */}
+      {verFeedback ? (
         <Section className="reveal reveal-3 mt-5" title="Meu desenvolvimento">
           {feedback && (feedback.pontos_fortes || feedback.desenvolver) ? (
             <Card className="overflow-hidden !p-0">
@@ -169,7 +174,19 @@ export function ProfileView({ colaborador, isSelf }) {
             </Card>
           )}
         </Section>
-      )}
+      ) : isSelf ? (
+        <Section className="reveal reveal-3 mt-5" title="Ações">
+          <Card className="hstack gap-3">
+            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-surface-2 text-muted-2">
+              <Clock size={16} />
+            </span>
+            <div className="min-w-0 flex-1">
+              <div className="text-sm font-semibold">Em breve</div>
+              <div className="text-xs text-muted">Novas ações chegando por aqui.</div>
+            </div>
+          </Card>
+        </Section>
+      ) : null}
 
       {/* Desafios realizados — última seção: lista dos que o próprio concluiu (histórico) */}
       {isSelf && (
