@@ -157,8 +157,8 @@ export function ProfileView({ colaborador, isSelf }) {
       {/* Restrições alimentares */}
       {isSelf && <RestricoesAlimentares />}
 
-      {/* Indicadores — formato tabela */}
-      <Section className="reveal reveal-2 mt-5" title="Indicadores">
+      {/* Números Tatá Plus — indicadores + histórico de desafios, numa seção só */}
+      <Section className="reveal reveal-2 mt-5" title="Números Tatá Plus">
         <div className="card overflow-hidden">
           <div className="hstack justify-between px-4 py-3">
             <span className="text-sm text-muted">Desafios realizados</span>
@@ -171,29 +171,18 @@ export function ProfileView({ colaborador, isSelf }) {
             <span className="text-sm font-bold">{resumo?.resgates ?? 0}</span>
           </div>
         </div>
-      </Section>
 
-      {/* Desafios realizados — última seção: lista dos que o próprio concluiu (histórico) */}
-      {isSelf && (
-        <Section
-          className="reveal reveal-3 mt-5"
-          title="Desafios realizados"
-          action={
-            concluidos != null && (
-              <span className="text-xs font-semibold text-muted">{concluidos.length}</span>
-            )
-          }
-        >
-          {concluidos == null ? (
-            <Card className="hstack justify-center py-6 text-muted-2">
+        {isSelf &&
+          (concluidos == null ? (
+            <Card className="mt-3 hstack justify-center py-6 text-muted-2">
               <Loader2 size={20} className="animate-spin" />
             </Card>
           ) : concluidos.length === 0 ? (
-            <Card className="py-6 text-center text-sm text-muted">
+            <Card className="mt-3 py-6 text-center text-sm text-muted">
               Você ainda não concluiu nenhum desafio.
             </Card>
           ) : (
-            <div className="card overflow-hidden">
+            <div className="card mt-3 overflow-hidden">
               {concluidos.map((d, i) => (
                 <div
                   key={d.id}
@@ -216,9 +205,8 @@ export function ProfileView({ colaborador, isSelf }) {
                 </div>
               ))}
             </div>
-          )}
-        </Section>
-      )}
+          ))}
+      </Section>
 
       {/* Foto ampliada — portal no body pra ficar fixa na tela toda (fora do
           contexto da página animada). Toca fora ou no X pra fechar. */}
