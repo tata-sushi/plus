@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { createPortal } from 'react-dom'
 import {
   ArrowLeft, QrCode, Plus, Loader2, X, Check, Users, MapPin, CalendarClock,
-  Star, Power, Pencil, Download, AlertTriangle,
+  Star, Power, Pencil, Download, AlertTriangle, RotateCcw,
 } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { CabecalhoPagina } from '../components/CabecalhoPagina.jsx'
@@ -59,7 +59,7 @@ export function Eventos({ embutido = false }) {
   const [qrDe, setQrDe] = useState(null)
 
   function carregar() {
-    supabase.rpc('eventos_listar').then(({ data }) => setEventos(Array.isArray(data) ? data : []))
+    supabase.rpc('eventos_visiveis').then(({ data }) => setEventos(Array.isArray(data) ? data : []))
   }
   useEffect(() => {
     carregar()
@@ -113,8 +113,8 @@ export function Eventos({ embutido = false }) {
             <EventoCard key={e.id} e={e} podeGerir={podeGerir}
               onQr={() => setQrDe(e)} onPresencas={() => setPresencasDe(e)}
               onEditar={() => setForm({ ...e, editar: true })}
-              onArquivar={() => {
-                supabase.rpc('evento_arquivar', { p_id: e.id, p_ativo: false }).then(carregar)
+              onAtivo={(ativo) => {
+                supabase.rpc('evento_arquivar', { p_id: e.id, p_ativo: ativo }).then(carregar)
               }} />
           ))
         )}
@@ -170,12 +170,17 @@ export function Eventos({ embutido = false }) {
   )
 }
 
-function EventoCard({ e, podeGerir, onQr, onPresencas, onEditar, onArquivar }) {
+function EventoCard({ e, podeGerir, onQr, onPresencas, onEditar, onAtivo }) {
   return (
-    <div className="card p-4">
+    <div className={`card p-4 ${e.ativo ? '' : 'opacity-70'}`}>
       <div className="hstack items-start justify-between gap-2">
         <div className="min-w-0">
-          <div className="font-display text-base font-bold leading-tight">{e.titulo}</div>
+          <div className="hstack flex-wrap items-center gap-2">
+            <span className="font-display text-base font-bold leading-tight">{e.titulo}</span>
+            {!e.ativo && (
+              <span className="shrink-0 rounded-full bg-surface-2 px-2 py-0.5 text-[10px] font-semibold text-muted-2">Encerrado</span>
+            )}
+          </div>
           <div className="mt-1 hstack flex-wrap gap-x-3 gap-y-0.5 text-xs text-muted">
             <span className="hstack gap-1"><CalendarClock size={13} /> {fmtData(e.data_inicio)}{e.data_fim ? ` – ${fmtData(e.data_fim)}` : ''}</span>
             {e.local && <span className="hstack gap-1"><MapPin size={13} /> {e.local}</span>}
@@ -200,11 +205,15 @@ function EventoCard({ e, podeGerir, onQr, onPresencas, onEditar, onArquivar }) {
       </div>
 
       {podeGerir && (
-        <div className="mt-3 hstack flex-wrap gap-2 border-t border-line pt-3">
-          <button onClick={onQr} className="hstack gap-1 rounded-full bg-accent-soft px-3 py-1.5 text-xs font-bold text-accent tap"><QrCode size={13} /> QR</button>
-          <button onClick={onPresencas} className="hstack gap-1 rounded-full border border-line bg-surface px-3 py-1.5 text-xs font-semibold text-text tap"><Users size={13} /> Presenças</button>
-          <button onClick={onEditar} className="hstack gap-1 rounded-full border border-line bg-surface px-3 py-1.5 text-xs font-semibold text-muted tap"><Pencil size={13} /> Editar</button>
-          <button onClick={() => { if (window.confirm('Encerrar este evento? Ele para de aceitar check-ins.')) onArquivar() }} className="hstack gap-1 rounded-full border border-line bg-surface px-3 py-1.5 text-xs font-semibold text-danger tap"><Power size={13} /> Encerrar</button>
+        <div className="mt-3 hstack flex-nowrap gap-1.5 border-t border-line pt-3">
+          <button onClick={onQr} className="hstack min-w-0 flex-1 justify-center gap-1 rounded-full bg-accent-soft px-2 py-1.5 text-[11px] font-bold text-accent tap"><QrCode size={12} className="shrink-0" /> <span className="truncate">QR</span></button>
+          <button onClick={onPresencas} className="hstack min-w-0 flex-1 justify-center gap-1 rounded-full border border-line bg-surface px-2 py-1.5 text-[11px] font-semibold text-text tap"><Users size={12} className="shrink-0" /> <span className="truncate">Presenças</span></button>
+          <button onClick={onEditar} className="hstack min-w-0 flex-1 justify-center gap-1 rounded-full border border-line bg-surface px-2 py-1.5 text-[11px] font-semibold text-muted tap"><Pencil size={12} className="shrink-0" /> <span className="truncate">Editar</span></button>
+          {e.ativo ? (
+            <button onClick={() => { if (window.confirm('Encerrar este evento? Ele para de aceitar check-ins.')) onAtivo(false) }} className="hstack min-w-0 flex-1 justify-center gap-1 rounded-full border border-line bg-surface px-2 py-1.5 text-[11px] font-semibold text-danger tap"><Power size={12} className="shrink-0" /> <span className="truncate">Encerrar</span></button>
+          ) : (
+            <button onClick={() => onAtivo(true)} className="hstack min-w-0 flex-1 justify-center gap-1 rounded-full border border-line bg-surface px-2 py-1.5 text-[11px] font-semibold text-accent tap"><RotateCcw size={12} className="shrink-0" /> <span className="truncate">Reativar</span></button>
+          )}
         </div>
       )}
     </div>
