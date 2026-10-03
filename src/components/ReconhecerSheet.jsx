@@ -71,7 +71,7 @@ export function ReconhecerSheet({ paraMatricula, paraNome, onClose, onSucesso })
           </button>
         </div>
 
-        <p className="mt-1 text-xs text-muted">Compartilhe o motivo do reconhecimento.</p>
+        <p className="mt-1 text-xs text-muted">Escolha o motivo e escreva uma mensagem.</p>
 
         {/* Motivos (chips, seleção única) */}
         <div className="mt-3 flex flex-wrap justify-center gap-2">
@@ -105,7 +105,7 @@ export function ReconhecerSheet({ paraMatricula, paraNome, onClose, onSucesso })
             value={mensagem}
             onChange={(e) => setMensagem(e.target.value.slice(0, MAX_MSG))}
             rows={3}
-            placeholder="Mensagem — ex.: salvou o rush de sexta!"
+            placeholder="Compartilhe o motivo do reconhecimento."
             className="w-full resize-none rounded-card border border-line bg-surface px-3.5 py-3 text-sm outline-none focus:border-accent"
           />
           <div className="mt-1 text-right text-[11px] text-muted-2">
