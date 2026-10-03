@@ -1,13 +1,24 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
 import { createPortal } from 'react-dom'
-import { QrCode, Loader2, Check, Star, AlertTriangle } from 'lucide-react'
+import { QrCode, Loader2, Check, Star, AlertTriangle, CalendarClock, MapPin } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { CabecalhoPagina } from '../components/CabecalhoPagina.jsx'
+import { Section } from '../components/Section.jsx'
 import { QrScanner } from '../components/QrScanner.jsx'
 import { useAuth } from '../lib/AuthContext.jsx'
 import { supabase } from '../lib/supabase.js'
 import { tapHaptic } from '../lib/haptics.js'
+import { cn } from '../lib/cn'
+
+function fmtData(iso) {
+  if (!iso) return ''
+  try {
+    return new Intl.DateTimeFormat('pt-BR', {
+      timeZone: 'America/Sao_Paulo', day: '2-digit', month: '2-digit', year: 'numeric',
+    }).format(new Date(iso))
+  } catch { return '' }
+}
 
 // Hub de Check-in = leitor ÚNICO de QR. Um só toque no ícone abre a câmera e lê
 // qualquer código; o destino é decidido pelo conteúdo do QR:
@@ -33,6 +44,15 @@ export function CheckIn() {
   const { usuario } = useAuth()
   const [scanning, setScanning] = useState(false)
   const [checkin, setCheckin] = useState(null) // { fase:'loading'|'ok'|'erro', ... }
+  // Histórico dos eventos que o próprio já confirmou presença (só aparece se tiver ≥1).
+  const [eventos, setEventos] = useState(null)
+
+  function carregarEventos() {
+    supabase.rpc('meus_eventos').then(({ data }) => setEventos(Array.isArray(data) ? data : []))
+  }
+  useEffect(() => {
+    carregarEventos()
+  }, [])
 
   function fazerCheckinEvento(token) {
     setScanning(false)
@@ -48,6 +68,7 @@ export function CheckIn() {
       } else {
         setCheckin({ fase: 'ok', ...data })
         tapHaptic()
+        carregarEventos() // acabou de confirmar → entra no histórico
       }
     })
   }
@@ -85,19 +106,57 @@ export function CheckIn() {
             onLido={aoLerQR}
           />
         ) : (
-          /* O próprio ícone é o botão de escanear — centralizado na página */
-          <div className="flex flex-1 items-center justify-center">
-            <button
-              onClick={() => { tapHaptic(); setScanning(true) }}
-              aria-label="Escanear QR"
-              className="flex flex-col items-center gap-3 tap"
+          <>
+            {/* O próprio ícone é o botão de escanear. Centraliza quando não há
+                histórico; com histórico, encolhe pro topo pra dar lugar à lista. */}
+            <div
+              className={cn(
+                'flex items-center justify-center',
+                eventos?.length ? 'py-6' : 'flex-1',
+              )}
             >
-              <span className="grid h-28 w-28 place-items-center rounded-[28px] bg-accent text-black shadow-md">
-                <QrCode size={52} strokeWidth={2} />
-              </span>
-              <span className="text-sm font-semibold">Escanear QR</span>
-            </button>
-          </div>
+              <button
+                onClick={() => { tapHaptic(); setScanning(true) }}
+                aria-label="Escanear QR"
+                className="flex flex-col items-center gap-3 tap"
+              >
+                <span className="grid h-28 w-28 place-items-center rounded-[28px] bg-accent text-black shadow-md">
+                  <QrCode size={52} strokeWidth={2} />
+                </span>
+                <span className="text-sm font-semibold">Escanear QR</span>
+              </button>
+            </div>
+
+            {eventos?.length > 0 && (
+              <Section className="mt-2" title="Eventos confirmados">
+                <div className="flex flex-col gap-2.5">
+                  {eventos.map((e) => (
+                    <div key={e.id} className="card p-3.5">
+                      <div className="hstack items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <div className="truncate text-sm font-semibold">{e.titulo}</div>
+                          <div className="mt-0.5 hstack flex-wrap gap-x-3 gap-y-0.5 text-[11px] text-muted">
+                            <span className="hstack gap-1"><CalendarClock size={12} /> {fmtData(e.data_inicio)}</span>
+                            {e.local && <span className="hstack gap-1"><MapPin size={12} /> {e.local}</span>}
+                          </div>
+                        </div>
+                        {e.pontos > 0 && (
+                          <span className="hstack shrink-0 gap-1 rounded-full bg-accent-soft px-2 py-0.5 text-[11px] font-bold text-accent">
+                            <Star size={12} /> +{e.pontos}
+                          </span>
+                        )}
+                      </div>
+                      <div className="mt-2 hstack gap-1.5 border-t border-line pt-2 text-[11px] font-semibold text-accent">
+                        <Check size={13} /> Presença confirmada
+                        <span className="font-normal text-muted-2">· {fmtData(e.marcado_em)}</span>
+                        {!e.ativo && <span className="font-normal text-muted-2">· encerrado</span>}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </Section>
+            )}
+          </>
         )}
       </div>
 
