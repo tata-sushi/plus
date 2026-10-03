@@ -32,7 +32,7 @@ const ROTA_CANVAS = { '/ouvidoria': 'ouvidoria' }
 // Brainstorm, Cardápio, Documentos, Holerite, Organograma, Avaliações, Passatempos)
 // foi tirado daqui.
 const itens = [
-  { to: '/jornada', label: 'Perfil', icon: UserRound },
+  { to: '/jornada', label: 'Meu perfil', icon: UserRound },
   { to: '/buscar', label: 'Buscar colaborador', icon: Search },
   { to: '/comunicados', label: 'Comunicados', icon: Megaphone },
   { to: '/ouvidoria', label: 'Ouvidoria', icon: MessageSquareWarning },
@@ -84,10 +84,15 @@ export function Mais() {
   const [saldo, setSaldo] = useState(null)
   const [progresso, setProgresso] = useState(null)
 
-  // Nada gated aqui (os gated — Kanban/Brainstorm — vivem nas Sugestões). Só ordena.
-  const navItens = [...itens].sort((a, b) =>
-    a.label.localeCompare(b.label, 'pt', { sensitivity: 'base' }),
-  )
+  // Nada gated aqui (os gated — Kanban/Brainstorm — vivem nas Sugestões).
+  // "Meu perfil" fica fixo no topo; o resto segue em ordem alfabética.
+  const navItens = (() => {
+    const perfil = itens.find((i) => i.to === '/jornada')
+    const resto = itens
+      .filter((i) => i.to !== '/jornada')
+      .sort((a, b) => a.label.localeCompare(b.label, 'pt', { sensitivity: 'base' }))
+    return perfil ? [perfil, ...resto] : resto
+  })()
 
   useEffect(() => {
     let ativo = true
