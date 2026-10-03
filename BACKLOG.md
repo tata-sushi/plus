@@ -6,14 +6,7 @@ Ideias e pendências de desenvolvimento. _Reorganizado em 03/10/2026._
 
 ## 🔧 Em andamento
 
-- [ ] **Perfil — card "Meu desenvolvimento"** (pontos fortes / a melhorar, da avaliação de
-  desempenho feita pelo líder). **EM TESTE só no usuário mat 7** (gate `verFeedback` em
-  `src/components/ProfileView.jsx`); os demais seguem vendo "Ações — em breve". Backend pronto:
-  RPC `tata_plus.meu_feedback_desempenho()` — **self-scoped** por `minha_matricula()` (sem
-  parâmetro; cada um só vê o próprio), lê `dp_rh.avaliacoes` (modelo `desempenho`),
-  `resultado->>'pontos_fortes'` / `->>'desenvolver'`. **Falta decidir o rollout:**
-  (a) só depois da devolutiva (`devolutiva_em` preenchido), (b) pra todos que já têm feedback,
-  ou (c) manter em teste. _(03/10/2026)_
+_Nada em andamento no momento._
 
 ---
 
@@ -59,6 +52,10 @@ Ideias e pendências de desenvolvimento. _Reorganizado em 03/10/2026._
 
 ## ✅ Concluído
 
+- [x] **Perfil — card "Desempenho"** (pontos fortes / a melhorar da avaliação do líder, self-scoped
+  via `meu_feedback_desempenho`, com a data da avaliação inline). **LIBERADO PRA TODOS (03/10/2026)**.
+  Perfil também reorganizado: "Meu perfil"→"Perfil", "Indicadores"→"Números Tatá Plus" (fundido com
+  os desafios realizados), radar demo removido, ordem Perfil→Conquistas→Desempenho→Restrições→Números. _(03/10/2026)_
 - [x] **Reconhecimento entre pares — mensagem obrigatória (mín. 20 caracteres)** — botão só
   habilita com motivo + mensagem ≥ 20 chars; placeholder "Compartilhe o motivo do reconhecimento.".
   _(03/10/2026)_
