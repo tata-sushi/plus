@@ -111,6 +111,9 @@ export function ProfileView({ colaborador, isSelf }) {
                 </div>
                 <p className="mt-1.5 whitespace-pre-wrap text-sm leading-relaxed text-text">
                   {feedback.pontos_fortes || '—'}
+                  {(feedback.periodo || feedback.data_referencia) && (
+                    <span className="text-muted-2">{` (${feedback.periodo ? `${feedback.periodo}ª avaliação` : 'avaliação'}${feedback.data_referencia ? ` · ${new Date(feedback.data_referencia + 'T00:00:00').toLocaleDateString('pt-BR')}` : ''})`}</span>
+                  )}
                 </p>
               </div>
               <div className="border-t border-line p-4">
@@ -121,14 +124,6 @@ export function ProfileView({ colaborador, isSelf }) {
                   {feedback.desenvolver || '—'}
                 </p>
               </div>
-              {(feedback.periodo || feedback.data_referencia) && (
-                <div className="border-t border-line px-4 py-2 text-[11px] text-muted-2">
-                  {feedback.periodo ? `${feedback.periodo}ª avaliação` : 'Avaliação de desempenho'}
-                  {feedback.data_referencia
-                    ? ` · ${new Date(feedback.data_referencia + 'T00:00:00').toLocaleDateString('pt-BR')}`
-                    : ''}
-                </div>
-              )}
             </Card>
           ) : (
             <Card className="hstack gap-3">
