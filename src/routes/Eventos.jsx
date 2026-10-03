@@ -200,7 +200,7 @@ function EventoCard({ e, podeGerir, onQr, onPresencas, onEditar, onAtivo }) {
           <span className="hstack gap-1"><Users size={13} /> {e.total} presente{e.total === 1 ? '' : 's'}</span>
         </div>
         {e.ja_presente && (
-          <span className="hstack gap-1 text-xs font-bold text-accent"><Check size={14} /> Você está presente</span>
+          <span className="hstack gap-1 text-xs font-bold text-accent"><Check size={14} /> Você esteve presente</span>
         )}
       </div>
 
