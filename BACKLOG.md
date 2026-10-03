@@ -12,9 +12,9 @@ _Nada em andamento no momento._
 
 ## ⏭️ Próximos
 
-1. [ ] **Eventos / lista de presença** — criação de eventos e geração do QR vão pro portal de
-   líderes; o app só **lê** o QR no hub de Check-in. `/eventos` saiu dos menus (rota mantida por
-   trás, pros deep links). Nada urgente. _(atualizado 2026-09-20)_
+1. [ ] **Evento — janela de horário no check-in (anti-"cola")** — hoje o `evento_checkin` só
+   confere se o evento está `ativo`; dá pra travar a pontuação pra fora da janela
+   `data_inicio`–`data_fim` (quem escanear antes/depois não ganha). _Opcional, aguardando decisão._
 
 ---
 
@@ -55,6 +55,10 @@ _Nada em andamento no momento._
 
 ## ✅ Concluído
 
+- [x] **Eventos — criação/gestão no painel admin do app** (aba "Eventos" no painel, só pra quem
+  tem `evento_pode_gerir`): criar evento com pontos por presença, gerar/baixar QR, ver presenças,
+  editar e encerrar. Check-in por QR libera os pontos 1x por pessoa (`evento_checkin`, origem
+  `evento`, conta no ranking). Aba embutida → abre igual no mobile e no desktop. _(03/10/2026)_
 - [x] **Perfil — card "Desempenho"** (pontos fortes / a melhorar da avaliação do líder, self-scoped
   via `meu_feedback_desempenho`, com a data da avaliação inline). **LIBERADO PRA TODOS (03/10/2026)**.
   Perfil também reorganizado: "Meu perfil"→"Perfil", "Indicadores"→"Números Tatá Plus" (fundido com
