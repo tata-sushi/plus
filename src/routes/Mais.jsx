@@ -8,23 +8,9 @@ import {
   Camera,
   Loader2,
   Megaphone,
-  UtensilsCrossed,
   ShieldCheck,
   MessageSquareWarning,
   Search,
-  Trophy,
-  KanbanSquare,
-  CalendarClock,
-  CalendarCheck,
-  Puzzle,
-  FileSignature,
-  HeartHandshake,
-  ClipboardList,
-  ShoppingBag,
-  ReceiptText,
-  Lightbulb,
-  Network,
-  QrCode,
 } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Section } from '../components/Section.jsx'
@@ -41,25 +27,15 @@ import { tapHaptic } from '../lib/haptics.js'
 // No desktop estas rotas abrem no quadrante central em vez de navegar no painel.
 const ROTA_CANVAS = { '/ouvidoria': 'ouvidoria' }
 
-// gov: true → só aparece para quem tem Governança (Ouvidoria deslocada do slot da barra).
-// quadros: true → só aparece para quem tem acesso ao Kanban (Kanban + Ranking deslocado da barra).
+// A Navegação do "Mais" lista só o que NÃO está nas Sugestões da Home (sem duplicar).
+// Tudo o que é atalho de Sugestões (Lojinha, Ranking, Agenda, Check-in, Kanban,
+// Brainstorm, Cardápio, Documentos, Holerite, Organograma, Avaliações, Passatempos)
+// foi tirado daqui.
 const itens = [
   { to: '/jornada', label: 'Perfil', icon: UserRound },
   { to: '/buscar', label: 'Buscar colaborador', icon: Search },
   { to: '/comunicados', label: 'Comunicados', icon: Megaphone },
-  { to: '/lojinha', label: 'Lojinha', icon: ShoppingBag },
-  { to: '/minha-experiencia', label: 'Avaliações e Reconhecimentos', icon: HeartHandshake },
   { to: '/ouvidoria', label: 'Ouvidoria', icon: MessageSquareWarning },
-  { to: '/cardapio', label: 'Cardápio', icon: UtensilsCrossed },
-  { to: '/ranking', label: 'Ranking', icon: Trophy },
-  { to: '/quadros', label: 'Kanban', icon: KanbanSquare, quadros: true },
-  { to: '/escala', label: 'Agenda', icon: CalendarClock },
-  { to: '/brainstorm', label: 'Brainstorm', icon: Lightbulb, brainstorm: true },
-  { to: '/documentos', label: 'Documentos', icon: FileSignature },
-  { to: '/holerites', label: 'Holerite', icon: ReceiptText },
-  { to: '/organograma-aneis', label: 'Organograma', icon: Network },
-  { to: '/check-in', label: 'Check-in', icon: QrCode },
-  { to: '/passatempos', label: 'Passatempos', icon: Puzzle },
   { to: '/manutencao', label: 'Painel de Ajustes', icon: Wrench },
 ]
 
@@ -108,14 +84,10 @@ export function Mais() {
   const [saldo, setSaldo] = useState(null)
   const [progresso, setProgresso] = useState(null)
 
-  // Só Kanban (podeQuadros) e Brainstorm (podeBrainstorm) são gated; o resto é pra todos.
-  const navItens = itens
-    .filter(
-      (i) =>
-        (!i.quadros || usuario?.podeQuadros) &&
-        (!i.brainstorm || usuario?.podeBrainstorm),
-    )
-    .sort((a, b) => a.label.localeCompare(b.label, 'pt', { sensitivity: 'base' }))
+  // Nada gated aqui (os gated — Kanban/Brainstorm — vivem nas Sugestões). Só ordena.
+  const navItens = [...itens].sort((a, b) =>
+    a.label.localeCompare(b.label, 'pt', { sensitivity: 'base' }),
+  )
 
   useEffect(() => {
     let ativo = true
