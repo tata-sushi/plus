@@ -19,6 +19,14 @@ function fmtData(iso) {
     }).format(new Date(iso))
   } catch { return '' }
 }
+function fmtHora(iso) {
+  if (!iso) return ''
+  try {
+    return new Intl.DateTimeFormat('pt-BR', {
+      timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit',
+    }).format(new Date(iso))
+  } catch { return '' }
+}
 
 // Hub de Check-in = leitor ÚNICO de QR. Um só toque no ícone abre a câmera e lê
 // qualquer código; o destino é decidido pelo conteúdo do QR:
@@ -128,7 +136,7 @@ export function CheckIn() {
             </div>
 
             {eventos?.length > 0 && (
-              <Section className="mt-2" title="Eventos confirmados">
+              <Section className="mt-2" title="Presenças confirmadas">
                 <div className="flex flex-col gap-2.5">
                   {eventos.map((e) => (
                     <div key={e.id} className="card p-3.5">
@@ -139,17 +147,15 @@ export function CheckIn() {
                             <span className="hstack gap-1"><CalendarClock size={12} /> {fmtData(e.data_inicio)}</span>
                             {e.local && <span className="hstack gap-1"><MapPin size={12} /> {e.local}</span>}
                           </div>
+                          <div className="mt-1 hstack gap-1 text-[11px] font-semibold text-accent">
+                            <Check size={13} /> {fmtData(e.marcado_em)} · {fmtHora(e.marcado_em)}
+                          </div>
                         </div>
                         {e.pontos > 0 && (
                           <span className="hstack shrink-0 gap-1 rounded-full bg-accent-soft px-2 py-0.5 text-[11px] font-bold text-accent">
                             <Star size={12} /> +{e.pontos}
                           </span>
                         )}
-                      </div>
-                      <div className="mt-2 hstack gap-1.5 border-t border-line pt-2 text-[11px] font-semibold text-accent">
-                        <Check size={13} /> Presença confirmada
-                        <span className="font-normal text-muted-2">· {fmtData(e.marcado_em)}</span>
-                        {!e.ativo && <span className="font-normal text-muted-2">· encerrado</span>}
                       </div>
                     </div>
                   ))}
