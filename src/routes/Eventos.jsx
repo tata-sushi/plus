@@ -42,10 +42,13 @@ function paraInputLocal(iso) {
   return local.toISOString().slice(0, 16)
 }
 
-export function Eventos() {
+// embutido=true → renderiza só o miolo de gestão (lista + Novo evento + modais),
+// sem Header/cabeçalho e sem o botão de check-in. É assim que o painel admin
+// mostra os Eventos como aba (funciona igual no mobile e no desktop/canvas).
+export function Eventos({ embutido = false }) {
   const navigate = useNavigate()
   const [params, setParams] = useSearchParams()
-  const deepToken = params.get('e')
+  const deepToken = embutido ? null : params.get('e')
 
   const [eventos, setEventos] = useState(null)
   const [podeGerir, setPodeGerir] = useState(false)
@@ -92,6 +95,51 @@ export function Eventos() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [deepToken])
 
+  const lista = (
+    <>
+      {podeGerir && (
+        <button onClick={() => setForm({ pontos: 10 })} className={`${embutido ? '' : 'mt-2'} hstack w-full justify-center gap-2 rounded-card border border-line bg-surface py-2.5 text-sm font-semibold text-text tap`}>
+          <Plus size={16} /> Novo evento
+        </button>
+      )}
+
+      <div className="mt-5 flex flex-col gap-3 pb-16">
+        {eventos === null ? (
+          <div className="hstack justify-center py-10 text-muted-2"><Loader2 size={20} className="animate-spin" /></div>
+        ) : eventos.length === 0 ? (
+          <p className="py-10 text-center text-sm text-muted">Nenhum evento por aqui ainda.</p>
+        ) : (
+          eventos.map((e) => (
+            <EventoCard key={e.id} e={e} podeGerir={podeGerir}
+              onQr={() => setQrDe(e)} onPresencas={() => setPresencasDe(e)}
+              onEditar={() => setForm({ ...e, editar: true })}
+              onArquivar={() => {
+                supabase.rpc('evento_arquivar', { p_id: e.id, p_ativo: false }).then(carregar)
+              }} />
+          ))
+        )}
+      </div>
+    </>
+  )
+
+  const modais = (
+    <>
+      {form && <FormEvento evento={form} onClose={() => setForm(null)} onSalvo={() => { setForm(null); carregar() }} />}
+      {qrDe && <QrEvento evento={qrDe} onClose={() => setQrDe(null)} />}
+      {presencasDe && <PresencasEvento evento={presencasDe} onClose={() => setPresencasDe(null)} />}
+    </>
+  )
+
+  // Dentro do painel admin: só a gestão (lista + Novo evento + modais).
+  if (embutido) {
+    return (
+      <div className="px-5 pt-3">
+        {lista}
+        {modais}
+      </div>
+    )
+  }
+
   return (
     <>
       <Header />
@@ -103,28 +151,7 @@ export function Eventos() {
           <QrCode size={18} /> Fazer check-in (escanear QR)
         </button>
 
-        {podeGerir && (
-          <button onClick={() => setForm({ pontos: 10 })} className="mt-2 hstack w-full justify-center gap-2 rounded-card border border-line bg-surface py-2.5 text-sm font-semibold text-text tap">
-            <Plus size={16} /> Novo evento
-          </button>
-        )}
-
-        <div className="mt-5 flex flex-col gap-3 pb-16">
-          {eventos === null ? (
-            <div className="hstack justify-center py-10 text-muted-2"><Loader2 size={20} className="animate-spin" /></div>
-          ) : eventos.length === 0 ? (
-            <p className="py-10 text-center text-sm text-muted">Nenhum evento por aqui ainda.</p>
-          ) : (
-            eventos.map((e) => (
-              <EventoCard key={e.id} e={e} podeGerir={podeGerir}
-                onQr={() => setQrDe(e)} onPresencas={() => setPresencasDe(e)}
-                onEditar={() => setForm({ ...e, editar: true })}
-                onArquivar={() => {
-                  supabase.rpc('evento_arquivar', { p_id: e.id, p_ativo: false }).then(carregar)
-                }} />
-            ))
-          )}
-        </div>
+        {lista}
       </div>
 
       {scan && (
@@ -138,9 +165,7 @@ export function Eventos() {
       )}
 
       {checkin && <CheckinResultado estado={checkin} onClose={() => setCheckin(null)} />}
-      {form && <FormEvento evento={form} onClose={() => setForm(null)} onSalvo={() => { setForm(null); carregar() }} />}
-      {qrDe && <QrEvento evento={qrDe} onClose={() => setQrDe(null)} />}
-      {presencasDe && <PresencasEvento evento={presencasDe} onClose={() => setPresencasDe(null)} />}
+      {modais}
     </>
   )
 }

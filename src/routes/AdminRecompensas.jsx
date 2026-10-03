@@ -47,6 +47,7 @@ import { AdminBanheiros } from '../components/AdminBanheiros.jsx'
 import { AdminPodcast } from '../components/AdminPodcast.jsx'
 import { AdminLojinha } from '../components/AdminLojinha.jsx'
 import { AdminJornada } from '../components/AdminJornada.jsx'
+import { Eventos } from './Eventos.jsx'
 import { cn } from '../lib/cn'
 import { tapHaptic } from '../lib/haptics.js'
 import { useAuth } from '../lib/AuthContext.jsx'
@@ -69,6 +70,7 @@ const TITULOS = {
   desafios: 'Desafios',
   banheiros: 'Checklist de limpeza',
   podcast: 'Podcast',
+  eventos: 'Eventos',
 }
 
 // Hub do painel: menu de navegação (padrão do "Mais") — lista corrida, sem seções.
@@ -508,7 +510,7 @@ export function AdminRecompensas() {
       {aba === 'menu' ? (
         <MenuHub
           itens={itensMenu}
-          onAbrir={(id) => (id === 'eventos' ? navigate('/eventos') : setAba(id))}
+          onAbrir={setAba}
           onSair={() => navigate('/mais')}
         />
       ) : (
@@ -557,6 +559,8 @@ export function AdminRecompensas() {
         <AdminConquistas />
       ) : aba === 'comunicados' ? (
         <AdminPublicacoes />
+      ) : aba === 'eventos' ? (
+        <Eventos embutido />
       ) : aba === 'envios' ? (
         <>
           <div className="hstack gap-2 px-5 pt-4">
