@@ -12,9 +12,7 @@ _Nada em andamento no momento._
 
 ## ⏭️ Próximos
 
-1. [ ] **Evento — janela de horário no check-in (anti-"cola")** — hoje o `evento_checkin` só
-   confere se o evento está `ativo`; dá pra travar a pontuação pra fora da janela
-   `data_inicio`–`data_fim` (quem escanear antes/depois não ganha). _Opcional, aguardando decisão._
+_Nada na fila no momento._
 
 ---
 
@@ -55,6 +53,10 @@ _Nada em andamento no momento._
 
 ## ✅ Concluído
 
+- [x] **Evento — janela de horário no check-in (anti-"cola")** — `evento_checkin` só registra
+  presença/pontos dentro de `data_inicio`–`data_fim` (tolerância de 15 min de cada lado); sem fim
+  válido, fica liberado a partir do início. Erros `ainda_nao_comecou` / `ja_terminou` com mensagem
+  própria no app. _(03/10/2026)_
 - [x] **Eventos — criação/gestão no painel admin do app** (aba "Eventos" no painel, só pra quem
   tem `evento_pode_gerir`): criar evento com pontos por presença, gerar/baixar QR, ver presenças,
   editar e encerrar. Check-in por QR libera os pontos 1x por pessoa (`evento_checkin`, origem

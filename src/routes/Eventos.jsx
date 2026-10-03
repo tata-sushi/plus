@@ -74,6 +74,8 @@ export function Eventos({ embutido = false }) {
         const m = data?.erro
         const msg = m === 'sem_matricula' ? 'Entre no app com a sua conta pra registrar presença.'
           : m === 'evento_encerrado' ? 'Este evento já foi encerrado.'
+          : m === 'ainda_nao_comecou' ? 'O check-in deste evento ainda não abriu.'
+          : m === 'ja_terminou' ? 'O período de check-in deste evento já encerrou.'
           : m === 'evento_invalido' ? 'QR não reconhecido.'
           : 'Não consegui registrar. Tente de novo.'
         setCheckin({ fase: 'erro', msg })
@@ -317,6 +319,10 @@ function FormEvento({ evento, onClose, onSalvo }) {
             <input type="datetime-local" value={fim} onChange={(e) => setFim(e.target.value)} className={inputCls} />
           </label>
         </div>
+        <p className="-mt-1 text-[11px] text-muted-2">
+          O check-in por QR só vale dentro desse horário (com 15 min de tolerância). Sem fim, fica
+          liberado a partir do início.
+        </p>
         <div className="grid grid-cols-2 gap-3">
           <label className="block text-xs font-semibold text-muted">Unidade
             <select value={unidade} onChange={(e) => setUnidade(e.target.value)} className={inputCls}>

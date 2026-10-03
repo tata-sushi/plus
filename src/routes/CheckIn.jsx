@@ -70,6 +70,8 @@ export function CheckIn() {
         const m = data?.erro
         const msg = m === 'sem_matricula' ? 'Entre no app com a sua conta pra registrar presença.'
           : m === 'evento_encerrado' ? 'Este evento já foi encerrado.'
+          : m === 'ainda_nao_comecou' ? 'O check-in deste evento ainda não abriu.'
+          : m === 'ja_terminou' ? 'O período de check-in deste evento já encerrou.'
           : m === 'evento_invalido' ? 'QR não reconhecido.'
           : 'Não consegui registrar. Tente de novo.'
         setCheckin({ fase: 'erro', msg })
