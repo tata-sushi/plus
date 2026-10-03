@@ -102,11 +102,80 @@ export function ProfileView({ colaborador, isSelf }) {
         </div>
       </div>
 
-      {/* Conquistas — logo abaixo da identificação */}
+      {/* Perfil (Signo · DISC) */}
+      {isSelf && <MeuPerfil />}
+
+      {/* Conquistas */}
       {isSelf && <Conquistas />}
 
-      {/* Meu perfil (Signo · DISC · em breve) */}
-      {isSelf && <MeuPerfil />}
+      {/* Desempenho — pontos fortes / a melhorar da avaliação de desempenho (líder).
+          Em teste: só no meu usuário (mat 7). Os demais veem "Desempenho — em breve". */}
+      {verFeedback ? (
+        <Section className="reveal reveal-3 mt-5" title="Desempenho">
+          {feedback && (feedback.pontos_fortes || feedback.desenvolver) ? (
+            <Card className="overflow-hidden !p-0">
+              <div className="p-4">
+                <div className="hstack gap-1.5 text-[11px] font-bold uppercase tracking-wide text-accent">
+                  <Sparkles size={13} /> Pontos fortes
+                </div>
+                <p className="mt-1.5 whitespace-pre-wrap text-sm leading-relaxed text-text">
+                  {feedback.pontos_fortes || '—'}
+                </p>
+              </div>
+              <div className="border-t border-line p-4">
+                <div className="hstack gap-1.5 text-[11px] font-bold uppercase tracking-wide text-warn">
+                  <Target size={13} /> Pontos a melhorar
+                </div>
+                <p className="mt-1.5 whitespace-pre-wrap text-sm leading-relaxed text-text">
+                  {feedback.desenvolver || '—'}
+                </p>
+              </div>
+              {(feedback.periodo || feedback.data_referencia) && (
+                <div className="border-t border-line px-4 py-2 text-[11px] text-muted-2">
+                  {feedback.periodo ? `${feedback.periodo}ª avaliação` : 'Avaliação de desempenho'}
+                  {feedback.data_referencia
+                    ? ` · ${new Date(feedback.data_referencia + 'T00:00:00').toLocaleDateString('pt-BR')}`
+                    : ''}
+                </div>
+              )}
+            </Card>
+          ) : (
+            <Card className="hstack gap-3">
+              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-surface-2 text-muted-2">
+                <Clock size={16} />
+              </span>
+              <div className="min-w-0 flex-1">
+                <div className="text-sm font-semibold">Em breve</div>
+                <div className="text-xs text-muted">Seu feedback de desempenho aparecerá aqui.</div>
+              </div>
+            </Card>
+          )}
+        </Section>
+      ) : isSelf ? (
+        <Section className="reveal reveal-3 mt-5" title="Desempenho">
+          <Card className="hstack gap-3">
+            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-surface-2 text-muted-2">
+              <Clock size={16} />
+            </span>
+            <div className="min-w-0 flex-1">
+              <div className="text-sm font-semibold">Em breve</div>
+              <div className="text-xs text-muted">Seu feedback de desempenho aparecerá aqui.</div>
+            </div>
+          </Card>
+        </Section>
+      ) : null}
+
+      {/* DEMO — radar de feedback (dados fake, só no meu usuário) */}
+      {demoRadar && (
+        <Section className="reveal reveal-3 mt-5" title="Feedback 360º (demo)">
+          <Card className="p-4">
+            <RadarChart axes={RADAR_EIXOS} series={RADAR_SERIES} max={5} size={280} />
+            <p className="mt-3 text-center text-[11px] text-muted-2">
+              Dados de exemplo — visualização do gráfico.
+            </p>
+          </Card>
+        </Section>
+      )}
 
       {/* Restrições alimentares */}
       {isSelf && <RestricoesAlimentares />}
@@ -126,67 +195,6 @@ export function ProfileView({ colaborador, isSelf }) {
           </div>
         </div>
       </Section>
-
-      {/* DEMO — radar de feedback (dados fake, só no meu usuário) — abaixo dos Indicadores */}
-      {demoRadar && (
-        <Section className="reveal reveal-3 mt-5" title="Feedback 360º (demo)">
-          <Card className="p-4">
-            <RadarChart axes={RADAR_EIXOS} series={RADAR_SERIES} max={5} size={280} />
-            <p className="mt-3 text-center text-[11px] text-muted-2">
-              Dados de exemplo — visualização do gráfico.
-            </p>
-          </Card>
-        </Section>
-      )}
-
-      {/* Meu desenvolvimento — pontos fortes / a melhorar da avaliação de desempenho (líder).
-          Em teste: só no meu usuário (mat 7). Os demais seguem com "Ações — em breve". */}
-      {verFeedback ? (
-        <Section className="reveal reveal-3 mt-5" title="Meu desenvolvimento">
-          {feedback && (feedback.pontos_fortes || feedback.desenvolver) ? (
-            <Card className="overflow-hidden !p-0">
-              <div className="p-4">
-                <div className="hstack gap-1.5 text-[11px] font-bold uppercase tracking-wide text-accent">
-                  <Sparkles size={13} /> Pontos fortes
-                </div>
-                <p className="mt-1.5 whitespace-pre-wrap text-sm leading-relaxed text-text">
-                  {feedback.pontos_fortes || '—'}
-                </p>
-              </div>
-              <div className="border-t border-line p-4">
-                <div className="hstack gap-1.5 text-[11px] font-bold uppercase tracking-wide text-warn">
-                  <Target size={13} /> Pontos a melhorar
-                </div>
-                <p className="mt-1.5 whitespace-pre-wrap text-sm leading-relaxed text-text">
-                  {feedback.desenvolver || '—'}
-                </p>
-              </div>
-            </Card>
-          ) : (
-            <Card className="hstack gap-3">
-              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-surface-2 text-muted-2">
-                <Clock size={16} />
-              </span>
-              <div className="min-w-0 flex-1">
-                <div className="text-sm font-semibold">Em breve</div>
-                <div className="text-xs text-muted">Seu feedback de desempenho aparecerá aqui.</div>
-              </div>
-            </Card>
-          )}
-        </Section>
-      ) : isSelf ? (
-        <Section className="reveal reveal-3 mt-5" title="Ações">
-          <Card className="hstack gap-3">
-            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-surface-2 text-muted-2">
-              <Clock size={16} />
-            </span>
-            <div className="min-w-0 flex-1">
-              <div className="text-sm font-semibold">Em breve</div>
-              <div className="text-xs text-muted">Novas ações chegando por aqui.</div>
-            </div>
-          </Card>
-        </Section>
-      ) : null}
 
       {/* Desafios realizados — última seção: lista dos que o próprio concluiu (histórico) */}
       {isSelf && (

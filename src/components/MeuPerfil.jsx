@@ -32,7 +32,7 @@ export function MeuPerfil() {
   const signoMostrar = getSignoVisivel() ? signo : null
 
   return (
-    <Section className="reveal reveal-3 mt-5" title="Meu perfil">
+    <Section className="reveal reveal-3 mt-5" title="Perfil">
       <AnalisesPerfil
         disc={disc}
         signo={signoMostrar}

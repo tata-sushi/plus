@@ -46,7 +46,7 @@ const ROTA_CANVAS = { '/ouvidoria': 'ouvidoria' }
 // gov: true → só aparece para quem tem Governança (Ouvidoria deslocada do slot da barra).
 // quadros: true → só aparece para quem tem acesso ao Kanban (Kanban + Ranking deslocado da barra).
 const itens = [
-  { to: '/jornada', label: 'Meu perfil', icon: UserRound },
+  { to: '/jornada', label: 'Perfil', icon: UserRound },
   { to: '/buscar', label: 'Buscar colaborador', icon: Search },
   { to: '/comunicados', label: 'Comunicados', icon: Megaphone },
   { to: '/lojinha', label: 'Lojinha', icon: ShoppingBag, lojinha: true },
