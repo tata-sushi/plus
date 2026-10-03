@@ -213,8 +213,9 @@ export function Home() {
     }
   }, [])
 
-  // Ordem dos cards de Sugestões. Kanban é o único gated por acesso (podeQuadros);
-  // Brainstorm também (podeBrainstorm). Lojinha, Ranking, Agenda e Check-in são pra todos.
+  // Cards de Sugestões em ordem alfabética (pelo rótulo exibido). Kanban é o único
+  // gated por acesso (podeQuadros); Brainstorm também (podeBrainstorm). Lojinha,
+  // Ranking, Agenda e Check-in são pra todos.
   const [desafios, recompensas, cardapio, organograma] = sugestoesCards
   const cards = [
     ...(usuario?.podeQuadros
@@ -236,7 +237,7 @@ export function Home() {
     { to: '/documentos', badgeIcon: FileSignature, title: 'Documentos', subtitle: 'Documentos para assinar', badge: docsPend },
     { to: '/holerites', badgeIcon: ReceiptText, title: 'Holerite', subtitle: 'Seus holerites' },
     { to: '/check-in', badgeIcon: QrCode, title: 'Check-in', subtitle: 'Presença por QR' },
-  ]
+  ].sort((a, b) => labelCurto(a.title).localeCompare(labelCurto(b.title), 'pt', { sensitivity: 'base' }))
   const desktop = useDesktop()
   const { setCanvas } = useDesktopCanvas()
 
