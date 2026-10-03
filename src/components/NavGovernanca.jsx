@@ -163,14 +163,27 @@ const PORTAL = [
   },
 ]
 
+// Ordena as páginas em ordem alfabética dentro da seção/grupo, mas mantém a
+// "Visão geral" (índice do grupo) sempre no topo.
+const colPt = (a, b) => a.label.localeCompare(b.label, 'pt', { sensitivity: 'base' })
+function ordenarPaginas(arr) {
+  const ehVisao = (p) => /^vis[aã]o geral$/i.test((p.label || '').trim())
+  return [...arr].sort((a, b) => {
+    const av = ehVisao(a)
+    const bv = ehVisao(b)
+    if (av !== bv) return av ? -1 : 1
+    return colPt(a, b)
+  })
+}
+
 // Filtra a árvore pelo mapa de páginas liberadas (Map id->url). Some grupos e
-// seções que ficarem vazios.
+// seções que ficarem vazios. As páginas saem em ordem alfabética (Visão geral no topo).
 function filtrar(acesso) {
   const has = (id) => acesso.has(id)
   return PORTAL.map((sec) => {
-    const paginas = sec.paginas.filter((p) => has(p.id))
+    const paginas = ordenarPaginas(sec.paginas.filter((p) => has(p.id)))
     const grupos = (sec.grupos || [])
-      .map((g) => ({ ...g, paginas: g.paginas.filter((p) => has(p.id)) }))
+      .map((g) => ({ ...g, paginas: ordenarPaginas(g.paginas.filter((p) => has(p.id))) }))
       .filter((g) => g.paginas.length > 0)
     return { ...sec, paginas, grupos }
   }).filter((sec) => sec.paginas.length > 0 || sec.grupos.length > 0)
