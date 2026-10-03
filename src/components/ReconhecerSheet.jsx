@@ -28,14 +28,14 @@ export function ReconhecerSheet({ paraMatricula, paraNome, onClose, onSucesso })
   }, [])
 
   async function enviar() {
-    if (!motivo || enviando) return
+    if (!motivo || !mensagem.trim() || enviando) return
     tapHaptic()
     setEnviando(true)
     setErro('')
     const { data, error } = await supabase.rpc('reconhecimento_registrar', {
       p_para_matricula: paraMatricula,
       p_motivo: motivo,
-      p_mensagem: mensagem.trim() || null,
+      p_mensagem: mensagem.trim(),
     })
     setEnviando(false)
     if (error || !data) {
@@ -71,7 +71,7 @@ export function ReconhecerSheet({ paraMatricula, paraNome, onClose, onSucesso })
           </button>
         </div>
 
-        <p className="mt-1 text-xs text-muted">Escolha o motivo do reconhecimento.</p>
+        <p className="mt-1 text-xs text-muted">Escolha o motivo e escreva uma mensagem.</p>
 
         {/* Motivos (chips, seleção única) */}
         <div className="mt-3 flex flex-wrap justify-center gap-2">
@@ -99,13 +99,13 @@ export function ReconhecerSheet({ paraMatricula, paraNome, onClose, onSucesso })
           })}
         </div>
 
-        {/* Mensagem opcional */}
+        {/* Mensagem obrigatória */}
         <div className="mt-4">
           <textarea
             value={mensagem}
             onChange={(e) => setMensagem(e.target.value.slice(0, MAX_MSG))}
             rows={3}
-            placeholder="Mensagem (opcional) — ex.: salvou o rush de sexta!"
+            placeholder="Mensagem — ex.: salvou o rush de sexta!"
             className="w-full resize-none rounded-card border border-line bg-surface px-3.5 py-3 text-sm outline-none focus:border-accent"
           />
           <div className="mt-1 text-right text-[11px] text-muted-2">
@@ -121,7 +121,7 @@ export function ReconhecerSheet({ paraMatricula, paraNome, onClose, onSucesso })
           </button>
           <button
             onClick={enviar}
-            disabled={!motivo || enviando}
+            disabled={!motivo || !mensagem.trim() || enviando}
             className="btn-primary flex-1 !py-3 text-sm disabled:opacity-50"
           >
             {enviando ? (
