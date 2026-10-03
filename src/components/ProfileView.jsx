@@ -122,6 +122,9 @@ export function ProfileView({ colaborador, isSelf }) {
                 </div>
                 <p className="mt-1.5 whitespace-pre-wrap text-sm leading-relaxed text-text">
                   {feedback.desenvolver || '—'}
+                  {(feedback.periodo || feedback.data_referencia) && (
+                    <span className="text-muted-2">{` (${feedback.periodo ? `${feedback.periodo}ª avaliação` : 'avaliação'}${feedback.data_referencia ? ` · ${new Date(feedback.data_referencia + 'T00:00:00').toLocaleDateString('pt-BR')}` : ''})`}</span>
+                  )}
                 </p>
               </div>
             </Card>
