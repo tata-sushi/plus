@@ -42,7 +42,7 @@ const NAV = [
   { Icon: Menu, label: 'Mais', alvo: true },
 ]
 const MENU = [
-  { Icon: Puzzle, label: 'Passatempos' },
+  { Icon: Puzzle, label: 'Jogos' },
   { Icon: Trophy, label: 'Ranking' },
   { Icon: HeartHandshake, label: 'Reconhecimentos', alvo: true },
 ]

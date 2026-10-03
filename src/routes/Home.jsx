@@ -226,7 +226,7 @@ export function Home() {
     recompensas, // Lojinha — liberada pra todos
     organograma,
     { to: '/radio', badgeIcon: RadioIcon, title: 'Rádio', subtitle: 'Playlist do time' },
-    { to: '/passatempos', badgeIcon: Puzzle, title: 'Passatempos', subtitle: 'Jogue e pontue' },
+    { to: '/passatempos', badgeIcon: Puzzle, title: 'Jogos', subtitle: 'Jogue e pontue' },
     { to: '/ranking', badgeIcon: Trophy, title: 'Ranking', subtitle: 'Sua posição no time' },
     { to: '/escala', badgeIcon: CalendarClock, title: 'Agenda', subtitle: 'Sua escala da semana' },
     // Brainstorm "Compartilhe sua palavra" — mesma regra do Mais (podeBrainstorm).

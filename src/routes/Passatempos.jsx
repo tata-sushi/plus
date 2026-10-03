@@ -55,7 +55,7 @@ export function Passatempos() {
 
       <div className="mx-auto w-full max-w-[420px] px-5 pt-4">
         <div className="mb-5 text-center">
-          <div className="font-display text-[19px] font-bold leading-tight">Passatempos</div>
+          <div className="font-display text-[19px] font-bold leading-tight">Jogos</div>
           <div className="mt-1 text-xs text-muted">Um desafio novo por dia · mantenha a ofensiva 🔥</div>
         </div>
 
