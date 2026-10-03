@@ -147,15 +147,17 @@ export function CheckIn() {
                             <span className="hstack gap-1"><CalendarClock size={12} /> {fmtData(e.data_inicio)}</span>
                             {e.local && <span className="hstack gap-1"><MapPin size={12} /> {e.local}</span>}
                           </div>
-                          <div className="mt-1 hstack gap-1 text-[11px] font-semibold text-accent">
+                        </div>
+                        <div className="flex shrink-0 flex-col items-end gap-1.5">
+                          {e.pontos > 0 && (
+                            <span className="hstack gap-1 rounded-full bg-accent-soft px-2 py-0.5 text-[11px] font-bold text-accent">
+                              <Star size={12} /> +{e.pontos}
+                            </span>
+                          )}
+                          <div className="hstack gap-1 text-[11px] font-semibold text-accent">
                             <Check size={13} /> {fmtData(e.marcado_em)} · {fmtHora(e.marcado_em)}
                           </div>
                         </div>
-                        {e.pontos > 0 && (
-                          <span className="hstack shrink-0 gap-1 rounded-full bg-accent-soft px-2 py-0.5 text-[11px] font-bold text-accent">
-                            <Star size={12} /> +{e.pontos}
-                          </span>
-                        )}
                       </div>
                     </div>
                   ))}
