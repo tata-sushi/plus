@@ -58,7 +58,10 @@ _Nada em andamento no momento._
 - [x] **Eventos — criação/gestão no painel admin do app** (aba "Eventos" no painel, só pra quem
   tem `evento_pode_gerir`): criar evento com pontos por presença, gerar/baixar QR, ver presenças,
   editar e encerrar. Check-in por QR libera os pontos 1x por pessoa (`evento_checkin`, origem
-  `evento`, conta no ranking). Aba embutida → abre igual no mobile e no desktop. _(03/10/2026)_
+  `evento`, conta no ranking). Aba embutida → abre igual no mobile e no desktop. Ações numa linha
+  só; evento encerrado não some (selo "Encerrado" + botão "Reativar", via `eventos_visiveis()`).
+  Na tela **Check-in**: seção "Presenças confirmadas" (`meus_eventos()`) com o ✓ data/hora do
+  check-in. _(03/10/2026)_
 - [x] **Perfil — card "Desempenho"** (pontos fortes / a melhorar da avaliação do líder, self-scoped
   via `meu_feedback_desempenho`, com a data da avaliação inline). **LIBERADO PRA TODOS (03/10/2026)**.
   Perfil também reorganizado: "Meu perfil"→"Perfil", "Indicadores"→"Números Tatá Plus" (fundido com
