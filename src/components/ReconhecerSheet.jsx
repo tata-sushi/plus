@@ -71,7 +71,7 @@ export function ReconhecerSheet({ paraMatricula, paraNome, onClose, onSucesso })
           </button>
         </div>
 
-        <p className="mt-1 text-xs text-muted">Escolha o motivo e escreva uma mensagem.</p>
+        <p className="mt-1 text-xs text-muted">Compartilhe o motivo do reconhecimento.</p>
 
         {/* Motivos (chips, seleção única) */}
         <div className="mt-3 flex flex-wrap justify-center gap-2">
