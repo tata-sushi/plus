@@ -33,10 +33,10 @@ const ROTA_CANVAS = { '/ouvidoria': 'ouvidoria' }
 // foi tirado daqui.
 const itens = [
   { to: '/jornada', label: 'Meu perfil', icon: UserRound },
-  { to: '/buscar', label: 'Buscar colaborador', icon: Search },
+  { to: '/buscar', label: 'Encontrar colegas', icon: Search },
   { to: '/comunicados', label: 'Comunicados', icon: Megaphone },
   { to: '/ouvidoria', label: 'Ouvidoria', icon: MessageSquareWarning },
-  { to: '/manutencao', label: 'Painel de Ajustes', icon: Wrench },
+  { to: '/manutencao', label: 'Ajustes gerais', icon: Wrench },
 ]
 
 const TAM_MAX = 8 * 1024 * 1024 // 8 MB
@@ -211,7 +211,7 @@ export function Mais() {
         </div>
       </div>
 
-      <Section className="mt-5" title="Navegação">
+      <Section className="mt-5" title="Acesse">
         <div className="card overflow-hidden">
           {navItens.map((i, idx) => {
             const Icon = i.icon
@@ -249,7 +249,7 @@ export function Mais() {
               <div className="grid h-9 w-9 place-items-center rounded-full bg-accent-soft text-accent">
                 <ShieldCheck size={18} />
               </div>
-              <span className="flex-1 text-sm font-semibold">Painel de administração</span>
+              <span className="flex-1 text-sm font-semibold">Painel Admin</span>
               <ChevronRight size={16} className="text-carbon" />
             </button>
           ) : (
@@ -257,7 +257,7 @@ export function Mais() {
               <div className="grid h-9 w-9 place-items-center rounded-full bg-accent-soft text-accent">
                 <ShieldCheck size={18} />
               </div>
-              <span className="flex-1 text-sm font-semibold">Painel de administração</span>
+              <span className="flex-1 text-sm font-semibold">Painel Admin</span>
               <ChevronRight size={16} className="text-carbon" />
             </Link>
           )}
