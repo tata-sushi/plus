@@ -12,10 +12,7 @@ _Nada em andamento no momento._
 
 ## ⏭️ Próximos
 
-1. [ ] **Faxina no front do portal (`lideres`)** — remover o stub morto de sandbox
-   (`_sandboxMatricula()` / `localStorage['sandbox_matricula']` / `p_matricula`) de
-   `recrutamento.html` e `doc.html` (o backend já ignora o `p_matricula`). _(anotado 2026-09-16)_
-2. [ ] **Eventos / lista de presença** — criação de eventos e geração do QR vão pro portal de
+1. [ ] **Eventos / lista de presença** — criação de eventos e geração do QR vão pro portal de
    líderes; o app só **lê** o QR no hub de Check-in. `/eventos` saiu dos menus (rota mantida por
    trás, pros deep links). Nada urgente. _(atualizado 2026-09-20)_
 
@@ -47,6 +44,12 @@ _Nada em andamento no momento._
   portal `lideres`**, não nossa. O backend já existe (RPCs `perm_valores_*`, `perm_ver_valores`;
   o gate de valores já decide pelo login real `minha_matricula()` e os admins sócios/gerência têm
   a linha `geral`). A UI de liberação fica com eles. _(registrado 01/10/2026)_
+
+- **Faxina do stub de sandbox no portal (`lideres`)** — remover `_sandboxMatricula()` /
+  `localStorage['sandbox_matricula']` / `p_matricula` (36 pontos em `doc.html`, `recrutamento.html`,
+  `recrutamento-novo.html`). É **código morto/inofensivo** (o backend já ignora o `p_matricula`; em
+  prod o localStorage nunca está setado) e é convenção/arquivo do portal → fica pro **time do portal**
+  limpar numa passada deles. _(decidido 03/10/2026)_
 
 ---
 
