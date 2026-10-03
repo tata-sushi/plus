@@ -30,6 +30,7 @@ import {
   GraduationCap,
   Mic,
   ClipboardList,
+  CalendarClock,
 } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { GovFrame } from '../components/GovFrame.jsx'
@@ -175,6 +176,11 @@ export function AdminRecompensas() {
   const { usuario } = useAuth()
   const admin = usuario?.podePublicar
   const isAdminPerfil = (usuario?.perfil || '').toLowerCase() === 'admin'
+  // Eventos no hub só pra quem pode gerir (evento_pode_gerir).
+  const [podeEventos, setPodeEventos] = useState(false)
+  useEffect(() => {
+    supabase.rpc('evento_pode_gerir').then(({ data }) => setPodeEventos(!!data))
+  }, [])
 
   // 'menu' = hub (padrão) · demais = seção aberta
   const [aba, setAba] = useState('menu')
@@ -489,6 +495,7 @@ export function AdminRecompensas() {
     { id: 'desafios', label: 'Desafios', icon: GraduationCap },
     { id: 'podcast', label: 'Podcast', icon: Mic },
     { id: 'comunicados', label: 'Anúncios', icon: Megaphone },
+    ...(podeEventos ? [{ id: 'eventos', label: 'Eventos', icon: CalendarClock }] : []),
     ...(isAdminPerfil ? [{ id: 'banheiros', label: 'Checklist de limpeza', icon: SprayCan }] : []),
     { id: 'governanca', label: 'Governança', icon: ShieldCheck },
     { id: 'aplicativo', label: 'Aplicativo', icon: Smartphone },
@@ -499,7 +506,11 @@ export function AdminRecompensas() {
       <Header title="Administração" />
 
       {aba === 'menu' ? (
-        <MenuHub itens={itensMenu} onAbrir={setAba} onSair={() => navigate('/mais')} />
+        <MenuHub
+          itens={itensMenu}
+          onAbrir={(id) => (id === 'eventos' ? navigate('/eventos') : setAba(id))}
+          onSair={() => navigate('/mais')}
+        />
       ) : (
         <>
           <BackBar titulo={TITULOS[aba]} onVoltar={() => setAba('menu')} />
