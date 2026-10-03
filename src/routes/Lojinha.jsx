@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react'
-import { Navigate } from 'react-router-dom'
 import { Loader2 } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { CabecalhoPagina } from '../components/CabecalhoPagina.jsx'
@@ -28,12 +27,10 @@ export function Lojinha({ abaInicial = 'recompensas' }) {
     setAba(abaInicial)
   }, [abaInicial])
 
-  // Lojinha bloqueada durante os testes: só quem está liberado (podeLojinha)
-  // entra; o resto é mandado pra Home. null = ainda verificando o acesso.
-  if (!usuario || usuario.perfilPendente || usuario.podeLojinha == null) {
+  // Lojinha liberada pra todos. Só espera o perfil carregar.
+  if (!usuario || usuario.perfilPendente) {
     return <div className="grid place-items-center py-24 text-muted-2"><Loader2 size={22} className="animate-spin" /></div>
   }
-  if (!usuario.podeLojinha) return <Navigate to="/" replace />
 
   return (
     <>

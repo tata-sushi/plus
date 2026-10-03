@@ -53,6 +53,11 @@ _Nada na fila no momento._
 
 ## ✅ Concluído
 
+- [x] **Menus — abrir acessos (Sugestões + Mais)**: Lojinha, Ranking, Agenda e Check-in liberados
+  pra todos (menu + rota, soltando os guards internos de Lojinha/Escala/Check-in); Ouvidoria também
+  liberada no Mais. Só **Kanban** (`podeQuadros`) e **Brainstorm** (`podeBrainstorm`) seguem gated.
+  Item **"Atalhos"** saiu do Mais (a função continua: o bloco de Atalhos na Home leva pra
+  `/atalhos-governanca`). _(03/10/2026)_
 - [x] **Evento — janela de horário no check-in (anti-"cola")** — `evento_checkin` só registra
   presença/pontos dentro de `data_inicio`–`data_fim` (tolerância de 15 min de cada lado); sem fim
   válido, fica liberado a partir do início. Erros `ainda_nao_comecou` / `ja_terminou` com mensagem

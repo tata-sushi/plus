@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Navigate, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { createPortal } from 'react-dom'
 import { QrCode, Loader2, Check, Star, AlertTriangle, CalendarClock, MapPin } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
@@ -96,10 +96,9 @@ export function CheckIn() {
     fazerCheckinEvento(c.token)
   }
 
-  if (!usuario || usuario.perfilPendente || usuario.podeCheckin == null) {
+  if (!usuario || usuario.perfilPendente) {
     return <div className="grid place-items-center py-24 text-muted-2"><Loader2 size={22} className="animate-spin" /></div>
   }
-  if (!usuario.podeCheckin) return <Navigate to="/" replace />
 
   return (
     <>

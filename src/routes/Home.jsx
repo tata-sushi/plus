@@ -213,8 +213,8 @@ export function Home() {
     }
   }, [])
 
-  // Ordem dos cards de Sugestões: Kanban · Desafios · Checklist · Cardápio · Recompensas · Organograma · Rádio · Passatempos.
-  // Kanban e Checklist só aparecem pra quem tem o acesso (podeQuadros / podeLimpeza).
+  // Ordem dos cards de Sugestões. Kanban é o único gated por acesso (podeQuadros);
+  // Brainstorm também (podeBrainstorm). Lojinha, Ranking, Agenda e Check-in são pra todos.
   const [desafios, recompensas, cardapio, organograma] = sugestoesCards
   const cards = [
     ...(usuario?.podeQuadros
@@ -222,18 +222,12 @@ export function Home() {
       : []),
     desafios,
     cardapio,
-    // Lojinha bloqueada durante os testes (liberada por pessoa via podeLojinha).
-    ...(usuario?.podeLojinha ? [recompensas] : []),
+    recompensas, // Lojinha — liberada pra todos
     organograma,
     { to: '/radio', badgeIcon: RadioIcon, title: 'Rádio', subtitle: 'Playlist do time' },
     { to: '/passatempos', badgeIcon: Puzzle, title: 'Passatempos', subtitle: 'Jogue e pontue' },
-    // Ranking e Agenda respeitam o mesmo acesso do menu "Mais"; Assinaturas é geral.
-    ...(usuario?.podeQuadros
-      ? [{ to: '/ranking', badgeIcon: Trophy, title: 'Ranking', subtitle: 'Sua posição no time' }]
-      : []),
-    ...(usuario?.podeEscala
-      ? [{ to: '/escala', badgeIcon: CalendarClock, title: 'Agenda', subtitle: 'Sua escala da semana' }]
-      : []),
+    { to: '/ranking', badgeIcon: Trophy, title: 'Ranking', subtitle: 'Sua posição no time' },
+    { to: '/escala', badgeIcon: CalendarClock, title: 'Agenda', subtitle: 'Sua escala da semana' },
     // Brainstorm "Compartilhe sua palavra" — mesma regra do Mais (podeBrainstorm).
     ...(usuario?.podeBrainstorm
       ? [{ to: '/brainstorm', badgeIcon: Lightbulb, title: 'Brainstorm', subtitle: 'Compartilhe sua palavra' }]
@@ -241,10 +235,7 @@ export function Home() {
     { to: '/minha-experiencia', badgeIcon: HeartHandshake, title: 'Avaliações e Reconhecimentos', subtitle: 'Avalie e reconheça' },
     { to: '/documentos', badgeIcon: FileSignature, title: 'Documentos', subtitle: 'Documentos para assinar', badge: docsPend },
     { to: '/holerites', badgeIcon: ReceiptText, title: 'Holerite', subtitle: 'Seus holerites' },
-    // Check-in (QR) — hub de banheiros/eventos; acesso liberado por pessoa na Governança.
-    ...(usuario?.podeCheckin
-      ? [{ to: '/check-in', badgeIcon: QrCode, title: 'Check-in', subtitle: 'Presença por QR' }]
-      : []),
+    { to: '/check-in', badgeIcon: QrCode, title: 'Check-in', subtitle: 'Presença por QR' },
   ]
   const desktop = useDesktop()
   const { setCanvas } = useDesktopCanvas()

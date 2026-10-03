@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Navigate, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { Loader2, ChevronLeft, ChevronRight, CalendarClock, Check, X, Sun, CircleCheck, Coins, MessageCircle, Palmtree, CircleDot, Info, ArrowLeft, Clock, Gift, Flag, Sparkles, ArrowLeftRight, CircleDollarSign } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { CabecalhoPagina } from '../components/CabecalhoPagina.jsx'
@@ -92,14 +92,13 @@ function avisar(e) {
 
 function Escala() {
   const { usuario } = useAuth()
-  if (!usuario || usuario.perfilPendente || usuario.podeEscala == null) {
+  if (!usuario || usuario.perfilPendente) {
     return (
       <div className="grid min-h-[60vh] place-items-center text-muted">
         <Loader2 size={22} className="animate-spin" />
       </div>
     )
   }
-  if (!usuario.podeEscala) return <Navigate to="/" replace />
   return <Painel />
 }
 

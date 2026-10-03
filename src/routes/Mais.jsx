@@ -11,7 +11,6 @@ import {
   UtensilsCrossed,
   ShieldCheck,
   MessageSquareWarning,
-  Pin,
   Search,
   Trophy,
   KanbanSquare,
@@ -34,7 +33,6 @@ import { ProgressRing } from '../components/ProgressRing.jsx'
 import { SocialLinks } from '../components/SocialLinks.jsx'
 import { redesSociais } from '../lib/mockData.js'
 import { useAuth } from '../lib/AuthContext.jsx'
-import { podeVerReconhecimento } from '../lib/reconhecimento.js'
 import { useDesktop } from '../lib/useDesktop.js'
 import { useDesktopCanvas } from '../lib/desktopCanvas.js'
 import { supabase } from '../lib/supabase.js'
@@ -49,21 +47,20 @@ const itens = [
   { to: '/jornada', label: 'Perfil', icon: UserRound },
   { to: '/buscar', label: 'Buscar colaborador', icon: Search },
   { to: '/comunicados', label: 'Comunicados', icon: Megaphone },
-  { to: '/lojinha', label: 'Lojinha', icon: ShoppingBag, lojinha: true },
+  { to: '/lojinha', label: 'Lojinha', icon: ShoppingBag },
   { to: '/minha-experiencia', label: 'Avaliações e Reconhecimentos', icon: HeartHandshake },
-  { to: '/ouvidoria', label: 'Ouvidoria', icon: MessageSquareWarning, gov: true },
+  { to: '/ouvidoria', label: 'Ouvidoria', icon: MessageSquareWarning },
   { to: '/cardapio', label: 'Cardápio', icon: UtensilsCrossed },
-  { to: '/ranking', label: 'Ranking', icon: Trophy, quadros: true },
+  { to: '/ranking', label: 'Ranking', icon: Trophy },
   { to: '/quadros', label: 'Kanban', icon: KanbanSquare, quadros: true },
-  { to: '/escala', label: 'Agenda', icon: CalendarClock, escala: true },
+  { to: '/escala', label: 'Agenda', icon: CalendarClock },
   { to: '/brainstorm', label: 'Brainstorm', icon: Lightbulb, brainstorm: true },
   { to: '/documentos', label: 'Documentos', icon: FileSignature },
   { to: '/holerites', label: 'Holerite', icon: ReceiptText },
   { to: '/organograma-aneis', label: 'Organograma', icon: Network },
-  { to: '/check-in', label: 'Check-in', icon: QrCode, checkin: true },
-  { to: '/passatempos', label: 'Passatempos', icon: Puzzle, jogo: true },
+  { to: '/check-in', label: 'Check-in', icon: QrCode },
+  { to: '/passatempos', label: 'Passatempos', icon: Puzzle },
   { to: '/manutencao', label: 'Painel de Ajustes', icon: Wrench },
-  { to: '/atalhos-governanca', label: 'Atalhos', icon: Pin, gov: true },
 ]
 
 const TAM_MAX = 8 * 1024 * 1024 // 8 MB
@@ -111,20 +108,12 @@ export function Mais() {
   const [saldo, setSaldo] = useState(null)
   const [progresso, setProgresso] = useState(null)
 
-  // Ouvidoria e Atalhos: só para quem tem Governança (deslocados da barra).
-  // Ranking: só para quem tem Kanban (deslocado da barra); os demais o veem na barra.
+  // Só Kanban (podeQuadros) e Brainstorm (podeBrainstorm) são gated; o resto é pra todos.
   const navItens = itens
     .filter(
       (i) =>
-        (!i.gov || usuario?.governanca?.tem) &&
         (!i.quadros || usuario?.podeQuadros) &&
-        (!i.escala || usuario?.podeEscala) &&
-        (!i.brainstorm || usuario?.podeBrainstorm) &&
-        (!i.checkin || usuario?.podeCheckin) &&
-        (!i.lojinha || usuario?.podeLojinha) &&
-        (!i.beta || podeVerReconhecimento(usuario)) &&
-        (!i.teste || usuario?.matricula === '7') &&
-        (!i.rhdocs || usuario?.perfil === 'admin' || usuario?.lider),
+        (!i.brainstorm || usuario?.podeBrainstorm),
     )
     .sort((a, b) => a.label.localeCompare(b.label, 'pt', { sensitivity: 'base' }))
 
