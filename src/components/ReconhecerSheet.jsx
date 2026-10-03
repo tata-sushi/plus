@@ -7,6 +7,7 @@ import { carregarMotivos, iconeMotivo } from '../lib/reconhecimento.js'
 import { cn } from '../lib/cn'
 
 const MAX_MSG = 280
+const MIN_MSG = 20
 const soPrimeiro = (n) => (n || 'Colaborador').split(/\s+/)[0]
 
 // Sheet (bottom) pra reconhecer um colega: escolhe o motivo (chips da RPC 4),
@@ -28,7 +29,7 @@ export function ReconhecerSheet({ paraMatricula, paraNome, onClose, onSucesso })
   }, [])
 
   async function enviar() {
-    if (!motivo || !mensagem.trim() || enviando) return
+    if (!motivo || mensagem.trim().length < MIN_MSG || enviando) return
     tapHaptic()
     setEnviando(true)
     setErro('')
@@ -108,8 +109,11 @@ export function ReconhecerSheet({ paraMatricula, paraNome, onClose, onSucesso })
             placeholder="Compartilhe o motivo do reconhecimento."
             className="w-full resize-none rounded-card border border-line bg-surface px-3.5 py-3 text-sm outline-none focus:border-accent"
           />
-          <div className="mt-1 text-right text-[11px] text-muted-2">
-            {mensagem.length}/{MAX_MSG}
+          <div className="mt-1 hstack justify-between text-[11px] text-muted-2">
+            <span>{mensagem.trim().length < MIN_MSG ? `Mínimo ${MIN_MSG} caracteres` : ''}</span>
+            <span>
+              {mensagem.length}/{MAX_MSG}
+            </span>
           </div>
         </div>
 
@@ -121,7 +125,7 @@ export function ReconhecerSheet({ paraMatricula, paraNome, onClose, onSucesso })
           </button>
           <button
             onClick={enviar}
-            disabled={!motivo || !mensagem.trim() || enviando}
+            disabled={!motivo || mensagem.trim().length < MIN_MSG || enviando}
             className="btn-primary flex-1 !py-3 text-sm disabled:opacity-50"
           >
             {enviando ? (
