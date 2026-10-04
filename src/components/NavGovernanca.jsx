@@ -158,45 +158,12 @@ const PORTAL = [
     ],
   },
   {
-    // Páginas de processo de cada área (compliance/areas/**) — catálogo secao 'Áreas & Processos'.
+    // Páginas de processo antigas (compliance/areas/**): o conteúdo foi para a aba Sobre de cada dashboard
+    // e as páginas foram apagadas. Resta só a que ainda não foi portada.
     secao: 'Áreas & Processos',
     icon: IcoProcessos,
-    paginas: [
-      { id: 'governanca-areas', label: 'Visão geral' },
-      { id: 'governanca-areas-estoque', label: 'Estoque' },
-      { id: 'governanca-areas-limpeza', label: 'Limpeza' },
-    ],
-    grupos: [
-      {
-        nome: 'Gente & Gestão',
-        paginas: [
-          { id: 'governanca-areas-rh', label: 'Visão geral' },
-          { id: 'governanca-rh-admissao', label: 'Admissão & Integração' },
-          { id: 'governanca-areas-rh-beneficios', label: 'Benefícios' },
-          { id: 'governanca-areas-rh-ces', label: 'Cargos e Salários' },
-          { id: 'governanca-areas-rh-comunicacao', label: 'Comunicação Interna' },
-          { id: 'governanca-areas-rh-ponto', label: 'Controle de Ponto' },
-          { id: 'governanca-areas-rh-cei', label: 'Cultura & Clima' },
-          { id: 'governanca-areas-rh-desligamentos', label: 'Desligamentos' },
-          { id: 'governanca-areas-rh-ferias', label: 'Férias' },
-          { id: 'governanca-areas-rh-folha', label: 'Folha de Pagamento' },
-          { id: 'governanca-rh-gestaodocs', label: 'Gestão de Estoque e Documentos' },
-          { id: 'governanca-areas-rh-ouvidoria', label: 'Ouvidoria & Canal de Escuta' },
-          { id: 'governanca-areas-rh-rt', label: 'Reclamações Trabalhistas' },
-          { id: 'governanca-rh-res', label: 'Recrutamento & Seleção' },
-          { id: 'governanca-rh-sancoes', label: 'Sanções Disciplinares' },
-          { id: 'governanca-areas-rh-sst', label: 'SST' },
-          { id: 'governanca-areas-rh-ted', label: 'T&D' },
-        ],
-      },
-      {
-        nome: 'Tatá House',
-        paginas: [
-          { id: 'governanca-areas-tatahouse-submenu', label: 'Visão geral' },
-          { id: 'governanca-areas-tatahouse-manual', label: 'Manual Tatá House' },
-        ],
-      },
-    ],
+    paginas: [{ id: 'governanca-rh-gestaodocs', label: 'Gestão de Estoque e Documentos' }],
+    grupos: [],
   },
   {
     secao: 'Parceiros & Sistemas',
