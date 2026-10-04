@@ -38,6 +38,13 @@ const IcoAreas = ({ size = 24, ...p }) => (
     <line x1="6" y1="20" x2="6" y2="14" />
   </svg>
 )
+const IcoProcessos = ({ size = 24, ...p }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" {...svgBase} {...p}>
+    <rect x="3" y="3" width="7" height="6" rx="1" />
+    <rect x="14" y="15" width="7" height="6" rx="1" />
+    <path d="M6.5 9v3.5a2 2 0 0 0 2 2H17.5V15" />
+  </svg>
+)
 const IcoParceiros = ({ size = 24, ...p }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" {...svgBase} {...p}>
     <rect x="2" y="3" width="20" height="14" rx="2" />
@@ -57,7 +64,7 @@ const IcoCompliance = ({ size = 24, ...p }) => (
 // ── Estrutura REAL do portal de líderes (menucompliance.html + landings) ──
 // Cada página aponta pro seu `id` (= GOV_PAGE_ID / catálogo governanca_paginas).
 // A visibilidade é filtrada pelo que a pessoa pode acessar (RPC gov_meus_acessos);
-// admin vê tudo. Fonte: varredura de tata-sushi/lideres em 2026-09-24.
+// admin vê tudo. Fonte: varredura de tata-sushi/lideres em 2026-10-04.
 const PORTAL = [
   {
     secao: 'Conceitos & Informações',
@@ -66,6 +73,7 @@ const PORTAL = [
       { id: 'governanca-conceitos-governanca', label: 'Governança' },
       { id: 'governanca-conceitos-5s', label: 'Metodologia 5S' },
       { id: 'governanca-conceitos-kanban', label: 'Kanban' },
+      { id: 'governanca-conceitos-matrizdeb', label: 'Matriz D/E/B' },
     ],
     grupos: [],
   },
@@ -85,6 +93,7 @@ const PORTAL = [
     paginas: [
       { id: 'governanca-kpis-manutencao', label: 'Manutenção' },
       { id: 'governanca-kpis-compras-abastecimento', label: 'Compras' },
+      { id: 'governanca-kpis-caixa', label: 'Caixa Pulse' },
     ],
     grupos: [
       {
@@ -109,6 +118,7 @@ const PORTAL = [
           { id: 'governanca-kpis-rh-feriados', label: 'Feriados' },
           { id: 'governanca-kpis-rh-ferias', label: 'Férias' },
           { id: 'governanca-kpis-rh-folha', label: 'Folha de Pagamento' },
+          { id: 'governanca-kpis-rh-gorjeta', label: 'Gorjeta & Pedidos iFood' },
           { id: 'governanca-kpis-rh-doc', label: 'Documentos' },
           { id: 'governanca-kpis-rh-hc', label: 'Headcount' },
           { id: 'governanca-kpis-rh-medicina', label: 'Medicina Ocupacional' },
@@ -142,6 +152,48 @@ const PORTAL = [
         paginas: [
           { id: 'governanca-kpis-tatahouse', label: 'Visão geral' },
           { id: 'governanca-kpis-tatahouse-cardapio', label: 'Cardápio' },
+          { id: 'governanca-areas-tatahouse-papeis', label: 'Papéis Tatá House' },
+        ],
+      },
+    ],
+  },
+  {
+    // Páginas de processo de cada área (compliance/areas/**) — catálogo secao 'Áreas & Processos'.
+    secao: 'Áreas & Processos',
+    icon: IcoProcessos,
+    paginas: [
+      { id: 'governanca-areas', label: 'Visão geral' },
+      { id: 'governanca-areas-estoque', label: 'Estoque' },
+      { id: 'governanca-areas-limpeza', label: 'Limpeza' },
+    ],
+    grupos: [
+      {
+        nome: 'Gente & Gestão',
+        paginas: [
+          { id: 'governanca-areas-rh', label: 'Visão geral' },
+          { id: 'governanca-rh-admissao', label: 'Admissão & Integração' },
+          { id: 'governanca-areas-rh-beneficios', label: 'Benefícios' },
+          { id: 'governanca-areas-rh-ces', label: 'Cargos e Salários' },
+          { id: 'governanca-areas-rh-comunicacao', label: 'Comunicação Interna' },
+          { id: 'governanca-areas-rh-ponto', label: 'Controle de Ponto' },
+          { id: 'governanca-areas-rh-cei', label: 'Cultura & Clima' },
+          { id: 'governanca-areas-rh-desligamentos', label: 'Desligamentos' },
+          { id: 'governanca-areas-rh-ferias', label: 'Férias' },
+          { id: 'governanca-areas-rh-folha', label: 'Folha de Pagamento' },
+          { id: 'governanca-rh-gestaodocs', label: 'Gestão de Estoque e Documentos' },
+          { id: 'governanca-areas-rh-ouvidoria', label: 'Ouvidoria & Canal de Escuta' },
+          { id: 'governanca-areas-rh-rt', label: 'Reclamações Trabalhistas' },
+          { id: 'governanca-rh-res', label: 'Recrutamento & Seleção' },
+          { id: 'governanca-rh-sancoes', label: 'Sanções Disciplinares' },
+          { id: 'governanca-areas-rh-sst', label: 'SST' },
+          { id: 'governanca-areas-rh-ted', label: 'T&D' },
+        ],
+      },
+      {
+        nome: 'Tatá House',
+        paginas: [
+          { id: 'governanca-areas-tatahouse-submenu', label: 'Visão geral' },
+          { id: 'governanca-areas-tatahouse-manual', label: 'Manual Tatá House' },
         ],
       },
     ],
@@ -149,7 +201,11 @@ const PORTAL = [
   {
     secao: 'Parceiros & Sistemas',
     icon: IcoParceiros,
-    paginas: [{ id: 'governanca-parceiros-sistemas', label: 'Parceiros & Sistemas' }],
+    paginas: [
+      { id: 'governanca-parceiros-sistemas', label: 'Parceiros & Sistemas' },
+      { id: 'governanca-ferramentas', label: 'Ferramentas & Sistemas' },
+      { id: 'governanca-fornecedores', label: 'Fornecedores & Parceiros' },
+    ],
     grupos: [],
   },
   {
