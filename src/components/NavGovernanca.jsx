@@ -163,21 +163,22 @@ const PORTAL = [
   },
 ]
 
-// Ordena as páginas em ordem alfabética dentro da seção/grupo, mas mantém a
-// "Visão geral" (índice do grupo) sempre no topo.
-const colPt = (a, b) => a.label.localeCompare(b.label, 'pt', { sensitivity: 'base' })
+// Ordem alfabética (pt), com a "Visão geral" (índice do grupo) sempre no topo.
+const ehVisaoGeral = (s) => /^vis[aã]o geral$/i.test((s || '').trim())
+const nomeDe = (x) => x.label ?? x.nome ?? '' // página (label) ou grupo (nome)
+function ordAlfa(a, b) {
+  const av = ehVisaoGeral(nomeDe(a))
+  const bv = ehVisaoGeral(nomeDe(b))
+  if (av !== bv) return av ? -1 : 1
+  return nomeDe(a).localeCompare(nomeDe(b), 'pt', { sensitivity: 'base' })
+}
 function ordenarPaginas(arr) {
-  const ehVisao = (p) => /^vis[aã]o geral$/i.test((p.label || '').trim())
-  return [...arr].sort((a, b) => {
-    const av = ehVisao(a)
-    const bv = ehVisao(b)
-    if (av !== bv) return av ? -1 : 1
-    return colPt(a, b)
-  })
+  return [...arr].sort(ordAlfa)
 }
 
 // Filtra a árvore pelo mapa de páginas liberadas (Map id->url). Some grupos e
-// seções que ficarem vazios. As páginas saem em ordem alfabética (Visão geral no topo).
+// seções que ficarem vazios. Monta `itens`: páginas diretas + subgrupos numa
+// lista só, toda em ordem alfabética (páginas diretas intercalam com os grupos).
 function filtrar(acesso) {
   const has = (id) => acesso.has(id)
   return PORTAL.map((sec) => {
@@ -185,8 +186,11 @@ function filtrar(acesso) {
     const grupos = (sec.grupos || [])
       .map((g) => ({ ...g, paginas: ordenarPaginas(g.paginas.filter((p) => has(p.id))) }))
       .filter((g) => g.paginas.length > 0)
-      .sort((a, b) => a.nome.localeCompare(b.nome, 'pt', { sensitivity: 'base' }))
-    return { ...sec, paginas, grupos }
+    const itens = [
+      ...paginas.map((p) => ({ tipo: 'pagina', chave: p.label, pagina: p })),
+      ...grupos.map((g) => ({ tipo: 'grupo', chave: g.nome, grupo: g })),
+    ].sort((a, b) => ordAlfa({ label: a.chave }, { label: b.chave }))
+    return { ...sec, paginas, grupos, itens }
   }).filter((sec) => sec.paginas.length > 0 || sec.grupos.length > 0)
 }
 
@@ -411,13 +415,13 @@ export function NavGovernanca({ onSelecionar, onAbrirPortal, ativoId = null }) {
                 >
                   <div className="overflow-hidden">
                     <div className="pb-2 pl-2 pr-1">
-                      {sec.paginas.map((p) => linhaPagina(p, false))}
-
-                      {sec.grupos.map((g) => {
+                      {sec.itens.map((it) => {
+                        if (it.tipo === 'pagina') return linhaPagina(it.pagina, false)
+                        const g = it.grupo
                         const kSub = 'sub:' + sec.secao + '|' + g.nome
                         const openSub = abertos.has(kSub)
                         return (
-                          <div key={g.nome} className="mt-0.5">
+                          <div key={'g:' + g.nome} className="mt-0.5">
                             <button
                               onClick={() => toggle(kSub)}
                               className="hstack w-full gap-2 rounded-lg px-2 py-2 text-left tap"
