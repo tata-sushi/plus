@@ -83,7 +83,6 @@ const PORTAL = [
     secao: 'Áreas & Dashboards',
     icon: IcoAreas,
     paginas: [
-      { id: 'governanca-areas-organograma', label: 'Organograma Geral' },
       { id: 'governanca-kpis-manutencao', label: 'Manutenção' },
       { id: 'governanca-kpis-compras-abastecimento', label: 'Compras' },
     ],
@@ -92,6 +91,7 @@ const PORTAL = [
         nome: 'Gente & Gestão',
         paginas: [
           { id: 'governanca-kpis-rh', label: 'Visão geral' },
+          { id: 'governanca-areas-organograma', label: 'Organograma Geral' },
           { id: 'governanca-areas-rh-papeis', label: 'Papéis & Responsabilidades' },
           { id: 'governanca-kpis-rh-admissao', label: 'Admissão' },
           { id: 'governanca-kpis-rh-absenteismo', label: 'Absenteísmo' },
