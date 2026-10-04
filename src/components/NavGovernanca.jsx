@@ -185,6 +185,7 @@ function filtrar(acesso) {
     const grupos = (sec.grupos || [])
       .map((g) => ({ ...g, paginas: ordenarPaginas(g.paginas.filter((p) => has(p.id))) }))
       .filter((g) => g.paginas.length > 0)
+      .sort((a, b) => a.nome.localeCompare(b.nome, 'pt', { sensitivity: 'base' }))
     return { ...sec, paginas, grupos }
   }).filter((sec) => sec.paginas.length > 0 || sec.grupos.length > 0)
 }
