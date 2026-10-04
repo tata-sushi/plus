@@ -38,13 +38,6 @@ const IcoAreas = ({ size = 24, ...p }) => (
     <line x1="6" y1="20" x2="6" y2="14" />
   </svg>
 )
-const IcoProcessos = ({ size = 24, ...p }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" {...svgBase} {...p}>
-    <rect x="3" y="3" width="7" height="6" rx="1" />
-    <rect x="14" y="15" width="7" height="6" rx="1" />
-    <path d="M6.5 9v3.5a2 2 0 0 0 2 2H17.5V15" />
-  </svg>
-)
 const IcoParceiros = ({ size = 24, ...p }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" {...svgBase} {...p}>
     <rect x="2" y="3" width="20" height="14" rx="2" />
@@ -73,7 +66,6 @@ const PORTAL = [
       { id: 'governanca-conceitos-governanca', label: 'Governança' },
       { id: 'governanca-conceitos-5s', label: 'Metodologia 5S' },
       { id: 'governanca-conceitos-kanban', label: 'Kanban' },
-      { id: 'governanca-conceitos-matrizdeb', label: 'Matriz D/E/B' },
     ],
     grupos: [],
   },
@@ -93,7 +85,6 @@ const PORTAL = [
     paginas: [
       { id: 'governanca-kpis-manutencao', label: 'Manutenção' },
       { id: 'governanca-kpis-compras-abastecimento', label: 'Compras' },
-      { id: 'governanca-kpis-caixa', label: 'Caixa Pulse' },
     ],
     grupos: [
       {
@@ -118,7 +109,6 @@ const PORTAL = [
           { id: 'governanca-kpis-rh-feriados', label: 'Feriados' },
           { id: 'governanca-kpis-rh-ferias', label: 'Férias' },
           { id: 'governanca-kpis-rh-folha', label: 'Folha de Pagamento' },
-          { id: 'governanca-kpis-rh-gorjeta', label: 'Gorjeta & Pedidos iFood' },
           { id: 'governanca-kpis-rh-doc', label: 'Documentos' },
           { id: 'governanca-kpis-rh-hc', label: 'Headcount' },
           { id: 'governanca-kpis-rh-medicina', label: 'Medicina Ocupacional' },
@@ -158,21 +148,9 @@ const PORTAL = [
     ],
   },
   {
-    // Páginas de processo antigas (compliance/areas/**): o conteúdo foi para a aba Sobre de cada dashboard
-    // e as páginas foram apagadas. Resta só a que ainda não foi portada.
-    secao: 'Áreas & Processos',
-    icon: IcoProcessos,
-    paginas: [{ id: 'governanca-rh-gestaodocs', label: 'Gestão de Estoque e Documentos' }],
-    grupos: [],
-  },
-  {
     secao: 'Parceiros & Sistemas',
     icon: IcoParceiros,
-    paginas: [
-      { id: 'governanca-parceiros-sistemas', label: 'Parceiros & Sistemas' },
-      { id: 'governanca-ferramentas', label: 'Ferramentas & Sistemas' },
-      { id: 'governanca-fornecedores', label: 'Fornecedores & Parceiros' },
-    ],
+    paginas: [{ id: 'governanca-parceiros-sistemas', label: 'Parceiros & Sistemas' }],
     grupos: [],
   },
   {
