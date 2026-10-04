@@ -157,7 +157,7 @@ const PORTAL = [
     secao: 'Compliance',
     icon: IcoCompliance,
     paginas: [
-      { id: 'governanca-auditoria', label: 'Auditoria de páginas' },
+      { id: 'governanca-auditoria-paginas', label: 'Auditoria de páginas' },
       { id: 'governanca-auditoria-docsrh', label: 'Gestão de Documentos' },
     ],
     grupos: [],
