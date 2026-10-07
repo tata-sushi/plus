@@ -13,9 +13,9 @@ const BRL0 = (n) => 'R$ ' + Number(n).toLocaleString('pt-BR', { maximumFractionD
 
 export function PremioPenalidadesChart({
   dados = DADOS,
-  titulo = 'Prêmio não repassado por penalidades',
-  subtitulo = 'Vistoria da Nutricionista — Setembro',
-  rotuloTotal = 'Total deixado de repassar',
+  titulo = 'Prêmio perdido devido apontamentos da qualidade',
+  subtitulo = 'Setembro',
+  rotuloTotal = 'Total perdido',
   altura = 200,
 }) {
   // Respeita "reduzir movimento": sem animação de crescimento.
