@@ -1,8 +1,11 @@
 import { useEffect, useState } from 'react'
 
-// Gráfico animado: prêmio NÃO repassado por penalidades, por unidade.
+// Gráfico animado: prêmio perdido por apontamentos da qualidade, por unidade.
 // As barras crescem na entrada e são escaladas pela maior. A barra menor fica
 // mais clara (opacidade por proporção). Dados editáveis aqui no topo OU via props.
+//
+// Versão do mês: 0926 (Setembro/2026). Convenção: a cada mês cria-se um novo
+// arquivo/componente com o sufixo MMAA (ex.: PremioPenalidadesChart1026).
 const DADOS = [
   { unidade: 'Pinheiros', valor: 1022 },
   { unidade: 'Itaim', valor: 2380 },
@@ -11,7 +14,7 @@ const DADOS = [
 // R$ sem centavos, com separador de milhar (ex.: R$ 2.380).
 const BRL0 = (n) => 'R$ ' + Number(n).toLocaleString('pt-BR', { maximumFractionDigits: 0 })
 
-export function PremioPenalidadesChart({
+export function PremioPenalidadesChart0926({
   dados = DADOS,
   titulo = 'Prêmio perdido devido apontamentos da qualidade',
   subtitulo = 'Setembro',
@@ -86,4 +89,4 @@ export function PremioPenalidadesChart({
   )
 }
 
-export default PremioPenalidadesChart
+export default PremioPenalidadesChart0926
