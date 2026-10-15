@@ -23,6 +23,7 @@ export function AuthProvider({ children }) {
   const [podeCheckin, setPodeCheckin] = useState(null) // acesso à página de Check-in (QR): null = verificando
   const [podeLojinha, setPodeLojinha] = useState(null) // acesso à Lojinha (bloqueada p/ testes): null = verificando
   const [podeBrainstorm, setPodeBrainstorm] = useState(null) // acesso a "Compartilhar palavra": null = verificando
+  const [podeVideoFeed, setPodeVideoFeed] = useState(false) // pode publicar vídeo no feed (admin OU liberado)
   const [govTipo, setGovTipo] = useState(null) // tipo de acesso à governança (ou null)
   const [pendenciasN, setPendenciasN] = useState(0) // nº de pendências do líder (0 p/ quem não tem)
   const [loading, setLoading] = useState(true)
@@ -158,6 +159,9 @@ export function AuthProvider({ children }) {
     supabase.rpc('brainstorm_pode_acessar').then(({ data }) => {
       if (ativo) setPodeBrainstorm(data === true)
     })
+    supabase.rpc('feed_video_pode').then(({ data }) => {
+      if (ativo) setPodeVideoFeed(data === true)
+    })
     supabase.rpc('acesso_governanca').then(({ data }) => {
       if (ativo) setGovTipo(data || null)
     })
@@ -201,6 +205,7 @@ export function AuthProvider({ children }) {
         podeCheckin,
         podeLojinha,
         podeBrainstorm,
+        podeVideoFeed,
         governanca: { tem: !!govTipo, tipo: govTipo },
         pendencias: pendenciasN,
       }

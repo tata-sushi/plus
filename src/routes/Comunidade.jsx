@@ -804,7 +804,7 @@ export function Comunidade() {
           >
             <ImageIcon size={16} /> Foto
           </button>
-          {admin && (
+          {(admin || usuario?.podeVideoFeed) && (
             <button
               onClick={() => inputVideo.current?.click()}
               className="hstack gap-1.5 text-xs font-semibold text-muted tap"
