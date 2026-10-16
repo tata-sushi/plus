@@ -31,6 +31,7 @@ import {
   Mic,
   ClipboardList,
   CalendarClock,
+  Ticket,
 } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { GovFrame } from '../components/GovFrame.jsx'
@@ -153,6 +154,8 @@ const vazio = {
   imagem_url: '',
   ativo: true,
   ordem: null,
+  limite: '', // limite de resgates por pessoa (vouchers)
+  codigos: '', // novos códigos a adicionar (um por linha)
 }
 
 function EstoquePill({ estoque }) {
@@ -193,6 +196,7 @@ export function AdminRecompensas() {
   const [itens, setItens] = useState([])
   const [carregando, setCarregando] = useState(true)
   const [editando, setEditando] = useState(null) // objeto do formulário ou null
+  const [vInfo, setVInfo] = useState(null) // {por_voucher, limite, total, livres, usados} da recompensa aberta
   const [salvando, setSalvando] = useState(false)
   const [erro, setErro] = useState('')
 
@@ -351,6 +355,7 @@ export function AdminRecompensas() {
     tapHaptic()
     limparFoto()
     setErro('')
+    setVInfo(null)
     setEditando(
       item
         ? {
@@ -363,14 +368,27 @@ export function AdminRecompensas() {
             imagem_url: item.imagem_url || '',
             ativo: item.ativo,
             ordem: item.ordem,
+            limite: item.limite_por_pessoa == null ? '' : String(item.limite_por_pessoa),
+            codigos: '',
           }
         : { ...vazio },
     )
+    // carrega info de vouchers (total/livres/usados + limite) da recompensa
+    if (item?.id) {
+      supabase.rpc('admin_recompensa_vouchers_info', { p_id: item.id }).then(({ data }) => {
+        if (!data) return
+        setVInfo(data)
+        setEditando((s) =>
+          s && s.id === item.id && data.limite != null ? { ...s, limite: String(data.limite) } : s,
+        )
+      })
+    }
   }
 
   function fechar() {
     limparFoto()
     setEditando(null)
+    setVInfo(null)
     setErro('')
   }
 
@@ -427,7 +445,7 @@ export function AdminRecompensas() {
     const estoque = estoqueTxt === '' ? null : Math.max(0, parseInt(estoqueTxt, 10) || 0)
     const ordem = Number.isFinite(editando.ordem) ? editando.ordem : itens.length
 
-    const { error } = await supabase.rpc('admin_salvar_recompensa', {
+    const { data: savedId, error } = await supabase.rpc('admin_salvar_recompensa', {
       p_id: editando.id,
       p_titulo: editando.titulo.trim(),
       p_descricao: editando.descricao.trim() || null,
@@ -438,11 +456,34 @@ export function AdminRecompensas() {
       p_ordem: ordem,
       p_detalhes: editando.detalhes.trim() || null,
     })
-    setSalvando(false)
     if (error) {
+      setSalvando(false)
       setErro('Não foi possível salvar. Tente novamente.')
       return
     }
+
+    // Vouchers: grava limite por pessoa e adiciona novos códigos (quando houver).
+    const id = savedId || editando.id
+    const codigos = editando.codigos
+      .split('\n')
+      .map((c) => c.trim())
+      .filter(Boolean)
+    const limiteTxt = String(editando.limite).trim()
+    const limite = limiteTxt === '' ? null : Math.max(1, parseInt(limiteTxt, 10) || 1)
+    if (id && (codigos.length > 0 || limite != null || vInfo?.por_voucher)) {
+      const { error: vErr } = await supabase.rpc('admin_recompensa_voucher_set', {
+        p_id: id,
+        p_limite: limite,
+        p_codigos: codigos,
+      })
+      if (vErr) {
+        setSalvando(false)
+        setErro('Recompensa salva, mas não foi possível gravar os códigos. Tente de novo.')
+        return
+      }
+    }
+
+    setSalvando(false)
     fechar()
     setCarregando(true)
     carregar()
@@ -1093,6 +1134,63 @@ export function AdminRecompensas() {
                   />
                 </span>
               </button>
+
+              {/* Entrega por voucher (códigos) */}
+              <div className="mt-4 rounded-card border border-line bg-surface-2/40 p-4">
+                <div className="hstack gap-2">
+                  <Ticket size={15} className="text-accent" />
+                  <div className="text-sm font-semibold">Entrega por voucher</div>
+                </div>
+                <p className="mt-1 text-[11px] text-muted">
+                  Cadastre códigos prontos. No resgate, o colaborador recebe um código único na
+                  hora — sem envio manual.
+                </p>
+
+                {vInfo?.por_voucher && (
+                  <div className="mt-3 hstack flex-wrap gap-1.5">
+                    <span className="pill bg-surface-2 text-[10px] text-muted">
+                      {fmt(vInfo.total)} códigos
+                    </span>
+                    <span className="pill bg-accent-soft text-[10px] text-accent">
+                      {fmt(vInfo.livres)} disponíveis
+                    </span>
+                    <span className="pill bg-surface-2 text-[10px] text-muted">
+                      {fmt(vInfo.usados)} usados
+                    </span>
+                  </div>
+                )}
+
+                <label className="mt-3 block text-[11px] font-semibold uppercase tracking-widest text-muted">
+                  Limite por pessoa <span className="normal-case text-muted-2">(opcional)</span>
+                </label>
+                <input
+                  value={editando.limite}
+                  onChange={(e) =>
+                    setEditando((s) => ({ ...s, limite: e.target.value.replace(/\D/g, '') }))
+                  }
+                  inputMode="numeric"
+                  placeholder="Sem limite"
+                  className="mt-1.5 w-full rounded-card border border-line bg-surface px-4 py-3 text-sm outline-none placeholder:text-muted-2"
+                />
+
+                <label className="mt-3 block text-[11px] font-semibold uppercase tracking-widest text-muted">
+                  {vInfo?.por_voucher ? 'Adicionar códigos' : 'Códigos'}{' '}
+                  <span className="normal-case text-muted-2">(um por linha)</span>
+                </label>
+                <textarea
+                  value={editando.codigos}
+                  onChange={(e) => setEditando((s) => ({ ...s, codigos: e.target.value }))}
+                  placeholder={'XYZ-001\nXYZ-002\nXYZ-003'}
+                  rows={4}
+                  className="mt-1.5 w-full resize-none rounded-card border border-line bg-surface px-4 py-3 font-mono text-sm outline-none placeholder:text-muted-2"
+                />
+                <div className="mt-1.5 text-[11px] text-muted-2">
+                  Cada código é entregue uma única vez.{' '}
+                  {vInfo?.por_voucher
+                    ? 'Os novos somam ao estoque; códigos repetidos são ignorados.'
+                    : 'Com códigos cadastrados, a “Quantidade” passa a ser gerida automaticamente.'}
+                </div>
+              </div>
 
               {erro && <div className="mt-3 text-xs font-medium text-danger">{erro}</div>}
             </div>

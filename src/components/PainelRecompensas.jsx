@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Gift, Loader2, Check, Clock, X } from 'lucide-react'
+import { Gift, Loader2, Check, Clock, X, Copy, Ticket } from 'lucide-react'
 import { Section } from './Section.jsx'
 import { Card } from './Card.jsx'
 import { RecompensaFoto } from './RecompensaFoto.jsx'
@@ -26,6 +26,40 @@ const STATUS = {
   cancelado: { label: 'Cancelado', Icon: X, cls: 'bg-danger/15 text-danger' },
 }
 
+// Caixinha que mostra o código do voucher com botão de copiar.
+function CodigoVoucher({ codigo }) {
+  const [copiado, setCopiado] = useState(false)
+  async function copiar() {
+    tapHaptic()
+    try {
+      await navigator.clipboard.writeText(codigo)
+      setCopiado(true)
+      setTimeout(() => setCopiado(false), 1600)
+    } catch {
+      /* clipboard pode falhar em contexto inseguro; o código segue visível */
+    }
+  }
+  return (
+    <button
+      onClick={copiar}
+      className="hstack w-full items-center justify-between gap-3 rounded-2xl border border-accent/30 bg-accent-soft px-4 py-3 text-left tap"
+    >
+      <div className="min-w-0">
+        <div className="text-[10px] font-semibold uppercase tracking-widest text-accent/80">
+          Seu código
+        </div>
+        <div className="truncate font-mono text-lg font-bold tracking-wide text-accent">
+          {codigo}
+        </div>
+      </div>
+      <span className="hstack shrink-0 gap-1 text-[11px] font-semibold text-accent">
+        {copiado ? <Check size={14} /> : <Copy size={14} />}
+        {copiado ? 'Copiado' : 'Copiar'}
+      </span>
+    </button>
+  )
+}
+
 // Aba "Recompensas" do hub: catálogo trocado por pontos.
 export function PainelRecompensas() {
   const [saldo, setSaldo] = useState(null)
@@ -36,6 +70,7 @@ export function PainelRecompensas() {
   const [confirmar, setConfirmar] = useState(false) // etapa de confirmação dentro da janelinha
   const [processando, setProcessando] = useState(false)
   const [aviso, setAviso] = useState(null) // {tipo:'ok'|'erro', texto}
+  const [entregue, setEntregue] = useState(null) // {titulo, codigo} — tela de código do voucher
 
   const saldoAnimado = useCountUp(saldo ?? 0)
 
@@ -43,7 +78,7 @@ export function PainelRecompensas() {
     const [s, c, r] = await Promise.all([
       supabase.rpc('meu_saldo'),
       supabase.rpc('recompensas_disponiveis'),
-      supabase.rpc('meus_resgates'),
+      supabase.rpc('meus_resgates_v2'),
     ])
     setSaldo(Number(s.data) || 0)
     setItens(c.data || [])
@@ -80,8 +115,13 @@ export function PainelRecompensas() {
       return
     }
     setSaldo(Number(data.saldo) || 0)
-    setAviso({ tipo: 'ok', texto: `Resgate de "${titulo}" solicitado! 🎉` })
     fechar()
+    // Voucher: entrega instantânea — mostra o código na hora.
+    if (data.voucher && data.codigo) {
+      setEntregue({ titulo, codigo: data.codigo })
+    } else {
+      setAviso({ tipo: 'ok', texto: `Resgate de "${titulo}" solicitado! 🎉` })
+    }
     carregar()
   }
 
@@ -191,17 +231,24 @@ export function PainelRecompensas() {
                   return (
                     <div
                       key={rg.id}
-                      className={cn('hstack gap-3 px-4 py-3', i > 0 && 'border-t border-line')}
+                      className={cn('px-4 py-3', i > 0 && 'border-t border-line')}
                     >
-                      <div className="min-w-0 flex-1">
-                        <div className="truncate text-sm font-semibold">{rg.titulo}</div>
-                        <div className="text-[11px] text-muted">
-                          {new Date(rg.created_at).toLocaleDateString('pt-BR')} · {fmt(rg.custo)} pts
+                      <div className="hstack gap-3">
+                        <div className="min-w-0 flex-1">
+                          <div className="truncate text-sm font-semibold">{rg.titulo}</div>
+                          <div className="text-[11px] text-muted">
+                            {new Date(rg.created_at).toLocaleDateString('pt-BR')} · {fmt(rg.custo)} pts
+                          </div>
                         </div>
+                        <span className={cn('pill text-[10px]', st.cls)}>
+                          <StIcon size={11} /> {st.label}
+                        </span>
                       </div>
-                      <span className={cn('pill text-[10px]', st.cls)}>
-                        <StIcon size={11} /> {st.label}
-                      </span>
+                      {rg.codigo && (
+                        <div className="mt-2.5">
+                          <CodigoVoucher codigo={rg.codigo} />
+                        </div>
+                      )}
                     </div>
                   )
                 })}
@@ -320,6 +367,41 @@ export function PainelRecompensas() {
             </div>
           </div>
         </div>,
+          document.body,
+        )}
+
+      {/* Tela de código entregue (voucher) */}
+      {entregue &&
+        createPortal(
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+            onClick={() => setEntregue(null)}
+          >
+            <div
+              onClick={(e) => e.stopPropagation()}
+              className="w-full max-w-sm rounded-card border border-line bg-surface p-5 text-center"
+            >
+              <div className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-accent-soft text-accent">
+                <Ticket size={26} />
+              </div>
+              <div className="mt-3 font-display text-lg font-bold leading-tight">
+                Resgate concluído! 🎉
+              </div>
+              <p className="mt-1 text-sm text-muted">
+                {entregue.titulo} — use o código abaixo. Ele também fica salvo em{' '}
+                <span className="font-semibold text-text">Meus resgates</span>.
+              </p>
+              <div className="mt-4">
+                <CodigoVoucher codigo={entregue.codigo} />
+              </div>
+              <button
+                onClick={() => setEntregue(null)}
+                className="btn-primary mt-4 w-full !py-3 text-sm"
+              >
+                Fechar
+              </button>
+            </div>
+          </div>,
           document.body,
         )}
     </>
