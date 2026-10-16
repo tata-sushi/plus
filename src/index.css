@@ -427,3 +427,20 @@
 @media (prefers-reduced-motion: reduce) {
   .hw-spider-wrap, .hw-thread, .hw-spider, .hw-bat, .hw-bat svg { animation: none !important; }
 }
+
+/* Fantasminha animado do tile de Sugestões (Halloween): pisca + tremedinha. */
+.hw-ghost { transform-origin: center; animation: hwGhostWobble 3.4s ease-in-out infinite; }
+.hw-ghost-eye { transform-box: fill-box; transform-origin: center; animation: hwGhostBlink 3.4s ease-in-out infinite; }
+@keyframes hwGhostWobble {
+  0%, 90%, 100% { transform: translateY(0) rotate(0deg); }
+  92% { transform: translateY(-0.5px) rotate(-7deg); }
+  95% { transform: rotate(7deg); }
+  98% { transform: rotate(-4deg); }
+}
+@keyframes hwGhostBlink {
+  0%, 42%, 50%, 100% { transform: scaleY(1); }
+  46% { transform: scaleY(0.12); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hw-ghost, .hw-ghost-eye { animation: none !important; }
+}

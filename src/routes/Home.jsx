@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Flag, ShoppingBag, Star, Network, Sun, Check, X, KanbanSquare, SprayCan, Radio as RadioIcon, Puzzle, UtensilsCrossed, Trophy, CalendarClock, FileSignature, ReceiptText, QrCode, HeartHandshake, Lightbulb, Ghost } from 'lucide-react'
+import { Flag, ShoppingBag, Star, Network, Sun, Check, X, KanbanSquare, SprayCan, Radio as RadioIcon, Puzzle, UtensilsCrossed, Trophy, CalendarClock, FileSignature, ReceiptText, QrCode, HeartHandshake, Lightbulb } from 'lucide-react'
 import { cn } from '../lib/cn'
 import { Header } from '../components/Header.jsx'
 import { Section } from '../components/Section.jsx'
@@ -72,6 +72,29 @@ function labelCurto(title) {
 
 // Layout compacto de Sugestões (estilo grade de atalhos): tiles menores com
 // ícone + rótulo, todos visíveis de uma vez (sem carrossel).
+
+// Fantasminha animado do tile de Halloween: pisca os olhos e dá uma tremedinha.
+// SVG próprio (o ícone do lucide não deixa animar os olhos). Herda a cor (currentColor).
+function GhostIcon({ size = 24 }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="hw-ghost"
+    >
+      <path d="M12 2a8 8 0 0 0-8 8v12l3-3 2.5 2.5L12 19l2.5 2.5L17 19l3 3V10a8 8 0 0 0-8-8z" />
+      <ellipse className="hw-ghost-eye" cx="9" cy="10.5" rx="0.95" ry="1.4" fill="currentColor" stroke="none" />
+      <ellipse className="hw-ghost-eye" cx="15" cy="10.5" rx="0.95" ry="1.4" fill="currentColor" stroke="none" />
+    </svg>
+  )
+}
+
 function SugestoesGrid({ cards, desktop, setCanvas }) {
   const tile = (c) => {
     const Icon = c.badgeIcon
@@ -252,7 +275,7 @@ export function Home() {
     { to: '/check-in', badgeIcon: QrCode, title: 'Check-in', subtitle: 'Presença por QR' },
     // Halloween — em teste, só no meu usuário (mat 7). Toca pra ligar/desligar o tema.
     ...(usuario?.matricula === '7'
-      ? [{ badgeIcon: Ghost, title: 'Halloween', halloween: true, onClick: toggleHalloween }]
+      ? [{ badgeIcon: GhostIcon, title: 'Halloween', halloween: true, onClick: toggleHalloween }]
       : []),
   ].sort((a, b) => labelCurto(a.title).localeCompare(labelCurto(b.title), 'pt', { sensitivity: 'base' }))
   const desktop = useDesktop()
