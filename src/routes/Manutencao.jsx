@@ -187,7 +187,6 @@ export function Manutencao() {
                 </span>
                 <div className="min-w-0 flex-1">
                   <div className="font-display text-sm font-bold">Modo Halloween 🎃</div>
-                  <div className="text-xs text-muted">Tema escuro especial de Halloween.</div>
                 </div>
                 <div className="hstack shrink-0 gap-1 rounded-pill bg-surface-2 p-1">
                   {[

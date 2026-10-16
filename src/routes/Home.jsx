@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Flag, ShoppingBag, Star, Network, Sun, Check, X, KanbanSquare, SprayCan, Radio as RadioIcon, Puzzle, UtensilsCrossed, Trophy, CalendarClock, FileSignature, ReceiptText, QrCode, HeartHandshake, Lightbulb } from 'lucide-react'
+import { Flag, ShoppingBag, Star, Network, Sun, Check, X, KanbanSquare, SprayCan, Radio as RadioIcon, Puzzle, UtensilsCrossed, Trophy, CalendarClock, FileSignature, ReceiptText, QrCode, HeartHandshake, Lightbulb, Ghost } from 'lucide-react'
 import { cn } from '../lib/cn'
 import { Header } from '../components/Header.jsx'
 import { Section } from '../components/Section.jsx'
@@ -15,7 +15,7 @@ import { useAuth } from '../lib/AuthContext.jsx'
 import { useDesktop } from '../lib/useDesktop.js'
 import { useDesktopCanvas } from '../lib/desktopCanvas.js'
 import { supabase } from '../lib/supabase.js'
-import { getTheme } from '../lib/theme.js'
+import { getTheme, applyTheme } from '../lib/theme.js'
 import { estadoPush } from '../lib/push.js'
 const TIPO_ICON = { principal: 'UtensilsCrossed', guarnicao: 'Salad', salada: 'Salad', sobremesa: 'IceCreamBowl', bebida: 'Wine', outro: 'Utensils' }
 function gruposDia(itens) {
@@ -80,9 +80,11 @@ function SugestoesGrid({ cards, desktop, setCanvas }) {
         <span
           className={cn(
             'relative grid h-14 w-14 place-items-center rounded-2xl border',
-            c.emBreve
-              ? 'border-line bg-surface-3 text-muted'
-              : 'border-carbon/30 bg-accent-soft text-carbon dark:border-accent/30 dark:text-accent',
+            c.halloween
+              ? 'border-[#F2792B]/40 bg-[#F2792B]/15 text-[#F2792B]'
+              : c.emBreve
+                ? 'border-line bg-surface-3 text-muted'
+                : 'border-carbon/30 bg-accent-soft text-carbon dark:border-accent/30 dark:text-accent',
           )}
         >
           <Icon size={24} strokeWidth={2} />
@@ -103,6 +105,13 @@ function SugestoesGrid({ cards, desktop, setCanvas }) {
         <div key={c.title} className={cn(cls, 'opacity-60')} aria-disabled="true">
           {inner}
         </div>
+      )
+    }
+    if (c.onClick) {
+      return (
+        <button key={c.title} type="button" onClick={c.onClick} className={cn(cls, 'tap')}>
+          {inner}
+        </button>
       )
     }
     return (
@@ -218,6 +227,9 @@ export function Home() {
   // gated por acesso (podeQuadros); Brainstorm também (podeBrainstorm). Lojinha,
   // Ranking, Agenda e Check-in são pra todos.
   const [desafios, recompensas, cardapio, organograma] = sugestoesCards
+  // Tema atual + toggle do Modo Halloween (usado no tile de Sugestões).
+  const [tema, setTema] = useState(getTheme)
+  const toggleHalloween = () => setTema(applyTheme(tema === 'halloween' ? 'dark' : 'halloween'))
   const cards = [
     ...(usuario?.podeQuadros
       ? [{ to: '/quadros', badgeIcon: KanbanSquare, title: 'Kanban', subtitle: 'Quadro de tarefas' }]
@@ -238,6 +250,10 @@ export function Home() {
     { to: '/documentos', badgeIcon: FileSignature, title: 'Documentos', subtitle: 'Documentos para assinar', badge: docsPend },
     { to: '/holerites', badgeIcon: ReceiptText, title: 'Holerite', subtitle: 'Seus holerites' },
     { to: '/check-in', badgeIcon: QrCode, title: 'Check-in', subtitle: 'Presença por QR' },
+    // Halloween — em teste, só no meu usuário (mat 7). Toca pra ligar/desligar o tema.
+    ...(usuario?.matricula === '7'
+      ? [{ badgeIcon: Ghost, title: 'Halloween', halloween: true, onClick: toggleHalloween }]
+      : []),
   ].sort((a, b) => labelCurto(a.title).localeCompare(labelCurto(b.title), 'pt', { sensitivity: 'base' }))
   const desktop = useDesktop()
   const { setCanvas } = useDesktopCanvas()
@@ -269,8 +285,7 @@ export function Home() {
 
   // Card "modo escuro" — entra no sorteio dos automáticos na base (2/dia), mas o
   // tema vive no aparelho: o front mostra só pra quem está no claro (no escuro,
-  // filtra fora). O "de vez em quando" já é o sorteio da base.
-  const [tema] = useState(getTheme)
+  // filtra fora). O "de vez em quando" já é o sorteio da base. (tema declarado acima)
 
   // Card "aviso_1" = ativar notificações. O push é por aparelho (a base não sabe),
   // então o front decide: mostra só pra quem está SEM push AQUI, e o toque ativa
