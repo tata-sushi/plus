@@ -273,10 +273,8 @@ export function Home() {
     { to: '/documentos', badgeIcon: FileSignature, title: 'Documentos', subtitle: 'Documentos para assinar', badge: docsPend },
     { to: '/holerites', badgeIcon: ReceiptText, title: 'Holerite', subtitle: 'Seus holerites' },
     { to: '/check-in', badgeIcon: QrCode, title: 'Check-in', subtitle: 'Presença por QR' },
-    // Halloween — em teste, só no meu usuário (mat 7). Toca pra ligar/desligar o tema.
-    ...(usuario?.matricula === '7'
-      ? [{ badgeIcon: GhostIcon, title: 'Halloween', halloween: true, onClick: toggleHalloween }]
-      : []),
+    // Halloween — tile pra ligar/desligar o tema sazonal (pra todos). Toca e alterna.
+    { badgeIcon: GhostIcon, title: 'Halloween', halloween: true, onClick: toggleHalloween },
   ].sort((a, b) => labelCurto(a.title).localeCompare(labelCurto(b.title), 'pt', { sensitivity: 'base' }))
   const desktop = useDesktop()
   const { setCanvas } = useDesktopCanvas()
