@@ -17,7 +17,7 @@ const TEMAS = [
 ]
 
 export function Manutencao() {
-  const { updatePassword, usuario } = useAuth()
+  const { updatePassword } = useAuth()
   const [tema, setTema] = useState(getTheme)
   const [signoVis, setSignoVis] = useState(getSignoVisivel)
   const [discVis, setDiscVis] = useState(getDiscVisivel)
@@ -179,16 +179,15 @@ export function Manutencao() {
             </div>
           </div>
 
-          {/* Modo Halloween — em teste, só no meu usuário (mat 7). */}
-          {usuario?.matricula === '7' && (
-            <div className="card p-4">
+          {/* Modo Halloween — tema sazonal, opt-in pra todos nos Ajustes. */}
+          <div className="card p-4">
               <div className="hstack gap-3">
                 <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-accent-soft text-accent">
                   <Ghost size={20} />
                 </span>
                 <div className="min-w-0 flex-1">
                   <div className="font-display text-sm font-bold">Modo Halloween 🎃</div>
-                  <div className="text-xs text-muted">Tema escuro especial — em teste.</div>
+                  <div className="text-xs text-muted">Tema escuro especial de Halloween.</div>
                 </div>
                 <div className="hstack shrink-0 gap-1 rounded-pill bg-surface-2 p-1">
                   {[
@@ -211,7 +210,6 @@ export function Manutencao() {
                 </div>
               </div>
             </div>
-          )}
         </div>
       </Section>
 
