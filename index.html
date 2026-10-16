@@ -11,10 +11,11 @@
       // aplica o tema antes da 1ª pintura (evita flash). Sempre seta o
       // data-theme (default 'light') pra habilitar o variante dark: do Tailwind.
       try {
-        var t = localStorage.getItem('tp_theme') === 'dark' ? 'dark' : 'light'
+        var raw = localStorage.getItem('tp_theme')
+        var t = raw === 'dark' || raw === 'halloween' ? raw : 'light'
         document.documentElement.setAttribute('data-theme', t)
         var m = document.querySelector('meta[name="theme-color"]')
-        if (m) m.setAttribute('content', t === 'light' ? '#F5F4F1' : '#0A0A0A')
+        if (m) m.setAttribute('content', t === 'light' ? '#F5F4F1' : t === 'halloween' ? '#0d0b11' : '#0A0A0A')
       } catch (e) {}
     </script>
     <meta name="apple-mobile-web-app-capable" content="yes" />

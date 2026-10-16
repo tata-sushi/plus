@@ -45,6 +45,26 @@
   --meta-color: #F5F4F1;
 }
 
+/* ===== Tema Halloween (dark especial) — base escura + acento abóbora ===== */
+:root[data-theme='halloween'] {
+  --bg: 13 11 17;            /* quase preto, leve roxo */
+  --surface: 24 20 32;
+  --surface-2: 34 28 46;
+  --surface-3: 46 38 60;
+  --border: 46 38 60;
+  --line: rgba(255, 255, 255, 0.07);
+  --fill: rgba(255, 255, 255, 0.05);
+  --carbon: 122 112 140;
+  --carbon-soft: rgba(122, 112, 140, 0.35);
+  --accent: 242 121 43;      /* Abóbora */
+  --accent-dim: 214 100 30;
+  --accent-soft: rgba(242, 121, 43, 0.14);
+  --text: 237 234 242;
+  --muted: 158 150 170;
+  --muted-2: 110 104 126;
+  --meta-color: #0d0b11;
+}
+
 /* ===== Tema do dev (easter egg): troca só o accent (verde → dourado) no perfil
    da matrícula 7. NÃO mexe nas linhas/bordas (ficam neutras). Via .tema-dev. ===== */
 .tema-dev {
@@ -368,3 +388,35 @@
 }
 *::-webkit-scrollbar { width: 6px; height: 6px; }
 *::-webkit-scrollbar-thumb { background: rgb(var(--surface-3)); border-radius: 999px; }
+
+/* ===== Decoração de Halloween (só no tema 'halloween', sobreposta na Home).
+   Camada fixa no topo, não bloqueia toque (pointer-events:none). ===== */
+.hw-deco {
+  position: fixed;
+  left: 0; right: 0; top: 0;
+  height: 430px;
+  z-index: 25;
+  pointer-events: none;
+  overflow: hidden;
+  color: #7b7489; /* silhueta visível no fundo escuro */
+  padding-top: env(safe-area-inset-top, 0px);
+}
+.hw-web { position: absolute; top: 54px; right: -4px; width: 86px; height: 86px; color: #3a3350; opacity: .55; transform: scaleX(-1); }
+.hw-spider-wrap { position: absolute; left: 76%; top: 56px; transform-origin: top center; animation: hwSwing 3.6s ease-in-out infinite; }
+.hw-thread { width: 1.5px; height: 150px; background: #3a3350; margin: 0 auto; transform-origin: top; animation: hwDrop 1s cubic-bezier(.22,1,.36,1) both; }
+.hw-spider { width: 38px; height: 38px; margin: -4px auto 0; animation: hwLegs 1.2s ease-in-out infinite; transform-origin: top center; }
+.hw-bat { position: absolute; width: 26px; height: 26px; }
+.hw-bat svg { width: 100%; height: 100%; animation: hwFlap .28s steps(2, jump-none) infinite; transform-origin: center; }
+.hw-b1 { left: 15%; top: 118px; animation: hwFly1 7s ease-in-out infinite; }
+.hw-b2 { left: 40%; top: 96px; width: 18px; height: 18px; animation: hwFly2 9s ease-in-out infinite; }
+.hw-b3 { left: 60%; top: 150px; width: 16px; height: 16px; opacity: .85; animation: hwFly3 11s ease-in-out infinite; }
+@keyframes hwSwing { 0%, 100% { transform: rotate(-6deg); } 50% { transform: rotate(6deg); } }
+@keyframes hwDrop { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+@keyframes hwLegs { 0%, 100% { transform: scaleX(1); } 50% { transform: scaleX(.92); } }
+@keyframes hwFlap { from { transform: scaleX(1); } to { transform: scaleX(.6); } }
+@keyframes hwFly1 { 0% { transform: translate(0,0); } 25% { transform: translate(50px,-30px); } 50% { transform: translate(100px,-8px); } 75% { transform: translate(50px,-40px); } 100% { transform: translate(0,0); } }
+@keyframes hwFly2 { 0% { transform: translate(0,0); } 33% { transform: translate(-40px,-24px); } 66% { transform: translate(36px,-48px); } 100% { transform: translate(0,0); } }
+@keyframes hwFly3 { 0% { transform: translate(0,0); } 50% { transform: translate(60px,-16px); } 100% { transform: translate(0,0); } }
+@media (prefers-reduced-motion: reduce) {
+  .hw-spider-wrap, .hw-thread, .hw-spider, .hw-bat, .hw-bat svg { animation: none !important; }
+}

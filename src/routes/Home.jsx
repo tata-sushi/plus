@@ -6,6 +6,7 @@ import { Header } from '../components/Header.jsx'
 import { Section } from '../components/Section.jsx'
 import { Card } from '../components/Card.jsx'
 import { AtalhosGovernanca } from '../components/AtalhosGovernanca.jsx'
+import { HalloweenDecor } from '../components/HalloweenDecor.jsx'
 import { ProgressRing } from '../components/ProgressRing.jsx'
 import { Avatar } from '../components/Avatar.jsx'
 import { Carrossel } from '../components/Carrossel.jsx'
@@ -464,6 +465,8 @@ export function Home() {
       {/* Atalhos — exclusivo p/ quem tem acesso à Governança */}
       {usuario?.governanca?.tem && <AtalhosGovernanca />}
 
+      {/* Decoração de Halloween — só aparece no tema 'halloween' (em teste) */}
+      <HalloweenDecor />
     </>
   )
 }
