@@ -26,7 +26,7 @@ const CATEG = {
   recompensa: { label: 'Recompensa', Icon: Gift },
   transferencia: { label: 'Transferência', Icon: ArrowLeftRight },
   kanban: { label: 'Kanban', Icon: KanbanSquare },
-  absenteismo: { label: 'Falta', Icon: CalendarX },
+  absenteismo: { label: 'Penalidade', Icon: CalendarX },
 }
 function metaCateg(cat) {
   return CATEG[cat] || { label: 'Lançamento', Icon: Coins }
