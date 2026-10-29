@@ -1,5 +1,16 @@
 import { useEffect, useState } from 'react'
-import { Loader2, Trophy, CalendarCheck2, Gift, ArrowLeftRight, Coins, Receipt, KanbanSquare } from 'lucide-react'
+import {
+  Loader2,
+  Trophy,
+  CalendarCheck2,
+  Gift,
+  ArrowLeftRight,
+  Coins,
+  Receipt,
+  KanbanSquare,
+  CalendarX,
+  Snowflake,
+} from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Voltar } from '../components/Voltar.jsx'
 import { Section } from '../components/Section.jsx'
@@ -15,6 +26,7 @@ const CATEG = {
   recompensa: { label: 'Recompensa', Icon: Gift },
   transferencia: { label: 'Transferência', Icon: ArrowLeftRight },
   kanban: { label: 'Kanban', Icon: KanbanSquare },
+  absenteismo: { label: 'Falta', Icon: CalendarX },
 }
 function metaCateg(cat) {
   return CATEG[cat] || { label: 'Lançamento', Icon: Coins }
@@ -30,11 +42,22 @@ function fmtData(iso) {
     return ''
   }
 }
+// data_falta vem como 'YYYY-MM-DD' (date puro) — formata sem fuso pra não voltar 1 dia.
+function fmtDataFalta(d) {
+  try {
+    const [y, m, dia] = String(d).split('-')
+    return `${dia}/${m}/${y.slice(2)}`
+  } catch {
+    return ''
+  }
+}
 
 // Histórico de transações da carteira do colaborador (extrato de pontos).
 export function Carteira() {
   const [saldo, setSaldo] = useState(null)
   const [itens, setItens] = useState(null)
+  const [congelado, setCongelado] = useState(0)
+  const [congelList, setCongelList] = useState([])
 
   useEffect(() => {
     let ativo = true
@@ -43,6 +66,12 @@ export function Carteira() {
     })
     supabase.rpc('minha_carteira_extrato').then(({ data, error }) => {
       if (ativo) setItens(error ? [] : data || [])
+    })
+    supabase.rpc('meus_pontos_congelados').then(({ data }) => {
+      if (ativo) setCongelado(Number(data) || 0)
+    })
+    supabase.rpc('meus_congelamentos').then(({ data }) => {
+      if (ativo) setCongelList(data || [])
     })
     return () => {
       ativo = false
@@ -69,6 +98,39 @@ export function Carteira() {
           </div>
         </div>
       </div>
+
+      {/* Pontos congelados por falta em análise */}
+      {congelado > 0 && (
+        <div className="px-5 pt-3">
+          <div className="rounded-2xl border border-sky-500/30 bg-sky-500/10 px-4 py-3">
+            <div className="hstack gap-2">
+              <Snowflake size={18} className="shrink-0 text-sky-400" />
+              <div className="min-w-0">
+                <div className="text-sm font-semibold">
+                  {congelado.toLocaleString('pt-BR')} pts congelados
+                </div>
+                <div className="text-[11px] text-muted">
+                  Falta em análise — bloqueados pra gastar. Se justificada, voltam; se confirmada,
+                  saem de vez.
+                </div>
+              </div>
+            </div>
+            {congelList.length > 0 && (
+              <div className="mt-2 space-y-1 border-t border-sky-500/20 pt-2">
+                {congelList.map((c, i) => (
+                  <div key={i} className="hstack justify-between text-[11px]">
+                    <span className="text-muted">Falta em {fmtDataFalta(c.data_falta)}</span>
+                    <span className="text-muted-2 tabular-nums">
+                      {c.dias_restantes > 0 ? `vence em ${c.dias_restantes}d` : 'vence hoje'} ·{' '}
+                      {c.pontos} pts
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       <Section className="mt-5 pb-24" title="Histórico de transações">
         {itens == null ? (
