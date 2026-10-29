@@ -10,6 +10,7 @@ import {
   KanbanSquare,
   CalendarX,
   Snowflake,
+  ShieldAlert,
 } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Voltar } from '../components/Voltar.jsx'
@@ -27,6 +28,7 @@ const CATEG = {
   transferencia: { label: 'Transferência', Icon: ArrowLeftRight },
   kanban: { label: 'Kanban', Icon: KanbanSquare },
   absenteismo: { label: 'Penalidade', Icon: CalendarX },
+  sancao: { label: 'Sanção', Icon: ShieldAlert },
 }
 function metaCateg(cat) {
   return CATEG[cat] || { label: 'Lançamento', Icon: Coins }
