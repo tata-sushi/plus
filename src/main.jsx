@@ -23,6 +23,28 @@ registerSW({
   },
 })
 
+// Depois de um deploy, uma aba já aberta pode tentar baixar um chunk antigo
+// (lazy routes) que não existe mais no servidor → "Failed to fetch dynamically
+// imported module" (tela branca/erro ao navegar). O Vite dispara
+// 'vite:preloadError' nesse caso; aqui a gente recarrega UMA vez pra pegar o
+// build novo. Trava por tempo (10s) pra nunca entrar em loop de reload.
+window.addEventListener('vite:preloadError', () => {
+  const KEY = 'tp_chunk_reload_at'
+  let ultimo = 0
+  try {
+    ultimo = Number(sessionStorage.getItem(KEY)) || 0
+  } catch {
+    /* ignore */
+  }
+  if (Date.now() - ultimo < 10000) return // já tentou agora há pouco: não insiste
+  try {
+    sessionStorage.setItem(KEY, String(Date.now()))
+  } catch {
+    /* ignore */
+  }
+  window.location.reload()
+})
+
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <ModoApp>
