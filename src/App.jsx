@@ -66,6 +66,8 @@ const CheckIn = lazy(() => import('./routes/CheckIn.jsx'))
 const Pendencias = lazy(() => import('./routes/Pendencias.jsx'))
 // Comprovante imprimível de uma assinatura, carregado sob demanda.
 const Comprovante = lazy(() => import('./routes/Comprovante.jsx'))
+// Votação de melhor fantasia de Halloween — sazonal, carregado sob demanda.
+const FantasiasHalloween = lazy(() => import('./routes/FantasiasHalloween.jsx'))
 
 function Splash() {
   return (
@@ -141,6 +143,16 @@ export function App() {
             <ErroBoundary>
               <Suspense fallback={<Splash />}>
                 <CheckIn />
+              </Suspense>
+            </ErroBoundary>
+          }
+        />
+        <Route
+          path="/fantasias"
+          element={
+            <ErroBoundary>
+              <Suspense fallback={<Splash />}>
+                <FantasiasHalloween />
               </Suspense>
             </ErroBoundary>
           }
