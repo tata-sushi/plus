@@ -24,6 +24,27 @@ import { cn } from '../lib/cn'
 const TAM_MAX = 8 * 1024 * 1024 // 8 MB
 const MEDALHAS = ['🥇', '🥈', '🥉']
 
+// Reduz a foto antes de subir (lado máx. 1280px, JPEG ~0.82) pra cortar o
+// tráfego do storage — fotos de celular vêm com vários MB. Se algo falhar,
+// usa o arquivo original.
+async function comprimirImagem(file, maxLado = 1280, q = 0.82) {
+  try {
+    const bitmap = await createImageBitmap(file)
+    const escala = Math.min(1, maxLado / Math.max(bitmap.width, bitmap.height))
+    const w = Math.round(bitmap.width * escala)
+    const h = Math.round(bitmap.height * escala)
+    const canvas = document.createElement('canvas')
+    canvas.width = w
+    canvas.height = h
+    canvas.getContext('2d').drawImage(bitmap, 0, 0, w, h)
+    const blob = await new Promise((res) => canvas.toBlob(res, 'image/jpeg', q))
+    if (blob && blob.size > 0 && blob.size < file.size) return blob
+  } catch {
+    /* usa o original */
+  }
+  return file
+}
+
 const ERROS = {
   encerrada: 'A votação está encerrada.',
   voto_proprio: 'Você não pode votar na sua própria fantasia 😉',
@@ -61,12 +82,20 @@ export function FantasiasHalloween() {
     carregar()
   }, [carregar])
 
-  // Ranking ao vivo: atualiza sozinho enquanto a página está aberta e visível.
+  // Ranking ao vivo: atualiza a cada 45s (só com a aba visível) e assim que a
+  // pessoa volta pro app. Intervalo folgado pra não martelar a base.
   useEffect(() => {
     const t = setInterval(() => {
       if (document.visibilityState === 'visible') carregar()
-    }, 12000)
-    return () => clearInterval(t)
+    }, 45000)
+    const aoVoltar = () => {
+      if (document.visibilityState === 'visible') carregar()
+    }
+    document.addEventListener('visibilitychange', aoVoltar)
+    return () => {
+      clearInterval(t)
+      document.removeEventListener('visibilitychange', aoVoltar)
+    }
   }, [carregar])
 
   // Busca debounced de colaborador (só no fluxo admin "cadastrar por outro").
@@ -119,13 +148,16 @@ export function FantasiasHalloween() {
     tapHaptic()
     setEnviando(true)
     const f = preview.arquivo
-    const ext = (f.name.split('.').pop() || 'jpg').toLowerCase()
+    const comprimido = await comprimirImagem(f)
+    const ehJpeg = comprimido !== f
+    const ext = ehJpeg ? 'jpg' : (f.name.split('.').pop() || 'jpg').toLowerCase()
+    const contentType = ehJpeg ? 'image/jpeg' : f.type
     // Sempre sobe na pasta de quem está enviando (regra do bucket); a dona da
     // fantasia é definida no RPC (admin pode gravar pra outra matrícula).
     const caminho = `${usuario.matricula}/${crypto.randomUUID()}.${ext}`
     const { error: upErr } = await supabase.storage
       .from('fantasias')
-      .upload(caminho, f, { cacheControl: '3600', contentType: f.type })
+      .upload(caminho, comprimido, { cacheControl: '3600', contentType })
     if (upErr) {
       setEnviando(false)
       return msg('erro', 'Não foi possível enviar a foto.')
@@ -327,7 +359,13 @@ export function FantasiasHalloween() {
                   )}
                 >
                   <div className="relative aspect-[3/4] w-full overflow-hidden bg-surface-2">
-                    <img src={f.foto_url} alt={f.titulo || f.nome} className="h-full w-full object-cover" />
+                    <img
+                      src={f.foto_url}
+                      alt={f.titulo || f.nome}
+                      loading="lazy"
+                      decoding="async"
+                      className="h-full w-full object-cover"
+                    />
                     {medalha && (
                       <span className="absolute left-2 top-2 text-2xl drop-shadow">{medalha}</span>
                     )}
