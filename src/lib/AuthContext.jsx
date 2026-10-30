@@ -27,6 +27,7 @@ export function AuthProvider({ children }) {
   const [govTipo, setGovTipo] = useState(null) // tipo de acesso à governança (ou null)
   const [pendenciasN, setPendenciasN] = useState(0) // nº de pendências do líder (0 p/ quem não tem)
   const [loading, setLoading] = useState(true)
+  const loadingRef = useRef(true)
   const [motivoBloqueio, setMotivoBloqueio] = useState('') // '' | 'inativo'
   const bloqueando = useRef(false)
   const prefetchou = useRef(false)
@@ -66,14 +67,32 @@ export function AuthProvider({ children }) {
     supabase.auth.getSession().then(({ data }) => {
       if (!ativo) return
       setSession(data.session)
+      loadingRef.current = false
       setLoading(false)
     })
+    // Watchdog de boot: se depois de 12s ainda estiver no splash (ex.: cache/SW
+    // preso após um deploy), recarrega UMA vez pra se curar. Trava por tempo
+    // (60s) pra nunca entrar em loop. Pra quem abre normal (<1s) nunca dispara.
+    const watchdog = setTimeout(() => {
+      if (!ativo || !loadingRef.current) return
+      try {
+        const KEY = 'tp_boot_reload_at'
+        const ultimo = Number(sessionStorage.getItem(KEY)) || 0
+        if (Date.now() - ultimo > 60000) {
+          sessionStorage.setItem(KEY, String(Date.now()))
+          window.location.reload()
+        }
+      } catch {
+        /* ignore */
+      }
+    }, 12000)
     const { data: sub } = supabase.auth.onAuthStateChange((evento, s) => {
       setSession(s)
       if (evento === 'SIGNED_IN') setMotivoBloqueio('')
     })
     return () => {
       ativo = false
+      clearTimeout(watchdog)
       sub.subscription.unsubscribe()
     }
   }, [])
