@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Flag, ShoppingBag, Star, Network, Sun, Check, X, KanbanSquare, SprayCan, Radio as RadioIcon, Puzzle, UtensilsCrossed, Trophy, CalendarClock, FileSignature, ReceiptText, QrCode, HeartHandshake, Lightbulb, Vote } from 'lucide-react'
+import { Flag, ShoppingBag, Star, Network, Sun, Check, X, KanbanSquare, SprayCan, Radio as RadioIcon, Puzzle, UtensilsCrossed, Trophy, CalendarClock, FileSignature, ReceiptText, QrCode, HeartHandshake, Lightbulb } from 'lucide-react'
 import { cn } from '../lib/cn'
 import { Header } from '../components/Header.jsx'
 import { Section } from '../components/Section.jsx'
@@ -15,7 +15,7 @@ import { useAuth } from '../lib/AuthContext.jsx'
 import { useDesktop } from '../lib/useDesktop.js'
 import { useDesktopCanvas } from '../lib/desktopCanvas.js'
 import { supabase } from '../lib/supabase.js'
-import { getTheme, applyTheme } from '../lib/theme.js'
+import { getTheme } from '../lib/theme.js'
 import { estadoPush } from '../lib/push.js'
 const TIPO_ICON = { principal: 'UtensilsCrossed', guarnicao: 'Salad', salada: 'Salad', sobremesa: 'IceCreamBowl', bebida: 'Wine', outro: 'Utensils' }
 function gruposDia(itens) {
@@ -251,8 +251,7 @@ export function Home() {
   // Ranking, Agenda e Check-in são pra todos.
   const [desafios, recompensas, cardapio, organograma] = sugestoesCards
   // Tema atual + toggle do Modo Halloween (usado no tile de Sugestões).
-  const [tema, setTema] = useState(getTheme)
-  const toggleHalloween = () => setTema(applyTheme(tema === 'halloween' ? 'dark' : 'halloween'))
+  const [tema] = useState(getTheme)
   const cards = [
     ...(usuario?.podeQuadros
       ? [{ to: '/quadros', badgeIcon: KanbanSquare, title: 'Kanban', subtitle: 'Quadro de tarefas' }]
@@ -273,10 +272,8 @@ export function Home() {
     { to: '/documentos', badgeIcon: FileSignature, title: 'Documentos', subtitle: 'Documentos para assinar', badge: docsPend },
     { to: '/holerites', badgeIcon: ReceiptText, title: 'Holerite', subtitle: 'Seus holerites' },
     { to: '/check-in', badgeIcon: QrCode, title: 'Check-in', subtitle: 'Presença por QR' },
-    // Votação de melhor fantasia (sazonal) — estilo Halloween.
-    { to: '/fantasias', badgeIcon: Vote, title: 'Fantasias', subtitle: 'Vote na melhor', halloween: true },
-    // Halloween — tile pra ligar/desligar o tema sazonal (pra todos). Toca e alterna.
-    { badgeIcon: GhostIcon, title: 'Halloween', halloween: true, onClick: toggleHalloween },
+    // Fantasminha animado → abre a votação de melhor fantasia (sazonal).
+    { to: '/fantasias', badgeIcon: GhostIcon, title: 'Fantasias', subtitle: 'Vote na melhor', halloween: true },
   ].sort((a, b) => labelCurto(a.title).localeCompare(labelCurto(b.title), 'pt', { sensitivity: 'base' }))
   const desktop = useDesktop()
   const { setCanvas } = useDesktopCanvas()
