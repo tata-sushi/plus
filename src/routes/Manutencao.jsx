@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Lock, Eye, EyeOff, Check, Loader2, ShieldCheck, Sun, Moon, Bell, BellOff, Sparkles, Fingerprint, Ghost } from 'lucide-react'
+import { Lock, Eye, EyeOff, Check, Loader2, ShieldCheck, Sun, Moon, Bell, BellOff, Sparkles, Fingerprint } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { CabecalhoPagina } from '../components/CabecalhoPagina.jsx'
 import { Voltar } from '../components/Voltar.jsx'
@@ -179,36 +179,6 @@ export function Manutencao() {
             </div>
           </div>
 
-          {/* Modo Halloween — tema sazonal, opt-in pra todos nos Ajustes. */}
-          <div className="card p-4">
-              <div className="hstack gap-3">
-                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-accent-soft text-accent">
-                  <Ghost size={20} />
-                </span>
-                <div className="min-w-0 flex-1">
-                  <div className="font-display text-sm font-bold">Modo Halloween 🎃</div>
-                </div>
-                <div className="hstack shrink-0 gap-1 rounded-pill bg-surface-2 p-1">
-                  {[
-                    { on: false, label: 'Desligar', Icon: Moon },
-                    { on: true, label: 'Ligar', Icon: Ghost },
-                  ].map(({ on, label, Icon }) => (
-                    <button
-                      key={label}
-                      onClick={() => trocarTema(on ? 'halloween' : 'dark')}
-                      aria-label={label}
-                      aria-pressed={(tema === 'halloween') === on}
-                      className={cn(
-                        'grid h-8 w-8 place-items-center rounded-full tap',
-                        (tema === 'halloween') === on ? 'bg-accent text-black' : 'text-muted',
-                      )}
-                    >
-                      <Icon size={15} />
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
         </div>
       </Section>
 

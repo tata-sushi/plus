@@ -6,7 +6,6 @@ import { Header } from '../components/Header.jsx'
 import { Section } from '../components/Section.jsx'
 import { Card } from '../components/Card.jsx'
 import { AtalhosGovernanca } from '../components/AtalhosGovernanca.jsx'
-import { HalloweenDecor } from '../components/HalloweenDecor.jsx'
 import { ProgressRing } from '../components/ProgressRing.jsx'
 import { Avatar } from '../components/Avatar.jsx'
 import { Carrossel } from '../components/Carrossel.jsx'
@@ -73,28 +72,6 @@ function labelCurto(title) {
 // Layout compacto de Sugestões (estilo grade de atalhos): tiles menores com
 // ícone + rótulo, todos visíveis de uma vez (sem carrossel).
 
-// Fantasminha animado do tile de Halloween: pisca os olhos e dá uma tremedinha.
-// SVG próprio (o ícone do lucide não deixa animar os olhos). Herda a cor (currentColor).
-function GhostIcon({ size = 24 }) {
-  return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={2}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className="hw-ghost"
-    >
-      <path d="M12 2a8 8 0 0 0-8 8v12l3-3 2.5 2.5L12 19l2.5 2.5L17 19l3 3V10a8 8 0 0 0-8-8z" />
-      <ellipse className="hw-ghost-eye" cx="9" cy="10.5" rx="0.95" ry="1.4" fill="currentColor" stroke="none" />
-      <ellipse className="hw-ghost-eye" cx="15" cy="10.5" rx="0.95" ry="1.4" fill="currentColor" stroke="none" />
-    </svg>
-  )
-}
-
 function SugestoesGrid({ cards, desktop, setCanvas }) {
   const tile = (c) => {
     const Icon = c.badgeIcon
@@ -103,11 +80,9 @@ function SugestoesGrid({ cards, desktop, setCanvas }) {
         <span
           className={cn(
             'relative grid h-14 w-14 place-items-center rounded-2xl border',
-            c.halloween
-              ? 'border-[#F2792B]/40 bg-[#F2792B]/15 text-[#F2792B]'
-              : c.emBreve
-                ? 'border-line bg-surface-3 text-muted'
-                : 'border-carbon/30 bg-accent-soft text-carbon dark:border-accent/30 dark:text-accent',
+            c.emBreve
+              ? 'border-line bg-surface-3 text-muted'
+              : 'border-carbon/30 bg-accent-soft text-carbon dark:border-accent/30 dark:text-accent',
           )}
         >
           <Icon size={24} strokeWidth={2} />
@@ -250,7 +225,7 @@ export function Home() {
   // gated por acesso (podeQuadros); Brainstorm também (podeBrainstorm). Lojinha,
   // Ranking, Agenda e Check-in são pra todos.
   const [desafios, recompensas, cardapio, organograma] = sugestoesCards
-  // Tema atual + toggle do Modo Halloween (usado no tile de Sugestões).
+  // Tema atual (usado só pra filtrar o destaque "modo escuro" no carrossel).
   const [tema] = useState(getTheme)
   const cards = [
     ...(usuario?.podeQuadros
@@ -272,8 +247,6 @@ export function Home() {
     { to: '/documentos', badgeIcon: FileSignature, title: 'Documentos', subtitle: 'Documentos para assinar', badge: docsPend },
     { to: '/holerites', badgeIcon: ReceiptText, title: 'Holerite', subtitle: 'Seus holerites' },
     { to: '/check-in', badgeIcon: QrCode, title: 'Check-in', subtitle: 'Presença por QR' },
-    // Fantasminha animado → abre a votação de melhor fantasia (sazonal).
-    { to: '/fantasias', badgeIcon: GhostIcon, title: 'Fantasias', subtitle: 'Vote na melhor', halloween: true },
   ].sort((a, b) => labelCurto(a.title).localeCompare(labelCurto(b.title), 'pt', { sensitivity: 'base' }))
   const desktop = useDesktop()
   const { setCanvas } = useDesktopCanvas()
@@ -499,9 +472,6 @@ export function Home() {
 
       {/* Atalhos — exclusivo p/ quem tem acesso à Governança */}
       {usuario?.governanca?.tem && <AtalhosGovernanca />}
-
-      {/* Decoração de Halloween — só aparece no tema 'halloween' (em teste) */}
-      <HalloweenDecor />
     </>
   )
 }

@@ -1,10 +1,9 @@
 // Tema do app — persistido no aparelho e aplicado no <html data-theme>.
-// Valores: 'light' | 'dark' | 'halloween' (dark especial, acento abóbora).
+// Valores: 'light' | 'dark'. Padrão é claro; cada um escolhe o escuro em Ajustes.
 const KEY = 'tp_theme'
-const TEMAS = ['light', 'dark', 'halloween']
+const TEMAS = ['light', 'dark']
 
-const corDaBarra = (t) =>
-  t === 'light' ? '#F5F4F1' : t === 'halloween' ? '#0d0b11' : '#0A0A0A'
+const corDaBarra = (t) => (t === 'light' ? '#F5F4F1' : '#0A0A0A')
 
 export function getTheme() {
   try {
@@ -16,14 +15,13 @@ export function getTheme() {
 }
 
 export function applyTheme(tema) {
-  const t = TEMAS.includes(tema) ? tema : 'dark'
+  const t = TEMAS.includes(tema) ? tema : 'light'
   document.documentElement.setAttribute('data-theme', t)
   const meta = document.querySelector('meta[name="theme-color"]')
   if (meta) meta.setAttribute('content', corDaBarra(t))
   try {
     localStorage.setItem(KEY, t)
   } catch {}
-  // avisa a UI (ex.: decoração de Halloween) que o tema mudou, sem recarregar.
   try {
     window.dispatchEvent(new CustomEvent('tp-theme', { detail: t }))
   } catch {}
