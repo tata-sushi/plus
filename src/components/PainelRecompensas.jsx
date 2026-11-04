@@ -415,8 +415,8 @@ export function PainelRecompensas() {
                 Resgate concluído! 🎉
               </div>
               <p className="mt-1 text-sm text-muted">
-                {entregue.titulo} —{' '}
-                {ehLinkVoucher(entregue.codigo) ? 'toque no botão abaixo pra resgatar' : 'use o código abaixo'}.
+                {entregue.titulo}.{' '}
+                {ehLinkVoucher(entregue.codigo) ? 'Toque no botão abaixo para resgatar.' : 'Use o código abaixo.'}{' '}
                 Fica salvo também em <span className="font-semibold text-text">Meus resgates</span>.
               </p>
               <div className="mt-4">
