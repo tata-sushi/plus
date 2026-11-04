@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Gift, Loader2, Check, Clock, X, Copy, Ticket } from 'lucide-react'
+import { Gift, Loader2, Check, Clock, X, Copy, Ticket, ExternalLink } from 'lucide-react'
 import { Section } from './Section.jsx'
 import { Card } from './Card.jsx'
 import { RecompensaFoto } from './RecompensaFoto.jsx'
@@ -26,9 +26,36 @@ const STATUS = {
   cancelado: { label: 'Cancelado', Icon: X, cls: 'bg-danger/15 text-danger' },
 }
 
+// true quando o "código" do voucher é, na verdade, um link de resgate.
+const ehLinkVoucher = (c) => /^https?:\/\//i.test(String(c || '').trim())
+
+// Voucher por link: abre o resgate do fornecedor direto (sem baixar HTML).
+function VoucherLink({ codigo }) {
+  return (
+    <a
+      href={codigo}
+      target="_blank"
+      rel="noopener noreferrer"
+      onClick={() => tapHaptic()}
+      className="hstack w-full items-center justify-between gap-3 rounded-2xl border border-accent/30 bg-accent-soft px-4 py-3 text-left tap"
+    >
+      <div className="min-w-0">
+        <div className="text-[10px] font-semibold uppercase tracking-widest text-accent/80">
+          Seu voucher
+        </div>
+        <div className="text-sm font-semibold text-accent">Toque para resgatar</div>
+      </div>
+      <span className="hstack shrink-0 gap-1 rounded-full bg-accent px-3 py-1.5 text-[11px] font-bold text-black">
+        <ExternalLink size={13} /> Resgatar
+      </span>
+    </a>
+  )
+}
+
 // Caixinha que mostra o código do voucher com botão de copiar.
 function CodigoVoucher({ codigo }) {
   const [copiado, setCopiado] = useState(false)
+  if (ehLinkVoucher(codigo)) return <VoucherLink codigo={codigo} />
   async function copiar() {
     tapHaptic()
     try {
@@ -388,8 +415,9 @@ export function PainelRecompensas() {
                 Resgate concluído! 🎉
               </div>
               <p className="mt-1 text-sm text-muted">
-                {entregue.titulo} — use o código abaixo. Ele também fica salvo em{' '}
-                <span className="font-semibold text-text">Meus resgates</span>.
+                {entregue.titulo} —{' '}
+                {ehLinkVoucher(entregue.codigo) ? 'toque no botão abaixo pra resgatar' : 'use o código abaixo'}.
+                Fica salvo também em <span className="font-semibold text-text">Meus resgates</span>.
               </p>
               <div className="mt-4">
                 <CodigoVoucher codigo={entregue.codigo} />
