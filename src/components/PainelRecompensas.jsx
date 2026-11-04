@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Gift, Loader2, Check, Clock, X, Copy, Ticket, ExternalLink } from 'lucide-react'
+import { Gift, Loader2, Check, Clock, X, Copy, Ticket, ExternalLink, ChevronDown } from 'lucide-react'
 import { Section } from './Section.jsx'
 import { Card } from './Card.jsx'
 import { RecompensaFoto } from './RecompensaFoto.jsx'
@@ -49,6 +49,39 @@ function VoucherLink({ codigo }) {
         <ExternalLink size={13} /> Resgatar
       </span>
     </a>
+  )
+}
+
+// Passo a passo do resgate (vouchers por link — fluxo Carpe Diem).
+const PASSOS_VOUCHER = [
+  'Toque em "Resgatar" para abrir a página do voucher.',
+  'Faça login na Carpe Diem, ou crie uma conta se for a sua primeira vez.',
+  'Clique em "Resgatar presente!" e depois em "Resgatar prêmios".',
+  'Escolha a loja/estabelecimento e toque em "Escolher opções".',
+  'Selecione a opção de crédito, clique em "Resgatar agora" e aceite os termos.',
+  'Toque em "Finalizar pedido". Pronto, seu código será gerado!',
+]
+
+// Bloco recolhível "Como resgatar?" (abaixo do botão, no modal de resgate).
+function ComoResgatar() {
+  return (
+    <details className="group mt-3 overflow-hidden rounded-2xl border border-line bg-surface-2/50 text-left">
+      <summary className="hstack cursor-pointer list-none items-center justify-between gap-2 px-4 py-3 text-sm font-semibold tap [&::-webkit-details-marker]:hidden">
+        Como resgatar?
+        <ChevronDown
+          size={16}
+          className="shrink-0 text-muted transition-transform group-open:rotate-180"
+        />
+      </summary>
+      <ol className="list-decimal space-y-1.5 border-t border-line py-3 pl-9 pr-4 text-[12px] leading-relaxed text-muted">
+        {PASSOS_VOUCHER.map((p, i) => (
+          <li key={i}>{p}</li>
+        ))}
+      </ol>
+      <p className="px-4 pb-3 text-[11px] text-muted-2">
+        Gere seu código dentro do prazo informado no site.
+      </p>
+    </details>
   )
 }
 
@@ -422,6 +455,7 @@ export function PainelRecompensas() {
               <div className="mt-4">
                 <CodigoVoucher codigo={entregue.codigo} />
               </div>
+              {ehLinkVoucher(entregue.codigo) && <ComoResgatar />}
               <button
                 onClick={() => setEntregue(null)}
                 className="btn-primary mt-4 w-full !py-3 text-sm"
