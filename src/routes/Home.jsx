@@ -238,7 +238,10 @@ export function Home() {
     { to: '/radio', badgeIcon: RadioIcon, title: 'Rádio', subtitle: 'Playlist do time' },
     { to: '/passatempos', badgeIcon: Puzzle, title: 'Jogos', subtitle: 'Jogue e pontue' },
     { to: '/ranking', badgeIcon: Trophy, title: 'Ranking', subtitle: 'Sua posição no time' },
-    { to: '/escala', badgeIcon: CalendarClock, title: 'Agenda', subtitle: 'Sua escala da semana' },
+    // Agenda — só aparece pra quem tem acesso à escala (podeEscala). Desligável no backend.
+    ...(usuario?.podeEscala
+      ? [{ to: '/escala', badgeIcon: CalendarClock, title: 'Agenda', subtitle: 'Sua escala da semana' }]
+      : []),
     // Brainstorm "Compartilhe sua palavra" — mesma regra do Mais (podeBrainstorm).
     ...(usuario?.podeBrainstorm
       ? [{ to: '/brainstorm', badgeIcon: Lightbulb, title: 'Brainstorm', subtitle: 'Compartilhe sua palavra' }]
