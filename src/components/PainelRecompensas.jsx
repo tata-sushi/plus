@@ -64,24 +64,33 @@ const PASSOS_VOUCHER = [
 
 // Bloco recolhível "Como resgatar?" (abaixo do botão, no modal de resgate).
 function ComoResgatar() {
+  const [aberto, setAberto] = useState(true)
   return (
-    <details className="group mt-3 overflow-hidden rounded-2xl border border-line bg-surface-2/50 text-left">
-      <summary className="hstack cursor-pointer list-none items-center justify-between gap-2 px-4 py-3 text-sm font-semibold tap [&::-webkit-details-marker]:hidden">
+    <div className="mt-3 overflow-hidden rounded-2xl border border-line bg-surface-2/50 text-left">
+      <button
+        type="button"
+        onClick={() => setAberto((v) => !v)}
+        className="hstack w-full items-center justify-between gap-2 px-4 py-3 text-sm font-semibold tap"
+      >
         Como resgatar?
         <ChevronDown
           size={16}
-          className="shrink-0 text-muted transition-transform group-open:rotate-180"
+          className={cn('shrink-0 text-muted transition-transform', aberto && 'rotate-180')}
         />
-      </summary>
-      <ol className="list-decimal space-y-1.5 border-t border-line py-3 pl-9 pr-4 text-[12px] leading-relaxed text-muted">
-        {PASSOS_VOUCHER.map((p, i) => (
-          <li key={i}>{p}</li>
-        ))}
-      </ol>
-      <p className="px-4 pb-3 text-[11px] text-muted-2">
-        Gere seu código dentro do prazo informado no site.
-      </p>
-    </details>
+      </button>
+      {aberto && (
+        <>
+          <ol className="list-decimal space-y-1.5 border-t border-line py-3 pl-9 pr-4 text-[12px] leading-relaxed text-muted">
+            {PASSOS_VOUCHER.map((p, i) => (
+              <li key={i}>{p}</li>
+            ))}
+          </ol>
+          <p className="px-4 pb-3 text-[11px] text-muted-2">
+            Gere seu código dentro do prazo informado no site.
+          </p>
+        </>
+      )}
+    </div>
   )
 }
 
@@ -137,7 +146,7 @@ export function PainelRecompensas() {
   const carregar = useCallback(async () => {
     const [s, c, r] = await Promise.all([
       supabase.rpc('meu_saldo'),
-      supabase.rpc('recompensas_disponiveis'),
+      supabase.rpc('recompensas_disponiveis_v2'),
       supabase.rpc('meus_resgates_v2'),
     ])
     setSaldo(Number(s.data) || 0)
@@ -269,11 +278,13 @@ export function PainelRecompensas() {
                       >
                         {r.esgotado
                           ? 'Esgotado'
-                          : r.pode
-                            ? 'Resgatar'
-                            : r.requer_desafio
-                              ? 'Conclua o desafio'
-                              : `Faltam ${fmt(falta)} pts`}
+                          : r.ja_resgatado
+                            ? 'Resgatado'
+                            : r.pode
+                              ? 'Resgatar'
+                              : r.requer_desafio
+                                ? 'Conclua o desafio'
+                                : `Faltam ${fmt(falta)} pts`}
                       </div>
                     </Card>
                   )
@@ -415,13 +426,15 @@ export function PainelRecompensas() {
                 >
                   {aberto.esgotado
                     ? 'Esgotado'
-                    : aberto.pode
-                      ? aberto.custo > 0
-                        ? `Resgatar por ${fmt(aberto.custo)} pts`
-                        : 'Resgatar'
-                      : aberto.requer_desafio
-                        ? 'Conclua o desafio'
-                        : `Faltam ${fmt(Math.max(0, aberto.custo - (saldo ?? 0)))} pts`}
+                    : aberto.ja_resgatado
+                      ? 'Você já resgatou'
+                      : aberto.pode
+                        ? aberto.custo > 0
+                          ? `Resgatar por ${fmt(aberto.custo)} pts`
+                          : 'Resgatar'
+                        : aberto.requer_desafio
+                          ? 'Conclua o desafio'
+                          : `Faltam ${fmt(Math.max(0, aberto.custo - (saldo ?? 0)))} pts`}
                 </button>
               )}
             </div>
@@ -439,7 +452,7 @@ export function PainelRecompensas() {
           >
             <div
               onClick={(e) => e.stopPropagation()}
-              className="w-full max-w-sm rounded-card border border-line bg-surface p-5 text-center"
+              className="max-h-[88dvh] w-full max-w-sm overflow-y-auto rounded-card border border-line bg-surface p-5 text-center"
             >
               <div className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-accent-soft text-accent">
                 <Ticket size={26} />
