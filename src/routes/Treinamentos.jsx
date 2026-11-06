@@ -1,6 +1,6 @@
 import { Fragment, useCallback, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import {
   Lock,
   CheckCircle2,
@@ -727,6 +727,8 @@ export function Treinamentos() {
   const [concluindo, setConcluindo] = useState(false)
   const [aviso, setAviso] = useState('')
   const [celebrando, setCelebrando] = useState(null) // {pontos} — overlay de conclusão
+  const [searchParams, setSearchParams] = useSearchParams()
+  const deepLinkRef = useRef(false) // já abriu o desafio pedido pela URL?
 
   useEffect(() => {
     if (!celebrando) return
@@ -759,6 +761,26 @@ export function Treinamentos() {
   useEffect(() => {
     carregar()
   }, [carregar])
+
+  // Deep-link do carrossel/links internos: /treinamentos?d=<id> abre o desafio
+  // direto (expande a trilha + abre o Detalhe) e limpa o parâmetro da URL, pra
+  // fechar voltar pra lista e um novo clique reabrir.
+  useEffect(() => {
+    const alvo = searchParams.get('d')
+    if (!alvo || deepLinkRef.current || carregando) return
+    for (const tr of trilhas) {
+      const item = tr.itens.find((i) => i.id === alvo)
+      if (item) {
+        deepLinkRef.current = true
+        setAberta(tr.id)
+        setDetalhe(item)
+        const next = new URLSearchParams(searchParams)
+        next.delete('d')
+        setSearchParams(next, { replace: true })
+        break
+      }
+    }
+  }, [searchParams, trilhas, carregando, setSearchParams])
 
   function abrir(item) {
     // reconhecimento sempre abre (é informativo); admin abre qualquer um pra conferir

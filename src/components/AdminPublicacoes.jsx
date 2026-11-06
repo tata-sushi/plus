@@ -49,7 +49,7 @@ const AUTO = [
   { chave: 'aviso_1', label: 'Ativar notificações', Icon: Bell, vars: 'aparece só p/ quem está sem push no aparelho · leva pro Painel de Ajustes' },
   { chave: 'aviso_2', label: 'Pontuação diária', Icon: Star, vars: 'Aviso livre (texto/imagem) — aparece enquanto estiver ligado.' },
   { chave: 'aviso_3', label: 'Indicação Premiada', Icon: Megaphone, vars: 'Aviso livre (texto/imagem) — aparece pra todos enquanto estiver ligado.' },
-  { chave: 'aviso_4', label: 'Comunicado fixo', Icon: Megaphone, vars: 'Aviso livre (texto/imagem) — aparece pra todos enquanto estiver ligado.' },
+  { chave: 'aviso_4', label: 'Saúde Preventiva', Icon: Megaphone, vars: 'Card do desafio Saúde Preventiva — liga/desliga; clicar abre o desafio.' },
   { chave: 'holerite', label: 'Holerite disponível', Icon: FileText, vars: 'aparece só p/ quem tem holerite entregue e ainda não abriu · some ao abrir · leva pro Holerite' },
   { chave: 'seis_meses', label: '6 meses de casa', Icon: Cake, vars: 'aparece na semana em que a pessoa completa 6 meses · {nome} = primeiro nome · sem imagem, usa uma arte de aniversário' },
 ]
