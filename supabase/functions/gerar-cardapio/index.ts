@@ -120,9 +120,22 @@ Deno.serve(async (req) => {
     if (!inicio) return json({ error: 'informe inicio (YYYY-MM-DD)' }, 400)
 
     const URL = Deno.env.get('SUPABASE_URL')!
+    const ANON = Deno.env.get('SUPABASE_ANON_KEY')!
     const SERVICE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 
-    // contexto — service role (visibilidade do botão é controlada no front, pelo painel)
+    // O servidor é a porta (skill controle-de-acessos-e-visibilidade): quem chama precisa
+    // estar logado e ter o botão "Gerar cardápio" liberado — o mesmo id do HTML da página.
+    // Esconder o botão no front não impede quem chama a função direto com a chave pública.
+    const auth = req.headers.get('authorization') || ''
+    if (!auth.toLowerCase().startsWith('bearer ')) return json({ error: 'não autenticado' }, 401)
+    const quem = createClient(URL, ANON, { global: { headers: { Authorization: auth } }, db: { schema: 'tata_plus' } })
+    const { data: pode, error: perr } = await quem.rpc('pode_botao', {
+      p_aba_id: 'governanca-kpis-tatahouse-cardapio::gerar-cardapio',
+    })
+    if (perr) return json({ error: 'permissão: ' + perr.message }, 401)
+    if (pode !== true) return json({ error: 'sem permissão para gerar o cardápio' }, 403)
+
+    // contexto e gravação — service role (a porta já foi conferida acima)
     const svc = createClient(URL, SERVICE, { db: { schema: 'tata_plus' } })
     const { data: ctx, error: cerr } = await svc.rpc('cardapio_ia_contexto', {
       p_inicio: inicio,
