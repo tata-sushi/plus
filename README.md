@@ -277,9 +277,9 @@ iframe (origem verificada, via `GovFrame`) e cada página confere o acesso **ao 
 O portão que roda em cada página é o `gate.js` (repositório `lideres`). Detalhes em
 `docs/GOVERNANCA_INTEGRACAO.md` e `docs/AUTENTICACAO.md`.
 
-### Configurar os controles de uma página: abas, botões e valores
+### Configurar os controles de uma página: abas, botões, valores e contatos
 
-Dentro de uma página, o acesso é granular em **três tipos** de controle, todos catalogados em
+Dentro de uma página, o acesso é granular em **quatro tipos** de controle, todos catalogados em
 `governanca_abas` (`aba_id` **PK**, `pagina_id`, `label`, `tipo`, `ordem`, `ativo`) e
 liberados/bloqueados **por pessoa**:
 
@@ -287,11 +287,14 @@ liberados/bloqueados **por pessoa**:
 |--------|--------|---------------------|---------------------------|
 | `aba`   | **visível** (denylist / opt-out) | `governanca_abas_bloqueios` | **esconde** aquela aba pra pessoa |
 | `botao` | **oculto** (allowlist / opt-in)  | `governanca_abas_liberacoes` | **libera** aquele botão pra pessoa |
-| `valor` | **oculto** (opt-in, por área)    | `dp_rh.perm_ver_valores` (`area`,`liberado`) | salário etc. **mascarado no servidor**; liberar = `liberado=true` |
+| `valor` | **oculto** (opt-in, por área)    | `dp_rh.perm_ver_valores` (`area`,`liberado`) | salário, CPF, nascimento, saúde **mascarados no servidor**; liberar = `liberado=true` |
+| `contato` | **oculto** (opt-in, por área)  | `dp_rh.perm_ver_contato` (`area`,`liberado`) | e-mail e telefone **mascarados no servidor** (`pode_ver_contato`); interruptor próprio, separado do `valor` |
 
 - **Admin (`perfil='admin'`) vê tudo** (bypass) — não precisa de liberação.
 - Acesso à **página** em si: `governanca_acessos_paginas` (`matricula`,`pagina_id`).
 - Em `tipo='valor'` o `aba_id` **é a própria área** (ex.: `recrutamento`), **sem** o prefixo `pagina_id::`.
+- Em `tipo='contato'` o `aba_id` é `contato-<área>` (ex.: `contato-recrutamento`), para não colidir com o id da área de valor; na tabela `perm_ver_contato` fica só a área.
+- Valor e contato **não têm bypass de admin**: até o admin precisa da área (ou de `geral`).
 
 **A chave é o `data-aba-id` — a fonte da verdade é o HTML.** Cada aba/botão no HTML da página
 (repo **`tata-sushi/lideres`**, ex.: `compliance/kpis/rh/recrutamento.html`) traz
@@ -307,8 +310,8 @@ interruptor não controla nada. O `tipo` sai da classe do elemento: `tab-btn` �
 **na hora** (leitura ao vivo, sem deploy).
 
 **Editor por pessoa** (`AdminGovernanca`, prop `scope`): leitura `gov_admin_acessos` /
-`gov_admin_abas_bloqueios` / `gov_admin_botoes_liberados` / `perm_valores_areas`; escrita
-`gov_admin_set` / `gov_admin_abas_set` / `gov_admin_botoes_set` / `perm_valores_sync`.
+`gov_admin_abas_bloqueios` / `gov_admin_botoes_liberados` / `perm_valores_areas` / `perm_contato_areas`; escrita
+`gov_admin_set` / `gov_admin_abas_set` / `gov_admin_botoes_set` / `perm_valores_sync` / `perm_contato_sync`.
 ⚠️ **Os setters fazem REPLACE TOTAL por pessoa** (apagam **todos** os acessos daquela pessoa e
 reinserem o que a UI mandou) — servem pra tela de 1 pessoa, **nunca** pra operação em massa.
 
@@ -317,7 +320,7 @@ líderes) **sem apagar os outros acessos de cada um**: mexa **direto nas tabelas
 **filtrando pela página** (`aba_id like '<pagina_id>::%'`, `pagina_id=…`, `area=…`) — nunca os
 setters de replace total. Por pessoa-alvo: (1) garante a linha em `governanca_acessos_paginas`;
 (2) `delete`+`insert` dos **bloqueios de aba** da página; (3) `delete`+`insert` das **liberações de
-botão** da página; (4) acerta `dp_rh.perm_ver_valores` da **área**. Assim só aquela página é tocada.
+botão** da página; (4) acerta `dp_rh.perm_ver_valores` e `dp_rh.perm_ver_contato` da **área**. Assim só aquela página é tocada.
 
 ### Acesso a features do app (seção "App") e ao painel-hub
 
