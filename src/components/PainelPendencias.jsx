@@ -26,6 +26,8 @@ const COR = {
   exame_lider: '#14b8a6', // teal — exame periódico (líder)
   feriado: '#6366f1', // indigo — decisão de horas de feriado
   recrutamento: '#84cc16', // lima — devolutiva de entrevista/teste
+  ferias_colab: '#06b6d4', // ciano — férias do colaborador a agendar (lembrete)
+  ferias_lider: '#06b6d4', // ciano — férias de um liderado a agendar (visão do líder)
 }
 
 // Para onde cada pendência leva ao ser tocada (atalho pra resolver).
@@ -40,21 +42,24 @@ const ROTA = {
   exame_lider: '/governanca', // líder acompanha o exame do time no portal
   feriado: '/governanca', // líder decide as horas de feriado no portal
   recrutamento: '/governanca', // devolutiva de entrevista/teste no portal
+  ferias_lider: '/painel/gov_ferias', // líder agenda as férias do time na página de Férias
 }
 
 // Ordem de exibição na lista: assinaturas (própria e de liderados) por último.
 const ORDEM_TIPO = {
   exp_colab: 1,
   lideranca: 2,
-  desempenho: 3,
-  exp_lider: 4,
-  absenteismo: 5,
-  exame_colab: 6,
-  exame_lider: 7,
-  feriado: 8,
-  recrutamento: 9,
-  assinatura: 10,
-  assinatura_lider: 11,
+  ferias_colab: 3,
+  desempenho: 4,
+  exp_lider: 5,
+  ferias_lider: 6,
+  absenteismo: 7,
+  exame_colab: 8,
+  exame_lider: 9,
+  feriado: 10,
+  recrutamento: 11,
+  assinatura: 12,
+  assinatura_lider: 13,
 }
 
 export function PainelPendencias({ embutido = false }) {
