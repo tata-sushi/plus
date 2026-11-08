@@ -31,14 +31,17 @@ function EditorPessoa({ pessoa, scope = 'governanca', catalogo, catalogoAbas, on
   const grupos = useMemo(() => agrupar(catalogo), [catalogo])
   // Ids de página dentro do escopo aberto (p/ contar no rodapé sem misturar escopos).
   const escopoPaginaIds = useMemo(() => new Set((catalogo || []).map((p) => p.pagina_id)), [catalogo])
-  // Agrupa por página e separa em abas (tipo='aba'), botões (tipo='botao') e
-  // valores (tipo='valor' — o aba_id É a área consultada em pode_ver_valores).
+  // Agrupa por página e separa em abas (tipo='aba'), botões (tipo='botao'),
+  // valores (tipo='valor' — o aba_id É a área consultada em pode_ver_valores) e
+  // contatos (tipo='contato' — aba_id 'contato-<área>'; a área vai pra pode_ver_contato).
   const itensPorPagina = useMemo(() => {
     const m = {}
     for (const a of catalogoAbas || []) {
-      const bucket = m[a.pagina_id] || (m[a.pagina_id] = { abas: [], botoes: [], valores: [] })
+      const bucket =
+        m[a.pagina_id] || (m[a.pagina_id] = { abas: [], botoes: [], valores: [], contatos: [] })
       if (a.tipo === 'botao') bucket.botoes.push(a)
       else if (a.tipo === 'valor') bucket.valores.push(a)
+      else if (a.tipo === 'contato') bucket.contatos.push(a)
       else bucket.abas.push(a)
     }
     return m
@@ -50,6 +53,13 @@ function EditorPessoa({ pessoa, scope = 'governanca', catalogo, catalogoAbas, on
     () => (catalogoAbas || []).filter((a) => a.tipo === 'valor').map((a) => a.aba_id),
     [catalogoAbas],
   )
+  // Chaves de "contato" do catálogo ('contato-<área>'). Na tabela
+  // dp_rh.perm_ver_contato fica só a área, sem o prefixo.
+  const contatoKeys = useMemo(
+    () => (catalogoAbas || []).filter((a) => a.tipo === 'contato').map((a) => a.aba_id),
+    [catalogoAbas],
+  )
+  const semPrefixoContato = (k) => k.replace(/^contato-/, '')
 
   const [ids, setIds] = useState(null) // Set de pagina_id · null = carregando
   const [bloqueadas, setBloqueadas] = useState(new Set()) // aba_id bloqueada (abas · opt-out)
@@ -63,6 +73,11 @@ function EditorPessoa({ pessoa, scope = 'governanca', catalogo, catalogoAbas, on
   // (tipo='valor'); persiste em dp_rh.perm_ver_valores no "Salvar acesso".
   const [valoresLib, setValoresLib] = useState(new Set()) // aba_id/área liberada
   const [valoresAbertas, setValoresAbertas] = useState(new Set()) // pagina_id expandida
+
+  // Contato (e-mail e telefone): interruptor próprio, separado do Valor.
+  // Persiste em dp_rh.perm_ver_contato no "Salvar acesso".
+  const [contatosLib, setContatosLib] = useState(new Set()) // aba_id ('contato-<área>') liberado
+  const [contatosAbertas, setContatosAbertas] = useState(new Set()) // pagina_id expandida
 
   // Reset de senha (admin): volta pra padrão tata@123 e força troca no próximo login.
   const [reset, setReset] = useState({ fase: 'idle' }) // idle | confirm | loading | done | error
@@ -93,6 +108,7 @@ function EditorPessoa({ pessoa, scope = 'governanca', catalogo, catalogoAbas, on
     setBloqueadas(new Set())
     setLiberados(new Set())
     setValoresLib(new Set())
+    setContatosLib(new Set())
     onSalvo({ total: 0, escopo: 0 })
   }
 
@@ -102,8 +118,8 @@ function EditorPessoa({ pessoa, scope = 'governanca', catalogo, catalogoAbas, on
     for (const item of catalogoAbas || []) {
       if (item.tipo === 'aba' && bloqueadas.has(item.aba_id)) abasOff++
     }
-    return { abasOff, botoesOn: liberados.size, valoresOn: valoresLib.size }
-  }, [catalogoAbas, bloqueadas, liberados, valoresLib])
+    return { abasOff, botoesOn: liberados.size, valoresOn: valoresLib.size, contatosOn: contatosLib.size }
+  }, [catalogoAbas, bloqueadas, liberados, valoresLib, contatosLib])
 
   useEffect(() => {
     let ativo = true
@@ -140,6 +156,39 @@ function EditorPessoa({ pessoa, scope = 'governanca', catalogo, catalogoAbas, on
       ativo = false
     }
   }, [pessoa.matricula, ehApp, valorKeys])
+
+  // Carrega as liberações de contato por área (só governança). A RPC devolve a
+  // área sem prefixo; o catálogo usa 'contato-<área>'.
+  useEffect(() => {
+    if (ehApp) return
+    let ativo = true
+    supabase.rpc('perm_contato_areas', { p_matricula: pessoa.matricula }).then(({ data }) => {
+      if (!ativo) return
+      const cat = new Set(contatoKeys)
+      setContatosLib(new Set((data || []).map((r) => `contato-${r.area}`).filter((a) => cat.has(a))))
+    })
+    return () => {
+      ativo = false
+    }
+  }, [pessoa.matricula, ehApp, contatoKeys])
+
+  function toggleContato(abaId) {
+    tapHaptic()
+    setContatosLib((prev) => {
+      const n = new Set(prev)
+      n.has(abaId) ? n.delete(abaId) : n.add(abaId)
+      return n
+    })
+  }
+
+  function toggleContatosAbertas(paginaId) {
+    tapHaptic()
+    setContatosAbertas((prev) => {
+      const n = new Set(prev)
+      n.has(paginaId) ? n.delete(paginaId) : n.add(paginaId)
+      return n
+    })
+  }
 
   function toggleValor(abaId) {
     tapHaptic()
@@ -234,7 +283,7 @@ function EditorPessoa({ pessoa, scope = 'governanca', catalogo, catalogoAbas, on
 
   async function salvar() {
     setSalvando(true)
-    const [r1, r2, r3, r4] = await Promise.all([
+    const [r1, r2, r3, r4, r5] = await Promise.all([
       supabase.rpc('gov_admin_set', { p_matricula: pessoa.matricula, p_pagina_ids: [...ids] }),
       supabase.rpc('gov_admin_abas_set', {
         p_matricula: pessoa.matricula,
@@ -249,9 +298,14 @@ function EditorPessoa({ pessoa, scope = 'governanca', catalogo, catalogoAbas, on
         p_on: [...valoresLib],
         p_cat: valorKeys,
       }),
+      supabase.rpc('perm_contato_sync', {
+        p_matricula: pessoa.matricula,
+        p_on: [...contatosLib].map(semPrefixoContato),
+        p_cat: contatoKeys.map(semPrefixoContato),
+      }),
     ])
     setSalvando(false)
-    if (!r1.error && !r2.error && !r3.error && !r4.error) {
+    if (!r1.error && !r2.error && !r3.error && !r4.error && !r5.error) {
       const escopo = [...ids].filter((id) => escopoPaginaIds.has(id)).length
       onSalvo({ total: ids.size, escopo })
     }
@@ -263,12 +317,19 @@ function EditorPessoa({ pessoa, scope = 'governanca', catalogo, catalogoAbas, on
     if (!itens || itens.length === 0) return null
     const isBotao = tipo === 'botao'
     const isValor = tipo === 'valor'
-    // Botões e valores: opt-in (começam desligados). Abas: opt-out.
-    const optIn = isBotao || isValor
+    const isContato = tipo === 'contato'
+    // Botões, valores e contatos: opt-in (começam desligados). Abas: opt-out.
+    const optIn = isBotao || isValor || isContato
     const estaOn = (id) =>
-      isValor ? valoresLib.has(id) : isBotao ? liberados.has(id) : !bloqueadas.has(id)
-    const onToggle = isValor ? toggleValor : isBotao ? toggleBotao : toggleAba
-    const label = isValor ? 'Valores' : isBotao ? 'Botões' : 'Abas'
+      isContato
+        ? contatosLib.has(id)
+        : isValor
+          ? valoresLib.has(id)
+          : isBotao
+            ? liberados.has(id)
+            : !bloqueadas.has(id)
+    const onToggle = isContato ? toggleContato : isValor ? toggleValor : isBotao ? toggleBotao : toggleAba
+    const label = isContato ? 'Contato' : isValor ? 'Valores' : isBotao ? 'Botões' : 'Abas'
     const qtdOn = itens.filter((a) => estaOn(a.aba_id)).length
     const qtdOff = itens.length - qtdOn
     // Opt-in (botões/valores) mostra quantos estão liberados (verde); abas,
@@ -322,7 +383,11 @@ function EditorPessoa({ pessoa, scope = 'governanca', catalogo, catalogoAbas, on
                       on ? 'bg-accent' : 'bg-surface-2',
                     )}
                     aria-label={
-                      isValor
+                      isContato
+                        ? on
+                          ? `Ocultar contato: ${a.label}`
+                          : `Liberar contato: ${a.label}`
+                        : isValor
                         ? on
                           ? `Ocultar valores: ${a.label}`
                           : `Liberar valores: ${a.label}`
@@ -432,11 +497,13 @@ function EditorPessoa({ pessoa, scope = 'governanca', catalogo, catalogoAbas, on
                         abas: [],
                         botoes: [],
                         valores: [],
+                        contatos: [],
                       }
                       const abas = bucket.abas
                       const botoes = bucket.botoes
                       const valores = bucket.valores
-                      const totalItens = abas.length + botoes.length + valores.length
+                      const contatos = bucket.contatos
+                      const totalItens = abas.length + botoes.length + valores.length + contatos.length
                       return (
                         <div key={p.pagina_id} className={cn(i > 0 && 'border-t border-line')}>
                           <button
@@ -462,6 +529,8 @@ function EditorPessoa({ pessoa, scope = 'governanca', catalogo, catalogoAbas, on
                                     `${botoes.length} botão${botoes.length > 1 ? 'es' : ''}`,
                                   valores.length > 0 &&
                                     `${valores.length} valor${valores.length > 1 ? 'es' : ''}`,
+                                  contatos.length > 0 &&
+                                    `${contatos.length} contato${contatos.length > 1 ? 's' : ''}`,
                                 ]
                                   .filter(Boolean)
                                   .join(' · ')}
@@ -509,6 +578,12 @@ function EditorPessoa({ pessoa, scope = 'governanca', catalogo, catalogoAbas, on
                                 aberto={valoresAbertas.has(p.pagina_id)}
                                 onToggleAberto={() => toggleValoresAbertas(p.pagina_id)}
                               />
+                              <BlocoToggles
+                                tipo="contato"
+                                itens={contatos}
+                                aberto={contatosAbertas.has(p.pagina_id)}
+                                onToggleAberto={() => toggleContatosAbertas(p.pagina_id)}
+                              />
                             </>
                           )}
                         </div>
@@ -533,7 +608,7 @@ function EditorPessoa({ pessoa, scope = 'governanca', catalogo, catalogoAbas, on
               <div className="min-w-0 flex-1">
                 <div className="text-sm font-semibold">Desativar todos os acessos</div>
                 <div className="text-xs text-muted">
-                  Remove de uma vez todas as páginas, botões e valores desta pessoa.
+                  Remove de uma vez todas as páginas, botões, valores e contatos desta pessoa.
                 </div>
               </div>
             </div>
@@ -642,7 +717,9 @@ function EditorPessoa({ pessoa, scope = 'governanca', catalogo, catalogoAbas, on
                   ? ''
                   : `${contagem.abasOff ? ` · ${contagem.abasOff} aba(s) off` : ''}${
                       contagem.botoesOn ? ` · ${contagem.botoesOn} botão(ões) liberado(s)` : ''
-                    }${contagem.valoresOn ? ` · ${contagem.valoresOn} valor(es)` : ''}`
+                    }${contagem.valoresOn ? ` · ${contagem.valoresOn} valor(es)` : ''}${
+                      contagem.contatosOn ? ` · ${contagem.contatosOn} contato(s)` : ''
+                    }`
                 return `Salvar acesso (${n} ${palavra}${extra})`
               })()
             )}
