@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { Loader2, CircleAlert, ChevronRight, ChevronDown } from 'lucide-react'
 import { supabase } from '../lib/supabase.js'
 import { tapHaptic } from '../lib/haptics.js'
+import { cn } from '../lib/cn'
 
 // Painel de Pendências (individual) — cada colaborador vê as PRÓPRIAS pendências.
 // Segue o MESMO padrão dos quadros do Kanban: um "card" (ícone redondo + título
