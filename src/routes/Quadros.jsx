@@ -32,6 +32,7 @@ import {
   Archive,
   MoreVertical,
   ChevronLeft,
+  ChevronDown,
   Columns3,
   Search,
   ListChecks,
@@ -266,6 +267,15 @@ function ListaQuadros({ quadros, meusCards = [], onAbrir, onMudou, selecionadoId
   const podeCriar = !!usuario?.podeCriarQuadros // membro comum só participa; criar é dos líderes liberados
   const [criando, setCriando] = useState(false)
   const podeMais = (quadros?.filter((q) => !q.arquivado).length || 0) < 3
+  // Quadros com a lista "Minhas tarefas" recolhida (por quadro), pra não poluir a
+  // rolagem quando há muitas demandas. Só visual, não persiste.
+  const [recolhidos, setRecolhidos] = useState(() => new Set())
+  const alternarRecolher = (id) =>
+    setRecolhidos((prev) => {
+      const n = new Set(prev)
+      n.has(id) ? n.delete(id) : n.add(id)
+      return n
+    })
 
   async function novoQuadro() {
     const nome = window.prompt('Nome do novo quadro:')
@@ -336,10 +346,30 @@ function ListaQuadros({ quadros, meusCards = [], onAbrir, onMudou, selecionadoId
                 >
                   <Plus size={16} />
                 </button>
+                {/* Recolher/expandir as "Minhas tarefas" deste quadro.
+                    Aberto (mostrando): círculo com o fundo do card + seta verde.
+                    Recolhido (escondido): mesmo padrão do "+". */}
+                {meus.length > 0 && (
+                  <button
+                    onClick={() => alternarRecolher(q.id)}
+                    aria-expanded={!recolhidos.has(q.id)}
+                    aria-label={
+                      recolhidos.has(q.id)
+                        ? `Mostrar tarefas de ${q.nome}`
+                        : `Recolher tarefas de ${q.nome}`
+                    }
+                    className={cn(
+                      'grid h-8 w-8 shrink-0 place-items-center rounded-full tap',
+                      recolhidos.has(q.id) ? 'bg-accent text-black' : 'bg-surface text-accent',
+                    )}
+                  >
+                    <ChevronDown size={16} />
+                  </button>
+                )}
               </div>
 
               {/* Resumo "minhas tarefas" deste quadro (clicar abre o quadro) */}
-              {meus.length > 0 && (
+              {meus.length > 0 && !recolhidos.has(q.id) && (
                 <div className="mb-1 ml-5 flex flex-col gap-1 border-l border-line pl-3">
                   <div className="hstack gap-1 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-2">
                     <ListChecks size={11} /> Minhas tarefas ({meus.length})
