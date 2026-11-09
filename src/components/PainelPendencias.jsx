@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Loader2, CircleAlert, ChevronRight } from 'lucide-react'
+import { Loader2, CircleAlert, ChevronRight, ChevronDown } from 'lucide-react'
 import { supabase } from '../lib/supabase.js'
 import { tapHaptic } from '../lib/haptics.js'
 
@@ -64,6 +64,7 @@ const ORDEM_TIPO = {
 
 export function PainelPendencias({ embutido = false }) {
   const [lista, setLista] = useState(null) // null = carregando
+  const [recolhido, setRecolhido] = useState(false) // esconde a lista (mantém o cabeçalho + contagem)
 
   useEffect(() => {
     let ativo = true
@@ -107,10 +108,26 @@ export function PainelPendencias({ embutido = false }) {
             </div>
           </div>
         </div>
+        {/* Recolher/expandir a lista de pendências (mantém o cabeçalho + contagem).
+            Aberto: círculo com o fundo do card + contorno e seta verdes.
+            Recolhido: mesmo padrão do "+". */}
+        {n > 0 && (
+          <button
+            onClick={() => setRecolhido((v) => !v)}
+            aria-expanded={!recolhido}
+            aria-label={recolhido ? 'Mostrar pendências' : 'Recolher pendências'}
+            className={cn(
+              'grid h-8 w-8 shrink-0 place-items-center rounded-full tap',
+              recolhido ? 'bg-accent text-black' : 'border-2 border-accent bg-surface text-accent',
+            )}
+          >
+            <ChevronDown size={18} strokeWidth={2.5} />
+          </button>
+        )}
       </div>
 
       {/* Lista indentada, estilo "minhas tarefas" */}
-      {n === 0 ? (
+      {!recolhido && (n === 0 ? (
         <div className="ml-5 mt-1.5 border-l border-line pl-3 py-1 text-[12px] text-muted">
           Nenhuma pendência no momento.
         </div>
@@ -151,7 +168,7 @@ export function PainelPendencias({ embutido = false }) {
             )
           })}
         </div>
-      )}
+      ))}
     </section>
   )
 }

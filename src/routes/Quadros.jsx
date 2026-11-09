@@ -360,10 +360,12 @@ function ListaQuadros({ quadros, meusCards = [], onAbrir, onMudou, selecionadoId
                     }
                     className={cn(
                       'grid h-8 w-8 shrink-0 place-items-center rounded-full tap',
-                      recolhidos.has(q.id) ? 'bg-accent text-black' : 'bg-surface text-accent',
+                      recolhidos.has(q.id)
+                        ? 'bg-accent text-black'
+                        : 'border-2 border-accent bg-surface text-accent',
                     )}
                   >
-                    <ChevronDown size={16} />
+                    <ChevronDown size={18} strokeWidth={2.5} />
                   </button>
                 )}
               </div>
