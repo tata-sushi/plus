@@ -63,8 +63,8 @@ export function BottomNav({ flow = false }) {
         <Icon size={20} strokeWidth={ativo ? 2.5 : 2} className={cn('shrink-0', !ativo && 'text-carbon')} />
         {/* bolinha de notificação (nº de pendências) — mesmo estilo dos documentos */}
         {badge > 0 && (
-          <span className="absolute -right-2 -top-1 grid h-4 min-w-4 place-items-center rounded-full border-2 border-bg bg-danger px-1 text-[9px] font-extrabold leading-none text-white">
-            {badge > 9 ? '9+' : badge}
+          <span className="absolute -right-2.5 -top-1 grid h-4 min-w-4 place-items-center rounded-full border-2 border-bg bg-danger px-1 text-[9px] font-extrabold leading-none text-white">
+            {badge}
           </span>
         )}
       </span>
