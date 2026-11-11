@@ -33,10 +33,11 @@ export function BottomNav({ flow = false }) {
   //     entrada dessa pessoa; some e volta o Ranking quando zera);
   //  3) senão → Ranking.
   // (Ranking/Kanban deslocados ficam sempre acessíveis pelo menu "Mais".)
+  const nPend = usuario?.pendencias ?? 0
   const slotRanking = usuario?.podeQuadros
-    ? { to: '/quadros', label: 'Kanban', Icon: KanbanSquare }
-    : (usuario?.pendencias ?? 0) > 0
-      ? { to: '/pendencias', label: 'Pendências', Icon: CircleAlert }
+    ? { to: '/quadros', label: 'Kanban', Icon: KanbanSquare, badge: nPend }
+    : nPend > 0
+      ? { to: '/pendencias', label: 'Pendências', Icon: CircleAlert, badge: nPend }
       : { to: '/ranking', label: 'Ranking', Icon: Trophy }
   // slot 4 reveza: quem tem acesso à Governança abre AQUI o menu de navegação
   // lateral (drawer) — sem sair da tela nem abrir o portal de cara; quem não tem
@@ -55,11 +56,17 @@ export function BottomNav({ flow = false }) {
   const base =
     'relative flex w-full min-w-0 flex-col items-center justify-center gap-1 overflow-hidden px-0.5 py-2.5 text-[9px] font-medium tap'
 
-  const miolo = (ativo, Icon, label) => (
+  const miolo = (ativo, Icon, label, badge = 0) => (
     <>
       {ativo && <span className="absolute top-0 h-0.5 w-6 rounded-pill bg-accent shadow-glow" />}
-      <span className="grid h-7 place-items-center">
+      <span className="relative grid h-7 place-items-center">
         <Icon size={20} strokeWidth={ativo ? 2.5 : 2} className={cn('shrink-0', !ativo && 'text-carbon')} />
+        {/* bolinha de notificação (nº de pendências) — mesmo estilo dos documentos */}
+        {badge > 0 && (
+          <span className="absolute -right-2 -top-1 grid h-4 min-w-4 place-items-center rounded-full border-2 border-bg bg-danger px-1 text-[9px] font-extrabold leading-none text-white">
+            {badge > 9 ? '9+' : badge}
+          </span>
+        )}
       </span>
       <span className="max-w-full overflow-hidden text-ellipsis whitespace-nowrap">{label}</span>
     </>
@@ -76,7 +83,7 @@ export function BottomNav({ flow = false }) {
     >
       <ul className="grid grid-cols-5">
         {items.map((item) => {
-          const { to, label, Icon, end, acao } = item
+          const { to, label, Icon, end, acao, badge } = item
           // Slot que abre o menu lateral (Governança): botão, destaca enquanto aberto.
           if (acao === 'menu') {
             return (
@@ -108,7 +115,7 @@ export function BottomNav({ flow = false }) {
                 }}
                 className={({ isActive }) => cn(base, isActive && !aberto ? 'text-accent' : 'text-muted')}
               >
-                {({ isActive }) => miolo(isActive && !aberto, Icon, label)}
+                {({ isActive }) => miolo(isActive && !aberto, Icon, label, badge)}
               </NavLink>
             </li>
           )
