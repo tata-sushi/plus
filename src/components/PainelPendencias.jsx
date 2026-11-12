@@ -38,11 +38,11 @@ const ROTA = {
   exp_colab: '/minha-experiencia',
   lideranca: '/minha-experiencia',
   desempenho: '/painel/governanca-kpis-rh-performance?aba=pendentes', // abre Performance na aba Pendentes
-  exp_lider: '/governanca', // líder avalia o novato no portal de governança
-  absenteismo: '/governanca', // líder dá a devolutiva da falta no portal
-  exame_lider: '/governanca', // líder acompanha o exame do time no portal
-  feriado: '/governanca', // líder decide as horas de feriado no portal
-  recrutamento: '/governanca', // devolutiva de entrevista/teste no portal
+  exp_lider: '/painel/gov_experiencia', // líder avalia o novato na página de Experiência
+  absenteismo: '/painel/gov_absenteismo', // líder dá a devolutiva da falta na página de Absenteísmo
+  exame_lider: '/painel/gov_medicina', // líder acompanha o exame na página de Medicina Ocupacional
+  feriado: '/painel/gov_feriados', // líder decide as horas na página de Feriados
+  recrutamento: '/painel/gov_recrutamento', // devolutiva de entrevista/teste na página de Recrutamento
   ferias_lider: '/painel/gov_ferias', // líder agenda as férias do time na página de Férias
 }
 
