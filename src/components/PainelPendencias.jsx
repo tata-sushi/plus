@@ -4,6 +4,8 @@ import { Loader2, CircleAlert, ChevronRight, ChevronDown } from 'lucide-react'
 import { supabase } from '../lib/supabase.js'
 import { tapHaptic } from '../lib/haptics.js'
 import { cn } from '../lib/cn'
+import { governancaCatalogo } from '../lib/mockData.js'
+import { useDesktopCanvas } from '../lib/desktopCanvas.js'
 
 // Painel de Pendências (individual) — cada colaborador vê as PRÓPRIAS pendências.
 // Segue o MESMO padrão dos quadros do Kanban: um "card" (ícone redondo + título
@@ -37,7 +39,7 @@ const ROTA = {
   assinatura: '/documentos',
   exp_colab: '/minha-experiencia',
   lideranca: '/minha-experiencia',
-  desempenho: '/painel/governanca-kpis-rh-performance?aba=pendentes', // abre Performance na aba Pendentes
+  desempenho: '/painel/gov_performance?aba=pendentes', // abre Performance na aba Pendentes
   exp_lider: '/painel/gov_experiencia', // líder avalia o novato na página de Experiência
   absenteismo: '/painel/gov_absenteismo', // líder dá a devolutiva da falta na página de Absenteísmo
   exame_lider: '/painel/gov_medicina', // líder acompanha o exame na página de Medicina Ocupacional
@@ -63,9 +65,22 @@ const ORDEM_TIPO = {
   assinatura_lider: 13,
 }
 
+// Resolve uma rota "/painel/<id>[?aba=x]" para a página de governança (url + título)
+// usando o catálogo — pra abrir no canvas grande do desktop em vez de navegar.
+function paginaGovDaRota(rota) {
+  const m = /^\/painel\/([^?]+)(?:\?aba=([^&]+))?/.exec(rota || '')
+  if (!m) return null
+  const cat = governancaCatalogo.find((c) => c.id === m[1])
+  if (!cat) return null
+  return { id: cat.id, titulo: cat.label, url: cat.url + (m[2] ? '#aba=' + m[2] : '') }
+}
+
 export function PainelPendencias({ embutido = false }) {
   const [lista, setLista] = useState(null) // null = carregando
   const [recolhido, setRecolhido] = useState(false) // esconde a lista (mantém o cabeçalho + contagem)
+  // No desktop, páginas de governança abrem na área grande (canvas); no mobile
+  // navegam normal (full screen). canvasEl só existe no shell de desktop.
+  const { canvasEl, setCanvas } = useDesktopCanvas()
 
   useEffect(() => {
     let ativo = true
@@ -136,6 +151,8 @@ export function PainelPendencias({ embutido = false }) {
         <div className="mb-1 ml-5 mt-1.5 flex flex-col gap-1 border-l border-line pl-3">
           {listaOrd.map((p, i) => {
             const rota = ROTA[p.tipo]
+            // Desktop + página de governança → abre na área grande (canvas).
+            const govPag = canvasEl ? paginaGovDaRota(rota) : null
             const titulo = p.colaborador_nome ? `${p.colaborador_nome} — ${p.descricao}` : p.descricao
             const conteudo = (
               <>
@@ -158,7 +175,20 @@ export function PainelPendencias({ embutido = false }) {
             )
             const key = `${p.tipo}-${p.colaborador_matricula}-${i}`
             const cls = 'hstack gap-2 rounded-lg px-2 py-1.5'
-            return rota ? (
+            return govPag ? (
+              <button
+                key={key}
+                type="button"
+                title={titulo}
+                onClick={() => {
+                  tapHaptic()
+                  setCanvas({ tipo: 'painel', url: govPag.url, titulo: govPag.titulo })
+                }}
+                className={`${cls} w-full text-left tap hover:bg-fill`}
+              >
+                {conteudo}
+              </button>
+            ) : rota ? (
               <Link key={key} to={rota} title={titulo} onClick={tapHaptic} className={`${cls} tap hover:bg-fill`}>
                 {conteudo}
               </Link>
