@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Loader2, Search, ChevronRight, ChevronDown, Check, ShieldCheck, X, Layers, KeyRound, Info, ShieldOff } from 'lucide-react'
+import { Loader2, Search, ChevronRight, ChevronDown, Check, ShieldCheck, X, Layers, KeyRound, Info, ShieldOff, Snowflake, Sun } from 'lucide-react'
 import { Section } from './Section.jsx'
 import { Card } from './Card.jsx'
 import { Avatar } from './Avatar.jsx'
@@ -110,6 +110,48 @@ function EditorPessoa({ pessoa, scope = 'governanca', catalogo, catalogoAbas, on
     setValoresLib(new Set())
     setContatosLib(new Set())
     onSalvo({ total: 0, escopo: 0 })
+  }
+
+  // Congelar pontos por desligamento (ação manual do RH): congela TODO o saldo —
+  // bloqueia resgate e transferência — enquanto estiver ativo; dá pra descongelar
+  // se a pessoa voltar atrás. Só no escopo "Aplicativo".
+  const [congel, setCongel] = useState(null) // { ativo, saldo, congelado_em } · null = carregando
+  const [congelOp, setCongelOp] = useState({ fase: 'idle' }) // idle | confirm | loading | error
+  useEffect(() => {
+    let a = true
+    supabase
+      .rpc('admin_congelamento_desligamento_estado', { p_matricula: pessoa.matricula })
+      .then(({ data }) => a && setCongel(data || { ativo: false, saldo: 0 }))
+    return () => {
+      a = false
+    }
+  }, [pessoa.matricula])
+  async function congelarPontos() {
+    setCongelOp({ fase: 'loading' })
+    const { data, error } = await supabase.rpc('admin_congelar_desligamento', {
+      p_matricula: pessoa.matricula,
+      p_motivo: 'Comunicou desligamento',
+    })
+    if (error || !data?.ok) {
+      setCongelOp({ fase: 'error', msg: error?.message || 'Não foi possível congelar os pontos.' })
+      return
+    }
+    tapHaptic()
+    setCongel({ ativo: true, saldo: data.saldo_congelado, congelado_em: new Date().toISOString() })
+    setCongelOp({ fase: 'idle' })
+  }
+  async function descongelarPontos() {
+    setCongelOp({ fase: 'loading' })
+    const { data, error } = await supabase.rpc('admin_descongelar_desligamento', {
+      p_matricula: pessoa.matricula,
+    })
+    if (error || !data?.ok) {
+      setCongelOp({ fase: 'error', msg: error?.message || 'Não foi possível descongelar.' })
+      return
+    }
+    tapHaptic()
+    setCongel((c) => ({ ...(c || {}), ativo: false }))
+    setCongelOp({ fase: 'idle' })
   }
 
   // Contagem pro rodapé: abas desligadas (opt-out), botões e valores liberados.
@@ -691,6 +733,76 @@ function EditorPessoa({ pessoa, scope = 'governanca', catalogo, catalogoAbas, on
                 </button>
               )}
               {reset.fase === 'error' && <div className="mt-2 text-xs font-medium text-danger">{reset.msg}</div>}
+            </div>
+          </Card>
+        )}
+
+        {/* Congelar pontos (desligamento) — só no escopo "Aplicativo" */}
+        {ehApp && (
+          <Card className="mt-4">
+            <div className="hstack gap-3">
+              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-sky-500/15 text-sky-500">
+                <Snowflake size={18} />
+              </span>
+              <div className="min-w-0 flex-1">
+                <div className="text-sm font-semibold">Congelar pontos (desligamento)</div>
+                <div className="text-xs text-muted">
+                  Bloqueia resgate e transferência de todos os pontos da pessoa enquanto estiver congelado.
+                </div>
+              </div>
+            </div>
+            <div className="mt-3">
+              {congel === null ? (
+                <div className="hstack justify-center py-1 text-muted-2">
+                  <Loader2 size={16} className="animate-spin" />
+                </div>
+              ) : congel.ativo ? (
+                <>
+                  <div className="hstack gap-1.5 rounded-lg bg-sky-500/10 px-3 py-2 text-xs font-medium text-sky-600">
+                    <Snowflake size={14} className="shrink-0" />
+                    Pontos congelados
+                    {congel.congelado_em
+                      ? ' desde ' + new Date(congel.congelado_em).toLocaleDateString('pt-BR')
+                      : ''}
+                    {typeof congel.saldo === 'number' ? ` (${congel.saldo} pts)` : ''}
+                  </div>
+                  <button
+                    onClick={descongelarPontos}
+                    disabled={congelOp.fase === 'loading'}
+                    className="mt-2 hstack w-full justify-center gap-2 rounded-lg border border-line py-2 text-sm font-semibold tap disabled:opacity-50"
+                  >
+                    {congelOp.fase === 'loading' ? <Loader2 size={16} className="animate-spin" /> : <Sun size={16} />}
+                    Descongelar pontos
+                  </button>
+                </>
+              ) : congelOp.fase === 'confirm' ? (
+                <div className="hstack gap-2">
+                  <button
+                    onClick={congelarPontos}
+                    className="flex-1 rounded-lg bg-sky-600 py-2 text-sm font-semibold text-white tap"
+                  >
+                    Confirmar — congelar
+                  </button>
+                  <button
+                    onClick={() => setCongelOp({ fase: 'idle' })}
+                    className="shrink-0 rounded-lg border border-line px-3 py-2 text-sm font-semibold text-muted tap"
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setCongelOp({ fase: 'confirm' })}
+                  disabled={congelOp.fase === 'loading'}
+                  className="hstack w-full justify-center gap-2 rounded-lg border border-sky-500/40 py-2 text-sm font-semibold text-sky-600 tap disabled:opacity-50"
+                >
+                  {congelOp.fase === 'loading' ? <Loader2 size={16} className="animate-spin" /> : <Snowflake size={16} />}
+                  Congelar pontos (desligamento)
+                </button>
+              )}
+              {congelOp.fase === 'error' && (
+                <div className="mt-2 text-xs font-medium text-danger">{congelOp.msg}</div>
+              )}
             </div>
           </Card>
         )}
