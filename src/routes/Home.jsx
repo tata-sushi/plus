@@ -283,7 +283,7 @@ export function Home() {
   // tema vive no aparelho: o front mostra só pra quem está no claro (no escuro,
   // filtra fora). O "de vez em quando" já é o sorteio da base. (tema declarado acima)
 
-  // Card "aviso_1" = ativar notificações. O push é por aparelho (a base não sabe),
+  // Card "notificacoes" = ativar notificações. O push é por aparelho (a base não sabe),
   // então o front decide: mostra só pra quem está SEM push AQUI, e o toque ativa
   // direto (onTap → ativarPush). Começa oculto até checar o estado do aparelho.
   const [pushInfo, setPushInfo] = useState({ suportado: false, ativo: true })
@@ -301,9 +301,9 @@ export function Home() {
     () =>
       destaques
         .filter((d) => d.chave !== 'modo_escuro' || tema === 'light')
-        .filter((d) => d.chave !== 'aviso_1' || (pushInfo.suportado && !pushInfo.ativo))
-        // aviso_1 leva pro Painel de Ajustes (não ativa direto) — a pessoa liga lá.
-        .map((d) => (d.chave === 'aviso_1' ? { ...d, cta_to: '/manutencao' } : d)),
+        .filter((d) => d.chave !== 'notificacoes' || (pushInfo.suportado && !pushInfo.ativo))
+        // notificacoes leva pro Painel de Ajustes (não ativa direto) — a pessoa liga lá.
+        .map((d) => (d.chave === 'notificacoes' ? { ...d, cta_to: '/manutencao' } : d)),
     [destaques, tema, pushInfo],
   )
 
