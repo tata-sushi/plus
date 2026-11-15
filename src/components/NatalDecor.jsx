@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
 
-// Decoração de Natal: neve + enfeites (árvore, presente, meia) espalhados pelas
-// BORDAS/cantos com transparência — enfeitam sem cobrir os cards. Só aparece no
-// tema 'natal'. Camada fixa, pointer-events:none, respeita "reduzir movimento".
-// Reage à troca de tema via 'tp-theme' e observer do data-theme (fallback).
+// Decoração de Natal: enfeites (árvore, presente, meia) nas bordas + efeitos
+// ambiente escolhidos (brilhos, estrela cadente, poeira dourada, vaga-lumes).
+// Só aparece no tema 'natal'. Camada fixa, pointer-events:none, respeita
+// "reduzir movimento". Reage à troca de tema via 'tp-theme' e observer.
 const ehNatal = () => {
   try {
     return document.documentElement.getAttribute('data-theme') === 'natal'
@@ -48,8 +48,6 @@ const SVGS = {
   ),
 }
 
-// Enfeites espalhados: a maioria "espiando" das bordas (offsets negativos), com
-// transparência; dois mais presentes nos cantos de baixo.
 const ENFEITES = [
   { tipo: 'arvore', pos: { left: '2px', bottom: '60px' }, size: 58, op: 0.9, rot: 0, dur: 6.5, delay: 0 },
   { tipo: 'presente', pos: { right: '4px', bottom: '64px' }, size: 46, op: 0.9, rot: 0, dur: 7.5, delay: 0.6 },
@@ -73,15 +71,50 @@ export function NatalDecor() {
     }
   }, [])
 
-  const neve = useMemo(
+  // Brilhos (sparkles)
+  const brilhos = useMemo(
     () =>
-      Array.from({ length: 16 }, () => ({
+      Array.from({ length: 18 }, () => ({
         left: Math.random() * 100,
-        size: 7 + Math.random() * 9,
+        top: Math.random() * 100,
+        size: 10 + Math.random() * 12,
+        dur: 2.4 + Math.random() * 2,
+        delay: Math.random() * 3,
+      })),
+    [],
+  )
+  // Estrela cadente
+  const estrelas = useMemo(
+    () => [
+      { top: '7%', left: Math.random() * 25, delay: 8, dur: 8 },
+      { top: '22%', left: Math.random() * 25, delay: 0, dur: 9 },
+      { top: '40%', left: Math.random() * 25, delay: 4, dur: 10 },
+    ],
+    [],
+  )
+  // Poeira dourada
+  const poeira = useMemo(
+    () =>
+      Array.from({ length: 30 }, () => ({
+        left: Math.random() * 100,
         op: 0.4 + Math.random() * 0.5,
-        drift: Math.round(Math.random() * 44 - 22),
-        dur: 6 + Math.random() * 7,
+        dx: Math.round(Math.random() * 40 - 20),
+        dur: 7 + Math.random() * 7,
         delay: -Math.random() * 12,
+        size: 2 + Math.random() * 3,
+      })),
+    [],
+  )
+  // Vaga-lumes
+  const vagalumes = useMemo(
+    () =>
+      Array.from({ length: 20 }, () => ({
+        left: Math.random() * 100,
+        top: Math.random() * 100,
+        fx: Math.round(Math.random() * 60 - 30),
+        fy: Math.round(Math.random() * 60 - 30),
+        dur: 5 + Math.random() * 5,
+        delay: -Math.random() * 6,
       })),
     [],
   )
@@ -92,7 +125,7 @@ export function NatalDecor() {
     <div className="nt-deco" aria-hidden="true">
       {ENFEITES.map((e, i) => (
         <div
-          key={i}
+          key={'e' + i}
           className="nt-enfeite"
           style={{ ...e.pos, opacity: e.op, animationDuration: e.dur + 's', animationDelay: e.delay + 's' }}
         >
@@ -107,18 +140,35 @@ export function NatalDecor() {
         </div>
       ))}
 
-      {neve.map((f, i) => (
+      {brilhos.map((b, i) => (
         <div
-          key={'n' + i}
-          className="nt-flake"
-          style={{
-            left: f.left + '%',
-            fontSize: f.size + 'px',
-            opacity: f.op,
-            '--drift': f.drift + 'px',
-            animationDuration: f.dur.toFixed(1) + 's',
-            animationDelay: f.delay.toFixed(1) + 's',
-          }}
+          key={'b' + i}
+          className="nt-spark"
+          style={{ left: b.left + '%', top: b.top + '%', fontSize: b.size + 'px', animationDuration: b.dur.toFixed(2) + 's', animationDelay: b.delay.toFixed(2) + 's' }}
+        />
+      ))}
+
+      {estrelas.map((s, i) => (
+        <div
+          key={'s' + i}
+          className="nt-shoot"
+          style={{ top: s.top, left: s.left + '%', animationDuration: s.dur + 's', animationDelay: s.delay + 's' }}
+        />
+      ))}
+
+      {poeira.map((d, i) => (
+        <div
+          key={'d' + i}
+          className="nt-dust"
+          style={{ left: d.left + '%', width: d.size.toFixed(1) + 'px', height: d.size.toFixed(1) + 'px', opacity: d.op, '--dx': d.dx + 'px', animationDuration: d.dur.toFixed(1) + 's', animationDelay: d.delay.toFixed(1) + 's' }}
+        />
+      ))}
+
+      {vagalumes.map((f, i) => (
+        <div
+          key={'f' + i}
+          className="nt-fire"
+          style={{ left: f.left + '%', top: f.top + '%', '--fx': f.fx + 'px', '--fy': f.fy + 'px', animationDuration: f.dur.toFixed(1) + 's', animationDelay: f.delay.toFixed(1) + 's' }}
         />
       ))}
     </div>

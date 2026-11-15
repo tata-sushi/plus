@@ -438,12 +438,45 @@
 }
 .nt-enfeite { position: absolute; pointer-events: none; animation: ntFloat 6s ease-in-out infinite; }
 @keyframes ntFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+
+/* Brilhos (sparkles) */
+.nt-spark { position: absolute; color: #fff7df; line-height: 1; transform: scale(.2); opacity: 0; animation: ntSpk 3s ease-in-out infinite; }
+.nt-spark::before { content: "\2726"; display: block; }
+@keyframes ntSpk { 0%, 100% { transform: scale(.2); opacity: 0; } 45% { transform: scale(1); opacity: 1; } }
+
+/* Estrela cadente */
+.nt-shoot { position: absolute; width: 120px; height: 2px; border-radius: 2px;
+  background: linear-gradient(90deg, rgba(255,255,255,0), #fff 70%, #fff); box-shadow: 0 0 8px #fff;
+  transform: rotate(18deg); opacity: 0; animation: ntSho 8s ease-in infinite; }
+@keyframes ntSho {
+  0% { opacity: 0; transform: translate(0,0) rotate(18deg); }
+  5% { opacity: 1; }
+  14% { opacity: 0; transform: translate(260px,90px) rotate(18deg); }
+  100% { opacity: 0; transform: translate(260px,90px) rotate(18deg); }
+}
+
+/* Poeira dourada (sobe) */
+.nt-dust { position: absolute; bottom: -10px; width: 4px; height: 4px; border-radius: 50%;
+  background: #e7ba68; box-shadow: 0 0 5px #e7ba68; animation: ntRise linear infinite; }
+@keyframes ntRise { to { transform: translateY(-112vh) translateX(var(--dx,10px)); opacity: 0; } }
+
+/* Vaga-lumes */
+.nt-fire { position: absolute; width: 6px; height: 6px; border-radius: 50%; background: #ffe39a;
+  box-shadow: 0 0 8px 2px #e7ba68; animation: ntFire ease-in-out infinite; }
+@keyframes ntFire {
+  0% { transform: translate(0,0); opacity: 0; }
+  20% { opacity: 1; }
+  50% { transform: translate(var(--fx,20px), var(--fy,-24px)); opacity: .55; }
+  80% { opacity: 1; }
+  100% { transform: translate(0,0); opacity: 0; }
+}
 @keyframes ntTwinkle { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
 @keyframes ntSwing { 0%, 100% { transform: rotate(-7deg); } 50% { transform: rotate(7deg); } }
 @keyframes ntFall { to { transform: translateY(105vh) translateX(var(--drift, 14px)) rotate(260deg); } }
 @keyframes ntPulse { 0%, 100% { transform: scale(1); opacity: 0.9; } 50% { transform: scale(1.12); opacity: 0.55; } }
 @media (prefers-reduced-motion: reduce) {
-  .nt-bulb, .nt-orn, .nt-flake, .nt-star, .nt-enfeite { animation: none !important; }
+  .nt-bulb, .nt-orn, .nt-flake, .nt-star, .nt-enfeite, .nt-spark, .nt-shoot, .nt-dust, .nt-fire { animation: none !important; }
+  .nt-shoot, .nt-dust { display: none; }
   .nt-flake { display: none; }
 }
 
