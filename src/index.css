@@ -55,8 +55,8 @@
   --border: 44 82 60;
   --line: rgba(255, 255, 255, 0.10);
   --fill: rgba(255, 255, 255, 0.06);
-  --carbon: 226 202 140;     /* dourado claro — contorno dos ícones bem visível */
-  --carbon-soft: rgba(226, 202, 140, 0.20);
+  --carbon: 222 72 66;       /* vermelho — contorno dos ícones (Sugestões) */
+  --carbon-soft: rgba(222, 72, 66, 0.20);
   --accent: 231 186 104;     /* dourado — realces, ícones e navegação */
   --accent-dim: 202 158 78;
   --accent-soft: rgba(231, 186, 104, 0.15);
