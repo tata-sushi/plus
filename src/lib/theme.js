@@ -1,9 +1,10 @@
 // Tema do app — persistido no aparelho e aplicado no <html data-theme>.
-// Valores: 'light' | 'dark'. Padrão é claro; cada um escolhe o escuro em Ajustes.
+// Valores: 'light' | 'dark' | 'natal' (dark especial, acento dourado — em teste,
+// liberado só pra matrícula 7 via o toggle nos Ajustes).
 const KEY = 'tp_theme'
-const TEMAS = ['light', 'dark']
+const TEMAS = ['light', 'dark', 'natal']
 
-const corDaBarra = (t) => (t === 'light' ? '#F5F4F1' : '#0A0A0A')
+const corDaBarra = (t) => (t === 'light' ? '#F5F4F1' : t === 'natal' ? '#0b1812' : '#0A0A0A')
 
 export function getTheme() {
   try {

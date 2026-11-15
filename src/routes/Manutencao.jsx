@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Lock, Eye, EyeOff, Check, Loader2, ShieldCheck, Sun, Moon, Bell, BellOff, Sparkles, Fingerprint } from 'lucide-react'
+import { Lock, Eye, EyeOff, Check, Loader2, ShieldCheck, Sun, Moon, Bell, BellOff, Sparkles, Fingerprint, TreePine } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { CabecalhoPagina } from '../components/CabecalhoPagina.jsx'
 import { Voltar } from '../components/Voltar.jsx'
@@ -17,7 +17,8 @@ const TEMAS = [
 ]
 
 export function Manutencao() {
-  const { updatePassword } = useAuth()
+  const { updatePassword, usuario } = useAuth()
+  const mat7 = String(usuario?.matricula) === '7' // Modo Natal em teste (só o dev)
   const [tema, setTema] = useState(getTheme)
   const [signoVis, setSignoVis] = useState(getSignoVisivel)
   const [discVis, setDiscVis] = useState(getDiscVisivel)
@@ -178,6 +179,40 @@ export function Manutencao() {
               </div>
             </div>
           </div>
+
+          {/* Modo Natal — tema sazonal em teste, só pra matrícula 7 (dev). */}
+          {mat7 && (
+            <div className="card p-4">
+              <div className="hstack gap-3">
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-accent-soft text-accent">
+                  <TreePine size={20} />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <div className="font-display text-sm font-bold">Modo Natal 🎄</div>
+                  <div className="mt-0.5 text-[11px] text-muted">Em teste — só no seu perfil</div>
+                </div>
+                <div className="hstack shrink-0 gap-1 rounded-pill bg-surface-2 p-1">
+                  {[
+                    { on: false, label: 'Desligar', Icon: Moon },
+                    { on: true, label: 'Ligar', Icon: TreePine },
+                  ].map(({ on, label, Icon }) => (
+                    <button
+                      key={label}
+                      onClick={() => trocarTema(on ? 'natal' : 'light')}
+                      aria-label={label}
+                      aria-pressed={(tema === 'natal') === on}
+                      className={cn(
+                        'grid h-8 w-8 place-items-center rounded-full tap',
+                        (tema === 'natal') === on ? 'bg-accent text-black' : 'text-muted',
+                      )}
+                    >
+                      <Icon size={15} />
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
 
         </div>
       </Section>

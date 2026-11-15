@@ -6,6 +6,7 @@ import { Header } from '../components/Header.jsx'
 import { Section } from '../components/Section.jsx'
 import { Card } from '../components/Card.jsx'
 import { AtalhosGovernanca } from '../components/AtalhosGovernanca.jsx'
+import { NatalDecor } from '../components/NatalDecor.jsx'
 import { ProgressRing } from '../components/ProgressRing.jsx'
 import { Avatar } from '../components/Avatar.jsx'
 import { Carrossel } from '../components/Carrossel.jsx'
@@ -475,6 +476,9 @@ export function Home() {
 
       {/* Atalhos — exclusivo p/ quem tem acesso à Governança */}
       {usuario?.governanca?.tem && <AtalhosGovernanca />}
+
+      {/* Decoração de Natal — só aparece no tema 'natal' (em teste, mat 7) */}
+      <NatalDecor />
     </>
   )
 }
