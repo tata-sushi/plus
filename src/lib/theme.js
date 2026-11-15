@@ -4,7 +4,7 @@
 const KEY = 'tp_theme'
 const TEMAS = ['light', 'dark', 'natal']
 
-const corDaBarra = (t) => (t === 'light' ? '#F5F4F1' : t === 'natal' ? '#0b1812' : '#0A0A0A')
+const corDaBarra = (t) => (t === 'light' ? '#F5F4F1' : t === 'natal' ? '#0d2619' : '#0A0A0A')
 
 export function getTheme() {
   try {
