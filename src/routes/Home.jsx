@@ -7,6 +7,7 @@ import { Section } from '../components/Section.jsx'
 import { Card } from '../components/Card.jsx'
 import { AtalhosGovernanca } from '../components/AtalhosGovernanca.jsx'
 import { NatalDecor } from '../components/NatalDecor.jsx'
+import { ConfraCard } from '../components/ConfraCard.jsx'
 import { ProgressRing } from '../components/ProgressRing.jsx'
 import { Avatar } from '../components/Avatar.jsx'
 import { Carrossel } from '../components/Carrossel.jsx'
@@ -425,6 +426,9 @@ export function Home() {
           </div>
         </div>
       </div>
+
+      {/* Confraternização — pergunta Sim/Não (em teste, só mat 7) */}
+      {String(usuario?.matricula) === '7' && <ConfraCard />}
 
       {/* Menu do dia — linha com scroll lateral e botão de avaliação (estrela) fixo à direita */}
       <Section className="reveal reveal-1 mt-4 hsm:mt-3" title="Menu do dia">
