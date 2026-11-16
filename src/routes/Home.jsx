@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Flag, ShoppingBag, Star, Network, Sun, Check, X, KanbanSquare, SprayCan, Radio as RadioIcon, Puzzle, UtensilsCrossed, Trophy, CalendarClock, FileSignature, ReceiptText, QrCode, HeartHandshake, Lightbulb } from 'lucide-react'
+import { Flag, ShoppingBag, Star, Network, Sun, Check, X, KanbanSquare, SprayCan, Radio as RadioIcon, Puzzle, UtensilsCrossed, Trophy, CalendarClock, FileSignature, ReceiptText, QrCode, HeartHandshake, Lightbulb, PartyPopper } from 'lucide-react'
 import { cn } from '../lib/cn'
 import { Header } from '../components/Header.jsx'
 import { Section } from '../components/Section.jsx'
@@ -252,6 +252,10 @@ export function Home() {
     { to: '/documentos', badgeIcon: FileSignature, title: 'Documentos', subtitle: 'Documentos para assinar', badge: docsPend },
     { to: '/holerites', badgeIcon: ReceiptText, title: 'Holerite', subtitle: 'Seus holerites' },
     { to: '/check-in', badgeIcon: QrCode, title: 'Check-in', subtitle: 'Presença por QR' },
+    // Confraternização — em teste, só pra matrícula 7.
+    ...(String(usuario?.matricula) === '7'
+      ? [{ to: '/confraternizacao', badgeIcon: PartyPopper, title: 'Confraternização', subtitle: 'Festa de fim de ano' }]
+      : []),
   ].sort((a, b) => labelCurto(a.title).localeCompare(labelCurto(b.title), 'pt', { sensitivity: 'base' }))
   const desktop = useDesktop()
   const { setCanvas } = useDesktopCanvas()
