@@ -27,14 +27,9 @@ function Info({ Icon, label, children }) {
   )
 }
 
-function Provisorio() {
-  return <div className="mt-3 text-[11px] italic text-muted-2">Texto provisório — me manda o conteúdo real.</div>
-}
-
-// Pílulas automáticas (não-clicáveis): a base calcula em quais categorias a
-// pessoa concorre (confra_minhas_categorias). Mostra só as elegíveis; as que
-// ainda não têm critério definido aparecem como "em definição".
-function SorteioPills() {
+// Conteúdo dos sorteios: texto fixo + categorias (descrições vêm da base) e as
+// pílulas das categorias em que a pessoa concorre (confra_minhas_categorias).
+function SorteioConteudo() {
   const [cats, setCats] = useState(null)
 
   useEffect(() => {
@@ -47,42 +42,60 @@ function SorteioPills() {
     }
   }, [])
 
-  if (!cats) return <div className="text-xs text-muted">Carregando…</div>
-
-  const minhas = cats.filter((c) => c.elegivel)
+  const minhas = (cats || []).filter((c) => c.elegivel)
 
   return (
-    <>
-      {/* texto: explicação de todas as categorias */}
-      <div className="flex flex-col gap-1.5">
-        {cats.map((c) => (
-          <div key={c.slug} className="text-[12px] leading-snug text-muted">
-            <span className="font-semibold text-text">{c.nome}</span>
-            {c.descricao ? ` — ${c.descricao}` : ''}
-            {c.pendente ? <span className="text-muted-2"> (em definição)</span> : null}
-          </div>
-        ))}
-      </div>
+    <div className="flex flex-col gap-3 text-[13px] leading-relaxed text-muted">
+      <p>
+        Como não poderia faltar, nossa confraternização terá os tradicionais sorteios! Um momento de alegria,
+        expectativa e muita torcida, que torna nossa celebração ainda mais especial.
+      </p>
+      <p>Todos os colaboradores participam automaticamente, conforme os critérios de cada categoria.</p>
 
-      {/* pílulas: as categorias em que a pessoa concorre */}
-      <div className="mt-4 text-[11px] font-semibold uppercase tracking-wide text-muted-2">Você concorre em</div>
-      <div className="mt-2 flex flex-wrap gap-2">
-        {minhas.length > 0 ? (
-          minhas.map((c) => (
-            <span
-              key={c.slug}
-              className="hstack gap-1.5 rounded-pill border border-accent bg-accent-soft px-3 py-2 text-[13px] font-semibold text-accent"
-            >
-              <Check size={14} />
-              {c.nome}
-            </span>
-          ))
+      <div>
+        <p className="font-semibold text-text">🍀 Conheça as categorias dos sorteios:</p>
+        {cats === null ? (
+          <p className="mt-1 text-xs text-muted">Carregando…</p>
         ) : (
-          <span className="text-[13px] text-muted">Nenhuma categoria por enquanto.</span>
+          <ul className="mt-2 flex flex-col gap-1.5">
+            {cats.map((c) => (
+              <li key={c.slug}>
+                <span className="font-semibold text-text">{c.nome}:</span> {c.descricao}
+              </li>
+            ))}
+          </ul>
         )}
       </div>
-      <div className="mt-2 text-[11px] text-muted-2">Definido automaticamente pelo seu perfil (tempo de casa, assiduidade…).</div>
-    </>
+
+      <div>
+        <p className="font-semibold text-text">✨ E em quais categorias você concorre?</p>
+        <p className="mt-1">
+          O Tatá Plus identifica automaticamente as categorias em que você participa, considerando as informações do
+          seu perfil e os critérios de cada sorteio. Você pode concorrer em mais de uma categoria!
+        </p>
+        {cats !== null && (
+          <div className="mt-3 flex flex-wrap gap-2">
+            {minhas.length > 0 ? (
+              minhas.map((c) => (
+                <span
+                  key={c.slug}
+                  className="hstack gap-1.5 rounded-pill border border-accent bg-accent-soft px-3 py-2 text-[13px] font-semibold text-accent"
+                >
+                  <Check size={14} />
+                  {c.nome}
+                </span>
+              ))
+            ) : (
+              <span className="text-[13px] text-muted">Nenhuma categoria por enquanto.</span>
+            )}
+          </div>
+        )}
+      </div>
+
+      <p>
+        🍀 Prepare a torcida e conte com a sorte! Quem sabe você não será um dos sortudos da nossa confraternização? 🎉
+      </p>
+    </div>
   )
 }
 
@@ -97,10 +110,9 @@ export function Confraternizacao() {
         <Card className="reveal p-4">
           <Info Icon={Calendar} label="Data">Sábado, 26 de dezembro</Info>
           <Info Icon={Clock} label="Horário">A partir das 12h</Info>
-          <Info Icon={MapPin} label="Local">Tatu Bola — Rua Clodomiro Amazonas, 260, Itaim Bibi</Info>
-          <Info Icon={UtensilsCrossed} label="Cardápio">A definir</Info>
-          <Info Icon={Wine} label="Consumo">A definir</Info>
-          <Provisorio />
+          <Info Icon={MapPin} label="Local">Tatu Bola: Rua Clodomiro Amazonas, 260, Itaim Bibi</Info>
+          <Info Icon={UtensilsCrossed} label="Cardápio">Buffet à vontade</Info>
+          <Info Icon={Wine} label="Consumação">3 bebidas (podendo ser 1 chopp Brahma + 2 não alcoólicas: água ou refrigerante)</Info>
         </Card>
       </Section>
 
@@ -115,16 +127,12 @@ export function Confraternizacao() {
               <Ticket size={20} />
             </span>
             <div className="min-w-0 flex-1">
-              <div className="font-display text-sm font-bold">Vamos ter sorteios! 🎁</div>
-              <div className="mt-0.5 text-[12px] text-muted">
-                As categorias em que você concorre, definidas automaticamente pelo seu perfil.
-              </div>
+              <div className="font-display text-sm font-bold">Sorteios do dia</div>
             </div>
           </div>
-          <div className="mt-4">
-            <SorteioPills />
+          <div className="mt-3">
+            <SorteioConteudo />
           </div>
-          <Provisorio />
         </Card>
       </Section>
 
@@ -151,7 +159,6 @@ export function Confraternizacao() {
           <Link to="/check-in" className="btn-primary mt-3 w-full">
             <QrCode size={16} /> Abrir o scanner
           </Link>
-          <Provisorio />
         </Card>
       </Section>
     </>

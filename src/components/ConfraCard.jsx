@@ -44,7 +44,7 @@ export function ConfraCard() {
             <PartyPopper size={20} />
           </span>
           <div className="min-w-0 flex-1">
-            <div className="font-display text-sm font-bold">Confraternização de fim de ano 🎉</div>
+            <div className="font-display text-sm font-bold">Confraternização de fim de ano</div>
             <div className="mt-0.5 text-[12px] text-muted">
               {respondido ? (
                 <>
