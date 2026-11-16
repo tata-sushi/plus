@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { PartyPopper, Calendar, Clock, MapPin, UtensilsCrossed, Wine, Gift, Ticket, Check, QrCode } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import { Header } from '../components/Header.jsx'
 import { CabecalhoPagina } from '../components/CabecalhoPagina.jsx'
 import { Section } from '../components/Section.jsx'
@@ -49,13 +50,25 @@ function SorteioPills() {
   if (!cats) return <div className="text-xs text-muted">Carregando…</div>
 
   const minhas = cats.filter((c) => c.elegivel)
-  const pendentes = cats.filter((c) => c.pendente)
 
   return (
     <>
-      {minhas.length > 0 ? (
-        <div className="flex flex-wrap gap-2">
-          {minhas.map((c) => (
+      {/* texto: explicação de todas as categorias */}
+      <div className="flex flex-col gap-1.5">
+        {cats.map((c) => (
+          <div key={c.slug} className="text-[12px] leading-snug text-muted">
+            <span className="font-semibold text-text">{c.nome}</span>
+            {c.descricao ? ` — ${c.descricao}` : ''}
+            {c.pendente ? <span className="text-muted-2"> (em definição)</span> : null}
+          </div>
+        ))}
+      </div>
+
+      {/* pílulas: as categorias em que a pessoa concorre */}
+      <div className="mt-4 text-[11px] font-semibold uppercase tracking-wide text-muted-2">Você concorre em</div>
+      <div className="mt-2 flex flex-wrap gap-2">
+        {minhas.length > 0 ? (
+          minhas.map((c) => (
             <span
               key={c.slug}
               className="hstack gap-1.5 rounded-pill border border-accent bg-accent-soft px-3 py-2 text-[13px] font-semibold text-accent"
@@ -63,29 +76,12 @@ function SorteioPills() {
               <Check size={14} />
               {c.nome}
             </span>
-          ))}
-        </div>
-      ) : (
-        <div className="text-[13px] text-muted">Você ainda não se enquadra em nenhuma categoria.</div>
-      )}
-
-      <div className="mt-3 text-[11px] text-muted-2">
-        Definido automaticamente pelo seu perfil (tempo de casa, assiduidade…).
+          ))
+        ) : (
+          <span className="text-[13px] text-muted">Nenhuma categoria por enquanto.</span>
+        )}
       </div>
-      {pendentes.length > 0 && (
-        <div className="mt-1 text-[11px] text-muted-2">Em definição: {pendentes.map((c) => c.nome).join(' · ')}.</div>
-      )}
-
-      {minhas.length > 0 && (
-        <div className="mt-3 flex flex-col gap-1.5">
-          {minhas.map((c) => (
-            <div key={c.slug} className="text-[12px] leading-snug text-muted">
-              <span className="font-semibold text-text">{c.nome}</span>
-              {c.descricao ? ` — ${c.descricao}` : ''}
-            </div>
-          ))}
-        </div>
-      )}
+      <div className="mt-2 text-[11px] text-muted-2">Definido automaticamente pelo seu perfil (tempo de casa, assiduidade…).</div>
     </>
   )
 }
@@ -99,11 +95,11 @@ export function Confraternizacao() {
       {/* Sobre a festa */}
       <Section className="mt-4" title="Sobre a festa">
         <Card className="reveal p-4">
-          <Info Icon={Calendar} label="Data">Sábado, 20 de dezembro</Info>
+          <Info Icon={Calendar} label="Data">Sábado, 26 de dezembro</Info>
           <Info Icon={Clock} label="Horário">A partir das 12h</Info>
-          <Info Icon={MapPin} label="Local">A definir</Info>
-          <Info Icon={UtensilsCrossed} label="Cardápio">Buffet completo com entradas, pratos quentes e sobremesas.</Info>
-          <Info Icon={Wine} label="Consumo">Comidas e bebidas por conta da empresa durante o evento.</Info>
+          <Info Icon={MapPin} label="Local">Tatu Bola — Rua Clodomiro Amazonas, 260, Itaim Bibi</Info>
+          <Info Icon={UtensilsCrossed} label="Cardápio">A definir</Info>
+          <Info Icon={Wine} label="Consumo">A definir</Info>
           <Provisorio />
         </Card>
       </Section>
@@ -151,11 +147,10 @@ export function Confraternizacao() {
               <MapPin size={15} className="mt-0.5 shrink-0 text-accent" />
               <span>A retirada acontece no [local/data a definir].</span>
             </div>
-            <div className="hstack items-start gap-2">
-              <QrCode size={15} className="mt-0.5 shrink-0 text-accent" />
-              <span>Para validar a retirada, apresente o seu QR Code de eventos no momento da saída.</span>
-            </div>
           </div>
+          <Link to="/check-in" className="btn-primary mt-3 w-full">
+            <QrCode size={16} /> Abrir o scanner
+          </Link>
           <Provisorio />
         </Card>
       </Section>
