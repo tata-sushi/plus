@@ -47,13 +47,13 @@ function SorteioConteudo() {
   return (
     <div className="flex flex-col gap-3 text-[13px] leading-relaxed text-muted">
       <p>
-        Como não poderia faltar, nossa confraternização terá os tradicionais sorteios! Um momento de alegria,
+        Como não poderia faltar, teremos nossos tradicionais sorteios de confraternização! Um momento de alegria,
         expectativa e muita torcida, que torna nossa celebração ainda mais especial.
       </p>
-      <p>Todos os colaboradores participam automaticamente, conforme os critérios de cada categoria.</p>
+      <p>Todos os colaboradores participam automaticamente, desde que estejam enquadrados nos critérios de cada categoria.</p>
 
       <div>
-        <p className="font-semibold text-text">🍀 Conheça as categorias dos sorteios:</p>
+        <p className="font-semibold text-text">Conheça as categorias deste ano:</p>
         {cats === null ? (
           <p className="mt-1 text-xs text-muted">Carregando…</p>
         ) : (
@@ -68,11 +68,7 @@ function SorteioConteudo() {
       </div>
 
       <div>
-        <p className="font-semibold text-text">✨ E em quais categorias você concorre?</p>
-        <p className="mt-1">
-          O Tatá Plus identifica automaticamente as categorias em que você participa, considerando as informações do
-          seu perfil e os critérios de cada sorteio. Você pode concorrer em mais de uma categoria!
-        </p>
+        <p className="font-semibold text-text">✨ Veja em quais categorias você está participando</p>
         {cats !== null && (
           <div className="mt-3 flex flex-wrap gap-2">
             {minhas.length > 0 ? (
@@ -91,10 +87,6 @@ function SorteioConteudo() {
           </div>
         )}
       </div>
-
-      <p>
-        🍀 Prepare a torcida e conte com a sorte! Quem sabe você não será um dos sortudos da nossa confraternização? 🎉
-      </p>
     </div>
   )
 }
@@ -103,14 +95,14 @@ export function Confraternizacao() {
   return (
     <>
       <Header />
-      <CabecalhoPagina titulo="Confraternização" descricao="Nossa festa de fim de ano 🎉" />
+      <CabecalhoPagina titulo="Confraternização" descricao="Veja o que preparamos para você nesse final de ano" />
 
       {/* Sobre a festa */}
-      <Section className="mt-4" title="Sobre a festa">
+      <Section className="mt-4" title="Almoço de confraternização">
         <Card className="reveal p-4">
           <Info Icon={Calendar} label="Data">Sábado, 26 de dezembro</Info>
           <Info Icon={Clock} label="Horário">A partir das 12h</Info>
-          <Info Icon={MapPin} label="Local">Tatu Bola: Rua Clodomiro Amazonas, 260, Itaim Bibi</Info>
+          <Info Icon={MapPin} label="Local">Tatu Bola: Rua Clodomiro Amazonas, 260</Info>
           <Info Icon={UtensilsCrossed} label="Cardápio">Buffet à vontade</Info>
           <Info Icon={Wine} label="Consumação">3 bebidas (podendo ser 1 chopp Brahma + 2 não alcoólicas: água ou refrigerante)</Info>
         </Card>
@@ -127,7 +119,7 @@ export function Confraternizacao() {
               <Ticket size={20} />
             </span>
             <div className="min-w-0 flex-1">
-              <div className="font-display text-sm font-bold">Sorteios do dia</div>
+              <div className="font-display text-sm font-bold">Sorteio do TATÁ</div>
             </div>
           </div>
           <div className="mt-3">
@@ -150,11 +142,27 @@ export function Confraternizacao() {
               </div>
             </div>
           </div>
-          <div className="mt-3 flex flex-col gap-2 text-sm text-text">
-            <div className="hstack items-start gap-2">
-              <MapPin size={15} className="mt-0.5 shrink-0 text-accent" />
-              <span>A retirada acontece no [local/data a definir].</span>
-            </div>
+          <div className="mt-3 text-sm text-text">
+            <p className="font-semibold">Como funcionará a retirada das cestas?</p>
+            <ul className="mt-2 flex flex-col gap-2 text-[13px] text-muted">
+              <li className="hstack items-start gap-2">
+                <MapPin size={15} className="mt-0.5 shrink-0 text-accent" />
+                <span>
+                  <span className="font-semibold text-text">Itaim e TATÁ House:</span> retirada no escritório
+                  administrativo a partir de 01/12/2026.
+                </span>
+              </li>
+              <li className="hstack items-start gap-2">
+                <MapPin size={15} className="mt-0.5 shrink-0 text-accent" />
+                <span>
+                  <span className="font-semibold text-text">Pinheiros e Poke:</span> retirada na unidade a partir de
+                  01/12/2026.
+                </span>
+              </li>
+            </ul>
+            <p className="mt-3 text-[13px] text-muted">
+              A retirada deve ser feita individualmente e com validação. Não é permitida a retirada para outra pessoa.
+            </p>
           </div>
           <Link to="/check-in" className="btn-primary mt-3 w-full">
             <QrCode size={16} /> Abrir o scanner

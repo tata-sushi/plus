@@ -34,8 +34,6 @@ export function ConfraCard() {
 
   if (vai === undefined) return null // carregando: não pisca
 
-  const respondido = vai === true || vai === false
-
   return (
     <section className="reveal reveal-1 mt-4 hsm:mt-3 px-5">
       <div className="card p-4">
@@ -44,17 +42,7 @@ export function ConfraCard() {
             <PartyPopper size={20} />
           </span>
           <div className="min-w-0 flex-1">
-            <div className="font-display text-sm font-bold">Confraternização de fim de ano</div>
-            <div className="mt-0.5 text-[12px] text-muted">
-              {respondido ? (
-                <>
-                  {vai ? 'Presença confirmada! ' : 'Você marcou que não vai. '}
-                  <span className="text-muted-2">Toque pra mudar.</span>
-                </>
-              ) : (
-                'Você vai participar?'
-              )}
-            </div>
+            <div className="font-display text-sm font-bold">Podemos confirmar sua presença no almoço de confraternização?</div>
           </div>
         </div>
         <div className="mt-3 hstack gap-2">
