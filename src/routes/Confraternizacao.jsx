@@ -129,7 +129,6 @@ export function Confraternizacao() {
       {/* Cesta de Natal */}
       <Section className="mt-5 mb-6" title="Cesta de Natal">
         <Card className="reveal p-4">
-          <img src="/cesta-natal.webp" alt="Cesta de Natal da Tatá" className="mb-3 w-full rounded-card" />
           <div className="hstack gap-3">
             <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-accent-soft text-accent">
               <Gift size={20} />
@@ -141,6 +140,7 @@ export function Confraternizacao() {
               </div>
             </div>
           </div>
+          <img src="/cesta-natal.webp" alt="Cesta de Natal da Tatá" className="mt-3 w-full rounded-card" />
           <div className="mt-3 text-sm text-text">
             <p className="font-semibold">Confira as regras de retirada das cestas:</p>
             <ul className="mt-2 flex flex-col gap-2 text-[13px] text-muted">
