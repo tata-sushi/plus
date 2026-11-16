@@ -50,8 +50,6 @@ function SorteioConteudo() {
         Como não poderia faltar, teremos nossos tradicionais sorteios de confraternização! Um momento de alegria,
         expectativa e muita torcida, que torna nossa celebração ainda mais especial.
       </p>
-      <p>Todos os colaboradores participam automaticamente, desde que estejam enquadrados nos critérios de cada categoria.</p>
-
       <div>
         <p className="font-semibold text-text">Conheça as categorias deste ano:</p>
         {cats === null ? (
@@ -68,7 +66,7 @@ function SorteioConteudo() {
       </div>
 
       <div>
-        <p className="font-semibold text-text">✨ Veja em quais categorias você está participando</p>
+        <p className="font-semibold text-text">Veja quais categorias está participando</p>
         {cats !== null && (
           <div className="mt-3 flex flex-wrap gap-2">
             {minhas.length > 0 ? (
@@ -119,7 +117,7 @@ export function Confraternizacao() {
               <Ticket size={20} />
             </span>
             <div className="min-w-0 flex-1">
-              <div className="font-display text-sm font-bold">Sorteio do TATÁ</div>
+              <div className="font-display text-sm font-bold">Sorteio TATÁ</div>
             </div>
           </div>
           <div className="mt-3">
@@ -138,12 +136,12 @@ export function Confraternizacao() {
             <div className="min-w-0 flex-1">
               <div className="font-display text-sm font-bold">Cesta de Natal 🎄</div>
               <div className="mt-0.5 text-[12px] text-muted">
-                Este ano a cesta está ainda melhor que as anteriores!
+                Este ano a cesta está ainda melhor!
               </div>
             </div>
           </div>
           <div className="mt-3 text-sm text-text">
-            <p className="font-semibold">Como funcionará a retirada das cestas?</p>
+            <p className="font-semibold">Confira as regras de retirada das cestas:</p>
             <ul className="mt-2 flex flex-col gap-2 text-[13px] text-muted">
               <li className="hstack items-start gap-2">
                 <MapPin size={15} className="mt-0.5 shrink-0 text-accent" />
