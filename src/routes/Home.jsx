@@ -7,7 +7,6 @@ import { Section } from '../components/Section.jsx'
 import { Card } from '../components/Card.jsx'
 import { AtalhosGovernanca } from '../components/AtalhosGovernanca.jsx'
 import { NatalDecor } from '../components/NatalDecor.jsx'
-import { ConfraCard } from '../components/ConfraCard.jsx'
 import { ProgressRing } from '../components/ProgressRing.jsx'
 import { Avatar } from '../components/Avatar.jsx'
 import { Carrossel } from '../components/Carrossel.jsx'
@@ -68,6 +67,7 @@ const sugestoesCards = [
 function labelCurto(title) {
   if (title.startsWith('Checklist')) return 'Limpeza'
   if (title.startsWith('Avaliações')) return 'Avaliações'
+  if (title.startsWith('Confraternização')) return 'Confra'
   return title.replace(' Tatá', '')
 }
 
@@ -82,9 +82,11 @@ function SugestoesGrid({ cards, desktop, setCanvas }) {
         <span
           className={cn(
             'relative grid h-14 w-14 place-items-center rounded-2xl border',
-            c.emBreve
-              ? 'border-line bg-surface-3 text-muted'
-              : 'border-carbon/30 bg-accent-soft text-carbon dark:border-accent/30 dark:text-accent',
+            c.festa
+              ? 'border-0 bg-gradient-to-br from-[#ef4444] via-[#ec4899] to-[#f59e0b] text-white shadow-md'
+              : c.emBreve
+                ? 'border-line bg-surface-3 text-muted'
+                : 'border-carbon/30 bg-accent-soft text-carbon dark:border-accent/30 dark:text-accent',
           )}
         >
           <Icon size={24} strokeWidth={2} />
@@ -229,7 +231,8 @@ export function Home() {
   const [desafios, recompensas, cardapio, organograma] = sugestoesCards
   // Tema atual (usado só pra filtrar o destaque "modo escuro" no carrossel).
   const [tema] = useState(getTheme)
-  const cards = [
+  const cards = (() => {
+    const _arr = [
     ...(usuario?.podeQuadros
       ? [{ to: '/quadros', badgeIcon: KanbanSquare, title: 'Kanban', subtitle: 'Quadro de tarefas' }]
       : []),
@@ -254,9 +257,14 @@ export function Home() {
     { to: '/check-in', badgeIcon: QrCode, title: 'Check-in', subtitle: 'Presença por QR' },
     // Confraternização — em teste, só pra matrícula 7.
     ...(String(usuario?.matricula) === '7'
-      ? [{ to: '/confraternizacao', badgeIcon: PartyPopper, title: 'Confraternização', subtitle: 'Festa de fim de ano' }]
+      ? [{ to: '/confraternizacao', badgeIcon: PartyPopper, title: 'Confraternização', subtitle: 'Festa de fim de ano', festa: true }]
       : []),
-  ].sort((a, b) => labelCurto(a.title).localeCompare(labelCurto(b.title), 'pt', { sensitivity: 'base' }))
+    ].sort((a, b) => labelCurto(a.title).localeCompare(labelCurto(b.title), 'pt', { sensitivity: 'base' }))
+    // Confraternização (destaque) sai da ordem alfabética e vai pro centro da grade.
+    const _i = _arr.findIndex((c) => c.to === '/confraternizacao')
+    if (_i >= 0) _arr.splice(Math.floor(_arr.length / 2), 0, _arr.splice(_i, 1)[0])
+    return _arr
+  })()
   const desktop = useDesktop()
   const { setCanvas } = useDesktopCanvas()
 
@@ -430,9 +438,6 @@ export function Home() {
           </div>
         </div>
       </div>
-
-      {/* Confraternização — pergunta Sim/Não (em teste, só mat 7) */}
-      {String(usuario?.matricula) === '7' && <ConfraCard />}
 
       {/* Menu do dia — linha com scroll lateral e botão de avaliação (estrela) fixo à direita */}
       <Section className="reveal reveal-1 mt-4 hsm:mt-3" title="Menu do dia">
