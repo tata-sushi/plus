@@ -1,13 +1,11 @@
 import { useEffect, useState } from 'react'
-import { PartyPopper, Calendar, Clock, MapPin, UtensilsCrossed, Wine, Gift, Ticket, Check, Plus, QrCode } from 'lucide-react'
+import { PartyPopper, Calendar, Clock, MapPin, UtensilsCrossed, Wine, Gift, Ticket, Check, QrCode } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { CabecalhoPagina } from '../components/CabecalhoPagina.jsx'
 import { Section } from '../components/Section.jsx'
 import { Card } from '../components/Card.jsx'
 import { ConfraCard } from '../components/ConfraCard.jsx'
 import { supabase } from '../lib/supabase.js'
-import { tapHaptic } from '../lib/haptics.js'
-import { cn } from '../lib/cn'
 
 // Página da Confraternização de fim de ano (em teste, acessível pelo tile das
 // Sugestões liberado só pra matrícula 7). Textos explicativos são PROVISÓRIOS —
@@ -32,13 +30,15 @@ function Provisorio() {
   return <div className="mt-3 text-[11px] italic text-muted-2">Texto provisório — me manda o conteúdo real.</div>
 }
 
+// Pílulas automáticas (não-clicáveis): a base calcula em quais categorias a
+// pessoa concorre (confra_minhas_categorias). Mostra só as elegíveis; as que
+// ainda não têm critério definido aparecem como "em definição".
 function SorteioPills() {
   const [cats, setCats] = useState(null)
-  const [busy, setBusy] = useState(null)
 
   useEffect(() => {
     let ativo = true
-    supabase.rpc('confra_sorteio_categorias').then(({ data }) => {
+    supabase.rpc('confra_minhas_categorias').then(({ data }) => {
       if (ativo) setCats(Array.isArray(data) ? data : [])
     })
     return () => {
@@ -46,46 +46,46 @@ function SorteioPills() {
     }
   }, [])
 
-  async function toggle(c) {
-    if (busy) return
-    tapHaptic()
-    setBusy(c.slug)
-    const novo = !c.inscrito
-    setCats((prev) => prev.map((x) => (x.slug === c.slug ? { ...x, inscrito: novo } : x)))
-    const { error } = await supabase.rpc('confra_sorteio_toggle', { p_slug: c.slug, p_on: novo })
-    setBusy(null)
-    if (error) setCats((prev) => prev.map((x) => (x.slug === c.slug ? { ...x, inscrito: !novo } : x)))
-  }
-
   if (!cats) return <div className="text-xs text-muted">Carregando…</div>
+
+  const minhas = cats.filter((c) => c.elegivel)
+  const pendentes = cats.filter((c) => c.pendente)
 
   return (
     <>
-      <div className="flex flex-wrap gap-2">
-        {cats.map((c) => (
-          <button
-            key={c.slug}
-            type="button"
-            onClick={() => toggle(c)}
-            aria-pressed={c.inscrito}
-            className={cn(
-              'hstack gap-1.5 rounded-pill border px-3 py-2 text-[13px] font-semibold tap',
-              c.inscrito ? 'border-accent bg-accent-soft text-accent' : 'border-line bg-surface-2 text-muted',
-            )}
-          >
-            {c.inscrito ? <Check size={14} /> : <Plus size={14} />}
-            {c.nome}
-          </button>
-        ))}
+      {minhas.length > 0 ? (
+        <div className="flex flex-wrap gap-2">
+          {minhas.map((c) => (
+            <span
+              key={c.slug}
+              className="hstack gap-1.5 rounded-pill border border-accent bg-accent-soft px-3 py-2 text-[13px] font-semibold text-accent"
+            >
+              <Check size={14} />
+              {c.nome}
+            </span>
+          ))}
+        </div>
+      ) : (
+        <div className="text-[13px] text-muted">Você ainda não se enquadra em nenhuma categoria.</div>
+      )}
+
+      <div className="mt-3 text-[11px] text-muted-2">
+        Definido automaticamente pelo seu perfil (tempo de casa, assiduidade…).
       </div>
-      <div className="mt-3 flex flex-col gap-1.5">
-        {cats.map((c) => (
-          <div key={c.slug} className="text-[12px] leading-snug text-muted">
-            <span className="font-semibold text-text">{c.nome}</span>
-            {c.descricao ? ` — ${c.descricao}` : ''}
-          </div>
-        ))}
-      </div>
+      {pendentes.length > 0 && (
+        <div className="mt-1 text-[11px] text-muted-2">Em definição: {pendentes.map((c) => c.nome).join(' · ')}.</div>
+      )}
+
+      {minhas.length > 0 && (
+        <div className="mt-3 flex flex-col gap-1.5">
+          {minhas.map((c) => (
+            <div key={c.slug} className="text-[12px] leading-snug text-muted">
+              <span className="font-semibold text-text">{c.nome}</span>
+              {c.descricao ? ` — ${c.descricao}` : ''}
+            </div>
+          ))}
+        </div>
+      )}
     </>
   )
 }
@@ -121,7 +121,7 @@ export function Confraternizacao() {
             <div className="min-w-0 flex-1">
               <div className="font-display text-sm font-bold">Vamos ter sorteios! 🎁</div>
               <div className="mt-0.5 text-[12px] text-muted">
-                Marque de quais categorias você quer participar. Cada uma tem seus próprios prêmios.
+                As categorias em que você concorre, definidas automaticamente pelo seu perfil.
               </div>
             </div>
           </div>
