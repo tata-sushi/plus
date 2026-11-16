@@ -37,7 +37,7 @@ export function ConfraCard() {
   const respondido = vai === true || vai === false
 
   return (
-    <section className="reveal reveal-1 mt-4 hsm:mt-3">
+    <section className="reveal reveal-1 mt-4 hsm:mt-3 px-5">
       <div className="card p-4">
         <div className="hstack gap-3">
           <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-accent-soft text-accent">
