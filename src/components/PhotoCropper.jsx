@@ -1,11 +1,10 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react'
 
 // Enquadrador quadrado (1:1): arrastar (1 dedo) + zoom por pinça (2 dedos).
-// Exporta o recorte visível via canvas (getBlob) — JPEG OUTxOUT.
-const OUT = 1080
+// Exporta o recorte visível via canvas (getBlob) — JPEG out×out (padrão 1080).
 const ZOOM_MAX = 4
 
-export const PhotoCropper = forwardRef(function PhotoCropper({ src }, ref) {
+export const PhotoCropper = forwardRef(function PhotoCropper({ src, out = 1080 }, ref) {
   const viewportRef = useRef(null)
   const imgRef = useRef(null)
   const pointers = useRef(new Map()) // pointerId -> {x,y}
@@ -114,9 +113,9 @@ export const PhotoCropper = forwardRef(function PhotoCropper({ src }, ref) {
       sx = Math.max(0, Math.min(nat.w - cropSide, sx))
       sy = Math.max(0, Math.min(nat.h - cropSide, sy))
       const canvas = document.createElement('canvas')
-      canvas.width = OUT
-      canvas.height = OUT
-      canvas.getContext('2d').drawImage(img, sx, sy, cropSide, cropSide, 0, 0, OUT, OUT)
+      canvas.width = out
+      canvas.height = out
+      canvas.getContext('2d').drawImage(img, sx, sy, cropSide, cropSide, 0, 0, out, out)
       return await new Promise((res) => canvas.toBlob((b) => res(b), 'image/jpeg', 0.9))
     },
   }))

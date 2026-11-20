@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { Link, useNavigate } from 'react-router-dom'
 import {
   UserRound,
@@ -11,18 +12,20 @@ import {
   ShieldCheck,
   MessageSquareWarning,
   Search,
+  X,
+  Check,
 } from 'lucide-react'
 import { Header } from '../components/Header.jsx'
 import { Section } from '../components/Section.jsx'
 import { Avatar } from '../components/Avatar.jsx'
 import { ProgressRing } from '../components/ProgressRing.jsx'
+import { PhotoCropper } from '../components/PhotoCropper.jsx'
 import { SocialLinks } from '../components/SocialLinks.jsx'
 import { redesSociais } from '../lib/mockData.js'
 import { useAuth } from '../lib/AuthContext.jsx'
 import { useDesktop } from '../lib/useDesktop.js'
 import { useDesktopCanvas } from '../lib/desktopCanvas.js'
 import { supabase } from '../lib/supabase.js'
-import { comprimirImagem } from '../lib/imagem.js'
 import { tapHaptic } from '../lib/haptics.js'
 
 // No desktop estas rotas abrem no quadrante central em vez de navegar no painel.
@@ -40,10 +43,9 @@ const itens = [
   { to: '/manutencao', label: 'Ajustes gerais', icon: Wrench },
 ]
 
-// Teto de segurança só pra barrar um arquivo absurdo antes de tentar decodificar;
-// na prática a foto é reduzida no navegador e sobe bem abaixo do limite do bucket.
+// Teto de segurança só pra barrar um arquivo absurdo antes de abrir no enquadrador;
+// o recorte final sai como um JPEG pequeno, bem abaixo do limite do bucket.
 const TAM_MAX = 25 * 1024 * 1024 // 25 MB
-const LIMITE_BUCKET = 20 * 1024 * 1024 // limite real do bucket 'avatares' no Supabase
 
 // Hora do build (injetada pelo Vite em vite.config.js) formatada em SP —
 // ex.: "20/08 20:01". Serve como conferência rápida da versão no rodapé.
@@ -83,6 +85,8 @@ export function Mais() {
   const loja = usuario?.loja || ''
 
   const inputFoto = useRef(null)
+  const cropperRef = useRef(null)
+  const [previewUrl, setPreviewUrl] = useState('') // foto escolhida, aberta no enquadrador
   const [enviando, setEnviando] = useState(false)
   const [erro, setErro] = useState('')
   const [saldo, setSaldo] = useState(null)
@@ -111,7 +115,10 @@ export function Mais() {
     }
   }, [])
 
-  async function trocarFoto(e) {
+  // 1) Só valida e abre o enquadrador. Nada de decodificar a foto em alta aqui —
+  // o <img> do cropper mostra a imagem reduzida; o recorte pesado só acontece no
+  // "Salvar", com o app já estável (evita o reload do PWA no iOS ao voltar do seletor).
+  function escolherFoto(e) {
     const f = e.target.files?.[0]
     e.target.value = ''
     if (!f || !usuario?.matricula) return
@@ -123,26 +130,33 @@ export function Mais() {
       setErro('Imagem muito grande (máx. 25 MB).')
       return
     }
+    setErro('')
+    if (previewUrl) URL.revokeObjectURL(previewUrl)
+    setPreviewUrl(URL.createObjectURL(f))
+  }
+
+  function fecharCropper() {
+    if (previewUrl) URL.revokeObjectURL(previewUrl)
+    setPreviewUrl('')
+    setErro('')
+  }
+
+  // 2) Recorta o enquadramento (quadrado 512px, via o mesmo cropper do feed) e sobe.
+  async function salvarFoto() {
+    if (!usuario?.matricula || enviando) return
     tapHaptic()
     setErro('')
     setEnviando(true)
-    // Reduz e recorta em quadrado central no próprio navegador: o avatar vira um
-    // JPEG ~512px (poucos KB), bem abaixo do limite do bucket, então o tamanho
-    // original da foto não trava mais o envio.
-    const foto = await comprimirImagem(f, { maxLado: 512, q: 0.82, quadrado: true })
-    const comprimiu = foto !== f
-    if (!comprimiu && f.size > LIMITE_BUCKET) {
-      // Navegador não conseguiu ler a imagem e o original estoura o bucket.
+    const blob = await cropperRef.current?.getBlob()
+    if (!blob) {
       setEnviando(false)
       setErro('Não foi possível preparar essa imagem. Tente outra foto.')
       return
     }
-    const ext = comprimiu ? 'jpg' : (f.name.split('.').pop() || 'jpg').toLowerCase()
-    const contentType = comprimiu ? 'image/jpeg' : f.type || 'image/jpeg'
-    const caminho = `${usuario.matricula}/${crypto.randomUUID()}.${ext}`
+    const caminho = `${usuario.matricula}/${crypto.randomUUID()}.jpg`
     const { error: upErr } = await supabase.storage
       .from('avatares')
-      .upload(caminho, foto, { cacheControl: '3600', contentType })
+      .upload(caminho, blob, { cacheControl: '3600', contentType: 'image/jpeg' })
     if (upErr) {
       setEnviando(false)
       setErro('Não foi possível enviar a foto.')
@@ -151,7 +165,11 @@ export function Mais() {
     const url = supabase.storage.from('avatares').getPublicUrl(caminho).data.publicUrl
     const { error } = await definirAvatar(url)
     setEnviando(false)
-    if (error) setErro('Não foi possível salvar a foto.')
+    if (error) {
+      setErro('Não foi possível salvar a foto.')
+      return
+    }
+    fecharCropper()
   }
 
   async function sair() {
@@ -204,7 +222,7 @@ export function Mais() {
               ref={inputFoto}
               type="file"
               accept="image/*"
-              onChange={trocarFoto}
+              onChange={escolherFoto}
               className="hidden"
             />
             <div className="min-w-0 flex-1">
@@ -307,6 +325,39 @@ export function Mais() {
         </span>
         <span className="mt-0.5 opacity-70">versão de {versaoBuild()}</span>
       </footer>
+
+      {/* Enquadrador da foto de perfil (mesmo cropper do feed). Portal no body pra
+          ficar por cima de tudo e fora de qualquer container transformado. */}
+      {previewUrl &&
+        createPortal(
+          <div className="fixed inset-0 z-[70] grid place-items-center bg-black/70 p-5 backdrop-blur-sm">
+            <div className="w-full max-w-sm rounded-2xl bg-surface p-4 shadow-xl">
+              <div className="mb-3 text-center font-display text-base font-bold">Enquadre sua foto</div>
+              <PhotoCropper ref={cropperRef} src={previewUrl} out={512} />
+              {erro && <div className="mt-2 text-center text-[12px] font-medium text-danger">{erro}</div>}
+              <div className="mt-4 hstack gap-2">
+                <button
+                  type="button"
+                  onClick={fecharCropper}
+                  disabled={enviando}
+                  className="flex-1 hstack justify-center gap-1.5 rounded-pill bg-surface-2 py-2.5 text-sm font-bold text-text tap disabled:opacity-50"
+                >
+                  <X size={16} /> Cancelar
+                </button>
+                <button
+                  type="button"
+                  onClick={salvarFoto}
+                  disabled={enviando}
+                  className="flex-1 hstack justify-center gap-1.5 rounded-pill bg-accent py-2.5 text-sm font-bold text-black tap disabled:opacity-60"
+                >
+                  {enviando ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
+                  {enviando ? 'Enviando…' : 'Salvar'}
+                </button>
+              </div>
+            </div>
+          </div>,
+          document.body,
+        )}
     </>
   )
 }
