@@ -22,6 +22,7 @@ import { useAuth } from '../lib/AuthContext.jsx'
 import { useDesktop } from '../lib/useDesktop.js'
 import { useDesktopCanvas } from '../lib/desktopCanvas.js'
 import { supabase } from '../lib/supabase.js'
+import { comprimirImagem } from '../lib/imagem.js'
 import { tapHaptic } from '../lib/haptics.js'
 
 // No desktop estas rotas abrem no quadrante central em vez de navegar no painel.
@@ -39,7 +40,10 @@ const itens = [
   { to: '/manutencao', label: 'Ajustes gerais', icon: Wrench },
 ]
 
-const TAM_MAX = 8 * 1024 * 1024 // 8 MB
+// Teto de segurança só pra barrar um arquivo absurdo antes de tentar decodificar;
+// na prática a foto é reduzida no navegador e sobe bem abaixo do limite do bucket.
+const TAM_MAX = 25 * 1024 * 1024 // 25 MB
+const LIMITE_BUCKET = 20 * 1024 * 1024 // limite real do bucket 'avatares' no Supabase
 
 // Hora do build (injetada pelo Vite em vite.config.js) formatada em SP —
 // ex.: "20/08 20:01". Serve como conferência rápida da versão no rodapé.
@@ -116,17 +120,29 @@ export function Mais() {
       return
     }
     if (f.size > TAM_MAX) {
-      setErro('Imagem muito grande (máx. 8 MB).')
+      setErro('Imagem muito grande (máx. 25 MB).')
       return
     }
     tapHaptic()
     setErro('')
     setEnviando(true)
-    const ext = (f.name.split('.').pop() || 'jpg').toLowerCase()
+    // Reduz e recorta em quadrado central no próprio navegador: o avatar vira um
+    // JPEG ~512px (poucos KB), bem abaixo do limite do bucket, então o tamanho
+    // original da foto não trava mais o envio.
+    const foto = await comprimirImagem(f, { maxLado: 512, q: 0.82, quadrado: true })
+    const comprimiu = foto !== f
+    if (!comprimiu && f.size > LIMITE_BUCKET) {
+      // Navegador não conseguiu ler a imagem e o original estoura o bucket.
+      setEnviando(false)
+      setErro('Não foi possível preparar essa imagem. Tente outra foto.')
+      return
+    }
+    const ext = comprimiu ? 'jpg' : (f.name.split('.').pop() || 'jpg').toLowerCase()
+    const contentType = comprimiu ? 'image/jpeg' : f.type || 'image/jpeg'
     const caminho = `${usuario.matricula}/${crypto.randomUUID()}.${ext}`
     const { error: upErr } = await supabase.storage
       .from('avatares')
-      .upload(caminho, f, { cacheControl: '3600', contentType: f.type })
+      .upload(caminho, foto, { cacheControl: '3600', contentType })
     if (upErr) {
       setEnviando(false)
       setErro('Não foi possível enviar a foto.')

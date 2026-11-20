@@ -17,33 +17,13 @@ import { Voltar } from '../components/Voltar.jsx'
 import { Section } from '../components/Section.jsx'
 import { Avatar } from '../components/Avatar.jsx'
 import { supabase } from '../lib/supabase.js'
+import { comprimirImagem } from '../lib/imagem.js'
 import { useAuth } from '../lib/AuthContext.jsx'
 import { tapHaptic } from '../lib/haptics.js'
 import { cn } from '../lib/cn'
 
 const TAM_MAX = 8 * 1024 * 1024 // 8 MB
 const MEDALHAS = ['🥇', '🥈', '🥉']
-
-// Reduz a foto antes de subir (lado máx. 1280px, JPEG ~0.82) pra cortar o
-// tráfego do storage — fotos de celular vêm com vários MB. Se algo falhar,
-// usa o arquivo original.
-async function comprimirImagem(file, maxLado = 1280, q = 0.82) {
-  try {
-    const bitmap = await createImageBitmap(file)
-    const escala = Math.min(1, maxLado / Math.max(bitmap.width, bitmap.height))
-    const w = Math.round(bitmap.width * escala)
-    const h = Math.round(bitmap.height * escala)
-    const canvas = document.createElement('canvas')
-    canvas.width = w
-    canvas.height = h
-    canvas.getContext('2d').drawImage(bitmap, 0, 0, w, h)
-    const blob = await new Promise((res) => canvas.toBlob(res, 'image/jpeg', q))
-    if (blob && blob.size > 0 && blob.size < file.size) return blob
-  } catch {
-    /* usa o original */
-  }
-  return file
-}
 
 const ERROS = {
   encerrada: 'A votação está encerrada.',
