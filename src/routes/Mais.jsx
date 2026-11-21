@@ -223,6 +223,9 @@ export function Mais() {
               type="file"
               accept="image/*"
               onChange={escolherFoto}
+              // Sem isso, o click() programático no input "sobe" até o card da
+              // carteira e dispara a navegação pra /carteira ao escolher a foto.
+              onClick={(e) => e.stopPropagation()}
               className="hidden"
             />
             <div className="min-w-0 flex-1">
