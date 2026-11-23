@@ -367,7 +367,7 @@ export function DesktopShell() {
               <GovFrame
                 src={aba.url}
                 title={aba.titulo}
-                allow="clipboard-write; camera; microphone; geolocation; fullscreen"
+                allow="clipboard-write; camera; microphone; geolocation; fullscreen; screen-wake-lock"
                 className="h-full w-full"
               />
             </div>
@@ -382,7 +382,7 @@ export function DesktopShell() {
                 <GovFrame
                   src={CANVAS.portal}
                   title="Portal de Governança"
-                  allow="clipboard-write; camera; microphone; geolocation; fullscreen"
+                  allow="clipboard-write; camera; microphone; geolocation; fullscreen; screen-wake-lock"
                   className="h-full w-full"
                 />
               )}
@@ -400,7 +400,7 @@ export function DesktopShell() {
                 <GovFrame
                   src={canvas.url}
                   title={canvas.titulo || 'Painel'}
-                  allow="clipboard-write; fullscreen"
+                  allow="clipboard-write; fullscreen; screen-wake-lock"
                   className="h-full w-full"
                 />
               )}

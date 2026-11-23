@@ -13,7 +13,7 @@ export function Governanca() {
       <GovFrame
         src={HOME}
         title="Governança de Processos"
-        allow="clipboard-write; camera; microphone; geolocation"
+        allow="clipboard-write; camera; microphone; geolocation; screen-wake-lock"
         className="flex-1"
       />
     </div>

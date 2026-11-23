@@ -56,7 +56,7 @@ export function PainelExterno() {
       <GovFrame
         src={urlAbsoluta(pagina.url) + (aba ? '#aba=' + encodeURIComponent(aba) : '')}
         title={pagina.label}
-        allow="clipboard-write; camera; microphone; geolocation"
+        allow="clipboard-write; camera; microphone; geolocation; screen-wake-lock"
         className="flex-1"
       />
     </div>

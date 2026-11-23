@@ -15,7 +15,7 @@ export function ControleEscala() {
       <GovFrame
         src={CONTROLE_ESCALA_URL}
         title="Controle de Escala"
-        allow="clipboard-write"
+        allow="clipboard-write; screen-wake-lock"
         className="flex-1"
       />
     </div>
