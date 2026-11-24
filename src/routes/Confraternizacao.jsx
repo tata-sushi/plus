@@ -89,34 +89,34 @@ function SorteioConteudo() {
   )
 }
 
-// Prêmios do sorteio — fotos reais em public/brindes/. Nomes PROVISÓRIOS
-// (inferidos das fotos), confirmar/ajustar com o RH. Ainda em teste (mat 7).
+// Prêmios do sorteio — fotos reais em public/brindes/. Nomes conforme a
+// planilha oficial do RH. As fotos cobrem ~23 dos 36 itens da lista; itens
+// sem foto não entram no carrossel (vitrine/prévia). Fotos duplicadas
+// (b07 fone, b24 kit bar) foram retiradas. Ainda em teste (mat 7).
 const BRINDES = [
-  { foto: '/brindes/b04.jpg', nome: 'Smart TV Philips 50"' },
-  { foto: '/brindes/b25.jpg', nome: 'Projetor portátil' },
-  { foto: '/brindes/b05.jpg', nome: 'Echo Dot (Alexa)' },
-  { foto: '/brindes/b08.jpg', nome: 'Caixa de som JBL Go' },
-  { foto: '/brindes/b07.jpg', nome: 'Headphone Philco' },
-  { foto: '/brindes/b13.jpg', nome: 'Headphone Philco' },
-  { foto: '/brindes/b16.jpg', nome: 'Kit relógio + colar Mondaine' },
+  { foto: '/brindes/b04.jpg', nome: 'Smart TV 50" Philips' },
+  { foto: '/brindes/b25.jpg', nome: 'Projetor Smart HY320' },
+  { foto: '/brindes/b05.jpg', nome: 'Alexa (Echo Dot)' },
+  { foto: '/brindes/b08.jpg', nome: 'Alto-falante JBL' },
+  { foto: '/brindes/b13.jpg', nome: 'Fone de ouvido Philco' },
+  { foto: '/brindes/b23.jpg', nome: 'Philips OneBlade (barbeador)' },
+  { foto: '/brindes/b16.jpg', nome: 'Kit relógio, colar e brinco Mondaine' },
   { foto: '/brindes/b22.jpg', nome: 'Relógio Casio' },
-  { foto: '/brindes/b23.jpg', nome: 'Philips OneBlade' },
-  { foto: '/brindes/b01.jpg', nome: 'Chapinha Taiff' },
-  { foto: '/brindes/b06.jpg', nome: 'Escova secadora' },
-  { foto: '/brindes/b17.jpg', nome: 'Parafusadeira Black+Decker' },
+  { foto: '/brindes/b01.jpg', nome: 'Prancha Taiff' },
+  { foto: '/brindes/b06.jpg', nome: 'Escova rotativa Britânia' },
   { foto: '/brindes/b20.jpg', nome: 'Forno elétrico Philco' },
-  { foto: '/brindes/b19.jpg', nome: 'Panela de arroz Oster' },
+  { foto: '/brindes/b19.jpg', nome: 'Panela elétrica de arroz Oster' },
   { foto: '/brindes/b21.jpg', nome: 'Liquidificador Oster' },
-  { foto: '/brindes/b11.jpg', nome: 'Mixer / batedor' },
-  { foto: '/brindes/b18.jpg', nome: 'Espremedor Electrolux' },
-  { foto: '/brindes/b09.jpg', nome: 'Grill elétrico Mondial' },
+  { foto: '/brindes/b11.jpg', nome: 'Mixer Mix Turbo' },
+  { foto: '/brindes/b18.jpg', nome: 'Espremedor de laranja Electrolux' },
+  { foto: '/brindes/b09.jpg', nome: 'Churrasqueira elétrica Mondial' },
   { foto: '/brindes/b02.jpg', nome: 'Churrasqueira a carvão' },
-  { foto: '/brindes/b14.jpg', nome: 'Kit facas chef' },
-  { foto: '/brindes/b15.jpg', nome: 'Kit bar (coqueteleira)' },
-  { foto: '/brindes/b24.jpg', nome: 'Kit bar (coqueteleira)' },
-  { foto: '/brindes/b10.jpg', nome: 'Garrafa térmica + canecas' },
+  { foto: '/brindes/b17.jpg', nome: 'Parafusadeira' },
+  { foto: '/brindes/b14.jpg', nome: 'Kit jogo de facas inox' },
+  { foto: '/brindes/b15.jpg', nome: 'Kit caipirinha / coqueteleira' },
+  { foto: '/brindes/b10.jpg', nome: 'Garrafa térmica + kit 3 xícaras' },
   { foto: '/brindes/b03.jpg', nome: 'Kit tábua de frios' },
-  { foto: '/brindes/b12.jpg', nome: 'Panetone gourmet' },
+  { foto: '/brindes/b12.jpg', nome: 'Panettone Ofner' },
 ]
 
 function CarrosselBrindes() {
