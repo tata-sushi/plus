@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 
 // Decoração de Natal: enfeites (árvore, presente, meia) nas bordas + efeitos
-// ambiente escolhidos (brilhos, estrela cadente, poeira dourada, vaga-lumes).
+// ambiente escolhidos (brilhos, estrela cadente, vaga-lumes).
 // Só aparece no tema 'natal'. Camada fixa, pointer-events:none, respeita
 // "reduzir movimento". Reage à troca de tema via 'tp-theme' e observer.
 const ehNatal = () => {
@@ -92,19 +92,6 @@ export function NatalDecor() {
     ],
     [],
   )
-  // Poeira dourada
-  const poeira = useMemo(
-    () =>
-      Array.from({ length: 30 }, () => ({
-        left: Math.random() * 100,
-        op: 0.4 + Math.random() * 0.5,
-        dx: Math.round(Math.random() * 40 - 20),
-        dur: 7 + Math.random() * 7,
-        delay: -Math.random() * 12,
-        size: 2 + Math.random() * 3,
-      })),
-    [],
-  )
   // Vaga-lumes
   const vagalumes = useMemo(
     () =>
@@ -153,14 +140,6 @@ export function NatalDecor() {
           key={'s' + i}
           className="nt-shoot"
           style={{ top: s.top, left: s.left + '%', animationDuration: s.dur + 's', animationDelay: s.delay + 's' }}
-        />
-      ))}
-
-      {poeira.map((d, i) => (
-        <div
-          key={'d' + i}
-          className="nt-dust"
-          style={{ left: d.left + '%', width: d.size.toFixed(1) + 'px', height: d.size.toFixed(1) + 'px', opacity: d.op, '--dx': d.dx + 'px', animationDuration: d.dur.toFixed(1) + 's', animationDelay: d.delay.toFixed(1) + 's' }}
         />
       ))}
 
