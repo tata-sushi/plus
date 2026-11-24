@@ -164,7 +164,7 @@ export function Confraternizacao() {
             </p>
           </div>
           <Link to="/check-in" className="btn-primary mt-3 w-full">
-            <QrCode size={16} /> Abrir o scanner
+            <QrCode size={16} /> Retirar
           </Link>
         </Card>
       </Section>
