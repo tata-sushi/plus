@@ -106,7 +106,7 @@ function CarrosselBrindes() {
       <p className="mb-2 text-[13px] font-semibold text-text">
         Prêmios do sorteio <span className="font-normal text-muted-2">(prévia)</span>
       </p>
-      <div className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <div className="flex snap-x snap-mandatory gap-3 overflow-x-auto pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {BRINDES_TESTE.map((b, i) => (
           <div key={i} className="w-[46%] shrink-0 snap-start">
             <div className="grid aspect-square w-full place-items-center rounded-card bg-gradient-to-br from-accent-soft to-surface-2 text-accent">
