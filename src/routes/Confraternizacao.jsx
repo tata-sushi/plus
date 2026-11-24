@@ -122,9 +122,10 @@ const BRINDES = [
 function CarrosselBrindes() {
   return (
     <div className="mt-4">
-      <p className="mb-2 text-[13px] font-semibold text-text">
-        Prêmios do sorteio <span className="font-normal text-muted-2">(prévia)</span>
-      </p>
+      <div className="mb-2">
+        <p className="text-[13px] font-semibold text-text">Veja algumas das nossas premiações 🎁</p>
+        <p className="text-[12px] text-muted-2">Uma amostra dos prêmios que vão ser sorteados</p>
+      </div>
       <div className="flex snap-x snap-mandatory gap-3 overflow-x-auto pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {BRINDES.map((b) => (
           <div key={b.foto} className="w-[46%] shrink-0 snap-start">
