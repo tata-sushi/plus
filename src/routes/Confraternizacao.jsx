@@ -89,15 +89,34 @@ function SorteioConteudo() {
   )
 }
 
-// Carrossel de prévia dos brindes (TESTE — placeholders, ainda sem fotos reais).
-// Só pra visualizar o layout; depois viram foto + nome vindos do banco.
-const BRINDES_TESTE = [
-  { nome: 'Smart TV 50"', categoria: 'Geral' },
-  { nome: 'Fone JBL', categoria: 'Acima de 2 anos' },
-  { nome: 'Air Fryer', categoria: 'Acima de 3 anos' },
-  { nome: 'Vale-compras R$ 200', categoria: 'Assiduidade' },
-  { nome: 'Caixa de som', categoria: 'Ranking Tatá Plus' },
-  { nome: 'Kit churrasco', categoria: 'Surpresa' },
+// Prêmios do sorteio — fotos reais em public/brindes/. Nomes PROVISÓRIOS
+// (inferidos das fotos), confirmar/ajustar com o RH. Ainda em teste (mat 7).
+const BRINDES = [
+  { foto: '/brindes/b04.jpg', nome: 'Smart TV Philips 50"' },
+  { foto: '/brindes/b25.jpg', nome: 'Projetor portátil' },
+  { foto: '/brindes/b05.jpg', nome: 'Echo Dot (Alexa)' },
+  { foto: '/brindes/b08.jpg', nome: 'Caixa de som JBL Go' },
+  { foto: '/brindes/b07.jpg', nome: 'Headphone Philco' },
+  { foto: '/brindes/b13.jpg', nome: 'Headphone Philco' },
+  { foto: '/brindes/b16.jpg', nome: 'Kit relógio + colar Mondaine' },
+  { foto: '/brindes/b22.jpg', nome: 'Relógio Casio' },
+  { foto: '/brindes/b23.jpg', nome: 'Philips OneBlade' },
+  { foto: '/brindes/b01.jpg', nome: 'Chapinha Taiff' },
+  { foto: '/brindes/b06.jpg', nome: 'Escova secadora' },
+  { foto: '/brindes/b17.jpg', nome: 'Parafusadeira Black+Decker' },
+  { foto: '/brindes/b20.jpg', nome: 'Forno elétrico Philco' },
+  { foto: '/brindes/b19.jpg', nome: 'Panela de arroz Oster' },
+  { foto: '/brindes/b21.jpg', nome: 'Liquidificador Oster' },
+  { foto: '/brindes/b11.jpg', nome: 'Mixer / batedor' },
+  { foto: '/brindes/b18.jpg', nome: 'Espremedor Electrolux' },
+  { foto: '/brindes/b09.jpg', nome: 'Grill elétrico Mondial' },
+  { foto: '/brindes/b02.jpg', nome: 'Churrasqueira a carvão' },
+  { foto: '/brindes/b14.jpg', nome: 'Kit facas chef' },
+  { foto: '/brindes/b15.jpg', nome: 'Kit bar (coqueteleira)' },
+  { foto: '/brindes/b24.jpg', nome: 'Kit bar (coqueteleira)' },
+  { foto: '/brindes/b10.jpg', nome: 'Garrafa térmica + canecas' },
+  { foto: '/brindes/b03.jpg', nome: 'Kit tábua de frios' },
+  { foto: '/brindes/b12.jpg', nome: 'Panetone gourmet' },
 ]
 
 function CarrosselBrindes() {
@@ -107,16 +126,12 @@ function CarrosselBrindes() {
         Prêmios do sorteio <span className="font-normal text-muted-2">(prévia)</span>
       </p>
       <div className="flex snap-x snap-mandatory gap-3 overflow-x-auto pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        {BRINDES_TESTE.map((b, i) => (
-          <div key={i} className="w-[46%] shrink-0 snap-start">
-            <div className="grid aspect-square w-full place-items-center rounded-card bg-gradient-to-br from-accent-soft to-surface-2 text-accent">
-              <div className="flex flex-col items-center gap-1">
-                <Gift size={34} />
-                <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-2">Foto do brinde</span>
-              </div>
+        {BRINDES.map((b) => (
+          <div key={b.foto} className="w-[46%] shrink-0 snap-start">
+            <div className="aspect-square w-full overflow-hidden rounded-card bg-white">
+              <img src={b.foto} alt={b.nome} loading="lazy" className="h-full w-full object-contain" />
             </div>
             <div className="mt-2 text-[13px] font-bold leading-tight text-text">{b.nome}</div>
-            <div className="text-[11px] text-muted">{b.categoria}</div>
           </div>
         ))}
       </div>
