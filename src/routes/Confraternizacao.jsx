@@ -106,9 +106,6 @@ export function Confraternizacao() {
         </Card>
       </Section>
 
-      {/* Presença (Sim/Não) — reaproveita o card */}
-      <ConfraCard />
-
       {/* Sorteios */}
       <Section className="mt-5" title="Sorteios">
         <Card className="reveal p-4">
@@ -124,6 +121,11 @@ export function Confraternizacao() {
             <SorteioConteudo />
           </div>
         </Card>
+      </Section>
+
+      {/* Confirmação de presença */}
+      <Section className="mt-5" title="Confirmação de presença">
+        <ConfraCard />
       </Section>
 
       {/* Cesta de Natal */}
