@@ -254,8 +254,8 @@ export function Home() {
     { to: '/documentos', badgeIcon: FileSignature, title: 'Documentos', subtitle: 'Documentos para assinar', badge: docsPend },
     { to: '/holerites', badgeIcon: ReceiptText, title: 'Holerite', subtitle: 'Seus holerites' },
     { to: '/check-in', badgeIcon: QrCode, title: 'Check-in', subtitle: 'Presença por QR' },
-    // Confraternização — festa de fim de ano, liberada pra todos.
-    { to: '/confraternizacao', badgeIcon: PartyPopper, title: 'Confraternização', subtitle: 'Festa de fim de ano', festa: true },
+    // Comemoração (Confraternização de fim de ano) — liberada pra todos.
+    { to: '/confraternizacao', badgeIcon: PartyPopper, title: 'Comemoração', subtitle: 'Festa de fim de ano', festa: true },
     ].sort((a, b) => labelCurto(a.title).localeCompare(labelCurto(b.title), 'pt', { sensitivity: 'base' }))
     // Confraternização (destaque) sai da ordem alfabética e vai pro centro da grade.
     const _i = _arr.findIndex((c) => c.to === '/confraternizacao')
