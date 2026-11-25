@@ -67,7 +67,6 @@ const sugestoesCards = [
 function labelCurto(title) {
   if (title.startsWith('Checklist')) return 'Limpeza'
   if (title.startsWith('Avaliações')) return 'Avaliações'
-  if (title.startsWith('Confraternização')) return 'Confra'
   return title.replace(' Tatá', '')
 }
 
