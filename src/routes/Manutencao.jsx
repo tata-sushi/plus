@@ -180,7 +180,8 @@ export function Manutencao() {
             </div>
           </div>
 
-          {/* Modo Natal — tema sazonal em teste, só pra matrícula 7 (dev). */}
+          {/* Modo Natal — atalho de dev (só mat 7) pra reaplicar o tema sazonal,
+              já que ele não fica no seletor público de Contraste. */}
           {mat7 && (
             <div className="card p-4">
               <div className="hstack gap-3">
@@ -189,7 +190,7 @@ export function Manutencao() {
                 </span>
                 <div className="min-w-0 flex-1">
                   <div className="font-display text-sm font-bold">Modo Natal 🎄</div>
-                  <div className="mt-0.5 text-[11px] text-muted">Em teste — só no seu perfil</div>
+                  <div className="mt-0.5 text-[11px] text-muted">Reaplicar o tema sazonal (atalho interno)</div>
                 </div>
                 <div className="hstack shrink-0 gap-1 rounded-pill bg-surface-2 p-1">
                   {[

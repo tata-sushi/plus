@@ -1,6 +1,7 @@
 // Tema do app — persistido no aparelho e aplicado no <html data-theme>.
-// Valores: 'light' | 'dark' | 'natal' (dark especial, acento dourado — em teste,
-// liberado só pra matrícula 7 via o toggle nos Ajustes).
+// Valores: 'light' | 'dark' | 'natal' (sazonal: verde-pinho + dourado). O Natal
+// é forçado 1x pra todo mundo no boot (ver index.html, trava tp_natal_forced) e
+// NÃO fica no seletor de Contraste — quem sai dele não volta pela interface.
 const KEY = 'tp_theme'
 const TEMAS = ['light', 'dark', 'natal']
 

@@ -12,6 +12,15 @@
       // data-theme (default 'light') pra habilitar o variante dark: do Tailwind.
       try {
         var raw = localStorage.getItem('tp_theme')
+        // Estreia do Modo Natal: na 1ª carga desta versão, o tema de Natal
+        // entra como padrão pra TODO MUNDO — uma única vez (update ou instalação
+        // nova). Depois a pessoa pode escolher Claro/Escuro nos Ajustes; o Natal
+        // não volta pelo seletor. A trava 'tp_natal_forced' garante a força 1x só.
+        if (!localStorage.getItem('tp_natal_forced')) {
+          raw = 'natal'
+          try { localStorage.setItem('tp_theme', 'natal') } catch (e) {}
+          try { localStorage.setItem('tp_natal_forced', '1') } catch (e) {}
+        }
         var t = raw === 'dark' || raw === 'natal' ? raw : 'light'
         document.documentElement.setAttribute('data-theme', t)
         var m = document.querySelector('meta[name="theme-color"]')
