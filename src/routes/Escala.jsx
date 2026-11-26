@@ -157,7 +157,7 @@ function Calendario() {
   // Banco de horas e status de presença de HOJE — independem do mês exibido.
   useEffect(() => {
     let a = true
-    call('escala_banco_horas').then((d) => a && setBanco(d && typeof d === 'object' ? d : null)).catch(() => {})
+    call('banco_horas_meu_saldo').then((d) => a && setBanco(d && typeof d === 'object' ? d : null)).catch(() => {})
     call('escala_check_status').then((d) => a && setChk(d && typeof d === 'object' ? d : null)).catch(() => {})
     return () => { a = false }
   }, [])
