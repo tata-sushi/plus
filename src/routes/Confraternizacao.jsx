@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { PartyPopper, Calendar, Clock, MapPin, UtensilsCrossed, Wine, Gift, Ticket, Check, QrCode } from 'lucide-react'
+import { PartyPopper, Calendar, Clock, MapPin, UtensilsCrossed, Wine, Gift, Ticket, Check, QrCode, Trophy } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { Header } from '../components/Header.jsx'
 import { CabecalhoPagina } from '../components/CabecalhoPagina.jsx'
@@ -7,6 +7,45 @@ import { Section } from '../components/Section.jsx'
 import { Card } from '../components/Card.jsx'
 import { ConfraCard } from '../components/ConfraCard.jsx'
 import { supabase } from '../lib/supabase.js'
+import { useAuth } from '../lib/AuthContext.jsx'
+
+// Ganhadores do sorteio — em teste, só aparece pra matrícula 7. Lê a lista
+// gravada (confra_sorteio_ganhadores); some se ainda não há ninguém sorteado.
+function GanhadoresSorteio() {
+  const [gs, setGs] = useState(null)
+  useEffect(() => {
+    let ativo = true
+    supabase.rpc('confra_sorteio_ganhadores').then(({ data }) => {
+      if (ativo) setGs(Array.isArray(data) ? data : [])
+    })
+    return () => {
+      ativo = false
+    }
+  }, [])
+  if (!gs || gs.length === 0) return null
+  return (
+    <Section className="mt-5" title="Ganhadores">
+      <Card className="reveal p-4">
+        <ul className="flex flex-col gap-3">
+          {gs.map((g, i) => (
+            <li key={i} className="hstack gap-3">
+              <div className="grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-card bg-white">
+                {g.foto && <img src={g.foto} alt="" className="h-full w-full object-contain" />}
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="truncate text-sm font-bold leading-tight">{g.nome}</div>
+                <div className="text-[12px] text-muted">
+                  {g.premio} · {g.categoria}
+                </div>
+              </div>
+              <Trophy size={16} className="shrink-0 text-accent" />
+            </li>
+          ))}
+        </ul>
+      </Card>
+    </Section>
+  )
+}
 
 // Página da Confraternização de fim de ano (em teste, acessível pelo tile das
 // Sugestões liberado só pra matrícula 7). Textos explicativos são PROVISÓRIOS —
@@ -138,6 +177,8 @@ function CarrosselBrindes() {
 }
 
 export function Confraternizacao() {
+  const { usuario } = useAuth()
+  const mat7 = String(usuario?.matricula) === '7'
   return (
     <>
       <Header />
@@ -171,6 +212,9 @@ export function Confraternizacao() {
           <CarrosselBrindes />
         </Card>
       </Section>
+
+      {/* Ganhadores do sorteio — em teste, só mat 7 */}
+      {mat7 && <GanhadoresSorteio />}
 
       {/* Confirmação de presença */}
       <Section className="mt-5" title="Confirmação de presença">
