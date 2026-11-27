@@ -480,3 +480,19 @@
   .nt-flake { display: none; }
 }
 
+/* ===== Sorteio TATÁ — roleta + confete ===== */
+@keyframes sorteioConfete {
+  0%   { transform: translateY(-10px) rotate(0); opacity: 1; }
+  100% { transform: translateY(340px) rotate(720deg); opacity: 0; }
+}
+.sorteio-confete {
+  position: absolute; top: 0; width: 8px; height: 12px; border-radius: 2px;
+  animation: sorteioConfete 1.7s ease-out forwards;
+}
+@keyframes sorteioPisca { 0%, 100% { opacity: 1 } 50% { opacity: .5 } }
+.sorteio-girando { animation: sorteioPisca .22s linear infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .sorteio-confete { display: none; }
+  .sorteio-girando { animation: none; }
+}
+

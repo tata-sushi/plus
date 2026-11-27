@@ -1,14 +1,14 @@
 import { useEffect, useState } from 'react'
 import { Trophy, Loader2, RefreshCw, X, Dice5 } from 'lucide-react'
 import { Section } from './Section.jsx'
+import { SorteioRoleta } from './SorteioRoleta.jsx'
 import { supabase } from '../lib/supabase.js'
-import { tapHaptic } from '../lib/haptics.js'
 import { cn } from '../lib/cn'
 
 // Apuração do Sorteio TATÁ — seção dentro da página de Confraternização,
 // renderizada só pra matrícula 7 (o pai faz o gating). Amarra cada prêmio a
-// uma categoria, sorteia um elegível aleatório (confra_sortear), re-sorteia e
-// desfaz. Ganhadores ficam gravados e aparecem na seção "Ganhadores".
+// uma categoria e sorteia via roleta (SorteioRoleta). Ganhadores ficam
+// gravados e aparecem na seção "Ganhadores".
 
 async function call(fn, args) {
   const { data, error } = await supabase.rpc(fn, args)
@@ -19,7 +19,6 @@ function avisar(e) {
   // eslint-disable-next-line no-alert
   window.alert(e?.message || 'Não foi possível concluir a ação.')
 }
-const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
 
 function Avatar({ url, nome, size = 40 }) {
   const ini = (nome || '?').trim().charAt(0).toUpperCase()
@@ -37,8 +36,7 @@ function Avatar({ url, nome, size = 40 }) {
 export function ApuracaoSorteio() {
   const [premios, setPremios] = useState(null)
   const [cats, setCats] = useState([])
-  const [sorteando, setSorteando] = useState(null)
-  const [revelado, setRevelado] = useState(null)
+  const [roleta, setRoleta] = useState(null) // prêmio sendo sorteado (abre o overlay)
 
   async function carregar() {
     try {
@@ -60,21 +58,6 @@ export function ApuracaoSorteio() {
       await carregar()
     } catch (e) {
       avisar(e)
-    }
-  }
-  async function sortear(premio) {
-    if (!premio.categoria || sorteando) return
-    tapHaptic()
-    setSorteando(premio.id)
-    setRevelado(null)
-    try {
-      await Promise.all([call('confra_sortear', { p_premio: premio.id }), sleep(1500)])
-      await carregar()
-      setRevelado(premio.id)
-    } catch (e) {
-      avisar(e)
-    } finally {
-      setSorteando(null)
     }
   }
   async function desfazer(premio) {
@@ -101,9 +84,8 @@ export function ApuracaoSorteio() {
         <div className="flex flex-col gap-2.5">
           {premios.map((p) => {
             const g = p.ganhador
-            const girando = sorteando === p.id
             return (
-              <div key={p.id} className={cn('card p-3 transition', revelado === p.id && 'ring-2 ring-accent')}>
+              <div key={p.id} className="card p-3">
                 <div className="hstack gap-3">
                   <div className="grid h-14 w-14 shrink-0 place-items-center overflow-hidden rounded-card bg-white">
                     {p.foto && <img src={p.foto} alt="" className="h-full w-full object-contain" />}
@@ -129,11 +111,7 @@ export function ApuracaoSorteio() {
                 </div>
 
                 <div className="mt-3 border-t border-line pt-3">
-                  {girando ? (
-                    <div className="hstack justify-center gap-2 py-1 text-sm font-semibold text-accent">
-                      <Loader2 size={16} className="animate-spin" /> Sorteando…
-                    </div>
-                  ) : g ? (
+                  {g ? (
                     <div className="hstack gap-3">
                       <Avatar url={g.avatar_url} nome={g.nome} />
                       <div className="min-w-0 flex-1">
@@ -142,7 +120,7 @@ export function ApuracaoSorteio() {
                         </div>
                         <div className="truncate text-sm font-bold">{g.nome}</div>
                       </div>
-                      <button onClick={() => sortear(p)} className="shrink-0 rounded-pill bg-surface-2 p-2 tap" aria-label="Re-sortear">
+                      <button onClick={() => setRoleta(p)} className="shrink-0 rounded-pill bg-surface-2 p-2 tap" aria-label="Re-sortear">
                         <RefreshCw size={16} />
                       </button>
                       <button onClick={() => desfazer(p)} className="shrink-0 rounded-pill bg-surface-2 p-2 tap" aria-label="Desfazer">
@@ -151,7 +129,7 @@ export function ApuracaoSorteio() {
                     </div>
                   ) : (
                     <button
-                      onClick={() => sortear(p)}
+                      onClick={() => setRoleta(p)}
                       disabled={!p.categoria || p.elegiveis === 0}
                       className={cn('btn-primary w-full', (!p.categoria || p.elegiveis === 0) && 'opacity-50')}
                     >
@@ -163,6 +141,16 @@ export function ApuracaoSorteio() {
             )
           })}
         </div>
+      )}
+
+      {roleta && (
+        <SorteioRoleta
+          premio={roleta}
+          onClose={() => {
+            setRoleta(null)
+            carregar()
+          }}
+        />
       )}
     </Section>
   )
