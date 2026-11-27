@@ -159,17 +159,38 @@ const BRINDES = [
   { foto: '/brindes/b12.jpg', nome: 'Panettone Ofner' },
 ]
 
-function CarrosselBrindes() {
+// Carrossel de prêmios — puxa do banco (confra_sorteio_vitrine) a categoria e o
+// ganhador de cada prêmio. Fallback pra lista fixa (BRINDES) enquanto carrega.
+// O ganhador só aparece quando `mostrarGanhador` (em teste, só mat 7).
+function CarrosselBrindes({ mostrarGanhador }) {
+  const [itens, setItens] = useState(null)
+  useEffect(() => {
+    let ativo = true
+    supabase.rpc('confra_sorteio_vitrine').then(({ data }) => {
+      if (ativo) setItens(Array.isArray(data) ? data : [])
+    })
+    return () => {
+      ativo = false
+    }
+  }, [])
+  const lista = itens && itens.length ? itens : BRINDES
   return (
     <div className="mt-4">
       <p className="mb-2 text-[13px] font-semibold text-text">Veja algumas das nossas premiações 🎁</p>
       <div className="flex snap-x snap-mandatory gap-3 overflow-x-auto pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        {BRINDES.map((b) => (
-          <div key={b.foto} className="w-[46%] shrink-0 snap-start">
+        {lista.map((b, i) => (
+          <div key={b.foto || i} className="w-[46%] shrink-0 snap-start">
             <div className="aspect-square w-full overflow-hidden rounded-card bg-white">
               <img src={b.foto} alt={b.nome} loading="lazy" className="h-full w-full object-contain" />
             </div>
             <div className="mt-2 text-[13px] font-bold leading-tight text-text">{b.nome}</div>
+            {b.categoria && <div className="mt-0.5 text-[11px] font-semibold text-accent">{b.categoria}</div>}
+            {mostrarGanhador && b.ganhador && (
+              <div className="mt-0.5 hstack gap-1 text-[11px] text-muted">
+                <Trophy size={11} className="shrink-0 text-accent" />
+                <span className="truncate">{b.ganhador}</span>
+              </div>
+            )}
           </div>
         ))}
       </div>
@@ -210,7 +231,7 @@ export function Confraternizacao() {
           <div className="mt-3">
             <SorteioConteudo />
           </div>
-          <CarrosselBrindes />
+          <CarrosselBrindes mostrarGanhador={mat7} />
         </Card>
       </Section>
 
