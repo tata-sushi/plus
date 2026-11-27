@@ -8,6 +8,7 @@ import { Card } from '../components/Card.jsx'
 import { ConfraCard } from '../components/ConfraCard.jsx'
 import { supabase } from '../lib/supabase.js'
 import { useAuth } from '../lib/AuthContext.jsx'
+import { ApuracaoSorteio } from '../components/ApuracaoSorteio.jsx'
 
 // Ganhadores do sorteio — em teste, só aparece pra matrícula 7. Lê a lista
 // gravada (confra_sorteio_ganhadores); some se ainda não há ninguém sorteado.
@@ -212,6 +213,9 @@ export function Confraternizacao() {
           <CarrosselBrindes />
         </Card>
       </Section>
+
+      {/* Apuração do sorteio (RH) — em teste, só mat 7 */}
+      {mat7 && <ApuracaoSorteio />}
 
       {/* Ganhadores do sorteio — em teste, só mat 7 */}
       {mat7 && <GanhadoresSorteio />}

@@ -256,10 +256,6 @@ export function Home() {
     { to: '/check-in', badgeIcon: QrCode, title: 'Check-in', subtitle: 'Presença por QR' },
     // Comemoração (Confraternização de fim de ano) — liberada pra todos.
     { to: '/confraternizacao', badgeIcon: PartyPopper, title: 'Comemoração', subtitle: 'Festa de fim de ano', festa: true },
-    // Sorteio TATÁ (apuração) — em teste, só matrícula 7.
-    ...(String(usuario?.matricula) === '7'
-      ? [{ to: '/sorteio', badgeIcon: Trophy, title: 'Sorteio', subtitle: 'Apuração dos prêmios' }]
-      : []),
     ].sort((a, b) => labelCurto(a.title).localeCompare(labelCurto(b.title), 'pt', { sensitivity: 'base' }))
     // Confraternização (destaque) sai da ordem alfabética e vai pro centro da grade.
     const _i = _arr.findIndex((c) => c.to === '/confraternizacao')
